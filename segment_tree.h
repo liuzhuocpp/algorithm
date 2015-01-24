@@ -2,29 +2,22 @@
 #define SEGMENT_TREE_H
 
 
-template<typename Value>
-class SegmentTree
+
+
+#include <functional>
+
+using std::plus;
+template<typename Value, typename Operator = plus<Value> >
+struct SegmentTree
 {
-public:
-
-    SegmentTree():c(0){}
-    SegmentTree(Value *a, int n) { build(a, n); }
-    ~SegmentTree() 
+#define ls (p << 1)
+#define rs (ls | 1)
+#define mid ((L + R) >> 1)
+    void build(const vector<Value> &a)
     {
-        if(c) delete [] c;
-    }
-    void build(Value *_a, int _n)
-    {        
-        if(c == 0) c = new Value[_n * 4 + 9];
-        else if(_n > n) 
-        {            
-            delete [] c;
-            c = new Value[_n * 4 + 9];
-        }
-
-        n = _n;
-        a = _a;
-        _build(1, 0, n - 1);
+        n = a.size();
+        c.assign(4 * n, 0);
+        _build(1, 0, n - 1, a);
     }
     void modify(int x, const Value &v)
     {
@@ -35,21 +28,16 @@ public:
         return _query(1, 0, n - 1, l, r);
     }
 private:
-    Value *c, *a;
-    int n;
-#define ls (p << 1)
-#define rs (ls | 1)
-#define mid ((L + R) >> 1)
-    void _build(int p, int L, int R)
+    template<typename Array>
+    void _build(int p, int L, int R, const Array &a)
     {
         if(L == R)
         {
-            c[p] = a[L];
-            return ;
+            c[p] = a[L]; return ;
         }
-        _build(ls, L, mid);
-        _build(rs, mid + 1, R);
-        c[p] = c[ls] + c[rs];
+        _build(ls, L, mid, a);
+        _build(rs, mid + 1, R, a);
+        c[p] = Operator()(c[ls], c[rs]);
     }
     void _modify(int p, int L, int R, int x, const Value &v)
     {
@@ -60,20 +48,22 @@ private:
         }
         if(x <= mid) _modify(ls, L, mid, x, v);
         else _modify(rs, mid + 1, R, x, v);
-        c[p] = c[ls] + c[rs];
+        c[p] = Operator()(c[ls], c[rs]);
     }
     Value _query(int p, int L, int R, int l, int r)
     {
         if(l == L && r == R) return c[p];
         if(r <= mid) return _query(ls, L, mid, l, r);
         else if(l > mid) return _query(rs, mid + 1, R, l, r);
-        else return _query(ls, L, mid, l, mid) + 
-                    _query(rs, mid + 1, R, mid + 1, r);
+        else return Operator()( _query(ls, L, mid, l, mid),
+                        _query(rs, mid + 1, R, mid + 1, r) );
     }
+    int n;
+    vector<Value> c;
 #undef mid
 #undef ls
 #undef rs
-    
+
 };
 
 
