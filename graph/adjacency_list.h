@@ -1,6 +1,0 @@
-#ifndef ADJACENT_LIST
-#define ADJACENT_LIST
-
-
-
-#endif // ADJACENT_LIST
