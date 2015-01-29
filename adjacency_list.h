@@ -13,7 +13,7 @@ using std::ostream;
 class AdjacencyList
 {
 public:
-    AdjacencyList(int n = 0):head(n, -1) {}
+    explicit AdjacencyList(int n = 0):head(n, -1) {}
     void clear(int n) { head.assign(n, -1); }
     inline int begin(int vid) const { return head[vid]; }
     inline int to(int eid) const { return e[eid].first; }
