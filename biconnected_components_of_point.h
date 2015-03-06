@@ -11,9 +11,9 @@ class BiconnectedComponentsOfPoint
 {
 public:
     BiconnectedComponentsOfPoint() {}
-    BiconnectedComponentsOfPoint(const AdjacencyList &_g) { shrink(_g); }
+    BiconnectedComponentsOfPoint(const AdjacencyList<> &_g) { shrink(_g); }
     ~BiconnectedComponentsOfPoint() { delete ng; }
-    void shrink(const AdjacencyList &_g)
+    void shrink(const AdjacencyList<> &_g)
     {
         g = &_g;
         int n = g->vertexNumber();
@@ -29,7 +29,7 @@ public:
 
         dfs(0, 0);
 
-        ng = new AdjacencyList;
+        ng = new AdjacencyList<>;
         ng->clear(tot);
         p.resize(tot);
         for(int i = 0; i < tot; ++ i)
@@ -38,7 +38,7 @@ public:
             else rt = i;
         }
     }
-    AdjacencyList &newTree() { return *ng; }
+    AdjacencyList<> &newTree() { return *ng; }
     vector<int> &parent() { return p; }
     vector<int> &newId() { return nid; }
     vector<bool> &isCut() { return iscut; }
@@ -78,8 +78,8 @@ private:
         }
     }
 
-    const AdjacencyList *g;
-    AdjacencyList *ng;
+    const AdjacencyList<> *g;
+    AdjacencyList<> *ng;
     vector<int> stk, low, dfn, p, nid;
     vector<bool> iscut;
     int inc, tot, rt;

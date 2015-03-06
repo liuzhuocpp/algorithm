@@ -10,8 +10,8 @@ class HeavyLightPath
     
 public:
     HeavyLightPath(){}
-    HeavyLightPath(const AdjacencyList &_g, int rt = 0){ decomposition(_g, rt); }
-    void decomposition(const AdjacencyList &_g, int rt = 0)
+    HeavyLightPath(const AdjacencyList<> &_g, int rt = 0){ decomposition(_g, rt); }
+    void decomposition(const AdjacencyList<> &_g, int rt = 0)
     {
         root = rt;
         g = &_g;
@@ -94,7 +94,7 @@ private:
             dfs2(to, u);
         }
     }
-    const AdjacencyList *g;
+    const AdjacencyList<> *g;
     vector<int> siz, son, dep, p, nid, top;
     // vector<int> np, ntop, ndep;
 
