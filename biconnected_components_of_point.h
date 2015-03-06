@@ -5,6 +5,10 @@
 #include <algorithm>
 
 #include "adjacency_list.h"
+
+namespace lz {
+
+
 using std::vector;
 using std::min;
 class BiconnectedComponentsOfPoint
@@ -85,5 +89,7 @@ private:
     int inc, tot, rt;
 };
 
+
+} // namespace lz
 
 #endif //BICONNECTED_COMPONENTS_H

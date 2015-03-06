@@ -5,6 +5,8 @@
 
 
 #include <functional>
+namespace lz {
+
 
 using std::plus;
 template<typename Value, typename Operator = plus<Value> >
@@ -66,6 +68,6 @@ private:
 
 };
 
-
+}// namespace lz
 
 #endif //end for SEGMENT_TREE_H

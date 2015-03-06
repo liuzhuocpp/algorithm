@@ -4,7 +4,14 @@
 #include <vector>
 #include <algorithm>
 #include "adjacency_list.h"
+
+namespace lz {
+
+
 using std::swap;
+using std::pair;
+using std::make_pair;
+
 class HeavyLightPath
 {
     
@@ -103,4 +110,5 @@ private:
 };
 
 
+} // namespace lz
 #endif //HEAVY_LIGHT_PATH_H
