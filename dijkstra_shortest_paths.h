@@ -6,8 +6,12 @@
 
 #include "adjacency_list.h"
 #include "heap.h"
+
+namespace lz {
+
+
+
 using std::vector;
-// AdjacencyList<> g;
 template<typename Value, typename Less = std::less<Value>, typename Plus = std::plus<Value> >
 class DijkstraShortestPaths
 {
@@ -32,7 +36,7 @@ public:
 	{
 		s = source;
 		int n = g.vertexNumber();
-		p.assign(n, -1);				
+		p.assign(n, -1);
 		d.assign(n, inf_value);
 		d[source] = zero_value;
 		Heap<Value, More> h(d);
@@ -57,7 +61,7 @@ public:
 	inline int parent(int u) const { return p[u]; }
 	inline Value distance(int u) const { return d[u]; }
 	inline int source() const { return s; }
-	vector<int> queryPath(int u)
+	vector<int> getPath(int u)
 	{
 		vector<int> r;
 		for(;u != -1; u = p[u]) r.push_back(u);
@@ -65,15 +69,9 @@ public:
 		return std::move(r);
 	}
 
-	// vector<Value>& distance() const{ return d; }
-private:
-	
-
-
-
 };
 
 
-
+}
 
 #endif // DIJKSTRA_SHORTEST_PATHS

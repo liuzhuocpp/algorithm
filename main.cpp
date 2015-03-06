@@ -1,22 +1,25 @@
 #include <iostream>
 #include <cstdio>
-// #include "adjacency_list.h"
-// #include "biconnected_components_of_point.h"
-// #include "heavy_light_path.h"
-// // #include "segment_tree.h"
-#include "heap.h"
+#include "adjacency_list.h"
+#include "biconnected_components_of_point.h"
+#include "heavy_light_path.h"
+#include "segment_tree.h"
+// #include "heap.h"
 
 #include "dijkstra_shortest_paths.h"
+
+#include "adjacency_list.h"
+
+
+
 using namespace std;
+using namespace lz;
 
 #define LL long long
 const LL inf = 0x7fffffffffffffffLL;
 int main()
 {
 
-	// vector<int> a = {99999, 99999, 99999, 99999, 99999};
-	// Heap<int> h(a);
-	// h.heapIdToInputId(0);
 
 
 
@@ -46,7 +49,7 @@ int main()
 	}
 	else
 	{
-		vector<int> o = d.queryPath(n - 1);	
+		vector<int> o = d.getPath(n - 1);	
 		for(int i = 0; i < o.size(); ++ i)
 		{
 			printf("%d ", o[i] + 1);

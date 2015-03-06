@@ -4,6 +4,10 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+
+namespace lz
+{
+
 using std::vector;
 using std::swap;
 using std::cout;
@@ -118,4 +122,8 @@ private:
 #undef rs
 #undef sz
 #undef last
+
+
+
+} // namespace lz
 #endif // HEAP_H
