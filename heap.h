@@ -45,6 +45,7 @@ public:
 		swap(input[heap[0]], input[heap[last(a)]]);
 		swap(heap[0], heap[last(a)]);
 		input[heap[last(a)]] = -1;
+		heap.pop_back();
 		a.pop_back();
 		down(0);
 	}
@@ -55,10 +56,6 @@ public:
 
 		if(last(heap) < last(a)) heap.push_back(last(input));
 		else heap[last(a)] = last(input);
-
-
-		
-
 		up(last(a));
 	}
 	void modify(int i, const Value &new_val)
@@ -74,10 +71,6 @@ public:
 			up(input[i]);
 		}
 	}
-
-
-
-
 private:
 	void up(int u)
 	{
@@ -110,7 +103,6 @@ private:
 			else return ;
 		}
 	}
-	
 	vector<int> input, heap;
 	vector<Value> a;
 	Less less;
