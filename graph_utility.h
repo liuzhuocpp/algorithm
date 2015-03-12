@@ -10,7 +10,7 @@
 struct NoProperty{};
 
 /*
-	for an edge, from vertex called begin, to vertex called end
+	for an adjacency edge, from vertex called begin, to vertex called end
 */ 
 template<typename _EdgeProperty>
 struct AdjacencyEdge

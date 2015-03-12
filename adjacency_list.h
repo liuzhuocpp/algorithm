@@ -194,19 +194,32 @@ public:
     // AdjacencyEdge
     class AdjacencyEdgeIterator
     {
-        AdjacencyList<VertexProperty, EdgeProperty, GraphProperty> *al;
+        vector<_ALEdge<EdgeProperty> > *e;
         int eid;
+        AdjacencyEdgeIterator(vector<_ALEdge<EdgeProperty> > *_e, int _eid):
+            e(_e), eid(_eid){}
     public:
-        AdjacencyEdgeIterator();
-        AdjacencyEdgeIterator operator++();
-        AdjacencyEdgeIterator operator++(int);
-        bool operator==(const AdjacencyEdgeIterator &o);
-        bool operator!=(const AdjacencyEdgeIterator &o);
-        AdjacencyEdge<EdgeProperty>& operator*();
-        AdjacencyEdge<EdgeProperty>* operator->();
+        AdjacencyEdgeIterator():e(0), eid(-1){};
+        AdjacencyEdgeIterator& operator++()
+        {
+            eid = (*e)[eid].next;
+            return *this;
+        }
+        AdjacencyEdgeIterator operator++(int)
+        {
+            AdjacencyEdgeIterator t(e, eid);
+            eid = (*e)[eid].next;
+            return t;
+        }
+        bool operator==(const AdjacencyEdgeIterator &o) const { return e == o.e && eid == o.eid; }
+        bool operator!=(const AdjacencyEdgeIterator &o) const { return !(*this == o); }
+        AdjacencyEdge<EdgeProperty>& operator*() { return (*e)[eid].ae;  }
+        AdjacencyEdge<EdgeProperty>* operator->() { return &((*e)[eid].ae); }
     };
-    AdjacencyEdgeIterator beginAdjacencyEdge(int v) const;
-    AdjacencyEdgeIterator endAdjacencyEdge(int v) const;
+    AdjacencyEdgeIterator beginAdjacencyEdge(int i) const 
+        { return AdjacencyEdgeIterator(&e, v[i].head); }
+    AdjacencyEdgeIterator endAdjacencyEdge(int i) const
+        { return AdjacencyEdgeIterator(&e, -1); }
 
 
 
