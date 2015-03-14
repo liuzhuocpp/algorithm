@@ -43,7 +43,7 @@ public:
 	{
 	public:
 		AdjacencyEdgeIterator();
-		AdjacencyEdgeIterator operator++();
+		AdjacencyEdgeIterator& operator++();
 		AdjacencyEdgeIterator operator++(int);
 		bool operator==(const AdjacencyEdgeIterator &o);
 		bool operator!=(const AdjacencyEdgeIterator &o);

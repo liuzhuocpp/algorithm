@@ -9,9 +9,8 @@
 
 namespace lz {
 
-using std::tuple;
+
 using std::vector;
-using std::get;
 using std::cout;
 using std::endl;
 
@@ -111,14 +110,14 @@ using std::endl;
 
 
 // define vertex info in AdjacencyList
-template<typename VertexProperty>
+template<typename VP>
 struct _ALVertex
 {
     int head;
-    VertexProperty vp;
-    _ALVertex(const int& _head, const VertexProperty &_vp):
+    VP vp;
+    _ALVertex(const int& _head, const VP &_vp):
         head(_head), vp(_vp){}
-    _ALVertex(int && _head, VertexProperty &&_vp):
+    _ALVertex(int && _head, VP &&_vp):
         head(_head), vp(_vp){}
 };
 template<>
@@ -131,59 +130,52 @@ struct _ALVertex<NoProperty>
         head(_head){}
 
 };
-
 // define edge info in AdjacencyList
-template<typename EdgeProperty>
+template<typename EP>
 struct _ALEdge
 {
-    AdjacencyEdge<EdgeProperty> ae;
+    AdjacencyEdge<EP> ae;
     int next;
 };
 
 
-
-
-template<typename _VertexProperty = NoProperty, 
-         typename _EdgeProperty = NoProperty, 
-         typename _GraphProperty= NoProperty >
+template<typename VP = NoProperty, 
+         typename EP = NoProperty, 
+         typename GP = NoProperty >
 class AdjacencyList
 {
 public:
-    typedef _VertexProperty VertexProperty;
-    typedef _EdgeProperty EdgeProperty;
-    typedef _GraphProperty GraphProperty;   
+    typedef VP VertexProperty;
+    typedef EP EdgeProperty;
+    typedef GP GraphProperty;
 
-    explicit AdjacencyList(int n = 0, GraphProperty _gp = GraphProperty()):
-        v(n, _ALVertex<VertexProperty>(-1, VertexProperty())), gp(_gp) {}
-    // AdjacencyList(const Graph&);
-    // AdjacencyList(Graph&&);
-    // AdjacencyList& operator=(const Graph&);
-    // AdjacencyList& operator=(Graph&&);
-    // ~AdjacencyList();
-
+    explicit AdjacencyList(int n = 0, const GP _gp = GP()):
+        v(n, _ALVertex<VP>(-1, VP())), gp(_gp) {}
     void clear(int n)
     {
-        v.assign(n, _ALVertex<VertexProperty>(-1, VertexProperty()));
+        v.assign(n, _ALVertex<VP>(-1, VP()));
         e.clear();
     }
-    VertexProperty& vertexProperty(int i) { return v[i].vp; }
-    GraphProperty& graphProperty() { return gp; }; 
+    VP& vertexProperty(int i) { return v[i].vp; }
+    GP& graphProperty() { return gp; }; 
 
-    void add(int a, int b, const EdgeProperty & ep)
+    void add(int a, int b, const EP & ep = EP())
     {
-        _ALEdge<EdgeProperty> ale;
-        ale.ae = AdjacencyEdge<EdgeProperty>(v[a].head, ep);
-        ale.next = int(e.size()) - 1;
+        _ALEdge<EP> ale;
+        ale.ae = AdjacencyEdge<EP>(b, ep);
+        ale.next = v[a].head;
         e.push_back(std::move(ale));
+        v[a].head = int(e.size()) - 1;
     }
-    void add(int a, int b, EdgeProperty && ep)
+    void add(int a, int b, EP && ep)
     {
-        _ALEdge<EdgeProperty> ale;
-        ale.ae = AdjacencyEdge<EdgeProperty>(std::move(v[a].head), ep);
-        ale.next = int(e.size()) - 1;
+        _ALEdge<EP> ale;
+        ale.ae = AdjacencyEdge<EP>(b, std::move(ep));
+        ale.next = v[a].head;
         e.push_back(std::move(ale));
+        v[a].head = int(e.size()) - 1;
     }
-    void addBidirection(int a, int b, const EdgeProperty & ep) 
+    void addBidirection(int a, int b, const EP & ep = EP()) 
     {
         add(a, b, ep);
         add(b, a, ep);
@@ -191,42 +183,38 @@ public:
     inline int vertexNumber() const { return v.size(); }
     inline int edgeNumber() const { return e.size(); }
 
-    // AdjacencyEdge
-    class AdjacencyEdgeIterator
+    // adjacency edge iterator
+    class Iterator
     {
-        vector<_ALEdge<EdgeProperty> > *e;
+        friend class AdjacencyList<VP, EP, GP>;
+        vector<_ALEdge<EP> > *e;
         int eid;
-        AdjacencyEdgeIterator(vector<_ALEdge<EdgeProperty> > *_e, int _eid):
+        Iterator(vector<_ALEdge<EP> > *_e, int _eid):
             e(_e), eid(_eid){}
     public:
-        AdjacencyEdgeIterator():e(0), eid(-1){};
-        AdjacencyEdgeIterator& operator++()
+        Iterator():e(0), eid(-1){};
+        Iterator& operator++()
         {
             eid = (*e)[eid].next;
             return *this;
         }
-        AdjacencyEdgeIterator operator++(int)
+        Iterator operator++(int)
         {
-            AdjacencyEdgeIterator t(e, eid);
+            Iterator t(e, eid);
             eid = (*e)[eid].next;
             return t;
         }
-        bool operator==(const AdjacencyEdgeIterator &o) const { return e == o.e && eid == o.eid; }
-        bool operator!=(const AdjacencyEdgeIterator &o) const { return !(*this == o); }
-        AdjacencyEdge<EdgeProperty>& operator*() { return (*e)[eid].ae;  }
-        AdjacencyEdge<EdgeProperty>* operator->() { return &((*e)[eid].ae); }
+        bool operator==(const Iterator &o) const { return e == o.e && eid == o.eid; }
+        bool operator!=(const Iterator &o) const { return !(*this == o); }
+        AdjacencyEdge<EP>& operator*() { return (*e)[eid].ae;  }
+        AdjacencyEdge<EP>* operator->() { return &((*e)[eid].ae); }
     };
-    AdjacencyEdgeIterator beginAdjacencyEdge(int i) const 
-        { return AdjacencyEdgeIterator(&e, v[i].head); }
-    AdjacencyEdgeIterator endAdjacencyEdge(int i) const
-        { return AdjacencyEdgeIterator(&e, -1); }
-
-
-
+    Iterator begin(int i) { return Iterator(&e, v[i].head); }
+    Iterator end(int i) { return Iterator(&e, -1); }
 private:
-    vector<_ALVertex<VertexProperty> > v;
-    vector<_ALEdge<EdgeProperty> > e;
-    GraphProperty gp;
+    vector<_ALVertex<VP> > v;
+    vector<_ALEdge<EP> > e;
+    GP gp;
 };
 
 

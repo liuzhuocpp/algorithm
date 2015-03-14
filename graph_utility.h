@@ -4,7 +4,7 @@
 
 
 /*
-	this header file define some base classes and function
+	this header file define some base classes and functions
 */
 
 struct NoProperty{};
@@ -12,15 +12,15 @@ struct NoProperty{};
 /*
 	for an adjacency edge, from vertex called begin, to vertex called end
 */ 
-template<typename _EdgeProperty>
+template<typename EP>
 struct AdjacencyEdge
 {
 	int end;
-	_EdgeProperty property;
+	EP property;
 	AdjacencyEdge(){}
-	AdjacencyEdge(const int& _end, const _EdgeProperty& ep):
+	AdjacencyEdge(const int& _end, const EP& ep):
 				end(_end), property(ep){}
-	AdjacencyEdge(int&& _end, _EdgeProperty&& ep):
+	AdjacencyEdge(int&& _end, EP&& ep):
 				end(_end), property(ep){}
 };
 template<>

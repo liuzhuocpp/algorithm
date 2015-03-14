@@ -19,6 +19,20 @@ using namespace lz;
 const LL inf = 0x7fffffffffffffffLL;
 int main()
 {
+	cout << "FUCK " << endl;
+	AdjacencyList<> g(5);
+	cout << "FF " << endl;
+	g.add(0, 4);
+	g.add(0, 3);
+	g.add(0, 1);
+	g.add(0, 0);
+	AdjacencyList<>::Iterator it;
+	
+	for(it = g.begin(0); it != g.end(0); ++ it)
+	{
+		cout << it->end << endl;
+	}
+
 
 
 
