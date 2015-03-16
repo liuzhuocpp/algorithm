@@ -7,82 +7,37 @@
 // #include "segment_tree.h"
 // #include "heap.h"
 
-#include "segment_tree.h"
-#include "dijkstra_shortest_paths.h"
+// #include "segment_tree.h"
+// #include "dijkstra_shortest_paths.h"
 
-#include "adjacency_list.h"
+// #include "adjacency_list.h"
+// #include "multi_array.h"
+// #include "boost/multi_array.hpp"
+#include "multi_array.h"
 
-
-
+// using namespace boost;
 using namespace std;
 using namespace lz;
 
-#define LL long long
-const LL inf = 0x7fffffffffffffffLL;
 
-struct Plus
-{
-	LL operator()(LL a, int b)
-	{
-		return a + b;
-	}
-
-};
 
 int main()
 {
-	typedef AdjacencyList<NoProperty, tuple<LL> > Graph;
-    Graph g;
-    DijkstraShortestPaths<Graph, LL, 0, Plus> d;
-    int n, m;
-    scanf("%d%d", &n, &m);
-    g.clear(n, 2 * m);
-    while(m --)
+    int n = 6, m = 4;
+
+    MultiArray<int, 2> ma(extents[n][m]);
+
+    cout << "FFFFFFFFFFFFFFFFFFFFFFFF" << endl;
+
+    for(int i = 0; i < n; ++ i)
     {
-        int a, b, w;
-        scanf("%d%d%d", &a, &b, &w);
-        a --;
-        b --;
-        g.addBidirection(a, b, make_tuple(w));
-    }
-    d.calculate(g, 0, 0, inf);
-
-
-
-
-    if(d.distance(n - 1) == inf)
-    {
-        printf("-1\n");
-    }
-    else
-    {
-        vector<int> o = d.getPath(n - 1);
-        for(int i = 0; i < o.size(); ++ i)
+        for(int j = 0; j < m; ++ j)
         {
-            printf("%d ", o[i] + 1);
+            ma[i][j] = -1;
+            cout << ma[i][j] << endl;
         }
-        puts("");
     }
-
-
-	// cout << "FUCK " << endl;
-	// AdjacencyList<> g(5);
-	// cout << "FF " << endl;
-	// g.add(0, 4);
-	// g.add(0, 3);
-	// g.add(0, 1);
-	// g.add(0, 0);
-	// AdjacencyList<>::Iterator it;
-
-	// cout << sizeof(AdjacencyList<>) << endl;
-	
-	// for(it = g.begin(0); it != g.end(0); ++ it)
-	// {
-	// 	cout << it->end << endl;
-	// }
-
-
-
+    
 
 
 
