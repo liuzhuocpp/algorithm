@@ -12,14 +12,14 @@ using std::swap;
 using std::cout;
 using std::endl;
 
-#define p(x) (((x + 1) >> 1) - 1)
-#define ls(x) (((x + 1) << 1) - 1)
-#define rs(x) (ls(x) + 1)
-#define sz(x) (int(x.size()))
-#define last(x) (sz(x) - 1)
 template<typename Value, typename Less = std::less<Value> >
 class Heap
 {
+	inline static int p(int x) { return ((x + 1) >> 1) - 1; }
+	inline static int ls(int x) { return ((x + 1) << 1) - 1; }
+	inline static int rs(int x) { return ls(x) + 1; }
+	template<typename T> inline static int sz(const T &x) { return int(x.size()); }
+	template<typename T> inline static int last(const T &x) { return sz(x) - 1; }
 public:
 	Heap(){}
 	Heap(const vector<Value> &v)
@@ -106,11 +106,6 @@ private:
 
 };
 
-#undef p
-#undef ls
-#undef rs
-#undef sz
-#undef last
 
 
 

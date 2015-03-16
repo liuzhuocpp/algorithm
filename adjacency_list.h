@@ -271,4 +271,4 @@ private:
 } // namespace lz
 
 
-#endif //ADJACENCY_LIST_H
+#endif // ADJACENCY_LIST_H

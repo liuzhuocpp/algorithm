@@ -1,5 +1,5 @@
-#ifndef DIJKSTRA_SHORTEST_PATHS
-#define DIJKSTRA_SHORTEST_PATHS
+#ifndef DIJKSTRA_SHORTEST_PATHS_H
+#define DIJKSTRA_SHORTEST_PATHS_H
 
 #include <vector>
 #include <algorithm>
@@ -76,4 +76,4 @@ public:
 
 }
 
-#endif // DIJKSTRA_SHORTEST_PATHS
+#endif // DIJKSTRA_SHORTEST_PATHS_H

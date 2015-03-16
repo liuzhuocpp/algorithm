@@ -7,6 +7,7 @@
 // #include "segment_tree.h"
 // #include "heap.h"
 
+#include "segment_tree.h"
 #include "dijkstra_shortest_paths.h"
 
 #include "adjacency_list.h"

@@ -5,16 +5,21 @@
 
 
 #include <functional>
+#include <vector>
 namespace lz {
 
-
-using std::plus;
-template<typename Value, typename Operator = plus<Value> >
-struct SegmentTree
-{
 #define ls (p << 1)
 #define rs (ls | 1)
 #define mid ((L + R) >> 1)
+
+using std::plus;
+using std::vector;
+
+template<typename Value, typename Plus = plus<Value> >
+class SegmentTree
+{    
+public:
+
     void build(const vector<Value> &a)
     {
         n = a.size();
@@ -39,7 +44,7 @@ private:
         }
         _build(ls, L, mid, a);
         _build(rs, mid + 1, R, a);
-        c[p] = Operator()(c[ls], c[rs]);
+        c[p] = Plus()(c[ls], c[rs]);
     }
     void _modify(int p, int L, int R, int x, const Value &v)
     {
@@ -50,24 +55,26 @@ private:
         }
         if(x <= mid) _modify(ls, L, mid, x, v);
         else _modify(rs, mid + 1, R, x, v);
-        c[p] = Operator()(c[ls], c[rs]);
+        c[p] = Plus()(c[ls], c[rs]);
     }
     Value _query(int p, int L, int R, int l, int r)
     {
         if(l == L && r == R) return c[p];
         if(r <= mid) return _query(ls, L, mid, l, r);
         else if(l > mid) return _query(rs, mid + 1, R, l, r);
-        else return Operator()( _query(ls, L, mid, l, mid),
+        else return Plus()( _query(ls, L, mid, l, mid),
                         _query(rs, mid + 1, R, mid + 1, r) );
     }
     int n;
     vector<Value> c;
+
+};
+
+
 #undef mid
 #undef ls
 #undef rs
 
-};
-
 }// namespace lz
 
-#endif //end for SEGMENT_TREE_H
+#endif // SEGMENT_TREE_H
