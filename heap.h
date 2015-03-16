@@ -5,8 +5,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace lz
-{
+namespace lz {
 
 using std::vector;
 using std::swap;
@@ -53,9 +52,7 @@ public:
 	{
 		a.push_back(val);
 		input.push_back(last(a));
-
-		if(last(heap) < last(a)) heap.push_back(last(input));
-		else heap[last(a)] = last(input);
+		heap.push_back(last(input));		
 		up(last(a));
 	}
 	void modify(int i, const Value &new_val)

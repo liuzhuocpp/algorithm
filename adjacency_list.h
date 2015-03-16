@@ -111,28 +111,27 @@ using std::endl;
 
 // define vertex info in AdjacencyList
 template<typename VP>
-struct _ALVertex
+struct ALVertex
 {
     int head;
     VP vp;
-    _ALVertex(const int& _head, const VP &_vp):
+    ALVertex(const int& _head, const VP &_vp):
         head(_head), vp(_vp){}
-    _ALVertex(int && _head, VP &&_vp):
+    ALVertex(int && _head, VP &&_vp):
         head(_head), vp(_vp){}
 };
 template<>
-struct _ALVertex<NoProperty>
+struct ALVertex<NoProperty>
 {
     int head;
-    _ALVertex(const int& _head, const NoProperty &_vp):
+    ALVertex(const int& _head, const NoProperty &_vp):
         head(_head){}
-    _ALVertex(int && _head, NoProperty &&_vp):
+    ALVertex(int && _head, NoProperty &&_vp):
         head(_head){}
-
 };
 // define edge info in AdjacencyList
 template<typename EP>
-struct _ALEdge
+struct ALEdge
 {
     AdjacencyEdge<EP> ae;
     int next;
@@ -149,19 +148,23 @@ public:
     typedef EP EdgeProperty;
     typedef GP GraphProperty;
 
-    explicit AdjacencyList(int n = 0, const GP _gp = GP()):
-        v(n, _ALVertex<VP>(-1, VP())), gp(_gp) {}
-    void clear(int n)
+    explicit AdjacencyList(int n = 0, int expect_m = 0, const GP _gp = GP()):
+        v(n, ALVertex<VP>(-1, VP())), gp(_gp) 
+        {
+            e.reserve(expect_m);
+        }
+    void clear(int n, int expect_m = 0)
     {
-        v.assign(n, _ALVertex<VP>(-1, VP()));
+        v.assign(n, ALVertex<VP>(-1, VP()));
         e.clear();
+        e.reserve(expect_m);
     }
     VP& vertexProperty(int i) { return v[i].vp; }
-    GP& graphProperty() { return gp; }; 
+    GP& graphProperty() { return gp; }
 
     void add(int a, int b, const EP & ep = EP())
     {
-        _ALEdge<EP> ale;
+        ALEdge<EP> ale;
         ale.ae = AdjacencyEdge<EP>(b, ep);
         ale.next = v[a].head;
         e.push_back(std::move(ale));
@@ -169,8 +172,8 @@ public:
     }
     void add(int a, int b, EP && ep)
     {
-        _ALEdge<EP> ale;
-        ale.ae = AdjacencyEdge<EP>(b, std::move(ep));
+        ALEdge<EP> ale;
+        ale.ae = AdjacencyEdge<EP>(std::move(b), std::move(ep));
         ale.next = v[a].head;
         e.push_back(std::move(ale));
         v[a].head = int(e.size()) - 1;
@@ -183,16 +186,16 @@ public:
     inline int vertexNumber() const { return v.size(); }
     inline int edgeNumber() const { return e.size(); }
 
-    // adjacency edge iterator
+    // adjacency edge iterator    
     class Iterator
     {
         friend class AdjacencyList<VP, EP, GP>;
-        vector<_ALEdge<EP> > *e;
+        vector<ALEdge<EP> > *e;
         int eid;
-        Iterator(vector<_ALEdge<EP> > *_e, int _eid):
+        Iterator(vector<ALEdge<EP> > *_e, int _eid):
             e(_e), eid(_eid){}
     public:
-        Iterator():e(0), eid(-1){};
+        Iterator():e(0), eid(-1){}
         Iterator& operator++()
         {
             eid = (*e)[eid].next;
@@ -211,9 +214,49 @@ public:
     };
     Iterator begin(int i) { return Iterator(&e, v[i].head); }
     Iterator end(int i) { return Iterator(&e, -1); }
+
+
+    class ConstIterator
+    {
+        friend class AdjacencyList<VP, EP, GP>;
+        const vector<ALEdge<EP> > *e;
+        int eid;
+        ConstIterator(const vector<ALEdge<EP> > *_e, int _eid):
+            e(_e), eid(_eid){}
+    public:
+        ConstIterator():e(0), eid(-1){}
+        ConstIterator& operator++()
+        {
+            eid = (*e)[eid].next;
+            return *this;
+        }
+        ConstIterator operator++(int)
+        {
+            ConstIterator t(e, eid);
+            eid = (*e)[eid].next;
+            return t;
+        }
+        bool operator==(const ConstIterator &o) const { return e == o.e && eid == o.eid; }
+        bool operator!=(const ConstIterator &o) const { return !(*this == o); }
+        const AdjacencyEdge<EP>& operator*() const { return (*e)[eid].ae;  }
+        const AdjacencyEdge<EP>* operator->() const { return &((*e)[eid].ae); }
+    };
+    ConstIterator begin(int i) const { return ConstIterator(&e, v[i].head); }    
+    ConstIterator end(int i) const { return ConstIterator(&e, -1); }
+
+    typedef Iterator iterator;
+    typedef ConstIterator const_iterator;
+
+
+
+
+
+
+
+    AdjacencyEdge<EP>& edge(int eid) { return e[eid].ae; }
 private:
-    vector<_ALVertex<VP> > v;
-    vector<_ALEdge<EP> > e;
+    vector<ALVertex<VP> > v;
+    vector<ALEdge<EP> > e;
     GP gp;
 };
 
