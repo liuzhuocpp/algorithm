@@ -12,6 +12,8 @@ struct NoProperty{};
 /*
 	for an edge, a vertex called begin, other vertex called end
 */ 
+
+		
 template<typename EP>
 struct AdjacencyEdge
 {
@@ -67,7 +69,7 @@ public:
 	typedef EP EdgeProperty;
 	typedef GP GraphProperty;
 
-	explicit Graph(int n = 0, GP _gp);
+	explicit Graph(int n = 0, const GP _gp = GP());
 	void clear(int n);
 	VP& vertexProperty(int v);
 	GP& graphProperty();
