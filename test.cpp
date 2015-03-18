@@ -1,9 +1,9 @@
 
 
-
-#include <algorithm>
 void  f()
-{	
-	int a = 10;
-	int b = std::move(a);
+{		
+	// int &&a = -11;
+	int a = -11;
+
+
 }
