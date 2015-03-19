@@ -25,7 +25,7 @@ public:
 	virtual void initializeVertex(){}
 	virtual void startVertex(){}
 	virtual void discoverVertex(){}
-	virtual void examineVdge(){}
+	virtual void examineEdge(){}
 	virtual void treeEdge(){}
 	virtual void backEdge(){}
 	virtual void forwardOrCrossEdge(){}

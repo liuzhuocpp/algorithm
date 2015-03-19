@@ -17,11 +17,21 @@ struct NoProperty{};
 template<typename EP>
 struct AdjacencyEdge
 {
-	int end;
-	EP property;
-	AdjacencyEdge() = default;
-	AdjacencyEdge(const int &_end, const EP& ep): end(_end), property(ep){}
-	AdjacencyEdge(const int &_end, EP&& ep): end(_end), property(ep){}
+	int *t;
+	EP *p;
+	AdjacencyEdge() = delete;
+public:
+	
+	AdjacencyEdge(int &_t, EP &_p):t(&_t), p(&_p) {}
+
+	
+	const int& to() const { return *t; }
+	int& to() { return *t; }
+
+	const EP& property() const { return *p; }
+	EP &property() { return *p; }
+
+
 };
 template<>
 struct AdjacencyEdge<NoProperty>
