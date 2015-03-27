@@ -8,6 +8,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vector>
 #include <boost/property_map/property_map.hpp>
 
 using namespace boost;
@@ -19,9 +20,14 @@ int main()
 {
 
 	 typedef property<edge_weight_t, int, property<edge_index_t , int> > EdgeWeightProperty;
-	 typedef boost::adjacency_list<listS, vecS, directedS, no_property, 		
- 		EdgeWeightProperty > Graph;
+	 typedef boost::adjacency_list<listS, vecS, directedS, EdgeWeightProperty, 		
+ 		EdgeWeightProperty , EdgeWeightProperty > Graph;
 
+
+ 	cout << sizeof(int*) << endl;
+ 	cout << sizeof (vector<int> ) << endl;
+
+ 	cout << sizeof (Graph) << endl;
  	Graph g;
  	add_edge(0, 1, 8, g);
  	add_edge(0, 3, 18, g);
