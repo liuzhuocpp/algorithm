@@ -58,7 +58,7 @@ int main()
 		cout << "ZZZZZZZZZz  " << *oi << endl;;
 		cout << "coaLL " << source(*oi, g) << endl;
 
-		cout << "FUCK " << get(edge_weight_t(),g,  *oi) << endl;
+		cout << "FUCK " << get(edge_weight_t(), g,  *oi) << endl;
 	}
 
 
