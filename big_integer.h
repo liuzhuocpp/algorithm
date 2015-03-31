@@ -28,7 +28,7 @@ using std::endl;
 
             explicit U(super &&a):super(a) {}
         public:
-            U():super(1, a) {}
+            U():super(1, 0) {}
             explicit U(const uint &a): super(1, a) { }         
 
 
