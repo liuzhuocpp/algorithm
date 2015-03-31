@@ -25,13 +25,16 @@ using std::endl;
             
 
             typedef vector<uint> super;
+
+            explicit U(super &&a):super(a) {}
         public:
-            U(){}
-            explicit U(const uint &a): super(1, a) { }
+            U():super(1, a) {}
+            explicit U(const uint &a): super(1, a) { }         
+
 
             friend U operator+(const U &a, const U &b)
             {
-                U r;
+                super r;
                 duint t = 0;
 
                 const U *pa, *pb;
@@ -49,7 +52,7 @@ using std::endl;
                 }
                 if(t != 0) r.push_back(t);
                 cout << "VAO " << endl;
-                return r;
+                return U(r);
             }
 
 
