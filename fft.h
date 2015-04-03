@@ -14,7 +14,7 @@ using std::endl;
 /*
     0.n is power of two
     1.w(n, 0) == 1
-    2.w(n, k), k = {0, 1, ..., n - 1} is different from each other
+****2.w(n, k), k = {0, 1, ..., n - 1} is different from each other
     3.w(n, k) == w(n, k + n), k = {0, 1, ..., n - 1}
 ****4.w(n, 2 * k) == w(n / 2, k), k = {0, 1, ..., n /2 - 1}
 ****5.w(n, k) == -w(n, k + n / 2)
