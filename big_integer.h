@@ -13,24 +13,31 @@ using std::vector;
 using std::numeric_limits;
 using std::cout;
 using std::endl;
+using std::string;
+
     namespace BigIntegerPrivate {
 
-        template<typename uint, typename duint>
-        class U: private vector<uint>
+        typedef unsigned uint;
+        typedef unsigned long long duint;
+        typedef vector<uint> super;
+        class U: private super
         {
             template<typename T> 
             static int sz(const T &o) { return int(o.size()); }
 
-            constexpr static duint radix = numeric_limits<uint>::max() + 1;
+            constexpr static duint radix = 10000000000;
             
 
-            typedef vector<uint> super;
-
-            explicit U(super &&a):super(a) {}
+            explicit U(super &a):super(a) {}
         public:
             U():super(1, 0) {}
-            explicit U(const uint &a): super(1, a) { }         
 
+            explicit U(const uint &a): super(1, a) { }         
+            string toString() const
+            {
+
+
+            }
 
             friend U operator+(const U &a, const U &b)
             {
