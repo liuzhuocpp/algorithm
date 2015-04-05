@@ -12,23 +12,27 @@ using std::endl;
 
 
 /*
-    0.n is power of two
-    1.w(n, 0) == 1
-****2.w(n, k), k = {0, 1, ..., n - 1} is different from each other
-    3.w(n, k) == w(n, k + n), k = {0, 1, ..., n - 1}
-****4.w(n, 2 * k) == w(n / 2, k), k = {0, 1, ..., n /2 - 1}
-****5.w(n, k) == -w(n, k + n / 2)
-    [w(n, 0 * 0),       w(n, 0 * 1), ...,       w(n, 0 * (n - 1))]       a(0)       y(0)
-    [w(n, 1 * 0),       w(n, 1 * 1), ...,       w(n, 1 * (n - 1))]       a(1)       y(1)
+****0.w(n, k), k = {0, 1, ..., n - 1} is different from each other
+****1.n is power of 2
+****2.w(n, 2 * k) == w(n / 2, k), k = {0, 1, ..., n /2 - 1}
+****3.w(n, k) == w(n, k + n), k = {0, 1, ..., n - 1}
+  **4.w(n, 0) == 1
+    5.w(n, k) == -w(n, k + n / 2), 0 < k < n/2
+
+    [w(n, 0*0),     w(n, 0*1), ...,    w(n, 0*(n - 1))]       a(0)       y(0)
+    [w(n, 1*0),     w(n, 1*1), ...,    w(n, 1* (n - 1))]       a(1)       y(1)
         .
-        .                                                                         =
+        .                                                   =
         .
-    [w(n, (n - 1) * 0), w(n, (n - 1) * 1), ..., w(n, (n - 1) * (n - 1))] a(n-1)     y(n - 1)
+    [w(n, (n-1)*0), w(n, (n-1)*1), ...,w(n, (n-1)*(n-1))]      a(n-1)     y(n - 1)
 
 
 
 
 */
+
+
+
 
 template<typename T, typename W>
 class FFT
@@ -40,35 +44,45 @@ class FFT
             if(x >> i & 1) r |= 1 << (n - 1 - i);
         return r;
     }
+    static vector<T> y;
 public:
-    static vector<T> transform(const vector<T> &a) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
+    static void transform(vector<T> &a) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
     {
         W w;
         int bn = 0, t = 1, n = a.size();
         while(t != n) t <<= 1, bn ++;
 
         // cout << bn << " " << n << endl;
-        vector<T> y(n);
-
-        for(int i = 0; i < n; ++ i) y[rev(bn, i)] = a[i];
+        for(int i = 0; i < n; ++ i) y[i] = a[i];
+        for(int i = 0; i < n; ++ i) a[rev(bn, i)] = y[i];
         for(int l = 2; l <= n; l <<= 1)
         {
+            T wn = w(l, 1);
+            T wn1 = w(l, l / 2);
             for(int i = 0; i < n; i += l)
             {
+                T wb = w(l, 0);                
                 for(int k = i; k < i + l / 2; ++ k)
                 {
-                    T y0 = y[k];
-                    T y1 = y[k + l / 2];
-
-                    y[k] = y0 + w(l, k) * y1;
-                    y[k + l / 2] = y0 + w(l, k + l / 2) * y1;
+                    // T u = a[k], v = wb * a[k + l / 2];
+                    // a[k] = u + v;
+                    // a[k + l / 2] = u - v;
+                    // wb *= wn;
+                    T u = a[k], v = a[k + l / 2];
+                    a[k] = u + wb * v;
+                    a[k + l / 2] = u + wb * wn1 * v;
+                    wb *= wn;
+                    
                 }
             }
         }
-        return y;
+        // return y;
     }
 
 };
+
+template<typename T, typename W>
+vector<T> FFT<T, W>::y(int(2e5 + 9));
 
 
 
