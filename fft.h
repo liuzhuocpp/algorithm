@@ -8,7 +8,7 @@ namespace lz {
 using std::vector;
 using std::cout;
 using std::endl;
-
+using std::max;
 
 
 /*
@@ -34,7 +34,7 @@ using std::endl;
 
 
 
-template<typename T, typename W>
+template<typename T, typename Vector = vector<T> >
 class FFT
 {    
     static int rev(int n, int x)
@@ -44,16 +44,16 @@ class FFT
             if(x >> i & 1) r |= 1 << (n - 1 - i);
         return r;
     }
-    static vector<T> y;
+    
 public:
-    static void transform(vector<T> &a) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
+    template<typename W>
+    static void transform(Vector &a) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
     {
         W w;
         int bn = 0, t = 1, n = a.size();
         while(t != n) t <<= 1, bn ++;
 
-        // cout << bn << " " << n << endl;
-        for(int i = 0; i < n; ++ i) y[i] = a[i];
+        Vector y(a);
         for(int i = 0; i < n; ++ i) a[rev(bn, i)] = y[i];
         for(int l = 2; l <= n; l <<= 1)
         {
@@ -61,28 +61,40 @@ public:
             T wn1 = w(l, l / 2);
             for(int i = 0; i < n; i += l)
             {
-                T wb = w(l, 0);                
+                T wb = w(l, 0);
                 for(int k = i; k < i + l / 2; ++ k)
-                {
-                    // T u = a[k], v = wb * a[k + l / 2];
-                    // a[k] = u + v;
-                    // a[k + l / 2] = u - v;
-                    // wb *= wn;
+                {                    
                     T u = a[k], v = a[k + l / 2];
                     a[k] = u + wb * v;
                     a[k + l / 2] = u + wb * wn1 * v;
                     wb *= wn;
-                    
                 }
             }
         }
-        // return y;
+    }
+    template<typename W, typename NW>
+    static Vector multiply(Vector &a, Vector &b)
+    {
+        int an = a.size();
+        int bn = b.size();
+        int n = 1;
+        while(n < max(an, bn)) n <<= 1;
+        n <<= 1;
+        while(a.size() < n) a.push_back(0);
+        while(b.size() < n) b.push_back(0);
+
+        transform<W>(a);
+        transform<W>(b);
+        Vector c(n);
+        for(int i = 0; i < n; ++ i) c[i] = a[i] * b[i];
+        transform<NW>(c);
+        for(int i = 0; i < n; ++ i) c[i] /= T(n);
+        return c;
     }
 
 };
 
-template<typename T, typename W>
-vector<T> FFT<T, W>::y(int(2e5 + 9));
+
 
 
 
