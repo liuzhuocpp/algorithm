@@ -24,16 +24,16 @@ struct W
         return C(cos(ang), sin(ang));
     }
 };
+
 struct NW
 {
     C operator()(int n, int k)
     {
+        return W()(n, n - k);
         Float ang = 2 * PI * k / n;
-        return (Float)1.0 / C(cos(ang), sin(ang));
+        return Float(1.0) / C(cos(ang), sin(ang));
     }
 };
-
-
 
 
 
@@ -75,37 +75,19 @@ int main()
         reverse(s1, s1 + an);
         reverse(s2, s2 + bn);
         for(int i = 0; s1[i]; ++ i) a.push_back((s1[i] - '0') * 1.0);
-        // cout << "DUI" << endl;
         for(int i = 0; s2[i]; ++ i) b.push_back((s2[i] - '0') * 1.0);
-        // cout << "DUI" << endl;
-        while(a.size() < n) a.push_back(0);
-        while(b.size() < n) b.push_back(0);
-
-        // cout << "DUI" << endl;
-        // cout << "FFS" << endl;
 
 
-        // out(a);
-        // out(b);
+        o = FFT<C, W>::multiply(a, b);
 
-        // cout << "FF " << endl;
-        FFT<C, W>::transform(a);
-        // cout << "FFPP " << endl;
-        FFT<C, W>::transform(b);
-        // cout << "FF " << endl;
-
-
-
-        for(int i = 0; i < n; ++ i) o.push_back(a[i] * b[i]);
-
-        // out(a);
-        // out(b);
-        // out(o);
-
-
-
-        FFT<C, NW>::transform(o);
-        for(int i = 0; i < n; ++ i) o[i] /= n;
+   
+        // while(a.size() < n) a.push_back(0);
+        // while(b.size() < n) b.push_back(0);
+        // FFT<C, W>::transform(a);
+        // FFT<C, W>::transform(b);
+        // for(int i = 0; i < n; ++ i) o.push_back(a[i] * b[i]);       
+        // FFT<C, NW>::transform(o);
+        // for(int i = 0; i < n; ++ i) o[i] /= n;
         
 
         int cnt = 0;

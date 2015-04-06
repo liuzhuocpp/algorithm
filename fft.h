@@ -5,6 +5,10 @@
 #include <iostream>
 namespace lz {
 
+
+
+
+
 using std::vector;
 using std::cout;
 using std::endl;
@@ -34,7 +38,7 @@ using std::max;
 
 
 
-template<typename T, typename Vector = vector<T> >
+template<typename T, typename W, typename Vector = vector<T> >
 class FFT
 {    
     static int rev(int n, int x)
@@ -46,7 +50,6 @@ class FFT
     }
     
 public:
-    template<typename W>
     static void transform(Vector &a) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
     {
         W w;
@@ -67,12 +70,21 @@ public:
                     T u = a[k], v = a[k + l / 2];
                     a[k] = u + wb * v;
                     a[k + l / 2] = u + wb * wn1 * v;
-                    wb *= wn;
+                    wb = wb * wn;
                 }
             }
         }
     }
-    template<typename W, typename NW>
+
+    struct NW
+    {
+        T operator()(int n, int k) // k = 0, 1,..., n - 1
+        {
+            W w;            
+            return w(n, n - k);
+        }
+    };
+
     static Vector multiply(Vector &a, Vector &b)
     {
         int an = a.size();
@@ -80,15 +92,42 @@ public:
         int n = 1;
         while(n < max(an, bn)) n <<= 1;
         n <<= 1;
-        while(a.size() < n) a.push_back(0);
-        while(b.size() < n) b.push_back(0);
+        while(a.size() < n) a.push_back(T(0));
+        while(b.size() < n) b.push_back(T(0));
 
-        transform<W>(a);
-        transform<W>(b);
+        // out(a);
+        // out(b);
+        transform(a);
+        transform(b);
+        // cout << "J "<< endl;
+        // for(int i = 0; i < n; ++ i)
+        // {
+        //     cout << a[i] << " " ;
+        // }
+        // cout << endl;
+        // cout << "J "<< endl;
+        // for(int i = 0; i < n; ++ i)
+        // {
+        //     cout << b[i] << " " ;
+        // }
+        // cout << endl;
+
+
+        
         Vector c(n);
         for(int i = 0; i < n; ++ i) c[i] = a[i] * b[i];
-        transform<NW>(c);
-        for(int i = 0; i < n; ++ i) c[i] /= T(n);
+
+        FFT<T, typename FFT<T, W, Vector>::NW, Vector>::transform(c);
+
+        // cout << "JJ "<< endl;
+        // for(int i = 0; i < n; ++ i)
+        // {
+        //     cout << c[i].i << " " ;
+        // }
+        // cout << endl;
+
+
+        for(int i = 0; i < n; ++ i) c[i] = c[i] / T(n);
         return c;
     }
 
