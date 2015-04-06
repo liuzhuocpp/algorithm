@@ -13,7 +13,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::max;
-
+using std::ostream;
 
 /*
 ****0.w(n, k), k = {0, 1, ..., n - 1} is different from each other
@@ -35,55 +35,82 @@ using std::max;
 
 */
 
+    namespace FFTPrivate {
+
+        template<typename T, typename W>
+        struct NW
+        {
+            T operator()(int n, int k) // k = 0, 1,..., n - 1
+            {
+                W w;            
+                return w(n, n - k);
+            }
+        };
+
+    }
 
 
 
 template<typename T, typename W, typename Vector = vector<T> >
 class FFT
 {    
-    static int rev(int n, int x)
+    static inline int rev(int n, int x)
     {
         int r = 0;
         for(int i = 0; i < n; ++ i)       
             if(x >> i & 1) r |= 1 << (n - 1 - i);
         return r;
     }
+    static inline int bitL(int n)
+    {
+        int t = 1, bn = 0;
+        while(t != n) t <<= 1, bn ++;
+        return bn;
+    }
     
 public:
     static void transform(Vector &a) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
     {
         W w;
-        int bn = 0, t = 1, n = a.size();
-        while(t != n) t <<= 1, bn ++;
-
         Vector y(a);
-        for(int i = 0; i < n; ++ i) a[rev(bn, i)] = y[i];
+        int n = a.size();
+        int bn = bitL(n);
+
+        int *id = new int[n];
+        id[0] = 0;
+        for(int i = 0; i < bn; ++ i)
+        {
+            for(int s = 0; s < (1 << i); ++ s)
+            {
+                int ns = s | (1 << i);
+                id[ns] = id[s] | (1 << (bn - 1 - i));
+            }
+            
+        }        
+        for(int i = 0; i < n; ++ i) a[id[i]] = y[i];
+        delete [] id;
+
         for(int l = 2; l <= n; l <<= 1)
         {
-            T wn = w(l, 1);
-            T wn1 = w(l, l / 2);
+            int l_2 = l >> 1;
+            T w1 = w(l, 1);
+            T w0 = w(l, 0);
+            T wn_2 = w(l, l_2);
+
             for(int i = 0; i < n; i += l)
             {
-                T wb = w(l, 0);
-                for(int k = i; k < i + l / 2; ++ k)
+                T wb = w0;
+                for(int k = i; k < i + l_2; ++ k)
                 {                    
-                    T u = a[k], v = a[k + l / 2];
+                    T u = a[k], v = a[k + l_2];
                     a[k] = u + wb * v;
-                    a[k + l / 2] = u + wb * wn1 * v;
-                    wb = wb * wn;
+                    a[k + l_2] = u + wb * wn_2 * v;
+                    wb = wb * w1;
                 }
             }
         }
     }
 
-    struct NW
-    {
-        T operator()(int n, int k) // k = 0, 1,..., n - 1
-        {
-            W w;            
-            return w(n, n - k);
-        }
-    };
 
     static Vector multiply(Vector &a, Vector &b)
     {
@@ -94,38 +121,12 @@ public:
         n <<= 1;
         while(a.size() < n) a.push_back(T(0));
         while(b.size() < n) b.push_back(T(0));
-
-        // out(a);
-        // out(b);
         transform(a);
         transform(b);
-        // cout << "J "<< endl;
-        // for(int i = 0; i < n; ++ i)
-        // {
-        //     cout << a[i] << " " ;
-        // }
-        // cout << endl;
-        // cout << "J "<< endl;
-        // for(int i = 0; i < n; ++ i)
-        // {
-        //     cout << b[i] << " " ;
-        // }
-        // cout << endl;
-
-
-        
         Vector c(n);
         for(int i = 0; i < n; ++ i) c[i] = a[i] * b[i];
 
-        FFT<T, typename FFT<T, W, Vector>::NW, Vector>::transform(c);
-
-        // cout << "JJ "<< endl;
-        // for(int i = 0; i < n; ++ i)
-        // {
-        //     cout << c[i].i << " " ;
-        // }
-        // cout << endl;
-
+        FFT<T, FFTPrivate::NW<T, W>, Vector>::transform(c);
 
         for(int i = 0; i < n; ++ i) c[i] = c[i] / T(n);
         return c;
@@ -133,7 +134,69 @@ public:
 
 };
 
+// IntegerPrimitiveUnityRoot
+class IntegerRoot 
+{
+public:
+    typedef long long LL;
+    const static LL P = (7 << 26) + 1;
+    const static LL g = 3;
 
+    static LL power(LL a, LL b, LL c = P)
+    {
+        LL r = 1;
+        while(b)
+        {
+            if(b & 1) r = r * a % c;
+            a = a * a % c;
+            b >>= 1;
+        }
+        return r;
+    }
+
+
+    struct C
+    {
+        int i;
+        C(LL _i = 0):i(_i){}        
+        friend C operator*(const C &a, const C &b)
+        {
+            return C(1LL * a.i * b.i % P);
+        }
+        friend C operator+(const C &a, const C &b)
+        {
+            return C((0LL + a.i + b.i) % P);
+        }
+        friend C operator/(const C &a, const C &b)
+        {
+            return C(a.i * power(b.i, P - 2) % P);
+        }
+        friend ostream& operator<<(ostream& out, const C &o)
+        {
+            out << o.i;
+            return out;
+        }
+    };
+public:
+    typedef C Type;
+    struct W
+    {    
+        C operator()(int n, int k)
+        {
+            return power(g, (P - 1) / n * k);
+        }
+    };
+
+    struct NW
+    {
+        C operator()(int n, int k)
+        {
+            W w;
+            return w(n, n - k);
+        }
+    };
+
+};
 
 
 
