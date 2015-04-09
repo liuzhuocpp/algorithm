@@ -5,7 +5,9 @@
 #include <limits>
 #include <vector>
 #include <iostream>
-#include "fft.h"
+#include <cstring>
+
+// #include "fft.h"
 
 namespace lz {
 
@@ -14,7 +16,8 @@ using std::numeric_limits;
 using std::cout;
 using std::endl;
 using std::string;
-
+using std::strlen;
+using std::max;
     namespace BigIntegerPrivate {
 
         typedef unsigned uint;
@@ -22,46 +25,70 @@ using std::string;
         typedef vector<uint> super;
 
 
-
-
         class U: private super
         {
             template<typename T> 
-            static int sz(const T &o) { return int(o.size()); }
+            int sz(const T &o) { return int(o.size()); }
 
-            constexpr static duint radix = 10000000000;
+            
+
+            const static duint radix = 1000000000;
+            const static int L = 9; // radix length
             
 
             explicit U(super &a):super(a) {}
         public:
             U():super(1, 0) {}
+            explicit U(const char *s) /// decimal string
+            {                
+                for(int i = strlen(s) - 1; i >= 0; i -= L)
+                {
+                    uint x = 0;
+                    for(int j = max(0, i - L + 1); j <= i; ++ j)
+                    {
+                        x = x * 10 + uint(s[j] - '0');
+                    }
+                    push_back(x);
+                }
+            }
+            // explicit U(const string &s)
+            // {
 
-            explicit U(const uint &a): super(1, a) { }
+            // }
+            // explicit U(const uint &a): super(1, a) { }
             string toString() const
             {
+                char buf[10];
+                sprintf(buf, "%d", this->back());
+                string r(buf);
 
+                for(int i = int(size()) - 2; i >= 0; -- i)
+                {
+                    sprintf(buf, "%09d", operator[](i));
+                    r += buf;
+                }
+                return r;
             }
 
-            friend U operator+(const U &a, const U &b)
-            {
-                super r;
-                duint t = 0;
-
-                const U *pa, *pb;
-                if(sz(a) < sz(b)) pa = &a, pb = &b;
-                else pa = &b, pb = &a;
-                const U &ra = *pa, &rb = *pb;
-
-                for(int i = 0; i < sz(rb); ++ i)
+            U& addAssign(const U &o)
+            {                
+                uint t = 0;
+                for(int i = 0; i < sz(*this); ++ i)
                 {
-                    t += rb[i];
-                    if(i < sz(ra)) t += ra[i];
+                    t += operator[](i);
+                    if(i < sz(o)) t += o[i];
                     
-                    if(t >= radix) r.push_back(t - radix), t = 1;
-                    else r.push_back(t), t = 0;
+                    if(t >= radix) operator[](i) = t - radix, t = 1;
+                    else operator[](i) = t, t = 0;
                 }
-                if(t != 0) r.push_back(t);
-                return U(r);
+                for(int i = sz(*this); i < sz(o); ++ i)
+                {
+                    t += o[i];
+                    if(t >= radix) push_back(t - radix), t = 1;
+                    else push_back(t), t = 0;
+                }
+                if(t != 0) push_back(t);
+                return *this;
             }
 
 
