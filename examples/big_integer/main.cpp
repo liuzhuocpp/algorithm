@@ -11,23 +11,28 @@ using namespace lz::BigIntegerPrivate;
 
 
 const int N = 10000;
-char s[N];
-
+string s;
+U a, b;
 int main()
 {
-    scanf("%s", s);
-    U a(s);
-    // cout << a.toString() << endl;
-    scanf("%s", s);
-    U b(s);
-    // cout << b.toString() << endl;
+    cin >> s;
+    fromString(a, s);
+    // cout << "FFS:" << s << endl;
+    s.clear();
+    toString(s, a);
+    // cout << s << endl;
 
+    cin >> s;
+    fromString(b, s);
+    s.clear();
+    toString(s, b);
+    // cout << s << endl;
+    U c;
 
-    // U c(a);
-    // cout << c.addAssign(b).toString() << endl;
-
-    
-    cout << a.substractAssign(b).toString() << endl;
+    multiply(c, a, b);
+    s.clear();
+    toString(s, c);
+    cout << s << endl;
 
 
     return 0;
