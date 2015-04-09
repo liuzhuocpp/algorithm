@@ -5,7 +5,7 @@
 #include <limits>
 #include <vector>
 #include <iostream>
-
+#include "fft.h"
 
 namespace lz {
 
@@ -20,7 +20,10 @@ using std::string;
         typedef unsigned uint;
         typedef unsigned long long duint;
         typedef vector<uint> super;
-        
+
+
+
+
         class U: private super
         {
             template<typename T> 
@@ -33,10 +36,9 @@ using std::string;
         public:
             U():super(1, 0) {}
 
-            explicit U(const uint &a): super(1, a) { }         
+            explicit U(const uint &a): super(1, a) { }
             string toString() const
             {
-
 
             }
 
@@ -59,7 +61,6 @@ using std::string;
                     else r.push_back(t), t = 0;
                 }
                 if(t != 0) r.push_back(t);
-                cout << "VAO " << endl;
                 return U(r);
             }
 
