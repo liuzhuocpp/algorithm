@@ -20,6 +20,7 @@ using std::string;
         typedef unsigned uint;
         typedef unsigned long long duint;
         typedef vector<uint> super;
+        
         class U: private super
         {
             template<typename T> 

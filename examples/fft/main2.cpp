@@ -12,10 +12,8 @@
 using namespace std;
 using namespace lz;
 
-typedef IntegerRoot::Type C;
-typedef IntegerRoot::W W;
-typedef IntegerRoot::NW NW;
 
+typedef IntegerFFTData::T C;
 
 const int N = 2e5 + 9;
 char s1[N], s2[N];
@@ -49,28 +47,32 @@ int main()
 
         // int an = a.size();
         // int bn = b.size();
-        int n = 1;
-        while(n < max(an, bn)) n <<= 1;
-        n <<= 1;
-        while(a.size() < n) a.push_back(C(0));
-        while(b.size() < n) b.push_back(C(0));
+        // int n = 1;
+        // while(n < max(an, bn)) n <<= 1;
+        // n <<= 1;
+        // while(a.size() < n) a.push_back(C(0));
+        // while(b.size() < n) b.push_back(C(0));
 
-        FFT<C, W>::transform(a);
-        FFT<C, W>::transform(b);
+        // FFT<C, W>::transform(a);
+        // FFT<C, W>::transform(b);
 
-        for(int i = 0; i < n; ++ i) a[i] = a[i] * b[i];
+        // for(int i = 0; i < n; ++ i) a[i] = a[i] * b[i];
 
-        vector<C> &c = a;
-        FFT<C, NW>::transform(c);
+        // vector<C> &c = a;
+        // FFT<C, NW>::transform(c);
 
-        for(int i = 0; i < n; ++ i) c[i] = c[i] / C(n);
+        // for(int i = 0; i < n; ++ i) c[i] = c[i] / C(n);
 
         // vector<C> o = FFT<C, NW>::multiply(a, b);
         // out(o);
 
 
 
-        n = c.size();
+        // n = c.size();
+        FFT<IntegerFFTData>::multiply(a, b);
+        vector<C> &c = a;
+        int n = c.size();
+
         int cnt = 0;
         for(int i = 0; i < n; ++ i)
         {
