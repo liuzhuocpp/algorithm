@@ -15,13 +15,20 @@ char s[N];
 
 int main()
 {
-    U a;
-    while(~scanf("%s", s))
-    {
-        U b(s);
-        a.addAssign(b);
-    }
-    cout << a.toString() << endl;
+    scanf("%s", s);
+    U a(s);
+    // cout << a.toString() << endl;
+    scanf("%s", s);
+    U b(s);
+    // cout << b.toString() << endl;
+
+
+    // U c(a);
+    // cout << c.addAssign(b).toString() << endl;
+
+    
+    cout << a.substractAssign(b).toString() << endl;
+
 
     return 0;
 }

@@ -7,7 +7,7 @@
 #include <iostream>
 #include <cstring>
 
-// #include "fft.h"
+#include "fft.h"
 
 namespace lz {
 
@@ -24,6 +24,16 @@ using std::max;
         typedef unsigned long long duint;
         typedef vector<uint> super;
 
+        template<typename T>
+        int topBit(T x) 
+        {
+            int r = 0;
+            for(;x > 0; x >>= 1)
+            {
+                r ++;
+            }
+            return r;
+        }
 
         class U: private super
         {
@@ -59,12 +69,12 @@ using std::max;
             string toString() const
             {
                 char buf[10];
-                sprintf(buf, "%d", this->back());
+                sprintf(buf, "%u", this->back());
                 string r(buf);
 
                 for(int i = int(size()) - 2; i >= 0; -- i)
                 {
-                    sprintf(buf, "%09d", operator[](i));
+                    sprintf(buf, "%09u", operator[](i));
                     r += buf;
                 }
                 return r;
@@ -90,6 +100,46 @@ using std::max;
                 if(t != 0) push_back(t);
                 return *this;
             }
+            U& substractAssign(const U &o)
+            {
+                uint t = 0;
+                for(int i = 0; i < sz(*this); ++ i)
+                {                    
+                    if(i < sz(o)) t += o[i];
+                    if(operator[](i) < t) 
+                        operator[](i) = operator[](i) + radix - t, t = 1;
+                    else 
+                        operator[](i) -= t, t = 0;
+                }
+                int i;
+                for(i = sz(*this) - 1; i > 0 && operator[](i) == 0; -- i);
+                resize(i + 1);
+                return *this;
+            }
+            U& multiplyAssign(const U &o)
+            {
+                duint n1 = 1ULL * size() * o.size();
+                duint n2 = 2ULL * max(size(), o.size());
+                n2 = n2 * topBit(n2);
+                if(n1 <= n2)
+                {
+                    int n = size();
+                    resize(size() + o.size());
+                    for(int i = 0; i < sz(o); ++ i)
+                    {
+                        for(int j = 0; j < n; ++ j)
+                        {
+                            duint t = 1ULL * o[i] * operator[](j);
+                            
+                        }
+                    }
+                }
+                else 
+                {
+
+                }
+            }
+
 
 
 
