@@ -71,7 +71,16 @@ int main()
         // n = c.size();
         FFT<IntegerFFTData>::multiply(a, b);
         vector<C> &c = a;
+
+
+
+
         int n = c.size();
+        cout << "CAO " << endl;
+        for(int i = 0; i < n; ++ i) cout << c[i] ; cout << endl;
+
+
+
 
         int cnt = 0;
         for(int i = 0; i < n; ++ i)

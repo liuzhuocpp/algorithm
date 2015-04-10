@@ -1,7 +1,11 @@
 #include <iostream>
 #include <cstdio>
 #include <limits>
-
+#include <vector>
+#include <complex>
+#include <cmath>
+#include <algorithm>
+#include <cstring>
 
 #include "big_integer.h"
 
@@ -10,30 +14,40 @@ using namespace lz;
 using namespace lz::BigIntegerPrivate;
 
 
-const int N = 10000;
-string s;
-U a, b;
+
+const int N = 2e5 + 9;
+char s1[N], s2[N];
+
+U a, b, c;
 int main()
 {
-    cin >> s;
-    fromString(a, s);
-    // cout << "FFS:" << s << endl;
-    s.clear();
-    toString(s, a);
-    // cout << s << endl;
 
-    cin >> s;
-    fromString(b, s);
-    s.clear();
-    toString(s, b);
-    // cout << s << endl;
-    U c;
+    while(~scanf("%s%s", s1, s2))
+    {
 
-    multiply(c, a, b);
-    s.clear();
-    toString(s, c);
-    cout << s << endl;
+        int an = strlen(s1);
+        int bn = strlen(s2);
+        a.clear();
+        b.clear();
+        fromString(a, s1, an);
+        fromString(b, s2, bn);
+        c.clear();
+        multiply(c, a, b);
+
+        string o;
+        o.reserve(N);
+        printf("%s\n", toString(o, c).c_str());
 
 
+
+
+
+
+        
+
+
+    }
     return 0;
 }
+
+

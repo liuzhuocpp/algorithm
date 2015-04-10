@@ -134,6 +134,10 @@ public:
     {
         int i;
         T(LL _i = 0):i(_i){}
+        operator int() const
+        {
+            return i;
+        }
         friend T operator*(const T &a, const T &b)
         {
             return T(1LL * a.i * b.i % P);
