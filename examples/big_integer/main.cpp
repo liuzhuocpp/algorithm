@@ -16,38 +16,31 @@ using namespace lz::BigIntegerPrivate;
 
 
 const int N = 2e5 + 9;
-char s1[N], s2[N];
 
-U a, b, c;
+char s[N];
+vector<uint> a(N), b(N);
 int main()
-{
-
+{    
     
-    while(~scanf("%s%s", s1, s2))
+    b.assign(1, 0u);
+    while(~scanf("%s", s))
     {
-
-        int an = strlen(s1);
-        int bn = strlen(s2);
-        a.clear();
-        b.clear();
-        fromString(a, s1, an);
-        fromString(b, s2, bn);
-        c.clear();
-        multiply(c, a, b);
-
-        string o;
-        o.reserve(N);
-        printf("%s\n", toString(o, c).c_str());
+        int n = strlen(s);
+        string ss(s);
+        fromString(a, ss);
 
 
+        // out(a);
+        // cout << "III" << endl;
 
+        plusAssign(b, a, uint(1e9));
+        // out(b);
 
-
-
-        
-
-
+        // cout << "IIIKKKKK" << endl;
     }
+
+    cout << toString(b) << endl;
+
     return 0;
 }
 
