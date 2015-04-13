@@ -22,6 +22,7 @@ U a, b, c;
 int main()
 {
 
+    
     while(~scanf("%s%s", s1, s2))
     {
 
