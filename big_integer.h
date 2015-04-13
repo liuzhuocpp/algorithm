@@ -213,6 +213,34 @@ using std::min;
         }
 
 
+        // Sequence should be vector<uint> currently
+        // a -= b, assert(!a.empty()), assert(!b.empty()), assert(sz(a) >= sz(b))
+        template<typename Sequence>
+        void minusAssign(Sequence &a, const Sequence &b, const ull &radix) 
+        {
+            ull t = 0;
+            for(int i = 0; i < sz(b); ++ i)
+            {                    
+                t += b[i];
+                if(a[i] < t) 
+                    a[i] = radix + a[i] - t, t = 1;
+                else 
+                    a[i] -= t, t = 0;
+            }
+            for(int i = sz(b); t > 0ull && i < sz(a); ++ i)
+            {
+                if(a[i] < t) 
+                    a[i] = radix + a[i] - t, t = 1;
+                else 
+                    a[i] -= t, t = 0;
+            }
+            removeLeadingZeros(a);            
+        }
+
+
+        
+
+
 
         // typedef long long dint;
         // typedef vector<int> U;
@@ -422,10 +450,14 @@ using std::min;
 
     }
 
-    class BigInteger 
-    {
 
-    };
+
+
+
+class BigInteger 
+{
+
+};
 
 
 
