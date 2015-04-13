@@ -15,7 +15,7 @@ using namespace lz::BigIntegerPrivate;
 
 
 
-const int N = 2e5 + 9;
+const int N = 200 + 9;
 
 char s1[N], s2[N];
 vector<uint> a(N), b(N);
