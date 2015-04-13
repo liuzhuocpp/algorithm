@@ -15,7 +15,7 @@ const int N = 2e5 + 9;
 char s1[N], s2[N], ans[N];
 
 #define sz(x) int(x.size())
-vector<int> a(N), b(N);
+vector<unsigned> a(N), b(N);
 int main()
 {
 
@@ -39,13 +39,13 @@ int main()
 
 
 
-        FFT<IntegerFFTData<int> > ::multiply(a, b);
+        FFT<IntegerFFTData<unsigned> > ::multiply(a, b);
 
         // cout << "vector:" << endl;
         // for(int i = 0; i < sz(a); ++ i) cout << a[i]; cout << endl;
 
 
-        vector<int> &o = a;
+        vector<unsigned> &o = a;
         int n = o.size();
 
 

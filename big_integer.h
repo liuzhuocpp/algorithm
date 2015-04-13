@@ -106,12 +106,13 @@ using std::min;
         template<typename TargetVector, typename SourceVector>
         void toBigRadix(TargetVector &t, const SourceVector &s, const ull &s_radix, const int & L) 
         {
+            int n = sz(s) / L + bool(sz(s) % L);
+            if(sz(t) < n) t.resize(n);
             for(int i = 0; i < sz(s); i += L)
             {
                 t[i / L] = seqToUint(s.begin() + i, min(s.begin() + i + L, s.end()), s_radix);
             }
-            int n = sz(s) / L + bool(sz(s) % L);
-            t.resize(n);
+            if(sz(t) > n) t.resize(n);
         }
 
 
@@ -227,6 +228,25 @@ using std::min;
             removeLeadingZeros(a);
         }
 
+        // accelerate to multiply using fft 
+        // a *=b; 
+        // base is 10
+        template<typename Vector>
+        void fftMultiply(Vector &c, const Vector &a, const Vector &b)
+        {
+            Vector ra, rb;
+            toSmallRadix(ra, a, 10, 9);
+            toSmallRadix(rb, b, 10, 9);
+
+            // out(ra);
+            // out(rb);
+
+            FFT<IntegerFFTData<uint> >::multiply(ra, rb);   
+            // out(ra);
+            normalize(ra, 10u);
+
+            toBigRadix(c, ra, 10, 9);
+        }
 
 
 
