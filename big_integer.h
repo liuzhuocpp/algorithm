@@ -106,9 +106,6 @@ using std::min;
         template<typename TargetVector, typename SourceVector>
         void toBigRadix(TargetVector &t, const SourceVector &s, const ull &s_radix, const int & L) 
         {
-            // cout << "JJ:" << sz(s) << endl;
-            // cout <<"string:";
-            // for(int i = 0; i < sz(s); ++ i) cout << int(s[i]) << "|" << endl; cout << "VAO" << endl;
             for(int i = 0; i < sz(s); i += L)
             {
                 t[i / L] = seqToUint(s.begin() + i, min(s.begin() + i + L, s.end()), s_radix);
@@ -125,17 +122,11 @@ using std::min;
         template<typename TargetSequence, typename SourceSequence>
         void toSmallRadix(TargetSequence &t, const SourceSequence &s, const ull &t_radix, const int & L) 
         {
-            // cout <<"SZ " << sz(s) << endl;
             t.resize(sz(s) * L);
             for(int i = sz(s) - 1; i >= 0; -- i)
             {
-                // cout << "CAO " << s[i] << " " << (i - L + 1) << endl;
                 uintToSeq(t.begin() + i * L, s[i], t_radix, L);
             }
-            // for(int i = 0; i < sz(t); ++ i)
-            // {
-            //     cout << "T:" << int(t[i]) << endl;
-            // }
             removeLeadingZeros(t);
         }
 
@@ -159,7 +150,6 @@ using std::min;
         template<typename Sequence>
         void fromString(Sequence &v, string &s)
         {
-            // cout << "formString" << s << " " << sz(s) <<  endl;
             reverse(s.begin(), s.end());
             for(int i = 0; i < sz(s); ++ i) s[i] -= '0';
 
@@ -234,11 +224,11 @@ using std::min;
                 else 
                     a[i] -= t, t = 0;
             }
-            removeLeadingZeros(a);            
+            removeLeadingZeros(a);
         }
 
 
-        
+
 
 
 
