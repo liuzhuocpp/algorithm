@@ -17,29 +17,24 @@ using namespace lz::BigIntegerPrivate;
 
 const int N = 2e5 + 9;
 
-char s[N];
+char s1[N], s2[N];
 vector<uint> a(N), b(N);
 int main()
-{    
-    
-    b.assign(1, 0u);
-    while(~scanf("%s", s))
+{
+    while(~scanf("%s%s", s1, s2))
     {
-        int n = strlen(s);
-        string ss(s);
-        fromString(a, ss);
-
-
+        a.clear();
+        b.clear();
+        string ss1(s1), ss2(s2);
+        fromString(a, ss1);
+        fromString(b, ss2);
         // out(a);
-        // cout << "III" << endl;
-
-        plusAssign(b, a, uint(1e9));
         // out(b);
-
-        // cout << "IIIKKKKK" << endl;
+        minusAssign(a, b, int(1e9));
+        cout << toString(a) << endl;
     }
+    
 
-    cout << toString(b) << endl;
 
     return 0;
 }
