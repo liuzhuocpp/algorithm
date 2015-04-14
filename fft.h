@@ -34,6 +34,71 @@ using std::ostream;
 
     namespace FFTPrivate {
 
+    typedef unsigned long long ull;
+    // judge  whether "x" is the prime
+    bool isPrime(const ull &x)
+    {
+        for(ull i = 2; i <= x / i; ++ i)
+        {
+            if(x % i == 0) return 0;
+        }
+        return 1;
+    }
+
+    template<typename T>
+    static T powerMod(T a, T b, T c)
+    {
+        T r = 1;
+        while(b)
+        {
+            if(b & 1) r = r * a % c;
+            a = a * a % c;
+            b >>= 1;
+        }
+        return r;
+    }
+
+    // get the primary root for prime "p"
+    ull getG(const ull &p)
+    {
+        for(ull g = 2; ; ++ g)
+        {
+            ull t = p - 1;
+            bool ok = 1;
+            for(ull i = 2; i <= t / i; ++ i)
+            {
+                if(t % i == 0)
+                {
+                    while(t % i == 0) t /= i;
+                    if(powerMod(g, p / i, p) == 1)
+                    {
+                        ok = 0; break;
+                    }
+                }
+            }
+            if(ok && t > 1)
+            {
+                if(powerMod(g, p / t, p) == 1) ok = 0;
+            }
+            if(ok) return g;
+        }
+    }
+
+    void get(ull i)
+    {
+        ull n = 1ull << i;
+        for(ull k = 1; ; k ++)
+        {
+            if(isPrime(k * n + 1))
+            {
+                cout<< (k * n + 1) <<" " << k << " "  << getG(k * n + 1) << endl;
+                break;
+            }
+        }
+    }
+
+
+
         
 
 
@@ -138,8 +203,11 @@ template<typename Integer> // Integer is int or unsigned int, long long or unsig
 class IntegerFFTData
 {
     typedef unsigned long long LL;
-    const static LL P = (7 << 26) + 1;
-    const static LL g = 3;
+    // const static LL P = (7 << 26) + 1;
+    // const static LL g = 3;
+    const static LL P = (15 * (1 << 27) + 1);
+    const static LL g = 31;
+
 
     static LL power(LL a, LL b, LL c)
     {
@@ -182,7 +250,7 @@ public:
         Type operator()(const Type &a, const Type &b)
         {
             return power(b, P - 2, P) * a % P;
-        }
+        }   
     };
     struct Multiply
     {
