@@ -123,8 +123,9 @@ using std::min;
         template<typename TargetSequence, typename SourceSequence>
         void toSmallRadix(TargetSequence &t, const SourceSequence &s, const ull &t_radix, const int & L) 
         {
-            t.resize(sz(s) * L);
-            for(int i = sz(s) - 1; i >= 0; -- i)
+            int ns = sz(s);
+            t.resize(ns * L);
+            for(int i = ns - 1; i >= 0; -- i)
             {
                 uintToSeq(t.begin() + i * L, s[i], t_radix, L);
             }
@@ -230,22 +231,28 @@ using std::min;
 
         // accelerate to multiply using fft 
         // a *=b; 
-        // base is 10
+        // s_radix = t_radix^L, transform s_radix to "t_radix", then use fft to compute
         template<typename Vector>
-        void fftMultiply(Vector &c, const Vector &a, const Vector &b)
+        void fftMultiply(Vector &a, Vector &b, const ull &t_radix, const int &L)
         {
-            Vector ra, rb;
-            toSmallRadix(ra, a, 10, 9);
-            toSmallRadix(rb, b, 10, 9);
+            // Vector ra, rb;
+            // toSmallRadix(ra, a, t_radix, L);
+            // toSmallRadix(rb, b, t_radix, L);
+            // FFT<IntegerFFTData<typename Vector::value_type> >::multiply(ra, rb);
+            // normalize(ra, t_radix);
+            // toBigRadix(a, ra, t_radix, L);
+
+            toSmallRadix(a, a, t_radix, L);
+            toSmallRadix(b, b, t_radix, L);
 
             // out(ra);
             // out(rb);
 
-            FFT<IntegerFFTData<uint> >::multiply(ra, rb);   
+            FFT<IntegerFFTData<uint> >::multiply(a, b);   
             // out(ra);
-            normalize(ra, 10u);
+            normalize(a, t_radix);
 
-            toBigRadix(c, ra, 10, 9);
+            toBigRadix(a, a, t_radix, L);
         }
 
 
