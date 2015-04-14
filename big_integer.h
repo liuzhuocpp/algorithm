@@ -98,11 +98,9 @@ using std::min;
         }
 
 
-        // transform the sequence "t" to the base of "s_radix"         
-        // "s_radix" means source radix
-        // "L" : target_radix = source_radix ^ "L"
-        // &"t" may be equel to &"s"
-        // "t" size must have not less than "n"
+        // transform the sequence "s" to the base of "s_radix"         
+        // "s_radix" means source radix, and "L" satisfy: target_radix = source_radix ^ "L"
+        // &"t" may be equel to &"s", and "t" can be any form        
         template<typename TargetVector, typename SourceVector>
         void toBigRadix(TargetVector &t, const SourceVector &s, const ull &s_radix, const int & L) 
         {
@@ -116,10 +114,9 @@ using std::min;
         }
 
 
-        // transform the sequence "t" to the base of "t_radix" 
-        // "t_radix" means target radix
-        // "L" : source_radix = target_radix ^ "L"
-        // &"t" may be equal to &"s"
+        // transform the sequence "s" to the base of "t_radix" 
+        // "t_radix" means target radix, and "L" satisfy: source_radix = target_radix ^ "L"
+        // &"t" may be equal to &"s","t" can be any form        
         template<typename TargetSequence, typename SourceSequence>
         void toSmallRadix(TargetSequence &t, const SourceSequence &s, const ull &t_radix, const int & L) 
         {
@@ -155,7 +152,6 @@ using std::min;
             reverse(s.begin(), s.end());
             for(int i = 0; i < sz(s); ++ i) s[i] -= '0';
 
-            v.resize(sz(s) / 9 + bool(sz(s) % 9));
             toBigRadix(v, s, uint(10u), 9u);
         }
         template<typename Sequence>
@@ -229,244 +225,105 @@ using std::min;
             removeLeadingZeros(a);
         }
 
+
         // accelerate to multiply using fft 
         // a *=b; 
         // s_radix = t_radix^L, transform s_radix to "t_radix", then use fft to compute
-        template<typename Vector>
-        void fftMultiply(Vector &a, Vector &b, const ull &t_radix, const int &L)
+        template<typename Sequence>
+        void fftMultiply(Sequence &a, Sequence &b, const ull &t_radix, const int &L)
         {
-            // Vector ra, rb;
-            // toSmallRadix(ra, a, t_radix, L);
-            // toSmallRadix(rb, b, t_radix, L);
-            // FFT<IntegerFFTData<typename Vector::value_type> >::multiply(ra, rb);
-            // normalize(ra, t_radix);
-            // toBigRadix(a, ra, t_radix, L);
-
             toSmallRadix(a, a, t_radix, L);
             toSmallRadix(b, b, t_radix, L);
-
-            // out(ra);
-            // out(rb);
-
-            FFT<IntegerFFTData<uint> >::multiply(a, b);   
-            // out(ra);
+            FFT<IntegerFFTData<uint> >::multiply(a, b);
             normalize(a, t_radix);
-
             toBigRadix(a, a, t_radix, L);
         }
 
 
+        // simulate to multiply, "c"="a"*"b", c can be any form
+        template<typename Sequence>
+        void simulationMultiply(Sequence &c, const Sequence &a, const Sequence &b, const ull &radix)
+        {
+            c.assign(sz(a) + sz(b), 0);
+            for(int i = 0; i < sz(b); ++ i)
+            {
+                ull t = 0;
+                for(int j = 0; j < sz(a); ++ j)
+                {
+                    t += 1LL * b[i] * a[j] + c[i + j];
+                    c[i + j] = t % radix;
+                    t /= radix;
+                }
+                if(t > 0)
+                {
+                    c[i + sz(a)] = t;
+                }
+            }
+            if(c.back() == 0) c.pop_back();
+        }
 
 
-
-        // typedef long long dint;
-        // typedef vector<int> U;
-        // const dint radix = 1000000000;
-        // const int L = 9;
-
-
-        // void fromString(U &a, const char *s, int n) // a should be empty
-        // {
-        //     a.clear();
-        //     for(int i = n - 1; i >= 0; i -= L) 
-        //     {
-        //         int x = 0;     
-        //         for(int j = max(0, i - L + 1); j <= i; ++ j)                
-        //             x = x * 10 + int(s[j] - '0');                
-        //         a.push_back(x);
-        //     }
-        // }
-        // void fromString(U &a, const string &s) // a should be empty
-        // {
-        //     fromString(a, s.c_str(), s.size());
-        // }
+        // using fftMultiply and simulationMultiply, c = a * b, &c != &a
+        template<typename Sequence>
+        void multiply(Sequence &c, const Sequence &a, const Sequence &b, 
+                      const ull &s_radix, const ull &t_radix,int L)
+        {
+            ull n1 = (ull)sz(a) * sz(b);
+            ull n2 = 2uLL * max(sz(a), sz(b)) * L;
+            n2 = n2 * topBit(n2);
+            if(n1 <= n2)
+            {
+                simulationMultiply(c, a, b, s_radix);
+            }
+            else
+            {
+                c = a;
+                Sequence tb = b;
+                fftMultiply(c, tb, t_radix, L);
+            }
+        }
 
 
-        
+        // using fftMultiply and simulationMultiply, a *= b
+        // "s_radix" = "t_radix" ^ "L"
+        template<typename Sequence>
+        void multiply(Sequence &a, const Sequence &b, const ull &s_radix, const ull &t_radix, int L)
+        {
+            ull n1 = (ull)sz(a) * sz(b);
+            ull n2 = 2uLL * max(sz(a), sz(b)) * L;
+            n2 = n2 * topBit(n2);
+            if(n1 <= n2)
+            {
+                Sequence ta = a;
+                simulationMultiply(a, ta, b, s_radix);
+            }
+            else 
+            {
+                Sequence tb = b;
+                fftMultiply(a, tb, t_radix, L);
+            }
+        }
 
-
-        // string& toString(string &s, const U &a) // s should be empty
-        // {
-        //     s.clear();
-        //     s.reserve(sz(a) * L);
-
-        //     char buf[10];
-        //     sprintf(buf, "%d", a.back());
-        //     s += buf;
-        //     for(int i = sz(a) - 2; i >= 0; -- i)
-        //     {
-        //         sprintf(buf, "%09d", a[i]);
-        //         s += buf;
-        //     }
-        //     return s;
-        // }
-
-        
-
-
-
-        // void addAssign(U &a, const U &b) //a += b
-        // {                
-        //     int t = 0;
-        //     for(int i = 0; i < sz(a); ++ i)
-        //     {
-        //         t += a[i];
-        //         if(i < sz(b)) t += b[i];
-                
-        //         if(t >= radix) a[i] = t - radix, t = 1;
-        //         else a[i] = t, t = 0;
-        //     }
-        //     for(int i = sz(a); i < sz(b); ++ i)
-        //     {
-        //         t += b[i];
-        //         if(t >= radix) a.push_back(t - radix), t = 1;
-        //         else a.push_back(t), t = 0;
-        //     }
-        //     if(t != 0) a.push_back(t);
-        // }
-
-
-
-        // void substractAssign(U &a, const U &b) // a -= b
-        // {
-        //     int t = 0;
-        //     for(int i = 0; i < sz(a); ++ i)
-        //     {                    
-        //         if(i < sz(b)) t += b[i];
-        //         if(a[i] < t) 
-        //             a[i] = a[i] + radix - t, t = 1;
-        //         else 
-        //             a[i] -= t, t = 0;
-        //     }
-        //     int i;
-        //     for(i = sz(a) - 1; i > 0 && a[i] == 0; -- i);
-        //     a.resize(i + 1);
-            
-        // }
-
-        // template<typename T>
-        // void toVector10(vector<T> &target, const U &source) // s should be empty, Ascending
-        // {
-        //     target.clear();
-        //     target.reserve(sz(source) * L);
-        //     char buf[L + 1];
-        //     for(int i = 0; i <= sz(source) - 2; ++ i)
-        //     {
-        //         sprintf(buf, "%09d", source[i]);
-        //         for(int j = L - 1; j >= 0; -- j) target.push_back(buf[j] - '0');
-        //     }
-        //     sprintf(buf, "%d", source.back());
-        //     int lb = strlen(buf);
-        //     for(int j = lb - 1; j >= 0; -- j) target.push_back(buf[j] - '0');
-        // }
-
-        // template<typename T>
-        // void fromVector10(U &target, const vector<T> &source) // a should be empty, Ascending
-        // {   
-        //     target.clear();         
-        //     dint x = 0;
-
-        //     for(int i = 0; i < sz(source); ++ i)
-        //     {
-        //         x = x / 10 + int(source[i]);
-        //         target.push_back(x % 10);
-        //     }
-        //     while(x > 0) x /= 10, target.push_back(x % 10);
-        //     while(sz(target) > 1 && target.back() == 0) target.pop_back();
-
-        //     // cout << "target " << endl;
-        //     // for(int i = 0; i < sz(target); ++ i) cout << target[i]; cout << endl;
-
-        //     for(int i = 0; i < sz(target); i += L)
-        //     {
-        //         int x = 0;
-        //         for(int j = min(i + L - 1, sz(target) - 1); j >= i; -- j)
-        //         {
-        //             x = x * 10 + target[j];
-        //         }
-        //         target[i / L] = x;
-        //     }
-        //     int n = sz(target) / L + bool(sz(target) % L);
-        //     while(sz(target) > n) target.pop_back();
-
-        // }
-        // void simulationMultiply(U &c, const U &a, const U &b)
-        // {
-        //     c.resize(a.size() + b.size());
-        //     for(int i = 0; i < sz(b); ++ i)
-        //     {
-        //         dint t = 0;
-        //         for(int j = 0; j < sz(a); ++ j)
-        //         {
-        //             t += 1LL * b[i] * a[j] + c[i + j];
-        //             c[i + j] = t % radix;
-        //             t /= radix;
-        //         }
-        //         if(t > 0)
-        //         {
-        //             c[i + sz(a)] = t;
-        //         }
-        //     }
-        //     if(c.back() == 0) c.pop_back();
-
-        // }
-        // void fftMultiply(U &c, const U &a, const U &b)
-        // {
-        //     // cout << "in fftMultiply" << endl;
-        //     // string o;
-        //     // cout << toString(o, a) << endl;
-        //     // cout << toString(o, b) << endl;
-
-
-
-        //     typedef IntegerFFTData::T T;
-        //     vector<T> ra, rb;
-        //     toVector10<T>(ra, a);
-        //     toVector10<T>(rb, b);
-
-
-        //     // for(int i = 0; i < sz(ra); ++ i) cout << ra[i]; cout << endl;
-
-        //     // for(int i = 0; i < sz(rb); ++ i) cout << rb[i]; cout << endl;
-
-
-        //     FFT<IntegerFFTData>::multiply(ra, rb);
-        //     // for(int i = 0; i < sz(ra); ++ i) cout << ra[i]; cout << endl;
-
-
-        //     fromVector10<T>(c, ra);
-
-        //     // cout << "end fftMultiply" << endl;
-
-        // }
-        // void multiply(U &c, const U & a, const U &b) // c should be empty, c = a + b;
-        // {
-        //     dint n1 = 1LL * sz(a) * sz(b);
-        //     dint n2 = 2LL * L * max(sz(a), sz(b));
-        //     n2 = n2 * topBit(n2);            
-
-        //     if(n1 <= n2)
-        //     {
-        //         simulationMultiply(c, a, b);
-
-        //     }
-        //     else 
-        //     {
-        //         fftMultiply(c, a, b);
-                
-        //     }
-        // }
-
-
-
-
-
-
-
-
-
+        // using fftMultiply and simulationMultiply, a *= b
+        // "s_radix" = "t_radix" ^ "L"
+        // "b" can be changed
+        template<typename Sequence>
+        void multiply(Sequence &a, Sequence &b, const ull &s_radix, const ull &t_radix, int L)
+        {         
+            ull n1 = (ull)sz(a) * sz(b);
+            ull n2 = 2uLL * max(sz(a), sz(b)) * L;
+            n2 = n2 * topBit(n2);
+            if(n1 <= n2)
+            {
+                Sequence ta = a;
+                simulationMultiply(a, ta, b, s_radix);
+            }
+            else 
+            {
+                fftMultiply(a, b, t_radix, L);
+            }
+        }
     }
-
 
 
 

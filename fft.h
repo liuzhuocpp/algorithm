@@ -198,8 +198,10 @@ public:
 
 
 
-
-template<typename Integer> // Integer is int or unsigned int, long long or unsigned long long
+// "Integer" is int or unsigned int, long long or unsigned long long
+// sequence size must not more than (1 << 27)
+// after using fft, every element in sequence should not be more than (15 * (1 << 27) + 1)
+template<typename Integer> 
 class IntegerFFTData
 {
     typedef unsigned long long LL;
