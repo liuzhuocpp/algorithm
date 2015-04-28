@@ -15,7 +15,8 @@ const int N = 2e5 + 9;
 char s1[N], s2[N], ans[N];
 
 #define sz(x) int(x.size())
-vector<unsigned> a(N), b(N);
+typedef complex<double> T;
+vector<T> a(N), b(N);
 int main()
 {
 
@@ -23,13 +24,12 @@ int main()
     {
         int an = strlen(s1);
         int bn = strlen(s2);
-        a.clear();
-        b.clear();
+
         
         reverse(s1, s1 + an);
         reverse(s2, s2 + bn);
-        for(int i = 0; s1[i]; ++ i) a.push_back((s1[i] - '0'));
-        for(int i = 0; s2[i]; ++ i) b.push_back((s2[i] - '0'));
+        for(int i = 0; s1[i]; ++ i) a[i] = s1[i] - '0';
+        for(int i = 0; s2[i]; ++ i) b[i] = s2[i] - '0';
 
         // cout << "vector:" << endl;
         // for(int i = 0; i < sz(a); ++ i) cout << a[i]; cout << endl;
@@ -38,21 +38,23 @@ int main()
         // for(int i = 0; i < sz(b); ++ i) cout << b[i]; cout << endl;
 
 
+        int n = FFT<ComplexFFTData<double> >::multiply(a.begin(), a.begin() + an, 
+                                                 b.begin(), b.begin() + bn);
 
-        FFT<IntegerFFTData<unsigned> > ::multiply(a, b);
+        // FFT<IntegerFFTData<unsigned> > ::multiply(a, b);
 
         // cout << "vector:" << endl;
         // for(int i = 0; i < sz(a); ++ i) cout << a[i]; cout << endl;
 
 
-        vector<unsigned> &o = a;
-        int n = o.size();
+        vector<T> &o = a;
+        // int n = o.size();
 
 
         int cnt = 0;
         for(int i = 0; i < n; ++ i)
         {
-            cnt = cnt / 10 + o[i];
+            cnt = cnt / 10 + int(o[i].real() + 0.1);
             ans[i] =  cnt % 10;
         }
         int L = n;

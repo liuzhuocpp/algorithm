@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <functional>
+#include <cmath>
 namespace lz {
 
 
@@ -15,6 +16,9 @@ using std::cout;
 using std::endl;
 using std::max;
 using std::ostream;
+using std::swap;
+using std::complex;
+
 
 /*
 ****0.w(n, k), k = {0, 1, ..., n - 1} is different from each other
@@ -31,6 +35,9 @@ using std::ostream;
         .
     [w(n, (n-1)*0), w(n, (n-1)*1), ...,w(n, (n-1)*(n-1))]      a(n-1)     y(n - 1)
 */
+
+
+
 
     namespace FFTPrivate {
 
@@ -105,16 +112,29 @@ using std::ostream;
     }
 
 
-template<typename Data, typename Vector = vector<typename Data::Type> >
+
+
+
+
+
+
+template<typename Data>
 class FFT
 {        
-    typedef typename Data::Type Type; // structure type
+    typedef typename Data::Type Type; // structure type   
+    
     typedef typename Data::Weight Weight;  // weight function 
     typedef typename Data::InverseWeight InverseWeight; // inverse weight function
-
     typedef typename Data::Plus Plus;
     typedef typename Data::Divide Divide;
     typedef typename Data::Multiply Multiply;
+
+    static const Weight w;
+    static const InverseWeight iw;
+    static const Plus plus;
+    static const Divide div;
+    static const Multiply mul;
+
 
 
     static inline int bitL(int n)
@@ -123,12 +143,10 @@ class FFT
         while(t != n) t <<= 1, bn ++;
         return bn;
     }
-    template<typename W>
-    static void transform(Vector &a) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
-    {
-        W w;
-        Vector y(a);
-        int n = a.size();
+    template<typename Iterator, typename W>
+    static void transform(Iterator a, Iterator end, const W &w) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
+    {      
+        int n = end - a;
         int bn = bitL(n);
 
         int *id = new int[n];
@@ -139,14 +157,23 @@ class FFT
             {
                 int ns = s | (1 << i);
                 id[ns] = id[s] | (1 << (bn - 1 - i));
-            }
-            
-        }        
-        for(int i = 0; i < n; ++ i) a[id[i]] = y[i];
+            }            
+        }   
+
+        for(int i = 1; i < n; ++ i)
+        {
+            if(id[i] == 0) continue;
+            if(id[i] == i) continue;
+            // id[i], id[id[i]];
+            swap(a[id[i]], a[i]);
+            id[id[i]] = 0;
+
+        }
+
+
+
         delete [] id;
 
-        Plus plus;
-        Multiply multiply;
         for(int l = 2; l <= n; l <<= 1)
         {
             int l_2 = l >> 1;
@@ -163,44 +190,66 @@ class FFT
                     // a[k] = u + wb * v;
                     // a[k + l_2] = u + wb * wn_2 * v;
                     // wb = wb * w1;
-                    a[k] = plus(u, multiply(wb, v));
-                    a[k + l_2] = plus(u, multiply(wb, multiply(wn_2, v)));
-                    wb = multiply(wb, w1);
+                    a[k] = plus(u, mul(wb, v));
+                    a[k + l_2] = plus(u, mul(wb, mul(wn_2, v)));
+                    wb = mul(wb, w1);
                 }
             }
         }
     }
 
 public:
-    static void multiply(Vector &a, Vector &b)
-    {
-        Multiply multiply;
-        int an = a.size();
-        int bn = b.size();
+    template<typename IteratorA, typename IteratorB>
+    static int multiply(IteratorA a, IteratorA aend, 
+                         IteratorB b, IteratorB bend  )
+    {        
+        int an = aend - a;
+        int bn = bend - b;
         int n = 1;
         while(n < max(an, bn)) n <<= 1;
         n <<= 1;
-        while(a.size() < n) a.push_back(Type(0));
-        while(b.size() < n) b.push_back(Type(0));
 
-        transform<Weight>(a);
-        transform<Weight>(b);
-        for(int i = 0; i < n; ++ i) a[i] = multiply(a[i], b[i]);
+        while(aend - a < n) *(aend++) = Type(0);
+        while(bend - b < n) *(bend++) = Type(0);
 
-        transform<InverseWeight>(a);
+        transform(a, aend, w);
+        transform(b, bend, w);
+        for(int i = 0; i < n; ++ i) a[i] = mul(a[i], b[i]);
 
-        Type inv = Divide()(Type(1), Type(n));
-        for(int i = 0; i < n; ++ i) a[i] = multiply(a[i], inv);
+        transform(a, aend, iw);
+        Type inv = div(Type(1), Type(n));
+        for(int i = 0; i < n; ++ i) a[i] = mul(a[i], inv);
+        return n;
     }
 
 };
+
+template<typename Data>
+const typename FFT<Data>::Weight  FFT<Data>::w;
+
+template<typename Data>
+const typename FFT<Data>::InverseWeight  FFT<Data>::iw;
+
+template<typename Data>
+const typename FFT<Data>::Plus  FFT<Data>::plus;
+
+template<typename Data>
+const typename FFT<Data>::Divide  FFT<Data>::div;
+
+template<typename Data>
+const typename FFT<Data>::Multiply  FFT<Data>::mul;
+
+
+
+
+
 
 
 
 
 // "Integer" is int or unsigned int, long long or unsigned long long
 // sequence size must not more than (1 << 27)
-// after using fft, every element in sequence should not be more than (15 * (1 << 27) + 1)
+// after using fft, every element in sequence should be less than (15 * (1 << 27) + 1)
 template<typename Integer> 
 class IntegerFFTData
 {
@@ -227,14 +276,14 @@ public:
     typedef Integer Type;
     struct Weight
     {    
-        Type operator()(int n, int k)
+        Type operator()(int n, int k) const
         {
             return power(g, (P - 1) / n * k, P);
         }
     };
     struct InverseWeight  /// 1/W
     {
-        Type operator()(int n, int k)
+        Type operator()(int n, int k) const
         {
             Weight w;
             return w(n, n - k);
@@ -242,30 +291,59 @@ public:
     };
     struct Plus
     {
-        Type operator()(const Type &a, const Type &b)
+        Type operator()(const Type &a, const Type &b)  const
         {
             return (0uLL + a + b) % P;
         }        
     };
     struct Divide
     {
-        Type operator()(const Type &a, const Type &b)
+        Type operator()(const Type &a, const Type &b)  const
         {
             return power(b, P - 2, P) * a % P;
         }   
     };
     struct Multiply
     {
-        Type operator()(const Type &a, const Type &b)
+        Type operator()(const Type &a, const Type &b)  const
         {
             return 1uLL * a * b % P;
         }        
     };
+};
 
+// "Float" is float, double, long double
+// using std::complex<Float> Type
+template<typename Float>
+struct ComplexFFTData
+{
+    typedef complex<Float> Type;
+    static const Float PI;
+
+    struct Weight
+    {    
+        Type operator()(int n, int k) const
+        {
+            Float angle = 2 * PI * k / n;
+            return Type(cos(angle), sin(angle));
+        }
+    };
+    struct InverseWeight  /// 1/W
+    {
+        Type operator()(int n, int k) const
+        {
+            return Weight()(n, n - k);
+        }
+    };
+    typedef std::plus<Type> Plus;
+    typedef std::divides<Type> Divide;
+    typedef std::multiplies<Type> Multiply;
 
 
 };
 
+template<typename Float>
+const Float ComplexFFTData<Float>::PI = acos(-1);
 
 
 

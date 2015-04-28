@@ -6,6 +6,9 @@
 #include <vector>
 #include <iostream>
 #include <cstring>
+#include <tuple>
+#include <algorithm>
+#include <utility>
 
 #include "fft.h"
 
@@ -20,6 +23,12 @@ using std::string;
 using std::strlen;
 using std::max;
 using std::min;
+using std::tuple;
+using std::get;
+using std::make_tuple;
+using std::tie;
+using std::pair;
+using std::make_pair;
     namespace BigIntegerPrivate {
 
         typedef unsigned uint;
@@ -147,18 +156,18 @@ using std::min;
 
 
         template<typename Sequence>
-        void fromString(Sequence &v, string &s)
+        void fromString(Sequence &v, string &s, int L)
         {
             reverse(s.begin(), s.end());
             for(int i = 0; i < sz(s); ++ i) s[i] -= '0';
 
-            toBigRadix(v, s, uint(10u), 9u);
+            toBigRadix(v, s, uint(10u), L);
         }
         template<typename Sequence>
-        string toString(Sequence &v)
+        string toString(Sequence &v, int L)
         {
             string s;
-            toSmallRadix(s, v, 10u, 9u);
+            toSmallRadix(s, v, 10u, L);
             for(int i = 0; i < sz(s); ++ i) s[i] += '0';
             reverse(s.begin(), s.end());
             return s;
@@ -225,13 +234,27 @@ using std::min;
             removeLeadingZeros(a);
         }
 
+        // if r^n = x, return n, else return -1;
+        template<typename I>
+        int nthRoot(I r, I x) 
+        {
+            int n = 0;
+            while(r % x == 0) r /= x, n ++;
+            if(r == 1) return n;
+            else return -1;
+        }
 
         // accelerate to multiply using fft 
-        // a *=b; 
-        // s_radix = t_radix^L, transform s_radix to "t_radix", then use fft to compute
+        // a *=b;         
         template<typename Sequence>
-        void fftMultiply(Sequence &a, Sequence &b, const ull &t_radix, const int &L)
+        void fftMultiply(Sequence &a, Sequence &b, const ull &radix)
         {
+            ull t_radix;
+            int L;
+            if(radix == int(1e9)) t_radix = 10, L = 9;
+            else if(radix == int(1e8)) t_radix = 10, L = 8;
+            else if(radix == int(1 << 28)) t_radix = 1 << 4, L = 7;
+
             toSmallRadix(a, a, t_radix, L);
             toSmallRadix(b, b, t_radix, L);
             FFT<IntegerFFTData<uint> >::multiply(a, b);
@@ -323,7 +346,98 @@ using std::min;
                 fftMultiply(a, b, t_radix, L);
             }
         }
-    }
+
+
+        template<typename Sequence>
+        int cmp(const Sequence &a, const Sequence &b)
+        {
+            if(sz(a) < sz(b)) return -1;
+            if(sz(a) > sz(b)) return 1;
+            for(int i = sz(a) - 1; i >= 0; -- i)
+            {
+                if(a[i] < b[i]) return -1;
+                if(a[i] > b[i]) return 1;
+            }
+            return 0;
+
+        }
+
+        template<typename Sequence>
+        uint divide(Sequence &v, const uint &x, const ull &radix)
+        {
+            ull t = 0;
+            for(int i = sz(v) - 1; i >= 0; -- i)
+            {
+                t = t * radix + v[i];
+                v[i] = t / x;
+                t -= 1ULL * v[i] * x;
+                // cout << "T:"<< t << endl;
+            }
+            removeLeadingZeros(v);
+            return t;
+        }
+
+
+
+
+        // "Integer" 
+        template<typename Sequence,typename Integer>
+        void fromInteger(Sequence &v, Integer i, const ull &radix)
+        {
+            v.clear();
+            while(i > 0)
+            {
+                v.push_back(i % radix);
+                i /= radix;
+            }
+        }
+        
+        template<typename Sequence>
+        tuple<Sequence, Sequence> 
+        radixTransform(int L, int R, const Sequence &v, const ull &s_radix,
+            const ull &t_radix, const ull &new_t_radix, const int & new_L)
+        {            
+            if(L == R)
+            {
+                Sequence a, pa;
+                fromInteger(a, v[L], t_radix);
+                fromInteger(pa, s_radix, t_radix);
+
+                return make_tuple(a, pa);
+            }
+            int mid = (L + R) >> 1;
+
+            Sequence a, pa, b, pb;
+            tie(a, pa) = radixTransform(L, mid, v, s_radix, t_radix, new_t_radix, new_L);
+            tie(b, pb) = radixTransform(mid + 1, R, v, s_radix, t_radix,new_t_radix, new_L);
+
+
+
+            multiply(b, (const Sequence&)pa, t_radix, new_t_radix, new_L);
+            plusAssign(a, b, t_radix);
+            multiply(pa, pb, t_radix, new_t_radix, new_L);
+
+
+            return make_tuple(a, pa);
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+    } // namespace BigIntegerPrivate
 
 
 

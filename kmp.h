@@ -18,7 +18,7 @@ public:
         RandomIterator s = first;
         vector<int> p(n);
         for(int k = p[0] = -1, i = 1; i < n; ++ i)
-        {			
+        {
             while(k != -1 && !(s[k + 1] == s[i]) ) k = p[k];
             if(k != -1) k ++;
             else if(s[0] == s[i]) k = 0;
@@ -71,7 +71,7 @@ class ExtendKmp
 
     template<typename RandomIterator>
     static vector<int> _computePrefix(RandomIterator s, int n)
-    {        
+    {
         vector<int> p(n);
         if(n == 0) return p;
         p[0] = n - 1;
