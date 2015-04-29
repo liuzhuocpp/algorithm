@@ -199,6 +199,7 @@ class FFT
     }
 
 public:
+    // decltype(*IteratorA) should be "Type"
     template<typename IteratorA, typename IteratorB>
     static int multiply(IteratorA a, IteratorA aend, 
                          IteratorB b, IteratorB bend  )

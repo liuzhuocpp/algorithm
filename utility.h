@@ -20,27 +20,21 @@ int topBit(T x)
     return r;
 }
 
-template<typename T, typename Multiply = multiplies<T>, 
-                     typename Divide = divides<T>, 
-                     typename Modulus = modulus<T> >
-static T powerMod(const T &a, const T &b, const T &c)
-{
-
-}
-
-
+// "T" should be integer
 template<typename T>
-static T powerMod(T a, T b, T c)
+T modPow(T a, T b, const T &c)
 {
     T r = 1;
-    while(b)
+    while(b > 0)
     {
-        if(b & 1) r = r * a % c;
+        if(b & 1) r = r * b % c;
         a = a * a % c;
         b >>= 1;
     }
     return r;
 }
+
+
 
 
 

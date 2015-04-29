@@ -245,28 +245,32 @@ public:
         this->v.assign(n, V(-1, vp));
     }
 
-    void clear() { this->v.clear(); this->e.clear(); }
-    void resize(int n, const VP &vp = VP()) { this->e.clear(); this->v.assign(n, vp); }
+    void assign(int n, const VP & vp = VP())
+    {        
+        this->v.assign(n, V(-1, vp));
+        this->e.clear(); 
+    }
+    // void clear() { this->v.clear(); this->e.clear(); }
+    // void resize(int n, const VP &vp = VP()) { this->e.clear(); this->v.assign(n, vp); }
 
     const VP& vertexProperties(int u) const { return this->v[u].vp; }
     VP& vertexProperties(int u) { return this->v[u].vp; }
 
-    const GP& graphProperties(int u) const { return this->gp; }
-    GP& graphProperties(int u) { return this->gp; }
+    const GP& graphProperties() const { return this->gp; }
+    GP& graphProperties() { return this->gp; }
 
 
     class EdgeIndex
     {
         friend class AdjacencyList<VP, EP, GP>;
-        int from, id;
-        EdgeIndex() = default;
+        int from, id;        
         EdgeIndex(int _from, int _id):from(_from), id(_id){}
     public:
-        bool operator==(const EdgeIndex &o)const { return id == o.id && from == o.from; }
-        bool operator!=(const EdgeIndex &o)const { return !(*this == o); }
+        EdgeIndex() = default;        
     };
     
     int source(const EdgeIndex &eid) const { return eid.from; }
+
     const int& target(const EdgeIndex &eid) const { return this->e[eid.id].to; }
     int& target(const EdgeIndex &eid) { return this->e[eid.id].to; }
 
@@ -278,8 +282,8 @@ public:
     // otherwise, return will not guarantee right.
     EdgeIndex inverseEdge(const EdgeIndex &eid) const { return EdgeIndex(this->e[eid.id].to, eid.id ^ 1);}
 
-    int vertexNumber() const { return v.size(); }
-    int edgeNumber() const { return e.size(); }
+    int vertexNumber() const { return this->v.size(); }
+    int edgeNumber() const { return this->e.size(); }
     
 
     class OutEdgeIterator
@@ -292,17 +296,16 @@ public:
         OutEdgeIterator() = default;
 
         const EdgeIndex& operator*() const { return i; }
-
         OutEdgeIterator& operator++() { i.id = (*e)[i.id].next;  return *this; }
         OutEdgeIterator operator++(int) { OutEdgeIterator t(*this); ++*this;  return t; }
-        bool operator==(const OutEdgeIterator &o) const { return i == o.i; }
+        bool operator==(const OutEdgeIterator &o) const { return i.id == o.i.id && e == o.e; }
         bool operator!=(const OutEdgeIterator &o) const { return !(*this == o); }
     };
 
     pair<OutEdgeIterator, OutEdgeIterator> outEdges(int u)
     {
 
-        return make_pair(OutEdgeIterator(EdgeIndex(u, G::v[u].head), &this->e), 
+        return make_pair(OutEdgeIterator(EdgeIndex(u, this->v[u].head), &this->e), 
                          OutEdgeIterator(EdgeIndex(u, -1), &this->e) );
     }
     void addEdge(int a, int b, const EP &ep = EP())

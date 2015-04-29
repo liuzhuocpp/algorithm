@@ -39,7 +39,7 @@ int main()
 
 
         int n = FFT<ComplexFFTData<double> >::multiply(a.begin(), a.begin() + an, 
-                                                 b.begin(), b.begin() + bn);
+                                                        b.begin(), b.begin() + bn);
 
         // FFT<IntegerFFTData<unsigned> > ::multiply(a, b);
 

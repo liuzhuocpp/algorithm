@@ -1,49 +1,83 @@
 #ifndef DEPTH_FIRST_SEARCH_H
 #define DEPTH_FIRST_SEARCH_H
 
-#include "graph_utility.h"
+// #include "graph_utility.h"
+#include <tuple>
+#include <algorithm>
 
-namesace lz {
+namespace lz {
+
+using std::tie;
+using std::pair;
 
 template<typename Graph>
 class DepthFirstSearch
 {
 	Graph *g;
-	typedef typename Graph::EdgeProperty EP;
-	typedef typename Graph::Iterator EdgeIterator;
-	int s;
-	vector<int> color;
+	typedef typename Graph::OutEdgeIterator OutEdgeIterator;
+	typedef typename Graph::EdgeIndex EdgeIndex;
+	vector<bool> color;
 public:
+	explicit DepthFirstSearch():g(null_ptr){}
 	explicit DepthFirstSearch(const Graph &_g):g(&_g){}
-	Graph& graph() { return *g; }
+
 	const Graph& graph() const { return *g; }
-	void setGraph(const Graph &_g) { g = &_g; }
-	void start(int s)
+	Graph& graph() { return *g; }
+	
+
+	virtual void initializeVertex(int u) {}
+	virtual void startVertex(int u){}
+	virtual void discoverVertex(int u) {}
+	virtual void examineEdge(const EdgeIndex &eid) {}
+	virtual void treeEdge(const EdgeIndex &eid) {}
+	virtual void notTreeEdge(const EdgeIndex &eid) {}	
+	virtual void finishEdge(const EdgeIndex &eid) {}
+	virtual void finishVertex(int u) {}
+
+	void start(int s = -1)
 	{
+		int n = g->vertexNumber();
+		for(int i = 0; i < n; ++ i)
+		{			
+			initializeVertex(i);
+			color[i] = 0;
+		}
+
+		if(s != -1) 
+		{
+			startVertex(s);
+			dfs(s);
+		}
+		for(int i = 0; i < n; ++ i)
+		{
+			if(color[i] == 0)
+			{
+				startVertex(s);
+				dfs(s);
+			}
+		}
 
 	}
-	virtual void initializeVertex(){}
-	virtual void startVertex(){}
-	virtual void discoverVertex(){}
-	virtual void examineEdge(){}
-	virtual void treeEdge(){}
-	virtual void backEdge(){}
-	virtual void forwardOrCrossEdge(){}
-	virtual void finishEdge(){}
-	virtual void finishVertex(){}
 private:
 	void dfs(int u)
-	{
+	{		
 		discoverVertex(u);
 		color[u] = 1;
-		EdgeIterator it = g.begin(u);
-		for(;it != g.end(u); ++ it)
+		OutEdgeIterator oe, oe_end;
+	    tie(oe, oe_end) = g->outEdges(u);
+		for(;oe != oe_end; ++ oe)
 		{
-			int to = it->end;
-			if(color[to] == 0) treeEdge();
-			else if(color[to] == 1) backEdge();
-			else if(color[to] == 2) forwardOrCrossEdge();
-			finishEdge();
+			EdgeIndex ei = *oe;
+			if(color[to] == 0) 
+			{
+				treeEdge(ei);				
+				dfs(to);
+			}
+			else 
+			{
+				notTreeEdge(ei);
+			}			
+			finishEdge(ei);
 		}
 		finishVertex(u);
 	}

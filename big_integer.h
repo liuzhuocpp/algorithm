@@ -29,6 +29,8 @@ using std::make_tuple;
 using std::tie;
 using std::pair;
 using std::make_pair;
+
+
     namespace BigIntegerPrivate {
 
         typedef unsigned uint;
