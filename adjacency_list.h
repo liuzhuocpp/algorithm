@@ -17,6 +17,192 @@ using std::pair;
 using std::make_pair;
 
 
+/**
+ * property should be a struct
+ *
+ *
+ *
+*/
+    namespace AdjacencyListPrivate {
+
+    // vertex data
+    template<typename VP>
+    struct VD
+    {
+        int head;
+        VP vp;
+        VD() = default;
+        VD(int _h, const VP &_vp):head(_h), vp(_vp) {}
+    };
+    template<>
+    struct VD<NoProperty>
+    {
+        int head;
+        VD() = default;
+        VD(int _h, const NoProperty &_vp):head(_h) {}
+    };
+
+    // edge data
+    template<typename EP>
+    struct ED
+    {
+        int target, next;
+        EP ep;
+        ED() = default;
+        ED(int _target, int _next, const EP & _ep):target(_target), next(_next), ep(_ep){}
+    };
+    template<>
+    struct ED<NoProperty>
+    {
+        int target, next;
+        ED() = default;
+        ED(int _target, int _next, const NoProperty & _ep):target(_target), next(_next){}
+    };
+
+    // graph data
+    template<typename VP, typename EP, typename GP>
+    struct GD
+    {
+        vector<VD<VP> > v;
+        vector<ED<EP> > e;
+        GP gp;
+    };
+
+    template<typename VP, typename EP>
+    struct GD<VP, EP, NoProperty>
+    {
+        vector<VD<VP> > v;
+        vector<ED<EP> > e;
+    };
+
+
+    } // AdjacencyListPrivate
+
+
+
+
+
+template<typename VP = NoProperty, 
+         typename EP = NoProperty, 
+         typename GP = NoProperty >
+class AdjacencyList: public AdjacencyListPrivate::GD<VP, EP, GP>
+{
+    typedef AdjacencyListPrivate::VD<VP> VD;
+    typedef AdjacencyListPrivate::ED<EP> ED;
+    typedef AdjacencyListPrivate::GD<VP, EP, GP> GD;
+    
+public:
+    typedef VP VertexProperties;
+    typedef EP EdgeProperties;
+    typedef GP GraphProperties;
+
+    explicit AdjacencyList(int n = 0, const VP & vp = VP())
+    { 
+        this->v.assign(n, VD(-1, vp));
+    }
+
+    void assign(int n, const VP & vp = VP())
+    {        
+        this->v.assign(n, VD(-1, vp));
+        this->e.clear(); 
+    }
+    // void clear() { this->v.clear(); this->e.clear(); }
+    // void resize(int n, const VP &vp = VP()) { this->e.clear(); this->v.assign(n, vp); }
+
+    const VP& vertexProperties(int u) const { return this->v[u].vp; }
+    VP& vertexProperties(int u) { return this->v[u].vp; }
+
+    const GP& graphProperties() const { return this->gp; }
+    GP& graphProperties() { return this->gp; }
+
+
+    class EdgeIndex
+    {
+        friend class AdjacencyList<VP, EP, GP>;
+        int source, edid;
+        EdgeIndex(int _source, int _edid):source(_source), edid(_edid){}
+    public:
+        EdgeIndex() = default;        
+    };
+    
+    int source(const EdgeIndex &eid) const { return eid.source; }
+
+    const int& target(const EdgeIndex &eid) const { return this->e[eid.edid].target; }
+    int& target(const EdgeIndex &eid) { return this->e[eid.edid].target; }
+
+    const EP& edgeProperties(const EdgeIndex &eid) const { return this->e[eid.edid].ep; }
+    EP& edgeProperties(const EdgeIndex &eid) { return this->e[eid.edid].ep; }
+
+    // only work when add edge and inverseEdge continuously, 
+    // and first edge number is even number.
+    // otherwise, return will not guarantee right.
+    EdgeIndex inverseEdge(const EdgeIndex &eid) const
+        { return EdgeIndex(this->e[eid.edid].target, eid.edid ^ 1); }
+
+    int vertexNumber() const { return this->v.size(); }
+    int edgeNumber() const { return this->e.size(); }
+    
+
+    class OutEdgeIterator
+    {
+        friend class AdjacencyList<VP, EP, GP>;
+        EdgeIndex i;
+        const vector<ED> *e;
+        OutEdgeIterator(const EdgeIndex &_i, const vector<ED> *_e):i(_i), e(_e) {}
+    public:
+        OutEdgeIterator() = default;
+
+        const EdgeIndex& operator*() const { return i; }
+        OutEdgeIterator& operator++() { i.edid = (*e)[i.edid].next;  return *this; }
+        OutEdgeIterator operator++(int) { OutEdgeIterator t(*this); ++*this;  return t; }
+        bool operator==(const OutEdgeIterator &o) const { return i.edid == o.i.edid && e == o.e; }
+        bool operator!=(const OutEdgeIterator &o) const { return !(*this == o); }
+    };
+
+    pair<OutEdgeIterator, OutEdgeIterator> outEdges(int u) const
+    {
+
+        return make_pair(OutEdgeIterator(EdgeIndex(u, this->v[u].head), &this->e), 
+                         OutEdgeIterator(EdgeIndex(u, -1), &this->e) );
+    }
+    void addEdge(int a, int b, const EP &ep = EP())
+    {
+        this->e.push_back(ED(b, this->v[a].head, ep));
+        this->v[a].head = int(this->e.size()) - 1;
+    }
+
+
+
+
+
+
+
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // // define vertex info in AdjacencyList
 // template<typename VP>
 // struct ALVertex
@@ -167,164 +353,6 @@ using std::make_pair;
 //     vector<ALEdge<EP> > e;
 //     GP gp;
 // };
-
-
-    namespace AdjacencyListPrivate {
-
-    template<typename VP>
-    struct V
-    {
-        int head;
-        VP vp;
-        V() = default;
-        V(int _h, const VP &_vp):head(_h), vp(_vp) {}
-    };
-    template<>
-    struct V<NoProperty>
-    {
-        int head;
-        V() = default;
-        V(int _h, const NoProperty &_vp):head(_h) {}
-    };
-
-    template<typename EP>
-    struct E
-    {
-        int to, next;
-        EP ep;
-        E() = default;
-        E(int _to, int _next, const EP & _ep):to(_to), next(_next), ep(_ep){}
-    };
-    template<>
-    struct E<NoProperty>
-    {
-        int to, next;
-        E() = default;
-        E(int _to, int _next, const NoProperty & _ep):to(_to), next(_next){}
-    };
-
-
-    template<typename VP, typename EP, typename GP>
-    struct G
-    {
-        vector<V<VP> > v;
-        vector<E<EP> > e;
-        GP gp;
-    };
-
-    template<typename VP, typename EP>
-    struct G<VP, EP, NoProperty>
-    {
-        vector<V<VP> > v;
-        vector<E<EP> > e;
-    };
-
-
-    } // AdjacencyListPrivate
-
-
-
-
-
-template<typename VP = NoProperty, 
-         typename EP = NoProperty, 
-         typename GP = NoProperty >
-class AdjacencyList: public AdjacencyListPrivate::G<VP, EP, GP>
-{
-    typedef AdjacencyListPrivate::V<VP> V;
-    typedef AdjacencyListPrivate::E<EP> E;
-    typedef AdjacencyListPrivate::G<VP, EP, GP> G;
-    
-public:
-    typedef VP VertexProperties;
-    typedef EP EdgeProperties;
-    typedef GP GraphProperties;
-
-    explicit AdjacencyList(int n = 0, const VP & vp = VP())
-    { 
-        this->v.assign(n, V(-1, vp));
-    }
-
-    void assign(int n, const VP & vp = VP())
-    {        
-        this->v.assign(n, V(-1, vp));
-        this->e.clear(); 
-    }
-    // void clear() { this->v.clear(); this->e.clear(); }
-    // void resize(int n, const VP &vp = VP()) { this->e.clear(); this->v.assign(n, vp); }
-
-    const VP& vertexProperties(int u) const { return this->v[u].vp; }
-    VP& vertexProperties(int u) { return this->v[u].vp; }
-
-    const GP& graphProperties() const { return this->gp; }
-    GP& graphProperties() { return this->gp; }
-
-
-    class EdgeIndex
-    {
-        friend class AdjacencyList<VP, EP, GP>;
-        int from, id;        
-        EdgeIndex(int _from, int _id):from(_from), id(_id){}
-    public:
-        EdgeIndex() = default;        
-    };
-    
-    int source(const EdgeIndex &eid) const { return eid.from; }
-
-    const int& target(const EdgeIndex &eid) const { return this->e[eid.id].to; }
-    int& target(const EdgeIndex &eid) { return this->e[eid.id].to; }
-
-    const EP& edgeProperties(const EdgeIndex &eid) const { return this->e[eid.id].ep; }
-    EP& edgeProperties(const EdgeIndex &eid) { return this->e[eid.id].ep; }
-
-    // only work when add edge and inverseEdge continuously, 
-    // and first edge number is even number.
-    // otherwise, return will not guarantee right.
-    EdgeIndex inverseEdge(const EdgeIndex &eid) const { return EdgeIndex(this->e[eid.id].to, eid.id ^ 1);}
-
-    int vertexNumber() const { return this->v.size(); }
-    int edgeNumber() const { return this->e.size(); }
-    
-
-    class OutEdgeIterator
-    {
-        friend class AdjacencyList<VP, EP, GP>;
-        EdgeIndex i;
-        vector<E> *e;
-        OutEdgeIterator(const EdgeIndex &_i, vector<E> *_e):i(_i), e(_e) {}
-    public:
-        OutEdgeIterator() = default;
-
-        const EdgeIndex& operator*() const { return i; }
-        OutEdgeIterator& operator++() { i.id = (*e)[i.id].next;  return *this; }
-        OutEdgeIterator operator++(int) { OutEdgeIterator t(*this); ++*this;  return t; }
-        bool operator==(const OutEdgeIterator &o) const { return i.id == o.i.id && e == o.e; }
-        bool operator!=(const OutEdgeIterator &o) const { return !(*this == o); }
-    };
-
-    pair<OutEdgeIterator, OutEdgeIterator> outEdges(int u)
-    {
-
-        return make_pair(OutEdgeIterator(EdgeIndex(u, this->v[u].head), &this->e), 
-                         OutEdgeIterator(EdgeIndex(u, -1), &this->e) );
-    }
-    void addEdge(int a, int b, const EP &ep = EP())
-    {
-        this->e.push_back(E(b, this->v[a].head, ep));
-        this->v[a].head = int(this->e.size()) - 1;
-    }
-
-
-
-
-
-
-
-
-};
-
-
-
 
 
 

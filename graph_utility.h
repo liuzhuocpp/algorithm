@@ -5,7 +5,7 @@
 namespace lz {
 
 /*
-	this header file define some base classes and functions
+	this header file define some base classes and functions for graph
 */
 struct NoProperty{};
 
