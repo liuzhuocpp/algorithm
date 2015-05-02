@@ -85,7 +85,7 @@ using std::make_pair;
 template<typename VP = NoProperty, 
          typename EP = NoProperty, 
          typename GP = NoProperty >
-class AdjacencyList: public AdjacencyListPrivate::GD<VP, EP, GP>
+class AdjacencyList: private AdjacencyListPrivate::GD<VP, EP, GP>
 {
     typedef AdjacencyListPrivate::VD<VP> VD;
     typedef AdjacencyListPrivate::ED<EP> ED;
@@ -118,7 +118,7 @@ public:
 
     class EdgeIndex
     {
-        friend class AdjacencyList<VP, EP, GP>;
+        friend class AdjacencyList;
         int source, edid;
         EdgeIndex(int _source, int _edid):source(_source), edid(_edid){}
     public:
@@ -133,8 +133,8 @@ public:
     const EP& edgeProperties(const EdgeIndex &eid) const { return this->e[eid.edid].ep; }
     EP& edgeProperties(const EdgeIndex &eid) { return this->e[eid.edid].ep; }
 
-    // only work when add edge and inverseEdge continuously, 
-    // and first edge number is even number.
+    // work only when add edge continuously for eid edge and it`s inverse edge , 
+    // namely, eid.edid + 1 == inverse(eid).edid and eid.edid % 2 == 0
     // otherwise, return will not guarantee right.
     EdgeIndex inverseEdge(const EdgeIndex &eid) const
         { return EdgeIndex(this->e[eid.edid].target, eid.edid ^ 1); }
@@ -145,7 +145,7 @@ public:
 
     class OutEdgeIterator
     {
-        friend class AdjacencyList<VP, EP, GP>;
+        friend class AdjacencyList;
         EdgeIndex i;
         const vector<ED> *e;
         OutEdgeIterator(const EdgeIndex &_i, const vector<ED> *_e):i(_i), e(_e) {}
