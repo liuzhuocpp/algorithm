@@ -2,10 +2,11 @@
 #include <cstdio>
 #include <limits>
 #include <vector>
-#include <complex>
-#include <cmath>
+// #include <complex>
+// #include <cmath>
 #include <algorithm>
 #include <cstring>
+#include <ctime>
 
 #include "big_integer.h"
 
@@ -15,35 +16,34 @@ using namespace lz::BigIntegerPrivate;
 
 
 
-const int N = 2e5 + 9;
 
-char s1[N], s2[N];
-vector<unsigned> a(N), b(N), c(N);
-int L = 7;
 int main()
 {
-    while(~scanf("%s%s", s1, s2))
-    {
-        a.clear();
-        b.clear();
-        string ss1(s1), ss2(s2);
-        fromString(a, ss1, L);
-        fromString(b, ss2, L);
-        // out(a);
-        // out(b);
-        // minusAssign(a, b, int(1e9));
-        // fftMultiply(a, b, 10, 9);
+    time_t first, second;
+    first = clock();
 
-        // simulationMultiply(c, a, b, int(1e9));
-        // cout << toString(c) << endl;
-        
-        // multiply(a, b, int(1e9), 10, 9);
-        // cout << toString(a) << endl;
+    string s = "9999123123121231231231241230000000001231231233123";
 
-        multiply(c, a, b, int(1e7), 10, L);
-        cout << toString(c, L) << endl;
-        
-    }
+    s.assign(500000, '9');
+    // cout << s << endl;
+    WordSeq a;
+    a.reserve(100000);
+
+    U::fromString(s.begin(), s.end(), 10, a);
+    // cout << "SB" << endl;
+    // out(a);
+    cout << "comp" << endl;
+    second=clock();  
+    printf("fromString complete:%.3f\n", double(second - first) / 1000.0);
+    
+    string ans = U::toStringSlow(a);    
+    // cout << s << endl;
+    // cout << ans << endl;
+
+    cout << "OK: " <<  (s == ans) << endl;
+    second=clock();  
+    printf("toString complete:%.3f\n", double(second - first) / 1000.0);
+    // cout << (second - first)<< endl;
     
 
 
