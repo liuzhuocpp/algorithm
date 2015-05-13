@@ -10,6 +10,7 @@
 
 #include "big_integer.h"
 
+
 using namespace std;
 using namespace lz;
 using namespace lz::BigIntegerPrivate;
@@ -19,6 +20,13 @@ using namespace lz::BigIntegerPrivate;
 
 int main()
 {
+    
+
+
+
+
+
+
     int T, cas = 1;
     scanf("%d", &T);
     WordSeq a, b;
