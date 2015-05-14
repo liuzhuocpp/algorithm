@@ -42,6 +42,10 @@ using std::complex;
 
     namespace FFTPrivate {
 
+    /*
+        the following code is for integer fft
+    */
+
     typedef unsigned long long ull;
     // judge  whether "x" is the prime
     bool isPrime(const ull &x)
@@ -107,139 +111,155 @@ using std::complex;
 
 
 
+
+
+
+
+    template<typename Data>
+    class FFT
+    {        
+        typedef typename Data::Type Type; // structure type   
         
+        typedef typename Data::Weight Weight;  // weight function 
+        typedef typename Data::InverseWeight InverseWeight; // inverse weight function
+        typedef typename Data::Plus Plus;
+        typedef typename Data::Divide Divide;
+        typedef typename Data::Multiply Multiply;
 
-
-    }
-
-
-
-
-
-
-
-
-template<typename Data>
-class FFT
-{        
-    typedef typename Data::Type Type; // structure type   
-    
-    typedef typename Data::Weight Weight;  // weight function 
-    typedef typename Data::InverseWeight InverseWeight; // inverse weight function
-    typedef typename Data::Plus Plus;
-    typedef typename Data::Divide Divide;
-    typedef typename Data::Multiply Multiply;
-
-    static const Weight w;
-    static const InverseWeight iw;
-    static const Plus plus;
-    static const Divide div;
-    static const Multiply mul;
+        static const Weight w;
+        static const InverseWeight iw;
+        static const Plus plus;
+        static const Divide div;
+        static const Multiply mul;
 
 
 
-    static inline int bitL(int n)
-    {
-        int t = 1, bn = 0;
-        while(t != n) t <<= 1, bn ++;
-        return bn;
-    }
-    template<typename Iterator, typename W>
-    static void transform(Iterator a, Iterator end, const W &w) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
-    {      
-        int n = end - a;
-        int bn = bitL(n);
-
-        int *id = new int[n];
-        id[0] = 0;
-        for(int i = 0; i < bn; ++ i)
+        static inline int bitL(int n)
         {
-            for(int s = 0; s < (1 << i); ++ s)
-            {
-                int ns = s | (1 << i);
-                id[ns] = id[s] | (1 << (bn - 1 - i));
-            }            
-        }   
-
-        for(int i = 1; i < n; ++ i)
-        {
-            if(id[i] == 0) continue;
-            if(id[i] == i) continue;
-            // id[i], id[id[i]];
-            swap(a[id[i]], a[i]);
-            id[id[i]] = 0;
-
+            int t = 1, bn = 0;
+            while(t != n) t <<= 1, bn ++;
+            return bn;
         }
+        template<typename Iterator, typename W>
+        static void transform(Iterator a, Iterator end, const W &w) // a[0] + a[1] * x ^ 1 + a[2] * x ^ 2 + ...
+        {      
+            int n = end - a;
+            int bn = bitL(n);
 
-
-
-        delete [] id;
-
-        for(int l = 2; l <= n; l <<= 1)
-        {
-            int l_2 = l >> 1;
-            Type w1 = w(l, 1);
-            Type w0 = w(l, 0);
-            Type wn_2 = w(l, l_2);
-
-            for(int i = 0; i < n; i += l)
+            int *id = new int[n];
+            id[0] = 0;
+            for(int i = 0; i < bn; ++ i)
             {
-                Type wb = w0;
-                for(int k = i; k < i + l_2; ++ k)
-                {                    
-                    Type u = a[k], v = a[k + l_2];
-                    // a[k] = u + wb * v;
-                    // a[k + l_2] = u + wb * wn_2 * v;
-                    // wb = wb * w1;
-                    a[k] = plus(u, mul(wb, v));
-                    a[k + l_2] = plus(u, mul(wb, mul(wn_2, v)));
-                    wb = mul(wb, w1);
+                for(int s = 0; s < (1 << i); ++ s)
+                {
+                    int ns = s | (1 << i);
+                    id[ns] = id[s] | (1 << (bn - 1 - i));
+                }            
+            }   
+
+            for(int i = 1; i < n; ++ i)
+            {
+                if(id[i] == 0) continue;
+                if(id[i] == i) continue;
+                // id[i], id[id[i]];
+                swap(a[id[i]], a[i]);
+                id[id[i]] = 0;
+
+            }
+
+
+
+            delete [] id;
+
+            for(int l = 2; l <= n; l <<= 1)
+            {
+                int l_2 = l >> 1;
+                Type w1 = w(l, 1);
+                Type w0 = w(l, 0);
+                Type wn_2 = w(l, l_2);
+
+                for(int i = 0; i < n; i += l)
+                {
+                    Type wb = w0;
+                    for(int k = i; k < i + l_2; ++ k)
+                    {                    
+                        Type u = a[k], v = a[k + l_2];
+                        // a[k] = u + wb * v;
+                        // a[k + l_2] = u + wb * wn_2 * v;
+                        // wb = wb * w1;
+                        a[k] = plus(u, mul(wb, v));
+                        a[k + l_2] = plus(u, mul(wb, mul(wn_2, v)));
+                        wb = mul(wb, w1);
+                    }
                 }
             }
         }
-    }
 
-public:
-    // decltype(*IteratorA) should be "Type"
-    template<typename IteratorA, typename IteratorB>
-    static int multiply(IteratorA a, IteratorA aend, 
-                         IteratorB b, IteratorB bend  )
-    {        
-        int an = aend - a;
-        int bn = bend - b;
-        int n = 1;
-        while(n < max(an, bn)) n <<= 1;
-        n <<= 1;
+    public:
+        // decltype(*IteratorA) should be "Type"
+        template<typename IteratorA, typename IteratorB>
+        static int multiply(IteratorA a, IteratorA aend, 
+                             IteratorB b, IteratorB bend  )
+        {        
+            int an = aend - a;
+            int bn = bend - b;
+            int n = 1;
+            while(n < max(an, bn)) n <<= 1;
+            n <<= 1;
 
-        while(aend - a < n) *(aend++) = Type(0);
-        while(bend - b < n) *(bend++) = Type(0);
+            while(aend - a < n) *(aend++) = Type(0);
+            while(bend - b < n) *(bend++) = Type(0);
 
-        transform(a, aend, w);
-        transform(b, bend, w);
-        for(int i = 0; i < n; ++ i) a[i] = mul(a[i], b[i]);
+            transform(a, aend, w);
+            transform(b, bend, w);
+            for(int i = 0; i < n; ++ i) a[i] = mul(a[i], b[i]);
 
-        transform(a, aend, iw);
-        Type inv = div(Type(1), Type(n));
-        for(int i = 0; i < n; ++ i) a[i] = mul(a[i], inv);
-        return n;
-    }
+            transform(a, aend, iw);
+            Type inv = div(Type(1), Type(n));
+            for(int i = 0; i < n; ++ i) a[i] = mul(a[i], inv);
+            return n;
+        }
 
-};
+    };  
 
-template<typename Data>
-const typename FFT<Data>::Weight  FFT<Data>::w;
 
-template<typename Data>
-const typename FFT<Data>::InverseWeight  FFT<Data>::iw;
+    template<typename Data>
+    const typename FFT<Data>::Weight  FFT<Data>::w;
 
-template<typename Data>
-const typename FFT<Data>::Plus  FFT<Data>::plus;
+    template<typename Data>
+    const typename FFT<Data>::InverseWeight  FFT<Data>::iw;
 
-template<typename Data>
-const typename FFT<Data>::Divide  FFT<Data>::div;
+    template<typename Data>
+    const typename FFT<Data>::Plus  FFT<Data>::plus;
 
-template<typename Data>
-const typename FFT<Data>::Multiply  FFT<Data>::mul;
+    template<typename Data>
+    const typename FFT<Data>::Divide  FFT<Data>::div;
+
+    template<typename Data>
+    const typename FFT<Data>::Multiply  FFT<Data>::mul;
+
+
+
+
+
+        
+
+
+    } // FFTPrivate
+
+
+
+template<typename Data, typename IteratorA, typename IteratorB>
+int fftMultiply(IteratorA a, IteratorA aend, 
+                IteratorB b, IteratorB bend  )
+{
+    return FFTPrivate::FFT<Data>::multiply(a, aend, b, bend);
+}
+
+
+
+
+
 
 
 
@@ -260,8 +280,6 @@ class IntegerFFTData
     // const static LL g = 3;
     const static LL P = (15 * (1 << 27) + 1);
     const static LL g = 31;
-
-
     static LL power(LL a, LL b, LL c)
     {
         LL r = 1uLL;
@@ -274,7 +292,6 @@ class IntegerFFTData
         return r;
     }
 public:
-
     typedef Integer Type;
     struct Weight
     {    

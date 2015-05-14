@@ -4,14 +4,19 @@
 #include <functional>
 // some little and mess functions
 
-namespace lz{
+namespace lz {
 
-template<typename T> 
-int sz(const T &o) { return int(o.size()); }
 
+
+/** 
+ * @prama T should be integer
+ * @prama x  should be no less than 0
+ * @return number of bits in the minimal two's-complement representation of this integer
+ */
 template<typename T>
-int topBit(T x) 
+int integerBitLength(T x)
 {
+    if(x == 0) return 1;
     int r = 0;
     for(;x > 0; x >>= 1)
     {
@@ -20,7 +25,11 @@ int topBit(T x)
     return r;
 }
 
-// "T" should be integer
+/** 
+ * @prama T should be integer
+ * @return a^b % c
+ */
+
 template<typename T>
 T modPow(T a, T b, const T &c)
 {

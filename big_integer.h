@@ -10,7 +10,7 @@
 #include <utility>
 
 // #include "fft.h"
-
+#include "utility.h"
 
 namespace lz {
 
@@ -32,6 +32,7 @@ using std::make_pair;
      * Class U is the unsigned BigInteger.
      * Use little endian to storage the word sequence.
      * The length of a word sequence is at least 1(specially for zero).
+     * The word sequence do not contain leading zeros.
      * a[0], a[1], a[2]... radix bits increase
      *        --> 
      */
@@ -41,6 +42,7 @@ using std::make_pair;
      */
     template<typename T> static int sz(const T &o) { return o.size(); }
 
+    typedef long long ll;
     
     /**
      * this type is used to hold a word
@@ -55,7 +57,7 @@ using std::make_pair;
     /**
      * this type is used to hold word sequence
      */
-    typedef vector<uint> WordSeq;
+    typedef vector<uint> UintSeq;
 
 
     /**
@@ -66,17 +68,17 @@ using std::make_pair;
     /**
      * This constant is used to get lower word
      */
-    static const ull WordMask = ~0u;
+    static const ull UllMask = ~0u;
 
     /**
      * This constant is used to represent to zero
      */
-    const WordSeq ZeroWordSeq(1, 0);
+    const UintSeq ZeroUintSeq(1, 0);
 
     /**
      * This constant is used to represent to zero
      */
-    const WordSeq OneWordSeq(1, 1);
+    const UintSeq OneUintSeq(1, 1);
 
     /**
      * Get maximum radix that a word can hold.
@@ -89,17 +91,17 @@ using std::make_pair;
     {
         ull tmax_radix = 1;
         l = 0;        
-        while(tmax_radix * radix <= WordMask) 
+        while(tmax_radix * radix <= UllMask) 
             tmax_radix *= radix, l ++;
         max_radix = tmax_radix;
     }
 
 
     /**
-     * Output the contents of WordSeq o
+     * Output the contents of UintSeq o
      * @param o need be output
      */
-    void out(const WordSeq & o)
+    void out(const UintSeq & o)
     {
         cout << "[";
         for(int i = 0; i < sz(o); ++ i)
@@ -115,7 +117,7 @@ using std::make_pair;
      * Remove leading zeros in word sequence a
      * @param a is the word sequence
      */
-    static void removeLeadingZeros(WordSeq &a)
+    static void removeLeadingZeros(UintSeq &a)
     {
         while(sz(a) >= 2 && *--a.end() == 0) 
             //v.pop_back();
@@ -145,11 +147,11 @@ using std::make_pair;
     }
 
     /**
-     * Adds the contents of the WordSeq a and b. And put the result into a : a += b.
+     * Adds the contents of the UintSeq a and b. And put the result into a : a += b.
      * @param  a add value.
      * @param  b value to be added to a.     
      */
-    static void plus(WordSeq &a, const WordSeq &b)
+    static void plus(UintSeq &a, const UintSeq &b)
     {
         ull t = 0ull;
         int mi = min(sz(a), sz(b));
@@ -182,32 +184,32 @@ using std::make_pair;
     }
 
     /**
-     * Adds the contents of the WordSeq a and Word b. 
+     * Adds the contents of the UintSeq a and Word b. 
      * And put the result into a : a += b.
      * @param  a add value.
      * @param  b value to be added to a.     
      */
-    static void plus(WordSeq &a, uint b)
+    static void plus(UintSeq &a, uint b)
     {
         ull t = b;
         for(int i = 0; i < sz(a); ++ i)
         {
             if(t == 0) break;
             t += a[i];
-            a[i] = t & WordMask;
+            a[i] = t & UllMask;
             t >>= 32;
         }
-        if(t > 0) a.push_back(t & WordMask);
+        if(t > 0) a.push_back(t & UllMask);
     }
 
 
     /**
-     * Multiply the contents of the WordSeq a and b using school method: c = a * b.
+     * Multiply the contents of the UintSeq a and b using school method: c = a * b.
      * And put the result into c.
      * @param  a the multiply value.
      * @param  b value to be multiplied to a.
      */        
-    static void multiplySchool(const WordSeq &a, const WordSeq &b, WordSeq &c)
+    static void multiplySchool(const UintSeq &a, const UintSeq &b, UintSeq &c)
     {
         c.assign(sz(a) + sz(b), 0);
         for(int i = 0; i < sz(b); ++ i)
@@ -229,32 +231,32 @@ using std::make_pair;
 
 
     /**
-     * Multiply the contents of the WordSeq a and Word b using school method:a *= b.         
+     * Multiply the contents of the UintSeq a and Word b using school method:a *= b.         
      * @param  a the multiply value.
      * @param  b value to be multiplied to a.
      */        
-    static void multiplySchool(WordSeq &a, uint b)
+    static void multiplySchool(UintSeq &a, uint b)
     {
         ull t = 0ull;
         for(int i = 0; i < sz(a); ++ i)
         {
-            t += (a[i] & WordMask) * b;
-            a[i] = t & WordMask;
+            t += (a[i] & UllMask) * b;
+            a[i] = t & UllMask;
             t >>= 32;
         }
-        if(t > 0ull) a.push_back(t & WordMask);
+        if(t > 0ull) a.push_back(t & UllMask);
     }
 
 
 
 
     /**
-     * minus the contents of the WordSeq b from a: a -= b.
+     * minus the contents of the UintSeq b from a: a -= b.
      * And put the result into a.
      * @param  a value to be minuend by b.
      * @param  b the minus value.
      */
-    static void minus(WordSeq &a, const WordSeq &b) 
+    static void minus(UintSeq &a, const UintSeq &b) 
     {
         ull t = 0;
         for(int i = 0; i < sz(b); ++ i)
@@ -277,12 +279,12 @@ using std::make_pair;
 
 
     /**
-     * Divide the contents of the WordSeq a and Word b using school method:a /= b.
+     * Divide the contents of the UintSeq a and Word b using school method:a /= b.
      * @param  a the divided value by b.
      * @param  b the divide value.
      * @return the remainder a % b
      */        
-    static uint divideAndRemainderSchool(WordSeq &a, uint b)
+    static uint divideAndRemainderSchool(UintSeq &a, uint b)
     {
         ull t = 0;
         for(int i = sz(a) - 1; i >= 0; -- i)
@@ -293,21 +295,19 @@ using std::make_pair;
             t %= b;               
         }
         removeLeadingZeros(a);
-        // cout <<"!";
-        // out(a);
         return t;
     }
 
 
     /**
-     * compare the contents of the WordSeq a and b.     
-     * @param  a first WordSeq used to compare
-     * @param  b second WordSeq used to compare
+     * compare the contents of the UintSeq a and b.     
+     * @param  a first UintSeq used to compare
+     * @param  b second UintSeq used to compare
      * @return  if a > b: return 1;
      *          if a == b: return 0;
      *          if a < b: return -1; 
      */
-    static int compare(const WordSeq &a, const WordSeq &b)
+    static int compare(const UintSeq &a, const UintSeq &b)
     {
         if(sz(a) < sz(b)) return -1;
         if(sz(a) > sz(b)) return 1;
@@ -329,12 +329,12 @@ using std::make_pair;
      * @param a the result of translated word sequence
      */
     template<typename Iterator>
-    static void fromString(Iterator s, Iterator end, uint radix, WordSeq &a)
+    static void fromString(Iterator s, Iterator end, uint radix, UintSeq &a)
     {
         a.clear();
         int n = end - s;
         uint max_radix, l;
-        getMaxRadix(radix, l, max_radix);            
+        getMaxRadix(radix, l, max_radix);
 
         int begin_pos = n % l;
         uint x = 0;
@@ -362,30 +362,33 @@ using std::make_pair;
      * @param  radix  radix of the String representation.
      */
     static string toString(uint a, uint radix)
-    {            
+    {        
+        if(a == 0) return string("0");
         string o = "";
         while(a > 0)
         {                
             o += toChar(a % radix);
             a /= radix;
         }            
+
         return o;        
     }
 
 
     /**
-     * Translate WordSeq a to string representation with big endian
-     * @param  a  WordSeq that will be translated
+     * Translate UintSeq a to string representation with big endian
+     * @param  a  UintSeq that will be translated
      * @param  radix  radix of the String representation.
      */
-    static string toStringSlow(WordSeq &a, uint radix = 10)
+    static string toStringSlow(UintSeq &a, uint radix = 10)
     {
+        if(compare(a, ZeroUintSeq) == 0) return string("0");
         string o = "";
         uint l, max_radix;
         getMaxRadix(radix, l, max_radix);
-        while(compare(a, ZeroWordSeq) > 0)
+        while(compare(a, ZeroUintSeq) > 0)
         {                
-            uint r = divideAndRemainderSchool(a, max_radix);             
+            uint r = divideAndRemainderSchool(a, max_radix);
             string tmp = toString(r, radix);
             o += tmp + string(l - sz(tmp), '0');
         }
@@ -395,6 +398,158 @@ using std::make_pair;
         reverse(o.begin(), o.end());
         return o;
     }
+
+
+
+    static ll bitLength(UintSeq & a)
+    {
+        ll bl = integerBitLength(a.back());
+        bl += (sz(a) - 1ll) << 5;
+        return bl;
+    }
+
+
+    /**
+     * Make the value of a UintSeq shift to high bit.
+     * The shift distance, {@code n}, should be non-negative.
+     *
+     * @param  n shift distance, in bits.
+     * @return {@code a * (2^n)}
+     */
+    static void shiftHigh(UintSeq &a, ll shift_bits)
+    {
+        if(compare(a, ZeroUintSeq) == 0) return ;
+
+        int shift_words = shift_bits >> 5;
+        shift_bits &= 31;
+
+        // shift bits
+        if(shift_bits > 0)
+        {
+            uint highword = a.back();
+            int highword_bitlen = integerBitLength(highword);
+
+            int begin_pos = sz(a) - 1;
+            if(32 - highword_bitlen < shift_bits)
+            {
+                a.push_back(highword >> (32 - highword_bitlen));
+                begin_pos = sz(a) - 2;
+            }
+            for(int i = begin_pos; i >= 1; -- i)
+            {                
+                a[i] <<= shift_bits;
+                a[i] |= a[i - 1] & (((1 << shift_bits) - 1) << (32 - shift_bits) );                
+            }
+            a[0] <<= shift_bits;
+        }
+
+        // shift words
+        if(shift_words > 0)
+        {        
+            a.resize(sz(a) + shift_words);
+            for(int i = sz(a) - 1; i >= shift_words; -- i)
+                a[i] = a[i - shift_words];
+            for(int i = shift_words - 1; i >= 0; -- i)
+                a[i] = 0;
+        }
+    }
+
+    /**
+     * Make the value of a UintSeq shift to low bit.
+     * The shift distance, {@code n}, should be non-negative.
+     * @param  n shift distance, in bits.
+     * @return {@code a / (2^n)}     
+     */
+     static void shiftLow(UintSeq &a, ll shift_bits)
+     {
+        if(compare(a, ZeroUintSeq) == 0) return ;
+
+        int shift_words = shift_bits >> 5;
+        shift_bits &= 31;
+
+        if(shift_bits > 0)
+        {            
+            for(int i = 0; i < sz(a) - 1; ++ i)
+            {
+                a[i] = a[i] >> shift_bits | 
+                      (a[i + 1] & ((1u << shift_bits) - 1)) << (32 - shift_bits);
+            }
+            if(shift_bits >= integerBitLength(a.back()))
+            {
+                if(sz(a) > 1) a.pop_back();
+                else a[0] = 0;
+            }
+            else a.back() >>= shift_bits;
+        }
+
+
+        if(shift_words > 0)
+        {
+            if(shift_words >= sz(a)) 
+            {
+                a = ZeroUintSeq; 
+                return ;
+            }
+
+            for(int i = 0; i < sz(a) - shift_words; ++ i)
+            {
+                a[i] = a[i + shift_words];
+            }
+            a.resize(sz(a) - shift_words);
+        }
+     }
+
+
+    /**
+     * Divide the contents of the UintSeq a and UintSeq b using an O(n^2) algorithm from Knuth.
+     * Uses Algorithm D in Knuth section 4.3.1.
+     * Quotient will be in UintSeq a.
+     * @param  a the divided value by b.
+     * @param  b the divide value.
+     * @return the remainder a % b
+     */            
+
+    static UintSeq divideAndRemainderKnuth(UintSeq &a, UintSeq &b, bool needRemainder)
+    {
+        if(compare(b, ZeroUintSeq) == 0) 
+        {
+            cout << "divide 0" << endl;
+            return ZeroUintSeq;
+        }
+        if(sz(a) < sz(b))
+        {
+            a = ZeroUintSeq;
+            if(needRemainder) return b;            
+            else return ZeroUintSeq;                
+        }
+        
+        ll b_bitlen = bitLength(b);
+        int b_bitlen_and_5 = b_bitlen & 5;
+        if(b_bitlen_and_5 > 0)
+        {
+            shiftHigh(a, b_bitlen_and_5);
+            shiftHigh(b, b_bitlen_and_5);
+        }
+
+        // UintSeq quotient(a.rbegin(), a.rbegin() + sz(b));
+        UintSeq quotient;        
+        for(int i = sz(a) - sz(b); i >= 0; -- i)
+        {
+            ull ta = a[i] & UllMask;
+            ull tb = b[i] & UllMask;
+            ull q_ = ta / tb;
+            q_ --
+
+        }
+
+
+
+
+        // return t;
+    }
+
+
+
 
 
 
