@@ -20,23 +20,40 @@ using namespace lz::BigIntegerPrivate;
 
 int main()
 {
-    
-    string s = "100123123123123112312323";
-    cout << s << "#size:" << s.size() << endl;
-    
-    UintSeq a;
-    fromString(s.begin(), s.end(), 10, a);        
-    // cout << "KK:" << toStringSlow(a) << endl;
-    
-    
-    // shiftHigh(a, 66);
-    // shiftLow(a, 40);
-    s = toStringSlow(a, 10);
-
-    // cout << "FF" << endl;
-    cout << s << "#size:" << s.size() << endl;
 
 
+    UintSeq a, b, q, r;
+    string s1(20000, '9');
+    string s2(10000, '9');
+    fromString(s1.begin(), s1.end(), 10, a);
+    fromString(s2.begin(), s2.end(), 10, b);
+
+
+
+    divideAndRemainderKnuth(a,  b, q, r);
+
+
+    cout << toStringSlow(q, 10) << endl;
+
+    // int T;
+    // scanf("%d", &T);
+
+    // string s1, s2;
+    // UintSeq a, b, q, r;
+    // while(T --)    
+    // {
+    //     cin >> s1 >> s2;
+    //     fromString(s1.begin(), s1.end(), 10, a);
+    //     fromString(s2.begin(), s2.end(), 10, b);
+
+
+
+    //     divideAndRemainderKnuth(a,  b, q, r);
+
+
+    //     cout << toStringSlow(q, 10) << endl;
+
+    // }
 
 
 

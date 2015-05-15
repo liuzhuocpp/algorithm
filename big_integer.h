@@ -380,15 +380,16 @@ using std::make_pair;
      * @param  a  UintSeq that will be translated
      * @param  radix  radix of the String representation.
      */
-    static string toStringSlow(UintSeq &a, uint radix = 10)
+    static string toStringSlow(const UintSeq &a, uint radix = 10)
     {
         if(compare(a, ZeroUintSeq) == 0) return string("0");
         string o = "";
         uint l, max_radix;
         getMaxRadix(radix, l, max_radix);
-        while(compare(a, ZeroUintSeq) > 0)
+        UintSeq ta = a;
+        while(compare(ta, ZeroUintSeq) > 0)
         {                
-            uint r = divideAndRemainderSchool(a, max_radix);
+            uint r = divideAndRemainderSchool(ta, max_radix);
             string tmp = toString(r, radix);
             o += tmp + string(l - sz(tmp), '0');
         }
@@ -401,7 +402,7 @@ using std::make_pair;
 
 
 
-    static ll bitLength(UintSeq & a)
+    static ll bitLength(const UintSeq & a)
     {
         ll bl = integerBitLength(a.back());
         bl += (sz(a) - 1ll) << 5;
@@ -429,16 +430,19 @@ using std::make_pair;
             uint highword = a.back();
             int highword_bitlen = integerBitLength(highword);
 
+            
+
             int begin_pos = sz(a) - 1;
             if(32 - highword_bitlen < shift_bits)
             {
-                a.push_back(highword >> (32 - highword_bitlen));
+                
+                a.push_back(highword >> (32 - shift_bits ));
                 begin_pos = sz(a) - 2;
             }
             for(int i = begin_pos; i >= 1; -- i)
             {                
                 a[i] <<= shift_bits;
-                a[i] |= a[i - 1] & (((1 << shift_bits) - 1) << (32 - shift_bits) );                
+                a[i] |= a[i - 1] >> (32 - shift_bits);
             }
             a[0] <<= shift_bits;
         }
@@ -500,6 +504,19 @@ using std::make_pair;
      }
 
 
+    string integerToString(ull x, int radix = 10)
+    {
+        if(x == 0) return "0";
+        string o = "";
+        while(x > 0)
+        {
+            o.push_back(toChar(x % radix));
+            x /= radix;
+        }
+        reverse(o.begin(), o.end());
+        return o;
+    }
+
     /**
      * Divide the contents of the UintSeq a and UintSeq b using an O(n^2) algorithm from Knuth.
      * Uses Algorithm D in Knuth section 4.3.1.
@@ -509,41 +526,92 @@ using std::make_pair;
      * @return the remainder a % b
      */            
 
-    static UintSeq divideAndRemainderKnuth(UintSeq &a, UintSeq &b, bool needRemainder)
+    static void divideAndRemainderKnuth(UintSeq &a, UintSeq &b, 
+                                           UintSeq &quotient, UintSeq &remainder)
     {
         if(compare(b, ZeroUintSeq) == 0) 
         {
             cout << "divide 0" << endl;
-            return ZeroUintSeq;
+            return ;
         }
         if(sz(a) < sz(b))
         {
-            a = ZeroUintSeq;
-            if(needRemainder) return b;            
-            else return ZeroUintSeq;                
+            quotient = ZeroUintSeq;
+            remainder = b;
+            return ;
+        }
+        if(sz(b) == 1)
+        {
+            quotient = a;
+            uint r = divideAndRemainderSchool(quotient, b[0]);
+            remainder.assign(1, r);
+            return ;
         }
         
+        
         ll b_bitlen = bitLength(b);
-        int b_bitlen_and_5 = b_bitlen & 5;
-        if(b_bitlen_and_5 > 0)
+        int need_shift_bits = 32 - (b_bitlen & 31);
+        need_shift_bits &= 31;
+
+        if(need_shift_bits > 0)
         {
-            shiftHigh(a, b_bitlen_and_5);
-            shiftHigh(b, b_bitlen_and_5);
+            shiftHigh(a, need_shift_bits);
+            shiftHigh(b, need_shift_bits);
         }
 
-        // UintSeq quotient(a.rbegin(), a.rbegin() + sz(b));
-        UintSeq quotient;        
+        quotient.clear();
+        remainder.clear();
+
+        for(int i = sz(a) - 1; i >= sz(a) - sz(b) + 1; -- i)
+        {
+            remainder.push_back(a[i]);
+        }
+
+        reverse(remainder.begin(), remainder.end());
+
         for(int i = sz(a) - sz(b); i >= 0; -- i)
         {
-            ull ta = a[i] & UllMask;
-            ull tb = b[i] & UllMask;
-            ull q_ = ta / tb;
-            q_ --
+            
+            shiftHigh(remainder, 32);
+            remainder[0] = a[i];
+            if(compare(remainder, b) >= 0)
+            {
+                ull q_;
+                if(sz(remainder) == sz(b))
+                {
+                    q_ = remainder.back() / b.back();
+                }
+                else
+                {
+                    q_ = *remainder.rbegin();
+                    q_ = q_ << 32 | *++remainder.rbegin();
+                    q_ /= b.back();
+                    if(q_ > UllMask) q_ = UllMask;
+                }
+                UintSeq tmp;
+                while(1)
+                {
+                    tmp = b;
+                    multiplySchool(tmp, uint(q_));
+                    if(compare(remainder, tmp) < 0)
+                    {
+                        q_ --;
+                    }
+                    else break;
+                }
+                minus(remainder, tmp);
+                quotient.push_back(q_);
+            }
+            else quotient.push_back(0);
 
         }
-
-
-
+        reverse(quotient.begin(), quotient.end());
+        if(need_shift_bits > 0)
+        {
+            shiftLow(a, need_shift_bits);
+            shiftLow(b, need_shift_bits);
+            shiftLow(remainder, need_shift_bits);
+        }
 
         // return t;
     }
