@@ -29,33 +29,34 @@ using std::make_pair;
     namespace BigIntegerPrivate {
 
     /**
-     * Class U is the unsigned BigInteger.
-     * Use little endian to storage the word sequence.
-     * The length of a word sequence is at least 1(specially for zero).
-     * The word sequence do not contain leading zeros.
+     * UintSeq represent the unsigned BigInteger.
+     * The length of a word sequence is at least 1(specially for zero), 
+     * and no more than INT_MAX.
+     * A UintSeq do not contain leading zeros.
+     * Use little endian to storage the word sequence.     
      * a[0], a[1], a[2]... radix bits increase
      *        --> 
      */
 
     /*
-     * some convenient functions     
+     * Some convenient functions and typedefs.  
      */
     template<typename T> static int sz(const T &o) { return o.size(); }
 
     typedef long long ll;
     
     /**
-     * this type is used to hold a word
+     * This type is used to hold a word
      */    
     typedef unsigned int uint;
 
     /**
-     * this type is used to hold two words
+     * This type is used to hold two words
      */
     typedef unsigned long long ull;
 
     /**
-     * this type is used to hold word sequence
+     * This type is used to hold word sequence
      */
     typedef vector<uint> UintSeq;
 
@@ -76,7 +77,7 @@ using std::make_pair;
     const UintSeq ZeroUintSeq(1, 0);
 
     /**
-     * This constant is used to represent to zero
+     * This constant is used to represent to one
      */
     const UintSeq OneUintSeq(1, 1);
 
@@ -84,7 +85,7 @@ using std::make_pair;
      * Get maximum radix that a word can hold.
      * And radix ^ l = max_radix
      * @pram radix need be calculated for max radix
-     * @pram l.
+     * @pram l  the exponent.
      * @pram max_radix the result max radix.
      */
     void getMaxRadix(uint radix, uint &l, uint &max_radix)
@@ -113,10 +114,7 @@ using std::make_pair;
     }
 
 
-    /**
-     * Remove leading zeros in word sequence a
-     * @param a is the word sequence
-     */
+    /** Remove leading zeros in UintSeq a */
     static void removeLeadingZeros(UintSeq &a)
     {
         while(sz(a) >= 2 && *--a.end() == 0) 
@@ -124,10 +122,7 @@ using std::make_pair;
             a.erase(--a.end());
     }
 
-    /**
-     * get uint from char
-     * @param x need be translated char
-     */
+    /** Get uint from char */
     static uint fromChar(char x)
     {
         if(x >= '0' && x <= '9') return x - '0';
@@ -136,10 +131,7 @@ using std::make_pair;
     }
 
 
-    /**
-     * get char from uint
-     * @param x need be translated uint
-     */
+    /** Get char from uint */
     static char toChar(uint x)
     {
         if(x >= 0 && x <= 9) return x + '0';
@@ -147,8 +139,8 @@ using std::make_pair;
     }
 
     /**
-     * Adds the contents of the UintSeq a and b. And put the result into a : a += b.
-     * @param  a add value.
+     * Plus the contents of the UintSeq a and b. And put the result into a, namely a += b.
+     * @param  a an add value.
      * @param  b value to be added to a.     
      */
     static void plus(UintSeq &a, const UintSeq &b)
@@ -184,8 +176,8 @@ using std::make_pair;
     }
 
     /**
-     * Adds the contents of the UintSeq a and Word b. 
-     * And put the result into a : a += b.
+     * Adds the contents of the UintSeq a and uint b. 
+     * And put the result into a, namely a += b.
      * @param  a add value.
      * @param  b value to be added to a.     
      */
@@ -204,10 +196,11 @@ using std::make_pair;
 
 
     /**
-     * Multiply the contents of the UintSeq a and b using school method: c = a * b.
-     * And put the result into c.
+     * Multiply the contents of the UintSeq a and b using school method..
+     * And put the result into c, namely c = a * b.
      * @param  a the multiply value.
      * @param  b value to be multiplied to a.
+     * @param  c the result will be stored.
      */        
     static void multiplySchool(const UintSeq &a, const UintSeq &b, UintSeq &c)
     {
@@ -231,7 +224,8 @@ using std::make_pair;
 
 
     /**
-     * Multiply the contents of the UintSeq a and Word b using school method:a *= b.         
+     * Multiply the contents of the UintSeq a and uint b using school method.
+     * And put the result into a, namely a *= b.
      * @param  a the multiply value.
      * @param  b value to be multiplied to a.
      */        
@@ -251,8 +245,7 @@ using std::make_pair;
 
 
     /**
-     * minus the contents of the UintSeq b from a: a -= b.
-     * And put the result into a.
+     * Minus the UintSeq b from a, and put the result into a, namely a -= b.
      * @param  a value to be minuend by b.
      * @param  b the minus value.
      */
@@ -269,7 +262,7 @@ using std::make_pair;
         }
         for(int i = sz(b); t > 0ull && i < sz(a); ++ i)
         {
-            if(a[i] < t) 
+            if(a[i] < t)
                 a[i] = WordRadix + a[i] - t, t = 1;
             else 
                 a[i] -= t, t = 0;
@@ -279,10 +272,11 @@ using std::make_pair;
 
 
     /**
-     * Divide the contents of the UintSeq a and Word b using school method:a /= b.
+     * Divide uint b from UintSeq a using school method.
+     * And put the result into a, namely a /= b.
      * @param  a the divided value by b.
      * @param  b the divide value.
-     * @return the remainder a % b
+     * @return the remainder a % b.
      */        
     static uint divideAndRemainderSchool(UintSeq &a, uint b)
     {
@@ -300,12 +294,12 @@ using std::make_pair;
 
 
     /**
-     * compare the contents of the UintSeq a and b.     
-     * @param  a first UintSeq used to compare
-     * @param  b second UintSeq used to compare
+     * Compare the UintSeq a to b.     
+     * @param  a first UintSeq used to compare.
+     * @param  b second UintSeq used to compare.
      * @return  if a > b: return 1;
      *          if a == b: return 0;
-     *          if a < b: return -1; 
+     *          if a < b: return -1.
      */
     static int compare(const UintSeq &a, const UintSeq &b)
     {
@@ -322,11 +316,11 @@ using std::make_pair;
 
 
     /**
-     * The input string should be big endian
-     * @param s the first of input string
-     * @param end the end of input string
-     * @param radix the radix of input string 
-     * @param a the result of translated word sequence
+     * Transform the string into a UintSeq and the string should be big endian
+     * @param s the first iterator of string
+     * @param end the end iterator of string
+     * @param radix the radix of string 
+     * @param a the result of transformed uint sequence
      */
     template<typename Iterator>
     static void fromString(Iterator s, Iterator end, uint radix, UintSeq &a)
@@ -357,9 +351,10 @@ using std::make_pair;
     }
 
     /**
-     * Translate word a to string representation with little endian
-     * @param  a  word that will be translated
-     * @param  radix  radix of the String representation.
+     * Tranform uint a to string representation with little endian
+     * @param  a  uint that will be tranformed.
+     * @param  radix  radix of the string representation.
+     * @return  the string tranformed.
      */
     static string toString(uint a, uint radix)
     {        
@@ -376,8 +371,8 @@ using std::make_pair;
 
 
     /**
-     * Translate UintSeq a to string representation with big endian
-     * @param  a  UintSeq that will be translated
+     * Transform UintSeq a to string representation with big endian
+     * @param  a  UintSeq that will be tranformed.
      * @param  radix  radix of the String representation.
      */
     static string toStringSlow(const UintSeq &a, uint radix = 10)
@@ -412,10 +407,10 @@ using std::make_pair;
 
     /**
      * Make the value of a UintSeq shift to high bit.
-     * The shift distance, {@code n}, should be non-negative.
+     * The shift distance, {@code shift_bits}, should be non-negative.
      *
-     * @param  n shift distance, in bits.
-     * @return {@code a * (2^n)}
+     * @param  shift_bits shift distance, in bits.
+     * @return a * (2 ^ shift_bits).
      */
     static void shiftHigh(UintSeq &a, ll shift_bits)
     {
@@ -460,9 +455,9 @@ using std::make_pair;
 
     /**
      * Make the value of a UintSeq shift to low bit.
-     * The shift distance, {@code n}, should be non-negative.
-     * @param  n shift distance, in bits.
-     * @return {@code a / (2^n)}     
+     * The shift distance, {@code shift_bits}, should be non-negative.
+     * @param  shift_bits shift distance, in bits.
+     * @return {@code a / (2^shift_bits)}     
      */
      static void shiftLow(UintSeq &a, ll shift_bits)
      {
