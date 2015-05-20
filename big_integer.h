@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <utility>
 
-// #include "fft.h"
+#include "fft.h"
 #include "utility.h"
 
 namespace lz {
@@ -522,9 +522,9 @@ using std::make_pair;
      */            
 
     static void divideAndRemainderKnuth(UintSeq &a, UintSeq &b, 
-                                           UintSeq &quotient, UintSeq &remainder)
+                                        UintSeq &quotient, UintSeq &remainder)
     {
-        if(compare(b, ZeroUintSeq) == 0) 
+        if(compare(b, ZeroUintSeq) == 0)
         {
             cout << "divide 0" << endl;
             return ;
@@ -569,36 +569,35 @@ using std::make_pair;
             
             shiftHigh(remainder, 32);
             remainder[0] = a[i];
-            if(compare(remainder, b) >= 0)
+            if(compare(remainder, b) < 0)
             {
-                ull q_;
-                if(sz(remainder) == sz(b))
-                {
-                    q_ = remainder.back() / b.back();
-                }
-                else
-                {
-                    q_ = *remainder.rbegin();
-                    q_ = q_ << 32 | *++remainder.rbegin();
-                    q_ /= b.back();
-                    if(q_ > UllMask) q_ = UllMask;
-                }
-                UintSeq tmp;
-                while(1)
-                {
-                    tmp = b;
-                    multiplySchool(tmp, uint(q_));
-                    if(compare(remainder, tmp) < 0)
-                    {
-                        q_ --;
-                    }
-                    else break;
-                }
-                minus(remainder, tmp);
-                quotient.push_back(q_);
+                quotient.push_back(0);
+                continue;
             }
-            else quotient.push_back(0);
+            
+            ull q_;
+            if(sz(remainder) == sz(b))
+            {
+                q_ = remainder.back() / b.back();
+            }
+            else
+            {
+                q_ = *remainder.rbegin();
+                q_ = q_ << 32 | *++remainder.rbegin();
+                q_ /= b.back();
+                if(q_ > UllMask) q_ = UllMask;
+            }
+            UintSeq tmp = b;
+            multiplySchool(tmp, q_);
 
+            // this loop at most twice
+            while(compare(tmp, remainder) > 0)
+            {
+                q_ --;
+                minus(tmp, b);
+            }
+            minus(remainder, tmp);
+            quotient.push_back(q_);
         }
         reverse(quotient.begin(), quotient.end());
         if(need_shift_bits > 0)
@@ -606,13 +605,125 @@ using std::make_pair;
             shiftLow(a, need_shift_bits);
             shiftLow(b, need_shift_bits);
             shiftLow(remainder, need_shift_bits);
-        }
-
-        // return t;
+        }     
     }
 
 
 
+    static bool testBit(const UintSeq &a, ll n)
+    {
+        return a[n >> 5] >> (n & 31) & 1;
+    }
+    static void setBit(UintSeq &a, ll n, bool val = 1)
+    {
+        if(testBit(a, n) == val) return;
+        a[n >> 5] ^= 1 << (n & 31);
+    }
+
+
+    /**
+     * Translate the binary representation of a UintSeq to a UintSeq that 
+     * every uint stores bits that the length is {@code l}.
+     * @param a  a UintSeq will be translated.
+     * @param l  the length that every uint will be stored.
+     * @param b  the result UintSeq.
+     */
+    void toL(const UintSeq &a, int l, UintSeq &b)
+    {
+
+        ll n = bitLength(a);
+        b.assign(n / l + bool (n % l), 0);
+        
+        for(ll i = 0; i < n; i += l)
+        {
+            uint x = 0;
+            for(ll j = min(n - 1, i + l - 1); j >= i; -- j)
+            {
+                x <<= 1;
+                x += testBit(a, j);
+            }            
+            b[i / l] = x;
+        }
+    }
+
+
+    /**
+     * Multiply the contents of the UintSeq a and b using FFT method.
+     * And put the result into c, namely c = a * b.
+     * @param  a the multiply value.
+     * @param  b value to be multiplied to a.
+     * @param  c the result will be stored.
+     */
+    static void multiplyFFT(const UintSeq &a, const UintSeq &b, int l, UintSeq &c)
+    {
+        UintSeq ta;
+        toL(a, l, ta);
+        toL(b, l, c);
+        
+        lz::fftMultiply<IntegerFFTData<uint> >(ta, c);
+
+
+        c.clear();
+
+        
+        int end = sz(ta) - 1;
+        while(end >= 0 && ta[end] == 0) end --;
+
+        int lbits_mask = (1 << l) - 1;
+
+        ull x = 0;
+        for(int i = 0; i <= end; ++ i)
+        {   
+            x += ta[i];
+            c.push_back(x & lbits_mask);
+            x >>= l;
+        }
+        while(x > 0)
+        {
+            c.push_back(x & lbits_mask);
+            x >>= l;
+        }
+
+        ta.clear();
+        for(int i = 0; i < sz(c); i += 32 / l)
+        {
+            uint x = 0;
+            for(int j = min(sz(c) - 1, i + 32 / l - 1); j >= i; -- j)
+            {
+                x = (x << l) + c[j];
+            }
+            ta.push_back(x);
+        }
+        c = ta;
+
+    }
+
+    static void multiply(const UintSeq &a, const UintSeq &b, UintSeq &c)
+    {
+        ll school_method_complexity = ((ll)sz(a)) * sz(b);
+        ll max_size = max(sz(a), sz(b));
+        ll fft_method_complexity;
+        if(max_size < 1e6)
+        {
+            max_size *= 8;
+            fft_method_complexity = max_size * integerBitLength(max_size);
+            if(school_method_complexity < fft_method_complexity)
+                multiplySchool(a, b, c);
+            else 
+                multiplyFFT(a, b, 4, c);
+        }
+        else 
+        {
+            max_size *= 32;
+            fft_method_complexity = max_size * integerBitLength(max_size);
+            if(school_method_complexity < fft_method_complexity)
+                multiplySchool(a, b, c);
+            else 
+                multiplyFFT(a, b, 1, c);
+        }
+    }
+
+    
 
 
 

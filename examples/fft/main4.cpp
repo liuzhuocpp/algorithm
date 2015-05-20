@@ -25,11 +25,15 @@ int main()
         int an = strlen(s1);
         int bn = strlen(s2);
 
+        a.clear();
+        b.clear();
         
         reverse(s1, s1 + an);
         reverse(s2, s2 + bn);
-        for(int i = 0; s1[i]; ++ i) a[i] = s1[i] - '0';
-        for(int i = 0; s2[i]; ++ i) b[i] = s2[i] - '0';
+        // for(int i = 0; s1[i]; ++ i) a[i] = s1[i] - '0';
+        // for(int i = 0; s2[i]; ++ i) b[i] = s2[i] - '0';
+        for(int i = 0; s1[i]; ++ i) a.push_back(s1[i] - '0');
+        for(int i = 0; s2[i]; ++ i) b.push_back(s2[i] - '0');
 
         // cout << "vector:" << endl;
         // for(int i = 0; i < sz(a); ++ i) cout << a[i]; cout << endl;
@@ -41,10 +45,12 @@ int main()
         // int n = FFT<ComplexFFTData<double> >::multiply(a.begin(), a.begin() + an, 
         //                                                 b.begin(), b.begin() + bn);
 
-        int n = fftMultiply<ComplexFFTData<double> > (a.begin(), a.begin() + an, 
-                                                      b.begin(), b.begin() + bn);
+        // int n = fftMultiply<ComplexFFTData<double> > (a.begin(), a.begin() + an, 
+        //                                               b.begin(), b.begin() + bn);
 
-
+        fftMultiply<ComplexFFTData<double> > (a, b);
+        // cout <<"SB" << "  " << sz(a) << endl;
+        int n = sz(a);
         // FFT<IntegerFFTData<unsigned> > ::multiply(a, b);
 
         // cout << "vector:" << endl;

@@ -197,27 +197,28 @@ using std::complex;
 
     public:
         // decltype(*IteratorA) should be "Type"
-        template<typename IteratorA, typename IteratorB>
-        static int multiply(IteratorA a, IteratorA aend, 
-                             IteratorB b, IteratorB bend  )
+        template<typename Iterator>
+        static void multiply(Iterator a, Iterator aend,
+                             Iterator b)
         {        
-            int an = aend - a;
-            int bn = bend - b;
-            int n = 1;
-            while(n < max(an, bn)) n <<= 1;
-            n <<= 1;
+            // int an = aend - a;
+            // int bn = bend - b;
+            // int n = 1;
+            // while(n < max(an, bn)) n <<= 1;
+            // n <<= 1;
 
-            while(aend - a < n) *(aend++) = Type(0);
-            while(bend - b < n) *(bend++) = Type(0);
+            // while(aend - a < n) *(aend++) = Type(0);
+            // while(bend - b < n) *(bend++) = Type(0);
 
+            int n = aend - a;
             transform(a, aend, w);
-            transform(b, bend, w);
+            transform(b, b + n, w);
             for(int i = 0; i < n; ++ i) a[i] = mul(a[i], b[i]);
 
             transform(a, aend, iw);
             Type inv = div(Type(1), Type(n));
             for(int i = 0; i < n; ++ i) a[i] = mul(a[i], inv);
-            return n;
+            // return n;
         }
 
     };  
@@ -249,12 +250,36 @@ using std::complex;
 
 
 
-template<typename Data, typename IteratorA, typename IteratorB>
-int fftMultiply(IteratorA a, IteratorA aend, 
-                IteratorB b, IteratorB bend  )
-{
-    return FFTPrivate::FFT<Data>::multiply(a, aend, b, bend);
+
+int calculateLengthForFFT(int an, int bn)
+{    
+    int n = 1;
+    while(n < max(an, bn)) n <<= 1;
+    n <<= 1;
+    return n;
 }
+
+/**
+    the length for Sequence a, and b should be 2 ^ n.
+ */
+template<typename Data, typename Iterator>
+void fftMultiply(Iterator a, Iterator aend, 
+                 Iterator b)
+{
+    FFTPrivate::FFT<Data>::multiply(a, aend, b);
+}
+template<typename Data, typename Sequence>
+void fftMultiply(Sequence &a, Sequence &b)
+{
+    // int an = aend - a;
+    // int bn = bend - b;
+    int n = calculateLengthForFFT(a.size(), b.size());
+
+    while(a.size() < n) a.push_back(typename Data::Type(0));
+    while(b.size() < n) b.push_back(typename Data::Type(0));
+    FFTPrivate::FFT<Data>::multiply(a.begin(), a.end(), b.begin());
+}
+
 
 
 
