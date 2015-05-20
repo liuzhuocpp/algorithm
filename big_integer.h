@@ -634,6 +634,7 @@ using std::make_pair;
         ll n = bitLength(a);
         b.assign(n / l + bool (n % l), 0);
         
+        int j = 0;
         for(ll i = 0; i < n; i += l)
         {
             uint x = 0;
@@ -642,7 +643,7 @@ using std::make_pair;
                 x <<= 1;
                 x += testBit(a, j);
             }            
-            b[i / l] = x;
+            b[j ++] = x;
         }
     }
 
@@ -657,20 +658,18 @@ using std::make_pair;
     static void multiplyFFT(const UintSeq &a, const UintSeq &b, int l, UintSeq &c)
     {
         UintSeq ta;
+        // make the radix of {@code a, b} 2^l
         toL(a, l, ta);
         toL(b, l, c);
         
         lz::fftMultiply<IntegerFFTData<uint> >(ta, c);
 
 
+        // make the radix of {@code c} 2^l
         c.clear();
-
-        
         int end = sz(ta) - 1;
         while(end >= 0 && ta[end] == 0) end --;
-
         int lbits_mask = (1 << l) - 1;
-
         ull x = 0;
         for(int i = 0; i <= end; ++ i)
         {   
@@ -684,17 +683,31 @@ using std::make_pair;
             x >>= l;
         }
 
-        ta.clear();
-        for(int i = 0; i < sz(c); i += 32 / l)
+        // make the radix of {@code c} 2^32
+        int num_per_uint = 32 / l, j = 0;
+        for(int i = 0; i < sz(c); i += num_per_uint)
         {
             uint x = 0;
-            for(int j = min(sz(c) - 1, i + 32 / l - 1); j >= i; -- j)
+            for(int j = min(sz(c) - 1, i + num_per_uint - 1); j >= i; -- j)
             {
                 x = (x << l) + c[j];
             }
-            ta.push_back(x);
+            c[j ++] = x;
         }
-        c = ta;
+        c.resize(j + 1);
+        return ;
+
+        // ta.clear();
+        // for(int i = 0; i < sz(c); i += num_per_uint)
+        // {
+        //     uint x = 0;
+        //     for(int j = min(sz(c) - 1, i + num_per_uint - 1); j >= i; -- j)
+        //     {
+        //         x = (x << l) + c[j];
+        //     }
+        //     ta.push_back(x);
+        // }
+        // c = std::move(ta);
 
     }
 
@@ -703,7 +716,7 @@ using std::make_pair;
         ll school_method_complexity = ((ll)sz(a)) * sz(b);
         ll max_size = max(sz(a), sz(b));
         ll fft_method_complexity;
-        if(max_size < 1e6)
+        if(max_size <= 1e6)
         {
             max_size *= 8;
             fft_method_complexity = max_size * integerBitLength(max_size);
@@ -724,6 +737,10 @@ using std::make_pair;
     }
 
     
+
+
+
+
 
 
 

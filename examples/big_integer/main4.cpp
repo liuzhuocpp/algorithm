@@ -22,35 +22,35 @@ int main()
 {
 
 
-    time_t first, second;
-    first = clock();
+    // time_t first, second;
+    // first = clock();
 
 
-    string s1, s2;
-    UintSeq a, b, q, r;
-    cout <<"EE" << endl;
+    // string s1, s2;
+    // UintSeq a, b, q, r;
+    // cout <<"EE" << endl;
 
-    s1.assign(1000000, '1');
-    s2.assign(1000000, '9');
+    // s1.assign(100000, '1');
+    // s2.assign(100000, '9');
 
-    fromString(s1.begin(), s1.end(), 10, a);
-    fromString(s2.begin(), s2.end(), 10, b);
+    // fromString(s1.begin(), s1.end(), 10, a);
+    // fromString(s2.begin(), s2.end(), 10, b);
 
-    cout <<"CCC" << endl;
-    // cout << toStringSlow(a, 10) << endl;
-    // cout << toStringSlow(b, 10) << endl;
+    // cout <<"CCC" << endl;
+    // // cout << toStringSlow(a, 10) << endl;
+    // // cout << toStringSlow(b, 10) << endl;
 
-    q.clear();
-    // cout << "SS" << endl;
-    second=clock();  
-    printf("toString complete:%.3f\n", double(second - first) / 1000.0);
+    // q.clear();
+    // // cout << "SS" << endl;
+    // second=clock();  
+    // printf("toString complete:%.3f\n", double(second - first) / 1000.0);
 
-    multiply(a, b, q);
-    // multiplyFFT(a, b, 4, q );
-    // divideAndRemainderKnuth(a,  b, q, r);
+    // multiply(a, b, q);
+    // // multiplyFFT(a, b, 4, q );
+    // // divideAndRemainderKnuth(a,  b, q, r);
 
-    second=clock();  
-    printf("multiply complete:%.3f\n", double(second - first) / 1000.0);
+    // second=clock();  
+    // printf("multiply complete:%.3f\n", double(second - first) / 1000.0);
 
 
     // cout << toStringSlow(q, 10) << endl;
@@ -60,31 +60,31 @@ int main()
     
 
 
-    // int T;
-    // scanf("%d", &T);
+    int T;
+    scanf("%d", &T);
 
-    // string s1, s2;
-    // UintSeq a, b, q, r;
-    // while(T --)    
-    // {
-    //     cin >> s1 >> s2;
-    //     fromString(s1.begin(), s1.end(), 10, a);
-    //     fromString(s2.begin(), s2.end(), 10, b);
-
-
-    //     // cout << toStringSlow(a, 10) << endl;
-    //     // cout << toStringSlow(b, 10) << endl;
-
-    //     q.clear();
-    //     // cout << "SS" << endl;
-    //     multiply(a, b, q);
-    //     // multiplyFFT(a, b, 4, q );
-    //     // divideAndRemainderKnuth(a,  b, q, r);
+    string s1, s2;
+    UintSeq a, b, q, r;
+    while(T --)    
+    {
+        cin >> s1 >> s2;
+        fromString(s1.begin(), s1.end(), 10, a);
+        fromString(s2.begin(), s2.end(), 10, b);
 
 
-    //     cout << toStringSlow(q, 10) << endl;
+        // cout << toStringSlow(a, 10) << endl;
+        // cout << toStringSlow(b, 10) << endl;
 
-    // }
+        q.clear();
+        // cout << "SS" << endl;
+        multiply(a, b, q);
+        // multiplyFFT(a, b, 4, q );
+        // divideAndRemainderKnuth(a,  b, q, r);
+
+
+        cout << toStringSlow(q, 10) << endl;
+
+    }
 
 
 
