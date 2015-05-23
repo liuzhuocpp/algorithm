@@ -20,16 +20,29 @@ using namespace lz::BigIntegerPrivate;
 
 int main()
 {
+    UintSeq a, b, c;
+
+    string s1 = "2147483649";
+    string s2 = "18446744073709551615";
+    fromString(s1.begin(), s1.end(), 10, a);
+    fromString(s2.begin(), s2.end(), 10, b);
+
+    multiplyFFT(a, b, 4, c);
     
+    cout << toStringSlow(c, 10) << endl;
 
-    UintSeq a, b, q, r;
-    int n = 1 << 10;
-    a.assign(n, ~0u);
-    a.back() = 1u << 31;
+    c.clear();
+    multiplySchool(a, b, c);
+    
+    cout << toStringSlow(c, 10) << endl;
+    // UintSeq a, b, q, r;
+    // int n = 1 << 13;
+    // a.assign(n, ~0u);
+    // a.back() = 1u << 31;
 
-    b.assign(n >> 1, ~0u);
+    // b.assign(n >> 1, ~0u);
 
-    divideAndRemainder2n1n(a, b, q, r, 0);
+    // divideAndRemainder2n1n(a, b, q, r, 0);
 
 
     // cout << "q::" <<toStringSlow(q, 16) << endl;

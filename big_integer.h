@@ -662,8 +662,48 @@ using std::fill;
         // make the radix of {@code a, b} 2^l
         toL(a, l, ta);
         toL(b, l, c);
+
+        string sss = "";
+        for(int i = 0; i < sz(ta); ++ i)
+            sss += integerToString(ta[i], 16);
+        cout << sss << endl;
+
+
+        sss = "";
+        for(int i = 0; i < sz(c); ++ i)
+            sss += integerToString(c[i], 16);
+        cout << sss << endl;
+        cout << toStringSlow(a, 16) << endl;
+        cout << toStringSlow(b, 16) << endl;
+
         
         lz::fftMultiply<IntegerFFTData<uint> >(ta, c);
+        cout <<"*(*^(^" << endl;
+
+        int ans[1000];
+
+        UintSeq &o = ta;
+        cout << "CNT" << endl;
+        int n = o.size();
+
+
+        int cnt = 0;
+        for(int i = 0; i < n; ++ i)
+        {
+            cnt = cnt / 16 + int(o[i]);
+            ans[i] =  cnt % 16;
+        }
+        int L = n;
+        while(L > 1 && ans[L - 1] == 0) L --;
+        for(int i = L - 1; i >= 0; -- i)
+        {
+            cout << toChar(ans[i]);
+            // printf("%d", ans[i]);
+        }
+        puts("");
+
+
+
 
 
         // make the radix of {@code c} 2^l
@@ -683,9 +723,9 @@ using std::fill;
             c.push_back(x & lbits_mask);
             x >>= l;
         }
-
+        cout << "sf" << endl;
         // make the radix of {@code c} 2^32
-        int num_per_uint = 32 / l, j = 0;
+        int num_per_uint = 32 / l, k = 0;
         for(int i = 0; i < sz(c); i += num_per_uint)
         {
             uint x = 0;
@@ -693,9 +733,10 @@ using std::fill;
             {
                 x = (x << l) + c[j];
             }
-            c[j ++] = x;
+            c[k ++] = x;
         }
-        c.resize(j + 1);
+        
+        c.resize(k);
         return ;
 
         // ta.clear();
@@ -740,12 +781,13 @@ using std::fill;
     static void divideAndRemainder3n2n(const UintSeq &a, const UintSeq &b, 
                                        UintSeq &quotient, UintSeq &remainder, int deep);
 
-
+    int num = 0;
     static void divideAndRemainder2n1n(const UintSeq &a, const UintSeq &b, 
                                        UintSeq &quotient, UintSeq &remainder, int deep)
     {
+        num ++;
         
-        cout << "DEEP" << deep << " " << sz(a) << " " << sz(b) << endl;
+        cout << "DEEP" << num << " " << deep << " " << sz(a) << " " << sz(b) << endl;
         if(sz(a) != sz(b) * 2) 
         {
             cout <<"EROOR" << endl;
@@ -833,12 +875,27 @@ using std::fill;
 
         // cout << "I am in 3n / 2n " << endl;
         ta.clear();
-        multiply(quotient, b, ta);
+        // multiplySchool(quotient, b, ta);
+        multiplyFFT(quotient, b, 4,  ta);
+        cout << "34*****" << endl;
+        cout  << toStringSlow(quotient) << endl;
+        cout  << toStringSlow(b) << endl;
+        cout  << toStringSlow(ta) << endl;
+
+        UintSeq tta;
+        multiplySchool(quotient, b, tta);
+        cout << "TTA:" << toStringSlow(tta) << endl;
+
+
+
+        // multiply(quotient, b, ta);
         while(compare(a, ta) < 0)
         {
+            // cout << " OIUEOIU" << endl;
             minus(quotient, OneUintSeq);
             minus(ta, b);
         }
+        cout << " SLDKJFKLSJD" << endl;
         remainder = a;
         minus(remainder, ta);
 
