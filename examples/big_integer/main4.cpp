@@ -12,14 +12,39 @@
 // #include "fft.h"
 
 using namespace std;
-// using namespace lz;
-// using namespace lz::BigIntegerPrivate;
+using namespace lz;
+using namespace lz::BigIntegerPrivate;
 
 
 
 
 int main()
 {
+    
+
+    UintSeq a, b, q, r;
+    int n = 1 << 10;
+    a.assign(n, ~0u);
+    a.back() = 1u << 31;
+
+    b.assign(n >> 1, ~0u);
+
+    divideAndRemainder2n1n(a, b, q, r, 0);
+
+
+    // cout << "q::" <<toStringSlow(q, 16) << endl;
+    // cout << "r::" <<toStringSlow(r, 16) << endl;
+
+
+
+
+
+
+    // UintSeq tmp;
+    // multiply(b, q, tmp);
+    // lz::BigIntegerPrivate::plus(tmp, r);
+    // cout << toStringSlow(tmp, 16) << endl;
+
 
 
     // time_t first, second;

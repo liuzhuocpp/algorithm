@@ -25,6 +25,7 @@ using std::min;
 using std::copy;
 using std::pair;
 using std::make_pair;
+using std::fill;
 
     namespace BigIntegerPrivate {
 
@@ -135,7 +136,7 @@ using std::make_pair;
     static char toChar(uint x)
     {
         if(x >= 0 && x <= 9) return x + '0';
-        return x + 'a';
+        return x - 10 + 'a';
     }
 
     /**
@@ -737,14 +738,24 @@ using std::make_pair;
     }
 
     static void divideAndRemainder3n2n(const UintSeq &a, const UintSeq &b, 
-                                       UintSeq &quotient, UintSeq &remainder);
+                                       UintSeq &quotient, UintSeq &remainder, int deep);
+
 
     static void divideAndRemainder2n1n(const UintSeq &a, const UintSeq &b, 
-                                       UintSeq &quotient, UintSeq &remainder)
+                                       UintSeq &quotient, UintSeq &remainder, int deep)
     {
-        if(sz(a) == 2)
+        
+        cout << "DEEP" << deep << " " << sz(a) << " " << sz(b) << endl;
+        if(sz(a) != sz(b) * 2) 
         {
-            // uint r = divideAndRemainderSchool(a, b, quotient);
+            cout <<"EROOR" << endl;
+            return;
+        }
+        if(sz(a) == 2)
+        {            
+            quotient = a;
+            remainder.resize(1);
+            remainder[0] = divideAndRemainderSchool(quotient, b[0]);
             return ;
         }
 
@@ -753,15 +764,35 @@ using std::make_pair;
 
         UintSeq ta(a.begin() + half_n, a.end());
         UintSeq tq;
-        divideAndRemainder3n2n(ta, b, tq, remainder);
-
         
+        divideAndRemainder3n2n(ta, b, tq, remainder, deep + 1);
+
+        // cout <<"IN:" << toStringSlow(ta, 16) << endl;
+        // cout <<"IN:" << toStringSlow(b, 16) << endl;
+        // cout <<"IN:" << toStringSlow(tq, 16) << endl;
+        // cout <<"IN:" << toStringSlow(remainder, 16) << endl;
+        // UintSeq tt;
+        // multiply(tq, b, tt);
+        // plus(tt, remainder);
+        // cout << "CMP" << toStringSlow(tt, 16) << endl;
+
+        // int ST= 10;
+        // while(ST--)
+        // cout <<"STOP" << endl;
+        fill(ta.begin(), ta.end(), 0);
         copy(a.begin(), a.begin() + half_n, ta.begin());
         copy(remainder.begin(), remainder.end(), ta.begin() + half_n);
+
         remainder.clear();
 
+
         
-        divideAndRemainder3n2n(ta, b, quotient, remainder);
+        
+        divideAndRemainder3n2n(ta, b, quotient, remainder, deep + 1);
+        // cout <<"@@:" << toStringSlow(ta, 16) << endl;
+        // cout <<"@@:" << toStringSlow(b, 16) << endl;
+        // cout <<"@@:" << toStringSlow(quotient, 16) << endl;
+        // cout <<"@@:" << toStringSlow(remainder, 16) << endl;
         for(int i = 0; i < sz(tq); ++ i) 
             quotient.push_back(tq[i]);
 
@@ -770,8 +801,14 @@ using std::make_pair;
 
     }
     static void divideAndRemainder3n2n(const UintSeq &a, const UintSeq &b, 
-                                       UintSeq &quotient, UintSeq &remainder)
+                                       UintSeq &quotient, UintSeq &remainder, int deep)
     {
+        if(sz(a) * 2 != sz(b) * 3) 
+        {
+            cout <<"EROOR" << endl;
+            return ;
+        }
+
         int n = sz(b) >> 1;
         int n2 = sz(b);
 
@@ -779,28 +816,25 @@ using std::make_pair;
 
         if(compare(ta, tb) < 0)
         {
+            // cout << "enterJJJ" << endl;            
             ta.clear();
             for(int i = n; i < n + n2; ++ i) ta.push_back(a[i]);
-            divideAndRemainder2n1n(ta, tb, quotient, remainder);
-            // remainder.clear();
+            // cout << "3n:" << toStringSlow(ta, 16) << endl;
+            // cout << "3n:" << toStringSlow(tb, 16) << endl;
+            divideAndRemainder2n1n(ta, tb, quotient, remainder, deep + 1);
+            // cout << "3n:" << toStringSlow(quotient, 16) << endl;
+            // cout << "3n:" << toStringSlow(remainder, 16) << endl;
         }
         else 
         {            
-            for(int i = 0; i < n; ++ i) quotient.push_back(~0u);            
-            // remainder.resize(n2);
-
-            // copy(a.begin() + n, a.end(), remainder.begin());
-
-            // ta.clear();
-            // for(int i = 0; i < n; ++ i) ta.push_back(0);
-            // for(int i = 0; i < n; ++ i) ta.push_back(tb[i]);
-
-            // minus(remainder, ta);
-            // plus(remainder, tb);
+            for(int i = 0; i < n; ++ i) quotient.push_back(~0u);
         }
         
+
+        // cout << "I am in 3n / 2n " << endl;
+        ta.clear();
         multiply(quotient, b, ta);
-        while(compare(a, ta) <= 0)
+        while(compare(a, ta) < 0)
         {
             minus(quotient, OneUintSeq);
             minus(ta, b);
