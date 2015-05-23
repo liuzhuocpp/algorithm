@@ -736,7 +736,60 @@ using std::make_pair;
         }
     }
 
-    
+    static void divideAndRemainder3n2n(const UintSeq &a, const UintSeq &b, 
+                                       UintSeq &quotient, UintSeq &remainder);
+
+    static void divideAndRemainder2n1n(const UintSeq &a, const UintSeq &b, 
+                                       UintSeq &quotient, UintSeq &remainder)
+    {
+        if(sz(a) == 2)
+        {
+            return divideAndRemainderSchool(a, b, quotient, remainder);
+        }
+
+        int n = sz(b);
+        int half_n = n >> 1;
+
+        UintSeq ta(a.begin() + half_n, a.end());
+        divideAndRemainder3n2n(ta, b, quotient, remainder);
+
+        
+        ta.assign(a.begin(), a.begin() + half_n);
+        for(int i = 0; i < n; ++ i) ta.push_back(remainder[i]);
+
+        UintSeq tq;
+        divideAndRemainder3n2n(ta, b, tq, remainder);
+        for(int i = 0; i < n; ++ i) t
+
+
+
+        // // 3/4 sz(a)
+        // int ta_size = sz(b) + (sz(b) >> 1);
+        
+
+        // UintSeq ta(ta_size)
+        // for(int i = 0; i < ta_size; ++ i) ta[i] = a[i];
+        // divideAndRemainder3n2n(ta, b, quotient, remainder);
+
+        // ta = remainder;
+        // for(int i = ta_size; i < sz(a); ++ i) ta.push_back(a[i]);
+        // remainder.clear();
+        // UintSeq tq;
+        // divideAndRemainder3n2n(ta, b, tq, remainder);
+        // for(int i = 0; i < sz(tq); ++ i) quotient.push_back(tq[i]);
+    }
+    static void divideAndRemainder3n2n(const UintSeq &a, const UintSeq &b, 
+                                       UintSeq &quotient, UintSeq &remainder)
+    {
+        UintSeq ta, tb;
+        
+    }    
+
+
+
+
+
+
 
 
 
