@@ -22,7 +22,7 @@ using std::string;
 using std::strlen;
 using std::max;
 using std::min;
-
+using std::copy;
 using std::pair;
 using std::make_pair;
 
@@ -628,7 +628,7 @@ using std::make_pair;
      * @param l  the length that every uint will be stored.
      * @param b  the result UintSeq.
      */
-    void toL(const UintSeq &a, int l, UintSeq &b)
+    static void toL(const UintSeq &a, int l, UintSeq &b)
     {
 
         ll n = bitLength(a);
@@ -744,44 +744,71 @@ using std::make_pair;
     {
         if(sz(a) == 2)
         {
-            return divideAndRemainderSchool(a, b, quotient, remainder);
+            // uint r = divideAndRemainderSchool(a, b, quotient);
+            return ;
         }
 
         int n = sz(b);
         int half_n = n >> 1;
 
         UintSeq ta(a.begin() + half_n, a.end());
-        divideAndRemainder3n2n(ta, b, quotient, remainder);
-
-        
-        ta.assign(a.begin(), a.begin() + half_n);
-        for(int i = 0; i < n; ++ i) ta.push_back(remainder[i]);
-
         UintSeq tq;
         divideAndRemainder3n2n(ta, b, tq, remainder);
-        for(int i = 0; i < n; ++ i) t
 
-
-
-        // // 3/4 sz(a)
-        // int ta_size = sz(b) + (sz(b) >> 1);
         
+        copy(a.begin(), a.begin() + half_n, ta.begin());
+        copy(remainder.begin(), remainder.end(), ta.begin() + half_n);
+        remainder.clear();
 
-        // UintSeq ta(ta_size)
-        // for(int i = 0; i < ta_size; ++ i) ta[i] = a[i];
-        // divideAndRemainder3n2n(ta, b, quotient, remainder);
+        
+        divideAndRemainder3n2n(ta, b, quotient, remainder);
+        for(int i = 0; i < sz(tq); ++ i) 
+            quotient.push_back(tq[i]);
 
-        // ta = remainder;
-        // for(int i = ta_size; i < sz(a); ++ i) ta.push_back(a[i]);
-        // remainder.clear();
-        // UintSeq tq;
-        // divideAndRemainder3n2n(ta, b, tq, remainder);
-        // for(int i = 0; i < sz(tq); ++ i) quotient.push_back(tq[i]);
+
+
+
     }
     static void divideAndRemainder3n2n(const UintSeq &a, const UintSeq &b, 
                                        UintSeq &quotient, UintSeq &remainder)
     {
-        UintSeq ta, tb;
+        int n = sz(b) >> 1;
+        int n2 = sz(b);
+
+        UintSeq ta(a.begin() + n2, a.end()), tb(b.begin() + n, b.end());
+
+        if(compare(ta, tb) < 0)
+        {
+            ta.clear();
+            for(int i = n; i < n + n2; ++ i) ta.push_back(a[i]);
+            divideAndRemainder2n1n(ta, tb, quotient, remainder);
+            // remainder.clear();
+        }
+        else 
+        {            
+            for(int i = 0; i < n; ++ i) quotient.push_back(~0u);            
+            // remainder.resize(n2);
+
+            // copy(a.begin() + n, a.end(), remainder.begin());
+
+            // ta.clear();
+            // for(int i = 0; i < n; ++ i) ta.push_back(0);
+            // for(int i = 0; i < n; ++ i) ta.push_back(tb[i]);
+
+            // minus(remainder, ta);
+            // plus(remainder, tb);
+        }
+        
+        multiply(quotient, b, ta);
+        while(compare(a, ta) <= 0)
+        {
+            minus(quotient, OneUintSeq);
+            minus(ta, b);
+        }
+        remainder = a;
+        minus(remainder, ta);
+
+
         
     }    
 
