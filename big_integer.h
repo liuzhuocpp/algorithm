@@ -663,48 +663,8 @@ using std::fill;
         toL(a, l, ta);
         toL(b, l, c);
 
-        string sss = "";
-        for(int i = 0; i < sz(ta); ++ i)
-            sss += integerToString(ta[i], 16);
-        cout << sss << endl;
-
-
-        sss = "";
-        for(int i = 0; i < sz(c); ++ i)
-            sss += integerToString(c[i], 16);
-        cout << sss << endl;
-        cout << toStringSlow(a, 16) << endl;
-        cout << toStringSlow(b, 16) << endl;
-
         
         lz::fftMultiply<IntegerFFTData<uint> >(ta, c);
-        cout <<"*(*^(^" << endl;
-
-        int ans[1000];
-
-        UintSeq &o = ta;
-        cout << "CNT" << endl;
-        int n = o.size();
-
-
-        int cnt = 0;
-        for(int i = 0; i < n; ++ i)
-        {
-            cnt = cnt / 16 + int(o[i]);
-            ans[i] =  cnt % 16;
-        }
-        int L = n;
-        while(L > 1 && ans[L - 1] == 0) L --;
-        for(int i = L - 1; i >= 0; -- i)
-        {
-            cout << toChar(ans[i]);
-            // printf("%d", ans[i]);
-        }
-        puts("");
-
-
-
-
 
         // make the radix of {@code c} 2^l
         c.clear();
@@ -723,7 +683,7 @@ using std::fill;
             c.push_back(x & lbits_mask);
             x >>= l;
         }
-        cout << "sf" << endl;
+        // cout << "sf" << endl;
         // make the radix of {@code c} 2^32
         int num_per_uint = 32 / l, k = 0;
         for(int i = 0; i < sz(c); i += num_per_uint)
@@ -752,6 +712,70 @@ using std::fill;
         // c = std::move(ta);
 
     }
+
+
+    static void getLower(const UintSeq &a, int n, UintSeq &b)
+    {
+        if(sz(a) <= n)
+        {
+            b = a;
+            return ;
+        }        
+        for(int i = 0; i < n; ++ i) b.push_back(a[i]);
+    }
+    static void getUpper(const UintSeq &a, int n, UintSeq &b)
+    {
+        if(sz(a) <= n) 
+        {
+            b = ZeroUintSeq;
+            return ;
+        }        
+        for(int i = n; i < sz(a); ++ i)
+        {
+            b.push_back(a[i]);
+        }
+
+    }
+
+    static void multiplyKaratsuba(const UintSeq &a, const UintSeq &b, UintSeq &c)
+    {
+        if(min(sz(a), sz(b)) == 1)
+        {
+            multiplySchool(a, b, c);
+            return ;
+        }
+        // cout << "JJ" << endl;
+        int half = (max(sz(a), sz(b)) + 1) >> 1;
+        UintSeq a0, a1, b0, b1;
+
+        getLower(a, half, a0);
+        getUpper(a, half, a1);
+
+        getLower(b, half, b0);
+        getUpper(b, half, b1);
+
+        UintSeq p0, p1;
+        multiplyKaratsuba(a0, b0, p0);
+        multiplyKaratsuba(a1, b1, p1);
+        plus(a0, a1);
+        plus(b0, b1);
+        multiplyKaratsuba(a0, b0, c);
+        minus(c, p0);
+        minus(c, p1);
+
+        shiftHigh(p1, 64LL * half);
+        shiftHigh(c, 32LL * half);
+        plus(c, p1);
+        plus(c, p0);
+
+
+
+
+
+    }
+
+
+
 
     static void multiply(const UintSeq &a, const UintSeq &b, UintSeq &c)
     {
@@ -787,7 +811,7 @@ using std::fill;
     {
         num ++;
         
-        cout << "DEEP" << num << " " << deep << " " << sz(a) << " " << sz(b) << endl;
+        // cout << "DEEP" << num << " " << deep << " " << sz(a) << " " << sz(b) << endl;
         if(sz(a) != sz(b) * 2) 
         {
             cout <<"EROOR" << endl;
@@ -877,14 +901,14 @@ using std::fill;
         ta.clear();
         // multiplySchool(quotient, b, ta);
         multiplyFFT(quotient, b, 4,  ta);
-        cout << "34*****" << endl;
-        cout  << toStringSlow(quotient) << endl;
-        cout  << toStringSlow(b) << endl;
-        cout  << toStringSlow(ta) << endl;
+        // cout << "34*****" << endl;
+        // cout  << toStringSlow(quotient) << endl;
+        // cout  << toStringSlow(b) << endl;
+        // cout  << toStringSlow(ta) << endl;
 
-        UintSeq tta;
-        multiplySchool(quotient, b, tta);
-        cout << "TTA:" << toStringSlow(tta) << endl;
+        // UintSeq tta;
+        // multiplySchool(quotient, b, tta);
+        // cout << "TTA:" << toStringSlow(tta) << endl;
 
 
 
@@ -895,7 +919,7 @@ using std::fill;
             minus(quotient, OneUintSeq);
             minus(ta, b);
         }
-        cout << " SLDKJFKLSJD" << endl;
+        // cout << " SLDKJFKLSJD" << endl;
         remainder = a;
         minus(remainder, ta);
 
