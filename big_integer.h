@@ -220,7 +220,8 @@ using std::fill;
                 c[i + sz(a)] = t;
             }
         }
-        if(c.back() == 0) c.pop_back();
+        // if(c.back() == 0) c.pop_back();
+        removeLeadingZeros(c);
     }
 
 
@@ -287,7 +288,7 @@ using std::fill;
             t = t << 32;
             t |= a[i];
             a[i] = t / b;
-            t %= b;               
+            t %= b;
         }
         removeLeadingZeros(a);
         return t;
@@ -737,13 +738,22 @@ using std::fill;
 
     }
 
+    int tot = 0;
+    int tot2 = 0;
     static void multiplyKaratsuba(const UintSeq &a, const UintSeq &b, UintSeq &c)
     {
-        if(min(sz(a), sz(b)) == 1)
+        // cout << "A.size:" << a.size() << endl;
+        // tot ++;
+        // cout << "TOT: " << tot << endl;
+        if(max(sz(a), sz(b)) <= 80)
         {
+            // multiplyFFT(a, b, 4, c);
             multiplySchool(a, b, c);
             return ;
         }
+
+        // tot2 ++;
+        // cout << "TOT2: " << tot2 << endl;
         // cout << "JJ" << endl;
         int half = (max(sz(a), sz(b)) + 1) >> 1;
         UintSeq a0, a1, b0, b1;
@@ -900,7 +910,9 @@ using std::fill;
         // cout << "I am in 3n / 2n " << endl;
         ta.clear();
         // multiplySchool(quotient, b, ta);
-        multiplyFFT(quotient, b, 4,  ta);
+        // multiplyFFT(quotient, b, 4,  ta);
+        multiplyKaratsuba(quotient, b, ta);
+
         // cout << "34*****" << endl;
         // cout  << toStringSlow(quotient) << endl;
         // cout  << toStringSlow(b) << endl;

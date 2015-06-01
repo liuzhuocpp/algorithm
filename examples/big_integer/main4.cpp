@@ -21,38 +21,42 @@ using namespace lz::BigIntegerPrivate;
 int main()
 {
 
-    // int first, second;
+    int first, second;
 
 
 
-    // string s1, s2;
-    // UintSeq a, b, q, r;
-    // cout <<"EE" << endl;
+    string s1, s2;
+    UintSeq a, b, q, r;
+    cout <<"EE" << endl;
 
-    // int n = 4;
-    // s1.assign(n, '1');
-    // s2.assign(n>> 1, '1');
+    int n = 3e5;
+    s1.assign(n, '1');
+    s2.assign(n, '1');
+    s2.back() = '4';
 
-    // fromString(s1.begin(), s1.end(), 2, a);
-    // fromString(s2.begin(), s2.end(), 2, b);
+    fromString(s1.begin(), s1.end(), 10, a);
+    fromString(s2.begin(), s2.end(), 10, b);
 
-    // cout <<"CCC" << endl;
+    cout <<"CCC" << endl;
 
-    // q.clear();
+    q.clear();
 
-    // second=clock();  
-    // printf("toString complete:%.3f\n", double(second - first) / 1000.0);
+    cout << "A.size(): " << a.size() << endl;
 
-    // // multiplyFFT(a, b, 4, q);
-    // multiplyKaratsuba(a, b,  q);
-    // // divideAndRemainderKnuth(a,  b, q, r);
+    second=clock();  
+    printf("toString complete:%.3f\n", double(second - first) / 1000.0);
 
-    // int third=clock();  
-    // printf("multiply complete:%.3f\n", double(third - second) / 1000.0);
-    // cout << "bitlength a:" << bitLength(a) << endl;
+    // multiplyFFT(a, b, 4, q);
+    multiplyKaratsuba(a, b,  q);
+    // multiplySchool(a, b, q);
+    // divideAndRemainderKnuth(a,  b, q, r);
+
+    int third=clock();  
+    printf("multiply complete:%.3f\n", double(third - second) / 1000.0);
+    cout << "bitlength a:" << bitLength(a) << endl;
 
 
-    // cout << toStringSlow(q, 2) << endl;
+    // cout << toStringSlow(q, 10) << endl;
 
 
 
@@ -62,29 +66,29 @@ int main()
     // int T;
     // scanf("%d", &T);
 
-    string s1, s2;
-    UintSeq a, b, q, r;
-    while(cin >> s1 >> s2)    
-    {
+    // string s1, s2;
+    // UintSeq a, b, q, r;
+    // while(cin >> s1 >> s2)    
+    // {
         
-        fromString(s1.begin(), s1.end(), 10, a);
-        fromString(s2.begin(), s2.end(), 10, b);
+    //     fromString(s1.begin(), s1.end(), 10, a);
+    //     fromString(s2.begin(), s2.end(), 10, b);
 
 
-        // cout << toStringSlow(a, 10) << endl;
-        // cout << toStringSlow(b, 10) << endl;
+    //     // cout << toStringSlow(a, 10) << endl;
+    //     // cout << toStringSlow(b, 10) << endl;
 
-        q.clear();
-        // cout << "SS" << endl;
-        // multiply(a, b, q);
-        multiplyKaratsuba(a, b, q);
-        // multiplyFFT(a, b, 4, q );
-        // divideAndRemainderKnuth(a,  b, q, r);
+    //     q.clear();
+    //     // cout << "SS" << endl;
+    //     // multiply(a, b, q);
+    //     multiplyKaratsuba(a, b, q);
+    //     // multiplyFFT(a, b, 4, q );
+    //     // divideAndRemainderKnuth(a,  b, q, r);
 
 
-        cout << toStringSlow(q, 10) << endl;
+    //     cout << toStringSlow(q, 10) << endl;
 
-    }
+    // }
 
 
 
