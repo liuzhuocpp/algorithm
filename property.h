@@ -13,6 +13,8 @@
 namespace lz {
 
 using std::integral_constant;
+using std::cout;
+using std::endl;
 
 
 
@@ -45,6 +47,9 @@ struct NoProperty {};
         { };
 
 
+        template<typename QueryTag, typename Tag, typename Property>
+        struct Get;
+
 
 
     } // namespace PropertyPrivate
@@ -54,6 +59,10 @@ struct NoProperty {};
 template<typename _Tag, typename _Value, typename _NextProperty = NoProperty>
 struct Property
 {
+    template<typename QueryTag, typename Tag, typename Property>
+    friend struct Get;
+
+
     typedef _Tag Tag;
     typedef _Value Value;
     typedef _NextProperty NextProperty;
@@ -67,6 +76,17 @@ struct Property
                       PropertyPrivate::CountVariadic<Head, Args...>::value,
                        "Parameters number is not equal");
     }
+
+    // template<typename Head, typename... Args>
+    // Property(Head &&value, Args ...args): m_value(value), np(args...)
+    // {
+    //     cout << "GOO" << endl;
+    //     static_assert(PropertyPrivate::CountProperty<Property>::value == 
+    //                   PropertyPrivate::CountVariadic<Head, Args...>::value,
+    //                    "Parameters number is not equal");
+    // }
+
+private:
     _Value m_value;
     _NextProperty np;
 };
@@ -74,14 +94,26 @@ struct Property
 template<typename _Tag, typename _Value>
 struct Property<_Tag, _Value, NoProperty>
 {
+    template<typename QueryTag, typename Tag, typename Property>
+    friend struct Get;
+
+
     typedef _Tag Tag;
     typedef _Value Value;
     typedef NoProperty NextProperty;
 
     Property(){}
-    Property(const Value &value):m_value(value){}
+    Property(const Value &value):m_value(value) 
+    { 
+        // cout << "GOO^^^" << endl;
+    }
+    // Property(Value &&value):m_value(value)
+    // {
+    //     cout << "GOO*" << endl;
+    // }
 
-    _Value m_value;    
+private:
+    _Value m_value;
 };
 
     namespace PropertyPrivate {
