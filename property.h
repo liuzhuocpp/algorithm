@@ -57,10 +57,10 @@ struct NoProperty {};
 
 
 template<typename _Tag, typename _Value, typename _NextProperty = NoProperty>
-struct Property
+struct Property: public _NextProperty
 {
     template<typename QueryTag, typename Tag, typename Property>
-    friend struct Get;
+    friend struct PropertyPrivate::Get;
 
 
     typedef _Tag Tag;
@@ -70,51 +70,34 @@ struct Property
     Property(){}
 
     template<typename Head, typename... Args>
-    Property(const Head &value, Args ...args): m_value(value), np(args...)
+    Property(const Head &value, const Args& ...args)
+    : m_value(value), _NextProperty(args...)
     {        
         static_assert(PropertyPrivate::CountProperty<Property>::value == 
                       PropertyPrivate::CountVariadic<Head, Args...>::value,
                        "Parameters number is not equal");
     }
 
-    // template<typename Head, typename... Args>
-    // Property(Head &&value, Args ...args): m_value(value), np(args...)
-    // {
-    //     cout << "GOO" << endl;
-    //     static_assert(PropertyPrivate::CountProperty<Property>::value == 
-    //                   PropertyPrivate::CountVariadic<Head, Args...>::value,
-    //                    "Parameters number is not equal");
-    // }
-
-private:
-    _Value m_value;
-    _NextProperty np;
-};
-
-template<typename _Tag, typename _Value>
-struct Property<_Tag, _Value, NoProperty>
-{
-    template<typename QueryTag, typename Tag, typename Property>
-    friend struct Get;
 
 
-    typedef _Tag Tag;
-    typedef _Value Value;
-    typedef NoProperty NextProperty;
+    template<typename Head, typename... Args>
+    Property(Head &&value, Args&& ...args)
+    : m_value(std::move(value)), _NextProperty(args...)
+    {
 
-    Property(){}
-    Property(const Value &value):m_value(value) 
-    { 
-        // cout << "GOO^^^" << endl;
+        static_assert(PropertyPrivate::CountProperty<Property>::value == 
+                      PropertyPrivate::CountVariadic<Head, Args...>::value,
+                       "Parameters number is not equal");
     }
-    // Property(Value &&value):m_value(value)
-    // {
-    //     cout << "GOO*" << endl;
-    // }
 
 private:
     _Value m_value;
+    // _NextProperty np;
 };
+
+
+
+
 
     namespace PropertyPrivate {
 
@@ -123,17 +106,21 @@ private:
         {
             typedef typename Property::NextProperty  NextProperty;
 
-            static auto get(Property &p) 
-            -> decltype(Get<QueryTag, typename NextProperty::Tag, NextProperty>::get(p.np))
-            {
-                return Get<QueryTag, typename NextProperty::Tag, NextProperty>::get(p.np);
+            static auto get(Property &p)
+            ->decltype(Get<QueryTag, typename NextProperty::Tag, NextProperty>::
+              get(static_cast<NextProperty&>(p)))
+            {                
+                return Get<QueryTag, typename NextProperty::Tag, NextProperty>::
+                       get(static_cast<NextProperty&>(p));
             }
 
-            static auto get(const Property &p) 
-            -> decltype(Get<QueryTag, typename NextProperty::Tag, NextProperty>::get(p.np))
-            {
-                return Get<QueryTag, typename NextProperty::Tag, NextProperty>::get(p.np);
-            }    
+            static auto get(const Property &p)
+            ->decltype(Get<QueryTag, typename NextProperty::Tag, NextProperty>::
+              get(static_cast<const NextProperty&>(p)))
+            {                
+                return Get<QueryTag, typename NextProperty::Tag, NextProperty>::
+                       get(static_cast<const NextProperty&>(p));
+            }
 
         };
 

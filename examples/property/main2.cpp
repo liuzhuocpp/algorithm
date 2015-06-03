@@ -13,42 +13,60 @@ struct tag_int{};
 struct tag_double{};
 struct tag_char{};
 struct tag_string{};
+struct tag_AA{};
+struct tag_BB{};
+
+
+struct AA
+{
+    AA()
+    {
+        cout << "con" << endl;
+    }
+    AA(const AA &o) 
+    {
+        cout << "copy" << endl;
+    }
+    AA(AA &&o)
+    {
+        cout << "move" << endl;
+    }
+    AA& operator=(const AA &o) 
+    {
+        cout << "operator= copy" << endl;
+    }
+    AA& operator=(AA &&o)
+    {
+        cout << "operator= move" << endl;
+    }
+};
+
+
+AA aa1, aa2;
 
 int main()
 {
-    // cout << CountVariadic<int, int, double>::value << endl;
-
-    int &&rv = 1111;
-    Property<tag_char, char,
-    Property<tag_int, int> > cc('z', rv);
-
-    // Property<tag_char, char, 
-    // Property<tag_int, int, 
-    // Property<tag_double, double> > > cnt('z', 123, 11.11);
-
-    // cout << get<tag_char>(cnt) << endl;
-    // get<tag_char>(cnt) = '^';
 
 
-    // cout << get<tag_double>(cnt) << endl;
-    // get<tag_double>(cnt) = 22.211;
+    // Property<tag_int, int> ii(1111);
 
-    // cout << get<tag_double>(cnt) << endl;
-    // cout << get<tag_char>(cnt) << endl;
+    cout << "BEGIN" << endl;
 
+    typedef Property<tag_char, char,
+    Property<tag_int, int> > MP;
 
-    // typedef 
-    // Property<tag_char, char, 
-    // Property<tag_int, int, 
-    // Property<tag_double, double> > > PP;
-
-    // const PP aa('$', 12309, 91023.1223);
-
-    // cout << get<tag_char>(aa) << endl;
-    // get<tag_char>(aa) = '1';
+    MP cc('*', -11230);
 
 
+    cout << get<tag_char>(cc) << endl;
+    cout << get<tag_int>(cc) << endl;
 
+     get<tag_char>(cc) = '(';
+     get<tag_int>(cc) = 80981203;
+
+     cout << "UIUIUI" << endl;
+     cout << get<tag_char>(cc) << endl;
+    cout << get<tag_int>(cc) << endl;
 
     return 0;
 }
