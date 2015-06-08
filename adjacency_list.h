@@ -96,6 +96,7 @@ public:
     typedef EP EdgeProperties;
     typedef GP GraphProperties;
     typedef int EdgeIndex;
+    typedef int VertexIndex;
 
 
     explicit AdjacencyList(int n = 0, const VP & vp = VP())
@@ -171,7 +172,7 @@ public:
         return make_pair(OutEdgeIterator(this->v[u].head, &this->e), 
                          OutEdgeIterator(-1, &this->e ) ) ;
     }
-    
+
     void addEdge(int a, int b, const EP &ep = EP())
     {
         this->e.push_back(ED(b, this->v[a].head, ep));

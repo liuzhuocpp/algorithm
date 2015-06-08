@@ -52,20 +52,21 @@ int main()
 
     cout << "BEGIN" << endl;
 
-    typedef Property<tag_char, char,
+    typedef 
+    Property<tag_char, char,
     Property<tag_int, int> > MP;
 
-    MP cc('*', -11230);
+    MP cc;
 
 
     cout << get<tag_char>(cc) << endl;
     cout << get<tag_int>(cc) << endl;
 
-     get<tag_char>(cc) = '(';
-     get<tag_int>(cc) = 80981203;
+    get<tag_char>(cc) = '(';
+    get<tag_int>(cc) = 80981203;
 
-     cout << "UIUIUI" << endl;
-     cout << get<tag_char>(cc) << endl;
+    cout << "UIUIUI" << endl;
+    cout << get<tag_char>(cc) << endl;
     cout << get<tag_int>(cc) << endl;
 
     return 0;
