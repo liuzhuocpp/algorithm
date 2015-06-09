@@ -15,10 +15,7 @@ int main()
     G g;
     g.assignVertices(10);
     g.addEdge(0, 1);
-    g.addEdge(0, 3);
-    g.addEdge(0, 5);
-    g.addEdge(0, 5);
-    g.addEdge(0, 5);
+
     g.addEdge(0, 5);
     g.addEdge(0, 9);
     g.addEdge(0, 8);
@@ -30,6 +27,14 @@ int main()
     {
         G::EdgeIndex ei = *oe;
         cout << g.target(ei) << endl;
+    }
+
+    G::EdgeIterator ei, ei_end;
+    tie(ei, ei_end) = g.edges();
+    for(;ei != ei_end; ei ++)
+    {
+        G::EdgeIndex _ei = *ei;
+        cout << g.source(_ei) << " " << g.target(_ei) << endl;
     }
 
     return 0;

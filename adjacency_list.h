@@ -46,17 +46,19 @@ using std::make_pair;
     template<typename EP>
     struct ED
     {
-        int target, next;
+        int source, target, next;
         EP ep;
         ED() = default;
-        ED(int _target, int _next, const EP & _ep):target(_target), next(_next), ep(_ep){}
+        ED(int _source, int _target, int _next, const EP & _ep)
+            :source(_source), target(_target), next(_next), ep(_ep){}
     };
     template<>
     struct ED<NoProperty>
     {
-        int target, next;
+        int source, target, next;
         ED() = default;
-        ED(int _target, int _next, const NoProperty & _ep):target(_target), next(_next){}
+        ED(int _source, int _target, int _next, const NoProperty & _ep)
+            :source(_source), target(_target), next(_next){}
     };
 
     // graph data
@@ -140,8 +142,9 @@ public:
     
     // int source(const EdgeIndex &eid) const { return eid.source; }
 
-    const int& target(const int &eid) const { return this->e[eid].target; }
-    int& target(const int &eid) { return this->e[eid].target; }
+    
+    int target(const int &eid) const { return this->e[eid].target; }
+    int source(const int &eid) const { return this->e[eid].source; }
 
     const EP& edgeProperties(const int &eid) const { return this->e[eid].ep; }
     EP& edgeProperties(const int &eid) { return this->e[eid].ep; }
@@ -160,24 +163,66 @@ public:
     public:
         OutEdgeIterator() = default;
 
-        const int& operator*() const { return i; }
+        int operator*() const { return i; }
         OutEdgeIterator& operator++() { i = (*e)[i].next;  return *this; }
         OutEdgeIterator operator++(int) { OutEdgeIterator t(*this); ++*this;  return t; }
         bool operator==(const OutEdgeIterator &o) const { return i == o.i && e == o.e; }
         bool operator!=(const OutEdgeIterator &o) const { return !(*this == o); }
     };
-
     pair<OutEdgeIterator, OutEdgeIterator> outEdges(int u) const
     {
         return make_pair(OutEdgeIterator(this->v[u].head, &this->e), 
                          OutEdgeIterator(-1, &this->e ) ) ;
     }
 
+
+
+    class EdgeIterator
+    {
+        friend class AdjacencyList ;
+        int i;
+        
+        EdgeIterator(int _i): i(_i) {}
+    public:
+        EdgeIterator() = default;
+        bool operator==(const EdgeIterator &o) const { return i == o.i; }
+        bool operator!=(const EdgeIterator &o) const { return !(*this == o); }
+        int operator*() const { return i; }
+        EdgeIterator& operator++() { ++ i; return *this; }
+        EdgeIterator operator++(int) { EdgeIterator t(*this); ++*this;  return t; }
+
+        EdgeIterator& operator--() { -- i; return *this; }
+        EdgeIterator operator--(int) { EdgeIterator t(*this); --*this;  return t; }
+
+
+        friend EdgeIterator operator+(const EdgeIterator &it, int d)
+            {   return EdgeIterator(it.i + d); }
+        friend EdgeIterator operator+(int d, const EdgeIterator &it)
+            {   return EdgeIterator(it.i + d); }
+
+        EdgeIterator operator-(int d) 
+            {   return EdgeIterator(i - d); }
+        EdgeIterator operator-=(int d)
+            {   i -= d;  return *this; }
+        EdgeIterator operator+=(int d)
+            {   i += d;  return *this; }
+    };
+
+
+    pair<EdgeIterator, EdgeIterator> edges() const
+    {
+        return make_pair(EdgeIterator(0), 
+                         EdgeIterator(this->e.size()) ) ;
+    }
+
+
+
     void addEdge(int a, int b, const EP &ep = EP())
     {
-        this->e.push_back(ED(b, this->v[a].head, ep));
+        this->e.push_back(ED(a, b, this->v[a].head, ep));
         this->v[a].head = int(this->e.size()) - 1;
     }
+
 
 
 
