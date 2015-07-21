@@ -1,0 +1,2 @@
+cd D:\code\github\algorithm\examples
+g++  -std=c++11 -ID:\code\github\algorithm      main.cpp     -o main && main

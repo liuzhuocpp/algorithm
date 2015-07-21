@@ -97,23 +97,23 @@ public:
     typedef VP VertexProperties;
     typedef EP EdgeProperties;
     typedef GP GraphProperties;
-    typedef int EdgeIndex;
-    typedef int VertexIndex;
+    
+    typedef int EdgeDescriptor;
+    typedef int VertexDescriptor;
 
 
     explicit AdjacencyList(int n = 0, const VP & vp = VP())
     { 
         this->v.assign(n, VD(-1, vp));
     }
-    void clear() 
+    void clear()
     {
         this->v.clear();
         this->e.clear(); 
     }
-    void assignVertices(int n, const VP & vp = VP())
-    {        
+    void assignVertex(int n = 0, const VP & vp = VP())
+    {
         this->v.assign(n, VD(-1, vp));
-        this->e.clear();
     }
     int addVertex(const VP &vp = VP())
     {
@@ -121,27 +121,11 @@ public:
         return this->v.size() - 1;
     }
 
-    
-    // void resize(int n, const VP &vp = VP()) { this->e.clear(); this->v.assign(n, vp); }
-
     const VP& vertexProperties(int u) const { return this->v[u].vp; }
     VP& vertexProperties(int u) { return this->v[u].vp; }
 
     const GP& graphProperties() const { return this->gp; }
     GP& graphProperties() { return this->gp; }
-
-
-    // class EdgeIndex
-    // {
-    //     friend class AdjacencyList;
-    //     int source, edid;
-    //     EdgeIndex(int _source, int _edid):source(_source), edid(_edid){}
-    // public:
-    //     EdgeIndex() = default;        
-    // };
-    
-    // int source(const EdgeIndex &eid) const { return eid.source; }
-
     
     int target(const int &eid) const { return this->e[eid].target; }
     int source(const int &eid) const { return this->e[eid].source; }
@@ -149,10 +133,8 @@ public:
     const EP& edgeProperties(const int &eid) const { return this->e[eid].ep; }
     EP& edgeProperties(const int &eid) { return this->e[eid].ep; }
 
-
     int vertexNumber() const { return this->v.size(); }
-    int edgeNumber() const { return this->e.size(); }
-    
+    int edgeNumber() const { return this->e.size(); }   
 
     class OutEdgeIterator
     {

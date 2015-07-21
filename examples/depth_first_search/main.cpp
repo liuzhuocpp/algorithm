@@ -8,8 +8,10 @@
 using namespace std;
 using namespace lz;
 
-template<typename G>
-class DFS:public DepthFirstSearch<G>
+typedef AdjacencyList<> G;
+
+
+class DFS: public DirectedDFS<G>
 {
 
 protected:
@@ -17,15 +19,15 @@ protected:
     {
         cout << "FS " << endl;
     }
-    void 
+
 
 };
 int main()
 {
-    typedef AdjacencyList<> G;
+    
     G g;
 
-    g.assign(6);
+    g.assignVertex(6);
     g.addEdge(0, 1);
     g.addEdge(0, 3);
     g.addEdge(0, 5);
@@ -33,8 +35,13 @@ int main()
     g.addEdge(0, 5);
     g.addEdge(0, 5);
 
-    DFS<G> dfs;
-    dfs.start(g);
+    DFS dfs;
+
+    cout << "FF " << endl;
+    dfs.setGraph(g);
+
+    cout << "FF " << endl;
+    dfs.start();
 
 
 
@@ -44,7 +51,7 @@ int main()
     tie(oe, oe_end) = g.outEdges(0);
     for(;oe != oe_end; oe ++)
     {
-        G::EdgeIndex ei = *oe;
+        G::EdgeDescriptor ei = *oe;
         cout << g.source(ei) << " " << g.target(ei) << endl;
     }
 
