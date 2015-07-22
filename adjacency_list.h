@@ -5,7 +5,8 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
-#include "graph_utility.h"
+// #include "graph_utility.h"
+#include "property.h"
 
 namespace lz {
 
@@ -78,6 +79,17 @@ using std::make_pair;
     };
 
 
+    
+
+    struct ReverseEdge
+    {
+        int operator()(int e) const
+        {
+            return e ^ 1;
+        }
+    };
+
+
     } // AdjacencyListPrivate
 
 
@@ -86,7 +98,8 @@ using std::make_pair;
 
 template<typename VP = NoProperty, 
          typename EP = NoProperty, 
-         typename GP = NoProperty >
+         typename GP = NoProperty,
+         typename ReverseEdge = AdjacencyListPrivate::ReverseEdge >
 class AdjacencyList: private AdjacencyListPrivate::GD<VP, EP, GP>
 {
     typedef AdjacencyListPrivate::VD<VP> VD;
@@ -129,6 +142,9 @@ public:
     
     int target(const int &eid) const { return this->e[eid].target; }
     int source(const int &eid) const { return this->e[eid].source; }
+
+    int reverseEdge(const int eid) const { return ReverseEdge()(eid); }
+
 
     const EP& edgeProperties(const int &eid) const { return this->e[eid].ep; }
     EP& edgeProperties(const int &eid) { return this->e[eid].ep; }

@@ -11,23 +11,18 @@ using namespace lz;
 typedef AdjacencyList<> G;
 
 
-class DFS: public DirectedDFS<G>
+struct Vis:DFSVisitor<G>
 {
-
-protected:
-    void initializeVertex(int u)
-    {
-        cout << "FS " << endl;
-    }
-
-
+    
 };
+
 int main()
 {
     
     G g;
 
-    g.assignVertex(6);
+    int n = 6;
+    g.assignVertex(n);
     g.addEdge(0, 1);
     g.addEdge(0, 3);
     g.addEdge(0, 5);
@@ -35,25 +30,16 @@ int main()
     g.addEdge(0, 5);
     g.addEdge(0, 5);
 
-    DFS dfs;
-
-    cout << "FF " << endl;
-    dfs.setGraph(g);
-
-    cout << "FF " << endl;
-    dfs.start();
+    g.addEdge(1, 2);
 
 
 
-    cout << "FF " << endl;
+    vector<int> a(n);
+    Vis vis;
+    depthFirstSearch(g, vis, a.begin());
 
-    G::OutEdgeIterator oe, oe_end;
-    tie(oe, oe_end) = g.outEdges(0);
-    for(;oe != oe_end; oe ++)
-    {
-        G::EdgeDescriptor ei = *oe;
-        cout << g.source(ei) << " " << g.target(ei) << endl;
-    }
+
+
 
     return 0;
 }
