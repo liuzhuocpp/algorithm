@@ -8,35 +8,51 @@
 using namespace std;
 using namespace lz;
 
-typedef AdjacencyList<> G;
+typedef AdjacencyList<> Graph;
 
 
-struct Vis:DFSVisitor<G>
+struct Vis: DFSVisitor
 {
-    
+    template<typename E, typename G>
+    void treeEdge(E e, const G &g) const 
+    {
+        cout << "dfs: treeEdge: " <<  g.source(e) << " " << g.target(e) << endl;
+    }
+    template<typename E, typename G>
+    void notTreeEdge(E e, const G &g) const 
+    {
+        cout << "dfs: notTreeEdge: " <<  g.source(e) << " " << g.target(e) << endl;
+    }
+
 };
 
 int main()
 {
     
-    G g;
+    Graph g;
 
     int n = 6;
     g.assignVertex(n);
-    g.addEdge(0, 1);
-    g.addEdge(0, 3);
-    g.addEdge(0, 5);
-    g.addEdge(0, 5);
-    g.addEdge(0, 5);
-    g.addEdge(0, 5);
-
-    g.addEdge(1, 2);
 
 
+    g.addEdge(0, 5);
+    g.addEdge(5, 0);
 
-    vector<int> a(n);
+    g.addEdge(0, 5);
+    g.addEdge(5, 0);
+
+
+
+
+
+
+
+
+
     Vis vis;
-    depthFirstSearch(g, vis, a.begin());
+    // depthFirstSearch(g, vis);
+
+    undirectedDFS(g, vis);
 
 
 

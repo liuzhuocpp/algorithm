@@ -3,42 +3,43 @@
 
 
 #include "depth_first_search.h"
-
+#include <algorithm>
 
 namespace lz {
 
+using std::min;
 
 	namespace BiconnectedComponentsOfEdgePrivate {
 
-		template<typename G, typename DfnIterator, typename LowIterator, typename ComponentIterator>
-		struct Vis: public DFSVisitor<G>
+		template<typename ComponentIterator>
+		struct Vis: public DFSVisitor
 		{
-			DfnIterator dfn;
-			LowIterator low;
+			vector<int> dfn;
+			vector<int> low;
 			ComponentIterator c;
 			vector<int> stack;
 			int time_stmap, comp_num;
-			void init()
-			{
-				time_stmap = comp_num = 0;
-				stack.clear();
-			}
-			void discoverVertex(int u, const Graph &g) 
+
+			template<typename V, typename G>
+			void discoverVertex(V u, const G &g) 
 			{
 				dfn[u] = low[u] = ++ time_stmap;
 				stack.push_back(u);
 			}
-			void treeEdgeReturn(const EdgeDescriptor &e, const Graph &g)
+			template<typename E, typename G>
+			void treeEdgeReturn(E e, const G &g)
 			{
 				int u = g.source(e), to = g.target(e);
 				low[u] = min(low[u], low[to]);
 			}
-			void notTreeEdge(const EdgeDescriptor &e, const Graph &g) 
+			template<typename E, typename G>
+			void notTreeEdge(E e, const G &g) 
 			{
 				int u = g.source(e), to = g.target(e);
 				low[u] = min(low[u], dfn[to]);
 			}
-			void finishVertex(int u, const Graph &g) 
+			template<typename V, typename G>
+			void finishVertex(V u, const G &g)
 			{
 				if(dfn[u] == low[u])
 				{
@@ -63,6 +64,17 @@ template<typename Graph, typename ComponentIterator>
 int BiconnectedComponentsOfEdge(const Graph &g, ComponentIterator c)
 {
 
+	BiconnectedComponentsOfEdgePrivate::Vis<ComponentIterator> vis;
+	int n = g.vertexNumber();
+	vis.dfn.resize(n);
+	vis.low.resize(n);
+	vis.c = c;
+	vis.time_stmap = 0;
+	vis.comp_num = 0;
+
+
+	undirectedDFS(g, vis);
+	return vis.comp_num;
 }
 
 
