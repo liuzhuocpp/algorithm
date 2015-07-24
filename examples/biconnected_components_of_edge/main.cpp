@@ -27,6 +27,9 @@ int main()
     g.addEdge(0, 5);
     g.addEdge(5, 0);
 
+
+    
+
     vector<int> v(n);
     int num = BiconnectedComponentsOfEdge(g, v.begin());
     cout << "biconnected_components_of_edge: " << num  << endl;

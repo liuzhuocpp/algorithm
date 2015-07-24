@@ -10,14 +10,9 @@ namespace lz {
 	namespace GraphUtilityPrivate {
 	}
 
+struct Directed{};
+struct Undirected{};
 
-
-
-enum class GraphColor{
-	Wight,
-	Gray,
-	Black,
-};
 
 
 

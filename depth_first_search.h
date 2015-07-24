@@ -13,29 +13,14 @@ using std::tie;
 using std::pair;
 using std::stack;
 using std::vector;
-
-
-
-
-
-
-
-
-
-
-
-
-// DirectedDFS
-// UndirectedDFS
 	namespace DepthFirstSearchPrivate {
 
-
-
-	} // namespace DepthFirstSearchPrivate 
-
+		   
+} // namespace DepthFirstSearchPrivate 
 
 
 
+	
 class DFSVisitor
 {
 public:
@@ -72,7 +57,7 @@ public:
 
 			for(ei; ei != ei_end; ++ ei)
 			{
-				EdgeDescriptor e = *ei;				
+				EdgeDescriptor e = *ei;
 				int to = g.target(e);
 				vis.examineEdge(e, g);
 				if(color[to] == 0)
@@ -90,13 +75,13 @@ public:
 			vis.finishVertex(u, g);
 		}
 
-		template<typename Graph, typename DFSVisitor, typename VC, typename EC>
-		void undfsImpl(const Graph &g, DFSVisitor &vis, VC vc, EC ec, int u)
+		template<typename Graph, typename DFSVisitor, typename VC>
+		void undfsImpl(const Graph &g, DFSVisitor &vis, VC vc, int u, int fa)
 		{
 			typedef typename Graph::OutEdgeIterator OutEdgeIterator;
 			typedef typename Graph::EdgeDescriptor EdgeDescriptor;
 
-			vc[u] = 1;			
+			vc[u] = 1;
 			vis.discoverVertex(u, g);
 			OutEdgeIterator ei, ei_end;
 
@@ -105,15 +90,13 @@ public:
 			for(; ei != ei_end; ++ ei)
 			{
 				EdgeDescriptor e = *ei;
-				if(ec[e]) continue;
-				ec[e] = ec[g.reverseEdge(e)] = 1;
-
+				
 				int to = g.target(e);
 				vis.examineEdge(e, g);
 				if(vc[to] == 0)
 				{
 					vis.treeEdge(e, g);
-					undfsImpl(g, vis, vc, ec, to);
+					undfsImpl(g, vis, vc, to, u);
 					vis.treeEdgeReturn(e, g);
 				}
 				else
@@ -162,14 +145,13 @@ template<typename Graph, typename DFSVisitor>
 void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 {
 	int n = g.vertexNumber();
-	vector<bool> vc(n, 0);
-	vector<bool> ec(g.edgeNumber(), 0);
+	vector<bool> vc(n, 0);	
 
 	for(int i = 0; i < n; ++ i) vis.initializeVertex(i, g);
 	if(s >= 0)
 	{
 		vis.startVertex(s, g);
-		DepthFirstSearchPrivate::undfsImpl(g, vis, vc.begin(), ec.begin(), s);
+		DepthFirstSearchPrivate::undfsImpl(g, vis, vc.begin(), u, u);
 		return ;
 	}
 	for(int i = 0; i < n; ++ i)
@@ -177,7 +159,7 @@ void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 		if(vc[i] == 0)
 		{			
 			vis.startVertex(i, g);
-			DepthFirstSearchPrivate::undfsImpl(g, vis, vc.begin(), ec.begin(), i);
+			DepthFirstSearchPrivate::undfsImpl(g, vis, vc.begin(), i, i);
 		}
 	}
 }

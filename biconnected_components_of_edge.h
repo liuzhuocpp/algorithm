@@ -5,10 +5,11 @@
 #include "depth_first_search.h"
 #include <algorithm>
 
-namespace lz {
+namespace lz {	
 
+	
 using std::min;
-
+	
 	namespace BiconnectedComponentsOfEdgePrivate {
 
 		template<typename ComponentIterator>
@@ -63,7 +64,6 @@ using std::min;
 template<typename Graph, typename ComponentIterator>
 int BiconnectedComponentsOfEdge(const Graph &g, ComponentIterator c)
 {
-
 	BiconnectedComponentsOfEdgePrivate::Vis<ComponentIterator> vis;
 	int n = g.vertexNumber();
 	vis.dfn.resize(n);
