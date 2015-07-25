@@ -7,12 +7,16 @@
 #include <vector>
 #include <stack>
 #include "graph_utility.h"
+#include <iostream>
+
 namespace lz {
 
 using std::tie;
 using std::pair;
 using std::stack;
 using std::vector;
+using std::cout;
+using std::endl;
 	namespace DepthFirstSearchPrivate {
 
 		   
@@ -24,18 +28,16 @@ using std::vector;
 class DFSVisitor
 {
 public:
-	template<typename V, typename G> void initializeVertex(V u, const G &g) {}
-	template<typename V, typename G> void startVertex(V u, const G &g) {}
-	template<typename V, typename G> void discoverVertex(V u, const G &g) {}
-	template<typename E, typename G> void examineEdge(E e, const G &g) {}
-	template<typename E, typename G> void treeEdge(E e, const G &g) {}
-	template<typename E, typename G> void treeEdgeReturn(E e, const G &g) {}
-	template<typename E, typename G> void notTreeEdge(E e, const G &g) {}
-	template<typename E, typename G> void finishEdge(E e, const G &g) {}
-	template<typename V, typename G> void finishVertex(V e, const G &g) {}
-	// void backEdge(const EdgeDescriptor &e, const Graph &g) {}
-	// void forwardOrCrossEdge(const EdgeDescriptor &e, const Graph &g) {}
-	
+	template<typename G, typename V> void initializeVertex(const G &g, V u) {}
+	template<typename G, typename V> void startVertex(const G &g, V u) {}
+	template<typename G, typename V> void discoverVertex(const G &g, V u) {}
+	template<typename G, typename E> void examineEdge(const G &g, E e) {}
+	template<typename G, typename E> void treeEdge(const G &g, E e) {}
+	template<typename G, typename E> void treeEdgeReturn(const G &g, E e) {}
+	template<typename G, typename E> void backEdge(const G &g, E e) {}
+	template<typename G, typename E> void forwardOrCrossEdge(const G &g, E e) {}
+	template<typename G, typename E> void finishEdge(const G &g, E e) {}
+	template<typename G, typename V> void finishVertex(const G &g, V u) {}
 	
 };
 
@@ -44,122 +46,137 @@ public:
 	namespace DepthFirstSearchPrivate {
 
 		template<typename Graph, typename DFSVisitor, typename ColorIterator>
-		void dfsImpl(const Graph &g, DFSVisitor &vis, ColorIterator color, int u)
+		void dfsImpl(const Graph &g, DFSVisitor &vis, ColorIterator color, typename Graph::VertexDescriptor u)
 		{
 			typedef typename Graph::OutEdgeIterator OutEdgeIterator;
 			typedef typename Graph::EdgeDescriptor EdgeDescriptor;
 
-			color[u] = 1;
-			vis.discoverVertex(u, g);
+			color[u] = Color::Gray;
+			vis.discoverVertex(g, u);
 			OutEdgeIterator ei, ei_end;
-
-			tie(ei, ei_end) = g.outEdges(u);
-
-			for(ei; ei != ei_end; ++ ei)
-			{
-				EdgeDescriptor e = *ei;
-				int to = g.target(e);
-				vis.examineEdge(e, g);
-				if(color[to] == 0)
-				{
-					vis.treeEdge(e, g);
-					dfsImpl(g, vis, color, to);
-					vis.treeEdgeReturn(e, g);
-				}
-				else
-				{
-					vis.notTreeEdge(e, g);
-				}
-				vis.finishEdge(u, g);
-			}
-			vis.finishVertex(u, g);
-		}
-
-		template<typename Graph, typename DFSVisitor, typename VC>
-		void undfsImpl(const Graph &g, DFSVisitor &vis, VC vc, int u, int fa)
-		{
-			typedef typename Graph::OutEdgeIterator OutEdgeIterator;
-			typedef typename Graph::EdgeDescriptor EdgeDescriptor;
-
-			vc[u] = 1;
-			vis.discoverVertex(u, g);
-			OutEdgeIterator ei, ei_end;
-
 			tie(ei, ei_end) = g.outEdges(u);
 
 			for(; ei != ei_end; ++ ei)
 			{
 				EdgeDescriptor e = *ei;
-				
-				int to = g.target(e);
-				vis.examineEdge(e, g);
-				if(vc[to] == 0)
+				typename Graph::VertexDescriptor to = g.target(e);
+				vis.examineEdge(g, e);
+				if(color[to] == Color::White)
 				{
-					vis.treeEdge(e, g);
-					undfsImpl(g, vis, vc, to, u);
-					vis.treeEdgeReturn(e, g);
+					vis.treeEdge(g, e);
+					dfsImpl(g, vis, color, to);
+					vis.treeEdgeReturn(g, e);
 				}
-				else
+				else if(color[to] == Color::Gray)
 				{
-					vis.notTreeEdge(e, g);
+					vis.backEdge(g, e);
 				}
-				vis.finishEdge(u, g);
+				else //if(color[to] == Color::Black)
+				{
+					vis.forwardOrCrossEdge(g, e);
+				}
+				vis.finishEdge(g, e);
 			}
-			vis.finishVertex(u, g);
+			color[u] = Color::Black;
+			vis.finishVertex(g, u);
 		}
+
+
+
+
+		template<typename Graph, typename DFSVisitor, typename ColorIterator>
+		void undfsImpl(const Graph &g, 
+					   DFSVisitor &vis, 
+					   ColorIterator color, 
+					   typename Graph::VertexDescriptor u, 
+					   bool is_start, 
+					   typename Graph::EdgeDescriptor pre_e )
+		{
+			typedef typename Graph::OutEdgeIterator OutEdgeIterator;
+			typedef typename Graph::EdgeDescriptor EdgeDescriptor;
+
+			// cout << "**(&(" << endl;
+			color[u] = Color::Gray;
+			vis.discoverVertex(g, u);
+			OutEdgeIterator ei, ei_end;
+			tie(ei, ei_end) = g.outEdges(u);
+
+			for(; ei != ei_end; ++ ei)
+			{
+				EdgeDescriptor e = *ei;
+				typename Graph::VertexDescriptor to = opposite(g, e, u);
+				vis.examineEdge(g, e);
+				if(color[to] == Color::White)
+				{
+					// cout << "IIIII" << endl;
+					vis.treeEdge(g, e);
+					undfsImpl(g, vis, color, to, 0, pre_e);
+					vis.treeEdgeReturn(g, e);
+				}
+				else if(color[to] == Color::Gray && !is_start && e != pre_e)
+				{
+					vis.backEdge(g, e);
+				}
+				vis.finishEdge(g, e);
+			}
+			color[u] = Color::Black;
+			vis.finishVertex(g, u);
+		}
+
+
 
 
 
 	} // namespace DepthFirstSearchPrivate 
 
 
-// template<typename Graph, typename DFSVisitor>
-// void depthFirstSearch(const Graph &g, DFSVisitor &vis, int s = -1)
-// {
-// 	int n = g.vertexNumber();
-// 	vector<int> color(n);
-// 	for(int i = 0; i < n; ++ i) 
-// 	{
-// 		color[i] = 0;
-// 		vis.initializeVertex(i, g);
-// 	}
-// 	if(s >= 0)
-// 	{
-// 		vis.startVertex(s, g);
-// 		DepthFirstSearchPrivate::dfsImpl(g, vis, color.begin(), s);
-// 		return ;
-// 	}
-// 	for(int i = 0; i < n; ++ i)
-// 	{
-// 		if(color[i] == 0)
-// 		{
-// 			vis.startVertex(i, g);
-// 			DepthFirstSearchPrivate::dfsImpl(g, vis, color.begin(), i);
-// 		}
-// 	}
-// }
-
-
-
 template<typename Graph, typename DFSVisitor>
-void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
+void depthFirstSearch(const Graph &g, DFSVisitor &vis, int s = -1)
 {
 	int n = g.vertexNumber();
-	vector<bool> vc(n, 0);	
-
-	for(int i = 0; i < n; ++ i) vis.initializeVertex(i, g);
+	vector<Color> color(n, Color::White);
+	for(int i = 0; i < n; ++ i) 
+	{
+		vis.initializeVertex(g, i);
+	}
 	if(s >= 0)
 	{
-		vis.startVertex(s, g);
-		DepthFirstSearchPrivate::undfsImpl(g, vis, vc.begin(), u, u);
+		vis.startVertex(g, s);
+		DepthFirstSearchPrivate::dfsImpl(g, vis, color.begin(), s);
 		return ;
 	}
 	for(int i = 0; i < n; ++ i)
 	{
-		if(vc[i] == 0)
-		{			
-			vis.startVertex(i, g);
-			DepthFirstSearchPrivate::undfsImpl(g, vis, vc.begin(), i, i);
+		if(color[i] == Color::White)
+		{
+			vis.startVertex(g, i);
+			DepthFirstSearchPrivate::dfsImpl(g, vis, color.begin(), i);
+		}
+	}
+}
+
+
+	
+template<typename Graph, typename DFSVisitor>
+void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
+{
+	int n = g.vertexNumber();
+	vector<Color> color(n, Color::White);	
+
+	for(int i = 0; i < n; ++ i) vis.initializeVertex(g, i);
+	if(s >= 0)
+	{
+		vis.startVertex(g, s);
+		DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), s, 1, typename Graph::EdgeDescriptor());
+		return ;
+	}
+	for(int i = 0; i < n; ++ i)
+	{
+		if(color[i] == Color::White)
+		{
+			// cout << "FFF" << endl;
+			vis.startVertex(g, i);
+			DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), i, 1, typename Graph::EdgeDescriptor());
 		}
 	}
 }

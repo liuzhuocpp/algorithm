@@ -13,16 +13,22 @@ typedef AdjacencyList<> Graph;
 
 struct Vis: DFSVisitor
 {
-    template<typename E, typename G>
-    void treeEdge(E e, const G &g) const 
+    template<typename G, typename E>
+    void treeEdge(const G &g, E e) const 
     {
         cout << "dfs: treeEdge: " <<  g.source(e) << " " << g.target(e) << endl;
     }
-    template<typename E, typename G>
-    void notTreeEdge(E e, const G &g) const 
+    template<typename G, typename E>
+    void backEdge(const G &g, E e) 
     {
-        cout << "dfs: notTreeEdge: " <<  g.source(e) << " " << g.target(e) << endl;
+        cout << "dfs: backEdge: " <<  g.source(e) << " " << g.target(e) << endl;
     }
+    template<typename G, typename E> 
+    void forwardOrCrossEdge(const G &g, E e) 
+    {
+        cout << "dfs: forwardOrCrossEdge: " <<  g.source(e) << " " << g.target(e) << endl;
+    }
+
 
 };
 
@@ -32,7 +38,8 @@ int main()
     Graph g;
 
     int n = 6;
-    g.assignVertex(n);
+    // g.assignVertex(n);
+    for(int i = 0; i < n; ++ i) g.addVertex();
 
 
     g.addEdge(0, 5);
