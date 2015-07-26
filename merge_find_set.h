@@ -15,7 +15,7 @@ using std::vector;
 
 
 class MergeFindSet
-{s
+{
 	vector<int> p;
 public:
 	MergeFindSet(int n = 0):p(n)
