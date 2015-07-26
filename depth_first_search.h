@@ -173,7 +173,7 @@ void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 	{
 		if(color[i] == Color::White)
 		{
-			 cout << "FFF" << endl;
+//			cout << "FFF" << endl;
 			vis.startVertex(g, i);
 			DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), i, 1, typename GraphTraits<Graph>::EdgeDescriptor());
 		}

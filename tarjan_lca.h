@@ -9,38 +9,44 @@
 #define TARJAN_LCA_H_
 
 #include <vector>
+#include "merge_find_set.h"
+#include "adjacency_list.h"
+#include "depth_first_search.h"
 namespace lz {
 
 using std::vector;
 
 	namespace TarjanLCAPrivate {
 
-	template<typename G, typename QueryList>
+	template<typename G, typename QueryList, typename OutputIterator>
 	struct Vis:public DFSVisitor
 	{
 		typedef typename GraphTraits<G>::VertexDescriptor V;
 		typedef typename GraphTraits<G>::EdgeDescriptor E;
 
-		QueryList q;
+		QueryList ql;
 		vector<bool> color;
-		vector<V> parent;
-		void initializeVertex(const G &g, V u)
-		{
-			color[u] = 0;
-			parent[u] = u;
-		}
+		MergeFindSet<> mfs;
+		OutputIterator ans;
+		Vis(int n, OutputIterator ans): ql(n), color(n, 0), mfs(n), ans(ans){}
 		void treeEdgeReturn(const G &g, E e, V u)
 		{
 			V to = opposite(g, e, u);
-			parent[to] = u;
+			mfs.setParent(to, u);
 		}
 		void finishVertex(const G &g, V u)
 		{
 			color[u] = 1;
-
-
-
-
+			typename GraphTraits<G>::OutEdgeIterator oi, oi_end;
+			for(;oi != oi_end; ++ oi)
+			{
+				typename GraphTraits<G>::EdgeDescriptor e = *oi;
+				typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
+				if(color[to])
+				{
+					ans[e] = mfs.find(to);
+				}
+			}
 		}
 
 	};
@@ -50,9 +56,28 @@ using std::vector;
 	} // namespace TarjanLCAPrivate
 
 
-template<typename Graph, typename InputIterator, typename OutIterator>
-void tarjanLCA(const Graph &g, InputIterator q1, InputIterator q2, OutIterator ans)
+template<typename Graph, typename InputIterator, typename OutputIterator>
+void tarjanLCA(const Graph &g,
+			   InputIterator qa,
+			   InputIterator qb,
+			   int q,
+			   OutputIterator ans)
 {
+	int n = g.vertexNumber();
+
+	TarjanLCAPrivate::Vis<Graph, AdjacencyList<Undirected>, OutputIterator> vis(n, ans);
+	cout << "UROU" << endl;
+
+	for(int i = 0; i < q; ++ i)
+	{
+		vis.ql.addEdge(*qa, *qb);
+		++qa;
+		++qb;
+	}
+	cout << "*%&*%*%" << endl;
+	undirectedDFS(g, vis);
+
+
 
 
 }
