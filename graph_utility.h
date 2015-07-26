@@ -27,8 +27,8 @@ opposite(const Graph &g,
          typename Graph::EdgeDescriptor e,
          typename Graph::VertexDescriptor u)
 {
-    // if(g.source(e) != u) return g.source(e);
-    // return g.target(e);
+     if(g.source(e) != u) return g.source(e);
+     return g.target(e);
     return g.source(e) != u ? g.source(e) : g.target(e);
     
 }

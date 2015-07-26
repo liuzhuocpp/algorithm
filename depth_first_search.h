@@ -1,14 +1,14 @@
 #ifndef DEPTH_FIRST_SEARCH_H
 #define DEPTH_FIRST_SEARCH_H
 
-// #include "graph_utility.h"
 #include <tuple>
 #include <algorithm>
 #include <vector>
 #include <stack>
-#include "graph_utility.h"
-#include <iostream>
 
+#include <iostream>
+#include "graph_utility.h"
+#include "graph_traits.h"
 namespace lz {
 
 using std::tie;
@@ -166,16 +166,16 @@ void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 	if(s >= 0)
 	{
 		vis.startVertex(g, s);
-		DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), s, 1, typename Graph::EdgeDescriptor());
+		DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), s, 1, typename GraphTraits<Graph>::EdgeDescriptor());
 		return ;
 	}
 	for(int i = 0; i < n; ++ i)
 	{
 		if(color[i] == Color::White)
 		{
-			// cout << "FFF" << endl;
+			 cout << "FFF" << endl;
 			vis.startVertex(g, i);
-			DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), i, 1, typename Graph::EdgeDescriptor());
+			DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), i, 1, typename GraphTraits<Graph>::EdgeDescriptor());
 		}
 	}
 }
