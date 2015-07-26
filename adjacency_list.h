@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "property.h"
 #include "graph_utility.h"
+#include "graph_traits.h"
 namespace lz {
 
 

@@ -4,7 +4,8 @@
 
 #include "depth_first_search.h"
 #include <algorithm>
-
+#include "graph_traits.h"
+#include "graph_utility.h"
 namespace lz {	
 
 	
@@ -21,26 +22,26 @@ using std::min;
 			vector<int> stack;
 			int time_stmap, comp_num;
 
-			template<typename V, typename G>
-			void discoverVertex(V u, const G &g) 
+			template<typename G, typename V>
+			void discoverVertex(const G &g, V u)
 			{
 				dfn[u] = low[u] = ++ time_stmap;
 				stack.push_back(u);
 			}
-			template<typename E, typename G>
-			void treeEdgeReturn(E e, const G &g)
+			template<typename G, typename E, typename V>
+			void treeEdgeReturn(const G &g, E e, V u)
 			{
-				int u = g.source(e), to = g.target(e);
+				typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
 				low[u] = min(low[u], low[to]);
 			}
-			template<typename E, typename G>
-			void notTreeEdge(E e, const G &g) 
+			template<typename G, typename E, typename V>
+			void notTreeEdge(const G &g, E e, V u)
 			{
-				int u = g.source(e), to = g.target(e);
+				typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
 				low[u] = min(low[u], dfn[to]);
 			}
-			template<typename V, typename G>
-			void finishVertex(V u, const G &g)
+			template<typename G, typename V>
+			void finishVertex(const G &g, V u)
 			{
 				if(dfn[u] == low[u])
 				{

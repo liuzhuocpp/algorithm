@@ -5,7 +5,6 @@
 template<typename Graph>
 struct GraphTraits
 {
-    typedef typename Graph 
 
     typedef typename Graph::VertexProperties VertexProperties;
     typedef typename Graph::EdgeProperties EdgeProperties;

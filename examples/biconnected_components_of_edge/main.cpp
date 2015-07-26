@@ -2,9 +2,10 @@
 #include <cstdio>
 #include <cstring>
 #include <tuple>
-#include "adjacency_list.h"
-// #include "depth_first_search.h"
+
 #include "biconnected_components_of_edge.h"
+#include "adjacency_list.h"
+
 using namespace std;
 using namespace lz;
 
@@ -18,7 +19,7 @@ int main()
     Graph g;
 
     int n = 6;
-    g.assignVertex(n);
+    for(int i = 0; i < n; ++ i) g.addVertex();
 
 
     g.addEdge(0, 5);

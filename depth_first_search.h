@@ -31,12 +31,12 @@ public:
 	template<typename G, typename V> void initializeVertex(const G &g, V u) {}
 	template<typename G, typename V> void startVertex(const G &g, V u) {}
 	template<typename G, typename V> void discoverVertex(const G &g, V u) {}
-	template<typename G, typename E> void examineEdge(const G &g, E e) {}
-	template<typename G, typename E> void treeEdge(const G &g, E e) {}
-	template<typename G, typename E> void treeEdgeReturn(const G &g, E e) {}
-	template<typename G, typename E> void backEdge(const G &g, E e) {}
-	template<typename G, typename E> void forwardOrCrossEdge(const G &g, E e) {}
-	template<typename G, typename E> void finishEdge(const G &g, E e) {}
+	template<typename G, typename E, typename V> void examineEdge(const G &g, E e, V u) {}
+	template<typename G, typename E, typename V> void treeEdge(const G &g, E e, V u) {}
+	template<typename G, typename E, typename V> void treeEdgeReturn(const G &g, E e, V u) {}
+	template<typename G, typename E, typename V> void backEdge(const G &g, E e, V u) {}
+	template<typename G, typename E, typename V> void forwardOrCrossEdge(const G &g, E e, V u) {}
+	template<typename G, typename E, typename V> void finishEdge(const G &g, E e, V u) {}
 	template<typename G, typename V> void finishVertex(const G &g, V u) {}
 	
 };
@@ -60,22 +60,22 @@ public:
 			{
 				EdgeDescriptor e = *ei;
 				typename Graph::VertexDescriptor to = g.target(e);
-				vis.examineEdge(g, e);
+				vis.examineEdge(g, e, u);
 				if(color[to] == Color::White)
 				{
-					vis.treeEdge(g, e);
+					vis.treeEdge(g, e, u);
 					dfsImpl(g, vis, color, to);
-					vis.treeEdgeReturn(g, e);
+					vis.treeEdgeReturn(g, e, u);
 				}
 				else if(color[to] == Color::Gray)
 				{
-					vis.backEdge(g, e);
+					vis.backEdge(g, e, u);
 				}
 				else //if(color[to] == Color::Black)
 				{
-					vis.forwardOrCrossEdge(g, e);
+					vis.forwardOrCrossEdge(g, e, u);
 				}
-				vis.finishEdge(g, e);
+				vis.finishEdge(g, e, u);
 			}
 			color[u] = Color::Black;
 			vis.finishVertex(g, u);
@@ -95,7 +95,6 @@ public:
 			typedef typename Graph::OutEdgeIterator OutEdgeIterator;
 			typedef typename Graph::EdgeDescriptor EdgeDescriptor;
 
-			// cout << "**(&(" << endl;
 			color[u] = Color::Gray;
 			vis.discoverVertex(g, u);
 			OutEdgeIterator ei, ei_end;
@@ -105,19 +104,19 @@ public:
 			{
 				EdgeDescriptor e = *ei;
 				typename Graph::VertexDescriptor to = opposite(g, e, u);
-				vis.examineEdge(g, e);
+				vis.examineEdge(g, e, u);
 				if(color[to] == Color::White)
 				{
 					// cout << "IIIII" << endl;
-					vis.treeEdge(g, e);
+					vis.treeEdge(g, e, u);
 					undfsImpl(g, vis, color, to, 0, pre_e);
-					vis.treeEdgeReturn(g, e);
+					vis.treeEdgeReturn(g, e, u);
 				}
 				else if(color[to] == Color::Gray && !is_start && e != pre_e)
 				{
-					vis.backEdge(g, e);
+					vis.backEdge(g, e, u);
 				}
-				vis.finishEdge(g, e);
+				vis.finishEdge(g, e, u);
 			}
 			color[u] = Color::Black;
 			vis.finishVertex(g, u);
