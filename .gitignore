@@ -1,2 +1,7 @@
 *.exe
 *.o
+/Default/
+
+.cproject
+.project
+.settings

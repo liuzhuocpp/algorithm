@@ -3,17 +3,20 @@
 #include <cstring>
 #include <tuple>
 #include "adjacency_list.h"
-
+#include <vector>
 using namespace std;
 using namespace lz;
 
 int main()
 {
-
+	vector<int> b;
     cout << "KK " << endl;
     typedef AdjacencyList<Undirected> G;
     G g;
     for(int i = 0; i < 10; ++ i) g.addVertex();
+
+
+    tuple<int> a;
 
 
              
@@ -28,7 +31,7 @@ int main()
     cout << string(100, '-') << endl;
 
     G::OutEdgeIterator oe, oe_end;
-    tie(oe, oe_end) = g.outEdges(0);
+    (oe, oe_end) = g.outEdges(0);
     for(;oe != oe_end; oe ++)
     {
         G::EdgeDescriptor ei = *oe;
