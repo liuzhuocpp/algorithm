@@ -12,6 +12,7 @@ struct GraphTraits
     
     typedef typename Graph::EdgeDescriptor EdgeDescriptor;
     typedef typename Graph::VertexDescriptor VertexDescriptor;
+    typedef typename Graph::OutEdgeIterator OutEdgeIterator;
 
 };
 

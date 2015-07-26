@@ -31,7 +31,7 @@ using std::min;
 			template<typename G, typename E, typename V>
 			void treeEdgeReturn(const G &g, E e, V u)
 			{
-				cout <<"^^^^FF" << endl;
+//				cout <<"^^^^FF" << endl;
 				typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
 				low[u] = min(low[u], low[to]);
 			}
