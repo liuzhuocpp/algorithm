@@ -24,7 +24,10 @@ class MergeFindSet
 {
 	vector<int> p;
 public:
-	explicit MergeFindSet(int n = 0): p(n) {}
+	explicit MergeFindSet(int n = 0): p(n)
+	{
+		for(int i = 0; i < n; ++ i) p[i] = i;
+	}
 	void makeSet(int n)
 	{
 		p.resize(n);

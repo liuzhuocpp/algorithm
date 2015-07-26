@@ -30,10 +30,10 @@ int main()
 
     int qa[] = {0, 2};
     int qb[] = {1, 3};
-    int ans[q];
+    int ans[] = {-1, -1};
 
-    cout << "SFSDF" << endl;
-    tarjanLCA(g, qa, qb, q, ans);
+//    cout << "SFSDF" << endl;
+    tarjanLCA(g, 0, qa, qb, q, ans);
     for(int i = 0; i < q; ++ i)
     {
     	cout << qa[i] << " " << qb[i] << " lca:" <<  ans[i] << endl;

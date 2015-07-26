@@ -12,6 +12,9 @@
 #include "merge_find_set.h"
 #include "adjacency_list.h"
 #include "depth_first_search.h"
+#include "graph_traits.h"
+
+
 namespace lz {
 
 using std::vector;
@@ -38,10 +41,13 @@ using std::vector;
 		{
 			color[u] = 1;
 			typename GraphTraits<G>::OutEdgeIterator oi, oi_end;
+			tie(oi, oi_end) = ql.outEdges(u);
 			for(;oi != oi_end; ++ oi)
 			{
-				typename GraphTraits<G>::EdgeDescriptor e = *oi;
-				typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
+				E e = *oi;
+				V to = opposite(ql, e, u);
+
+//				cout << "e:: " << endl;
 				if(color[to])
 				{
 					ans[e] = mfs.find(to);
@@ -58,6 +64,7 @@ using std::vector;
 
 template<typename Graph, typename InputIterator, typename OutputIterator>
 void tarjanLCA(const Graph &g,
+			   typename GraphTraits<Graph>::VertexDescriptor root,
 			   InputIterator qa,
 			   InputIterator qb,
 			   int q,
@@ -66,7 +73,7 @@ void tarjanLCA(const Graph &g,
 	int n = g.vertexNumber();
 
 	TarjanLCAPrivate::Vis<Graph, AdjacencyList<Undirected>, OutputIterator> vis(n, ans);
-	cout << "UROU" << endl;
+//	cout << "UROU" << endl;
 
 	for(int i = 0; i < q; ++ i)
 	{
@@ -74,8 +81,8 @@ void tarjanLCA(const Graph &g,
 		++qa;
 		++qb;
 	}
-	cout << "*%&*%*%" << endl;
-	undirectedDFS(g, vis);
+//	cout << "*%&*%*%" << endl;
+	undirectedDFS(g, vis, root);
 
 
 

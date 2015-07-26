@@ -99,7 +99,6 @@ public:
 			vis.discoverVertex(g, u);
 			OutEdgeIterator ei, ei_end;
 			tie(ei, ei_end) = g.outEdges(u);
-
 			for(; ei != ei_end; ++ ei)
 			{
 				EdgeDescriptor e = *ei;
@@ -107,9 +106,8 @@ public:
 				vis.examineEdge(g, e, u);
 				if(color[to] == Color::White)
 				{
-					// cout << "IIIII" << endl;
 					vis.treeEdge(g, e, u);
-					undfsImpl(g, vis, color, to, 0, pre_e);
+					undfsImpl(g, vis, color, to, 0, e);
 					vis.treeEdgeReturn(g, e, u);
 				}
 				else if(color[to] == Color::Gray && !is_start && e != pre_e)
@@ -165,6 +163,7 @@ void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 	for(int i = 0; i < n; ++ i) vis.initializeVertex(g, i);
 	if(s >= 0)
 	{
+//		cout << "&&" << endl;
 		vis.startVertex(g, s);
 		DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), s, 1, typename GraphTraits<Graph>::EdgeDescriptor());
 		return ;
@@ -173,7 +172,7 @@ void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 	{
 		if(color[i] == Color::White)
 		{
-//			cout << "FFF" << endl;
+//			cout << "F$$$FF" << endl;
 			vis.startVertex(g, i);
 			DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), i, 1, typename GraphTraits<Graph>::EdgeDescriptor());
 		}
