@@ -25,13 +25,16 @@ using std::min;
 			template<typename G, typename V>
 			void discoverVertex(const G &g, V u)
 			{
+				cout << "discover" << endl;
 				dfn[u] = low[u] = ++ time_stmap;
 				stack.push_back(u);
+
+				cout << "discover-----------" << endl;
 			}
 			template<typename G, typename E, typename V>
 			void treeEdgeReturn(const G &g, E e, V u)
 			{
-//				cout <<"^^^^FF" << endl;
+				cout <<"^^^^FF" << endl;
 				typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
 				low[u] = min(low[u], low[to]);
 			}
@@ -49,6 +52,7 @@ using std::min;
 					int cnt;					
 					do
 					{
+//						cout << " bad:: " << endl;
 						cnt = stack.back();
 						stack.pop_back();
 						c[cnt] = comp_num;
@@ -67,6 +71,7 @@ template<typename Graph, typename ComponentIterator>
 int BiconnectedComponentsOfEdge(const Graph &g, ComponentIterator c)
 {
 	BiconnectedComponentsOfEdgePrivate::Vis<ComponentIterator> vis;
+	cout << "UU" << endl;
 	int n = g.vertexNumber();
 	vis.dfn.resize(n);
 	vis.low.resize(n);
@@ -74,8 +79,9 @@ int BiconnectedComponentsOfEdge(const Graph &g, ComponentIterator c)
 	vis.time_stmap = 0;
 	vis.comp_num = 0;
 
-
+	cout << "UIOUO" << endl;
 	undirectedDFS(g, vis);
+	cout << "*************" << endl;
 	return vis.comp_num;
 }
 

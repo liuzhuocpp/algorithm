@@ -19,25 +19,27 @@
 
 using namespace std;
 using namespace lz;
-//
+
 typedef AdjacencyList<Undirected> G;
+
+const int N = 2e5 + 9;
 G g, ng;
 int qa[N], qb[N], lca[N];
 int nqa[N], nqb[N];
-int m, qn;
+int qn;
 int nid[N];
 int up[N], down[N];
 
 namespace Com
 {
-    G *g;
+	G &g = ng;
     bool vi[N];
-
     void dfs(int u)
     {
-        for(int i = 0; i < sz(g->e[u]); ++ i)
+    	typename G::OutEdgeIterator oi, oi_end;
+    	for(tie(oi, oi_end) = g.outEdges(u); oi != oi_end; ++ oi)
         {
-            int to = g->e[u][i];
+    		int to = opposite(g, *oi, u);
             if(vi[to]) continue;
             vi[to] = 1;
             dfs(to);
@@ -46,28 +48,28 @@ namespace Com
     void create()
     {
         memset(vi, 0, sizeof(vi));
-        for(int i = 1; i <= g->n; ++ i)
+        int n = g.vertexNumber();
+        g.addVertex();
+        for(int i = 0; i < n; ++ i)
         {
             if(vi[i] == 0)
             {
                 vi[i] = 1;
                 dfs(i);
-                g->e[g->n + 1].push_back(i);
-                g->e[i].push_back(g->n + 1);
+                g.addEdge(n, i);
             }
         }
-        g->n ++;
     }
 }
 
 void dfs(int u, int fa)
 {
 	typename G::OutEdgeIterator oi, oi_end;
-	tie(oi, oi_end) = g.outEdges(u);
+	tie(oi, oi_end) = ng.outEdges(u);
     for(; oi != oi_end; oi ++)
     {
     	int e = *oi;
-    	int to = opposite(g, e, u);
+    	int to = opposite(ng, e, u);
         if(to == fa) continue;
         dfs(to, u);
         up[u] += up[to];
@@ -79,26 +81,47 @@ void dfs(int u, int fa)
 
 bool solve()
 {
+	int n = g.vertexNumber();
 	int ng_n = BiconnectedComponentsOfEdge(g, nid);
 
+//	cout << "New" << endl;
 
-    Com::g = &ng;
+	cout << ng_n << endl;
+//	for(int i = 0; i < n; ++ i)
+//	{
+//		cout << "nid: " << i << " " << nid[i] << endl;
+//	}
+//	return 0;
+
+//	cout << "solve #1" << endl;
+//	return 0;
+	for(int i = 0; i < ng_n; ++ i) ng.addVertex();
+
+
+	for(int u = 0; u < n; ++ u)
+	{
+		typename G::OutEdgeIterator oi, oi_end;
+		for(tie(oi, oi_end) = g.outEdges(u); oi != oi_end; ++ oi)
+		{
+			int a = g.source(*oi), b = g.target(*oi);
+			if(nid[a] != nid[b])
+			{
+				ng.addEdge(nid[a], nid[b]);
+			}
+		}
+	}
+//	cout << "^&^&" << endl;
     Com::create();
-
-    for(int i = 1; i <= qn; ++ i)
+//    cout << "~~~~~~~~~~" << endl;
+    int root = ng.vertexNumber() - 1;
+    for(int i = 0; i < qn; ++ i)
     {
         nqa[i] = nid[qa[i]];
         nqb[i] = nid[qb[i]];
     }
-
-    Lca::g = &ng;
-    Lca::qn = qn;
-    Lca::qa = nqa;
-    Lca::qb = nqb;
-    Lca::lca = lca;
-    Lca::root = ng.n;
-    Lca::start();
-
+//    cout << string(100, '@') << endl;
+    tarjanLCA(g, ng_n, nqa, nqb, qn, lca);
+//    cout << string(100, '|') << endl;
 //    cout <<"Ng: " << endl;
 //    ng.out();
 //    for(int i = 1; i <= qn; ++ i)
@@ -111,7 +134,7 @@ bool solve()
     memset(down, 0, sizeof(down));
     for(int i = 1; i <= qn; ++ i)
     {
-        if(lca[i] == ng.n) return 0;
+        if(lca[i] == root) return 0;
         int a = nqa[i], b = nqb[i], r = lca[i];
         if(a == b) continue;
         up[a] ++;
@@ -119,8 +142,10 @@ bool solve()
         down[b] ++;
         down[r] --;
     }
-    dfs(ng.n, ng.n);
-    for(int i = 1; i <= ng.n; ++ i)
+//    cout << string(100, '+') << endl;
+    dfs(root, root);
+//    cout << string(100, '^') << endl;
+    for(int i = 0; i < ng.vertexNumber(); ++ i)
     {
         if(up[i] > 0 && down[i] > 0) return 0;
     }
@@ -138,22 +163,31 @@ bool solve()
 
 int main()
 {
-//    freopen("in.txt", "r", stdin);
+    freopen("in.txt", "r", stdin);
 
-    scanf("%d%d%d", &g.n, &m, &qn);
+	int n, m;
+    scanf("%d%d%d", &n, &m, &qn);
+//    cout << "NN:: " << n << " " << m << " " << qn << endl;
+    while(n --) g.addVertex();
+
     while(m --)
     {
-        int a, b;scanf("%d%d", &a, &b);
-        g.e[a].push_back(b);
-        g.e[b].push_back(a);
+        int a, b;
+        scanf("%d%d", &a, &b);
+        a --;
+        b --;
+        g.addEdge(a, b);
     }
-    for(int i = 1; i <= qn; ++ i)
+
+    for(int i = 0; i < qn; ++ i)
     {
         int a, b;scanf("%d%d", &a, &b);
+        a --;
+        b --;
         qa[i] = a, qb[i] = b;
     }
 
-
+//    cout << "RR" << endl;
     int ans = solve();
     if(ans) puts("Yes");
     else puts("No");
