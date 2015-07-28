@@ -47,7 +47,6 @@ using std::vector;
 				E e = *oi;
 				V to = opposite(ql, e, u);
 
-//				cout << "e:: " << endl;
 				if(color[to])
 				{
 					ans[e] = mfs.find(to);
@@ -74,14 +73,12 @@ void tarjanLCA(const Graph &g,
 
 	TarjanLCAPrivate::Vis<Graph, AdjacencyList<Undirected>, OutputIterator> vis(n, ans);
 //	cout << "UROU" << endl;
-
 	for(int i = 0; i < q; ++ i)
 	{
 		vis.ql.addEdge(*qa, *qb);
 		++qa;
 		++qb;
 	}
-//	cout << "*%&*%*%" << endl;
 	undirectedDFS(g, vis, root);
 
 

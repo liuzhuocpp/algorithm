@@ -78,6 +78,26 @@ void dfs(int u, int fa)
 
 }
 
+template<typename G>
+void out(const G &g)
+{
+	cout << "output graph:" << endl;
+	typename GraphTraits<G>::OutEdgeIterator oi, oi_end;
+	int n = g.vertexNumber();
+	for(int u = 0; u < n; ++ u)
+	{
+		tie(oi, oi_end) = g.outEdges(u);
+		cout << "u="<< u << " :";
+		for(;oi != oi_end; ++ oi)
+		{
+			int e = *oi;
+			cout << opposite(g, e, u) << " " ;
+		}
+		cout << endl;
+
+
+	}
+}
 
 bool solve()
 {
@@ -86,15 +106,12 @@ bool solve()
 
 //	cout << "New" << endl;
 
-	cout << ng_n << endl;
 //	for(int i = 0; i < n; ++ i)
 //	{
 //		cout << "nid: " << i << " " << nid[i] << endl;
 //	}
 //	return 0;
 
-//	cout << "solve #1" << endl;
-//	return 0;
 	for(int i = 0; i < ng_n; ++ i) ng.addVertex();
 
 
@@ -119,8 +136,8 @@ bool solve()
         nqa[i] = nid[qa[i]];
         nqb[i] = nid[qb[i]];
     }
-//    cout << string(100, '@') << endl;
-    tarjanLCA(g, ng_n, nqa, nqb, qn, lca);
+//    out(ng);
+    tarjanLCA(ng, ng_n, nqa, nqb, qn, lca);
 //    cout << string(100, '|') << endl;
 //    cout <<"Ng: " << endl;
 //    ng.out();
@@ -132,7 +149,7 @@ bool solve()
 
     memset(up, 0, sizeof(up));
     memset(down, 0, sizeof(down));
-    for(int i = 1; i <= qn; ++ i)
+    for(int i = 0; i < qn; ++ i)
     {
         if(lca[i] == root) return 0;
         int a = nqa[i], b = nqb[i], r = lca[i];
@@ -163,7 +180,7 @@ bool solve()
 
 int main()
 {
-    freopen("in.txt", "r", stdin);
+//    freopen("in.txt", "r", stdin);
 
 	int n, m;
     scanf("%d%d%d", &n, &m, &qn);

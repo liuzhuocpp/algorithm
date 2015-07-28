@@ -94,7 +94,7 @@ public:
 		{
 			typedef typename Graph::OutEdgeIterator OutEdgeIterator;
 			typedef typename Graph::EdgeDescriptor EdgeDescriptor;
-
+			typedef typename Graph::VertexDescriptor VertexDescriptor;
 			color[u] = Color::Gray;
 			vis.discoverVertex(g, u);
 			OutEdgeIterator ei, ei_end;
@@ -102,7 +102,8 @@ public:
 			for(; ei != ei_end; ++ ei)
 			{
 				EdgeDescriptor e = *ei;
-				typename Graph::VertexDescriptor to = opposite(g, e, u);
+				VertexDescriptor to = opposite(g, e, u);
+
 				vis.examineEdge(g, e, u);
 				if(color[to] == Color::White)
 				{
@@ -110,7 +111,7 @@ public:
 					undfsImpl(g, vis, color, to, 0, e);
 					vis.treeEdgeReturn(g, e, u);
 				}
-				else if(color[to] == Color::Gray && !is_start && e != pre_e)
+				else if(color[to] == Color::Gray && (is_start || e != pre_e))
 				{
 					vis.backEdge(g, e, u);
 				}
@@ -163,7 +164,6 @@ void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 	for(int i = 0; i < n; ++ i) vis.initializeVertex(g, i);
 	if(s >= 0)
 	{
-//		cout << "&&" << endl;
 		vis.startVertex(g, s);
 		DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), s, 1, typename GraphTraits<Graph>::EdgeDescriptor());
 		return ;
