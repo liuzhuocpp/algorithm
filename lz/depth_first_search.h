@@ -7,8 +7,8 @@
 #include <stack>
 
 #include <iostream>
-#include "graph_utility.h"
-#include "graph_traits.h"
+#include <lz/graph_utility.h>
+
 namespace lz {
 
 using std::tie;
@@ -165,7 +165,7 @@ void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 	if(s >= 0)
 	{
 		vis.startVertex(g, s);
-		DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), s, 1, typename GraphTraits<Graph>::EdgeDescriptor());
+		DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), s, 1, typename Graph::EdgeDescriptor());
 		return ;
 	}
 	for(int i = 0; i < n; ++ i)
@@ -174,7 +174,7 @@ void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
 		{
 //			cout << "F$$$FF" << endl;
 			vis.startVertex(g, i);
-			DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), i, 1, typename GraphTraits<Graph>::EdgeDescriptor());
+			DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), i, 1, typename Graph::EdgeDescriptor());
 		}
 	}
 }

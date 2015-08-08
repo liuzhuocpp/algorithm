@@ -6,8 +6,8 @@
 #include <tuple>
 #include <algorithm>
 #include "property.h"
-#include "graph_utility.h"
-#include "graph_traits.h"
+#include <lz/graph_utility.h>
+
 namespace lz {
 
 
