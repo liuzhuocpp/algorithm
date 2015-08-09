@@ -3,17 +3,42 @@
 /*
  * this header file define some base classes and functions for graph
  */
+#include <lz/property.h>
 
 namespace lz {
 	namespace GraphUtilityPrivate {
 	}
 
 
-
+/*
+ * Indicate if a graph is directed
+ */
 struct Directed {};
 struct Undirected {};
+
+/*
+ * Some common property tag
+ */
 struct VertexIndexTag {};
 struct EdgeIndexTag {};
+
+/*
+ * Map attached to vertex and edge for a graph
+ */
+template<typename Graph, typename Iterator, typename Tag>
+struct VertexMap
+{
+	Iterator first;
+	auto operator[](typename Graph::VertexDescriptor i) -> decltype(get<Tag>(first[i]))
+	{
+		return get<Tag>(first[i]);
+	}
+};
+
+
+
+
+
 
 
 
