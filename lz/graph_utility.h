@@ -16,24 +16,14 @@ namespace lz {
 struct Directed {};
 struct Undirected {};
 
+
+
 /*
  * Some common property tag
  */
 struct VertexIndexTag {};
 struct EdgeIndexTag {};
 
-/*
- * Map attached to vertex and edge for a graph
- */
-template<typename Graph, typename Iterator, typename Tag>
-struct VertexMap
-{
-	Iterator first;
-	auto operator[](typename Graph::VertexDescriptor i) -> decltype(get<Tag>(first[i]))
-	{
-		return get<Tag>(first[i]);
-	}
-};
 
 
 
