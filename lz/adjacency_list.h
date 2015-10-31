@@ -6,7 +6,8 @@
 #include <tuple>
 #include <algorithm>
 #include "property.h"
-#include <lz/graph_utility.h>
+
+#include "lz/graph_utility.h"
 
 namespace lz {
 
@@ -111,19 +112,36 @@ public:
         return this->v.size() - 1;
     }
 
+
+
     const VP& vertexProperties(int u) const { return this->v[u].vp; }
     VP& vertexProperties(int u) { return this->v[u].vp; }
 
     const GP& graphProperties() const { return this->gp; }
     GP& graphProperties() { return this->gp; }
-    
-    int source(int e) const { return this->e[e].source; }
-    int target(int e) const { return this->e[e].target; }
+
     const EP& edgeProperties(int e) const { return this->e[e].ep; }
     EP& edgeProperties(int e) { return this->e[e].ep; }
 
+
+
+
+
+    
+    int source(int e) const { return this->e[e].source; }
+    int target(int e) const { return this->e[e].target; }
+
+
     int vertexNumber() const { return this->v.size(); }
     int edgeNumber() const { return this->e.size(); }
+
+    template<typename Tag>
+    VertexOrEdgePropertyMap<AdjacencyList, Tag> getVertexPropertyMap(Tag tag)
+	{
+    	return VertexOrEdgePropertyMap<AdjacencyList, Tag>(*this, tag);
+	}
+
+
 
     class OutEdgeIterator
     {
@@ -153,6 +171,10 @@ public:
         this->v[a].head = int(this->e.size()) - 1;
     }
 };
+
+
+
+
 
 
 

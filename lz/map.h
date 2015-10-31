@@ -8,7 +8,7 @@
 /*
  * Map concept is similar to boost property map library,
  * but Map concept is sample. It only contain operator[] for
- * every Map object.
+ * a Map object.
  */
 #ifndef LZ_MAP_H_
 #define LZ_MAP_H_
@@ -25,26 +25,21 @@ using std::endl;
 template<typename UnaryFunction>
 class FunctionMap
 {
+	using F = UnaryFunction*;
 
-	typedef UnaryFunction F;
+	F f;
 
-	const F *f;
+
 
 public:
-	explicit FunctionMap():f(nullptr){}
+	explicit FunctionMap() = default;
 
-	explicit FunctionMap(const F &f):f(&f) {}
-
-	template<typename Key>
-	auto operator[](Key i) const ->decltype((*f)(i))
-	{
-		return (*f)(i);
-	}
+	explicit FunctionMap(const F &f):f(f) {}
 
 	template<typename Key>
-	auto operator[](Key i) ->decltype((*f)(i))
+	auto operator[](Key i) const ->decltype(f(i))
 	{
-		return (*f)(i);
+		return f(i);
 	}
 
 };
@@ -54,6 +49,32 @@ FunctionMap<UnaryFunction> makeFunctionMap(const UnaryFunction &f)
 {
 	return FunctionMap<UnaryFunction>(f);
 }
+
+
+template<typename T>
+class ClassMap
+{
+	T t;
+public:
+	ClassMap() = default;
+
+    ClassMap(const T _t):t(_t){}
+    template<typename P>
+    auto operator[](P p) const ->decltype(t.*p)
+    {
+        return t.*p;
+    }
+};
+
+template<typename T>
+ClassMap<T> makeClassMap(const T &t)
+{
+	return ClassMap<T>(t);
+}
+
+
+
+
 
 
 

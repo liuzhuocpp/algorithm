@@ -2,41 +2,53 @@
 #include <cstdio>
 #include <cstring>
 #include <tuple>
-#include "adjacency_list.h"
 #include <vector>
+
+
+#include "lz/adjacency_list.h"
+#include "lz/map.h"
+
 using namespace std;
 using namespace lz;
 
+struct VP
+{
+	int a;
+	double b;
+	int c;
+};
+
 int main()
 {
-	vector<int> b;
-    cout << "KK  uisdfsdf" << endl;
-    typedef AdjacencyList<Undirected> G;
-    G g;
-    for(int i = 0; i < 10; ++ i) g.addVertex();
+	AdjacencyList<Directed, ClassMap<VP> > g;
+	int n = 5;
+	for(int i = 0; i < n; ++ i)
+	{
+		VP vp = VP{i, 1.222 + i, 33 + i};
+
+		g.addVertex(makeClassMap(vp));
+
+	}
 
 
+	auto mpA = g.getVertexPropertyMap(&VP::a);
+	for(int i = 0; i < n; ++ i)
+	{
+		cout << mpA[i] << endl;
+	}
 
+	auto mpB = g.getVertexPropertyMap(&VP::b);
+	for(int i = 0; i < n; ++ i)
+	{
+		cout << mpB[i] << endl;
+	}
 
+	auto mpC = g.getVertexPropertyMap(&VP::c);
+	for(int i = 0; i < n; ++ i)
+	{
+		cout << mpC[i] << endl;
+	}
 
-             
-    g.addEdge(0, 1);
-    g.addEdge(0, 5);
-    g.addEdge(0, 9);
-    g.addEdge(0, 8);
-
-    cout << g.vertexNumber() << endl;
-    cout << g.edgeNumber() << endl;
-
-    cout << string(100, '-') << endl;
-
-    G::OutEdgeIterator oe, oe_end;
-    tie(oe, oe_end) = g.outEdges(0);
-    for(;oe != oe_end; oe ++)
-    {
-        G::EdgeDescriptor ei = *oe;
-        cout << g.target(ei) << endl;
-    }
 
 
     return 0;
