@@ -43,29 +43,11 @@ opposite(const Graph &g,
 template<typename G>
 struct GraphTraits
 {
-//	using VertexDescriptor = typename G::VertexDescriptor;
+	using VertexDescriptor = typename G::VertexDescriptor;
 	using EdgeDescriptor = typename G::EdgeDescriptor;
 
-	typedef typename G::VertexDescriptor VertexDescriptor;
+//	typedef typename G::VertexDescriptor VertexDescriptor;
 };
-
-
-
-template<typename G, typename Tag>
-class VertexOrEdgePropertyMap
-{
-	G *g;
-	Tag tag;
-public:
-	VertexOrEdgePropertyMap () = default;
-	VertexOrEdgePropertyMap(G &g, Tag tag):g(&g), tag(tag){}
-
-	auto operator[](typename GraphTraits<G>::VertexDescriptor u) ->decltype((g->vertexProperties(u))[tag])
-	{
-		return (g->vertexProperties(u))[tag];
-	}
-};
-
 
 
 

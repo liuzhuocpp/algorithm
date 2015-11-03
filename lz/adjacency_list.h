@@ -5,7 +5,7 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
-#include "property.h"
+#include "lz/property.h"
 
 #include "lz/graph_utility.h"
 
@@ -79,11 +79,10 @@ template<typename Directed = Directed,
          typename VP = NoProperty, 
          typename EP = NoProperty, 
          typename GP = NoProperty>
-class AdjacencyList: private AdjacencyListPrivate::GraphData<VP, EP, GP>
+class AdjacencyList: public AdjacencyListPrivate::GraphData<VP, EP, GP>
 {
     typedef AdjacencyListPrivate::VertexData<VP> VertexData;
     typedef AdjacencyListPrivate::EdgeData<EP> EdgeData;
-    
 public:
     typedef VP VertexProperties;
     typedef EP EdgeProperties;
@@ -92,7 +91,6 @@ public:
     typedef int EdgeDescriptor;
     typedef int VertexDescriptor;
 
-
     explicit AdjacencyList(int n = 0, const VP & vp = VP())
     { 
         this->v.assign(n, VertexData(-1, vp));
@@ -100,7 +98,7 @@ public:
     void clear()
     {
         this->v.clear();
-        this->e.clear(); 
+        this->e.clear();
     }
     // void assignVertex(int n = 0, const VP & vp = VP())
     // {
@@ -109,19 +107,23 @@ public:
     int addVertex(const VP &vp = VP())
     {
         this->v.push_back(VertexData(-1, vp));
+//        for(int i = 0; i < this->v.size(); ++ i)
+//        {
+//        	cout << "JJJ " << get(this->v[i],int_tag());
+//        }
         return this->v.size() - 1;
     }
 
 
 
-    const VP& vertexProperties(int u) const { return this->v[u].vp; }
-    VP& vertexProperties(int u) { return this->v[u].vp; }
+//    const VP& vertexProperties(int u) const { return this->v[u].vp; }
+//    VP& vertexProperties(int u) { return this->v[u].vp; }
 
     const GP& graphProperties() const { return this->gp; }
     GP& graphProperties() { return this->gp; }
 
-    const EP& edgeProperties(int e) const { return this->e[e].ep; }
-    EP& edgeProperties(int e) { return this->e[e].ep; }
+//    const EP& edgeProperties(int e) const { return this->e[e].ep; }
+//    EP& edgeProperties(int e) { return this->e[e].ep; }
 
 
 
@@ -131,16 +133,57 @@ public:
     int source(int e) const { return this->e[e].source; }
     int target(int e) const { return this->e[e].target; }
 
-
     int vertexNumber() const { return this->v.size(); }
     int edgeNumber() const { return this->e.size(); }
 
+
     template<typename Tag>
-    VertexOrEdgePropertyMap<AdjacencyList, Tag> getVertexPropertyMap(Tag tag)
+    class VertexPropertyMap
 	{
-    	return VertexOrEdgePropertyMap<AdjacencyList, Tag>(*this, tag);
+//	public:
+    	friend class AdjacencyList;
+    	AdjacencyList *g;
+    	VertexPropertyMap(AdjacencyList *_g):g(_g){}
+	public :
+    	VertexPropertyMap() = default;
+    	auto operator[](typename GraphTraits<AdjacencyList>::VertexDescriptor u)
+    	->decltype(get(g->v[u].vp, Tag()))
+    	{
+    		return get(g->v[u].vp, Tag());
+    	}
+	};
+    template<typename Tag>
+    class EdgePropertyMap
+	{
+    	friend class AdjacencyList;
+    	AdjacencyList *g;
+    	EdgePropertyMap(AdjacencyList *_g):g(_g){}
+	public :
+    	EdgePropertyMap() = default;
+
+    	auto operator[](typename GraphTraits<AdjacencyList>::EdgeDescriptor e)
+    	->decltype(get(g->e[e].ep, Tag()))
+		{
+    		return get(g->e[e].ep, Tag());
+		}
+	};
+    template<typename Tag>
+    friend class VertexPropertyMap;
+
+    template<typename Tag>
+	friend class EdgePropertyMap;
+
+    template<typename Tag>
+    VertexPropertyMap<Tag> vertexPropertyMap(Tag tag)
+	{
+    	return VertexPropertyMap<Tag>(this);
 	}
 
+    template<typename Tag>
+    EdgePropertyMap<Tag> edgePropertyMap(Tag tag)
+	{
+		return EdgePropertyMap<Tag>(this);
+	}
 
 
     class OutEdgeIterator

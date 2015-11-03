@@ -7,6 +7,7 @@
 
 #include "lz/adjacency_list.h"
 #include "lz/map.h"
+#include "lz/property.h"
 
 using namespace std;
 using namespace lz;
@@ -17,37 +18,36 @@ struct VP
 	double b;
 	int c;
 };
-
+struct int_tag{};
+struct char_tag{};
 int main()
 {
-	AdjacencyList<Directed, ClassMap<VP> > g;
+	using VP = Property<int_tag, int,
+			   Property<char_tag, char> >;
+
+
+	using G = AdjacencyList<Directed, VP >;
+	G g;
 	int n = 5;
 	for(int i = 0; i < n; ++ i)
 	{
-		VP vp = VP{i, 1.222 + i, 33 + i};
-
-		g.addVertex(makeClassMap(vp));
-
+		VP vp = VP(22 + i, 33 + i);
+		cout << "YEYYE" << get(vp, int_tag()) << endl;
+		g.addVertex(vp);
 	}
-
-
-	auto mpA = g.getVertexPropertyMap(&VP::a);
 	for(int i = 0; i < n; ++ i)
 	{
-		cout << mpA[i] << endl;
+		cout << "IIIIII" << get(g.v[i].vp, int_tag()) << endl;
 	}
-
-	auto mpB = g.getVertexPropertyMap(&VP::b);
+	G::VertexPropertyMap<int_tag> test = g.vertexPropertyMap(int_tag());
 	for(int i = 0; i < n; ++ i)
 	{
-		cout << mpB[i] << endl;
+
+		cout << test[i] << endl;
+
 	}
 
-	auto mpC = g.getVertexPropertyMap(&VP::c);
-	for(int i = 0; i < n; ++ i)
-	{
-		cout << mpC[i] << endl;
-	}
+
 
 
 

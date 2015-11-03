@@ -28,9 +28,6 @@ class FunctionMap
 	using F = UnaryFunction*;
 
 	F f;
-
-
-
 public:
 	explicit FunctionMap() = default;
 
@@ -54,20 +51,21 @@ FunctionMap<UnaryFunction> makeFunctionMap(const UnaryFunction &f)
 template<typename T>
 class ClassMap
 {
-	T t;
+	T *t;
 public:
 	ClassMap() = default;
 
-    ClassMap(const T _t):t(_t){}
+    ClassMap(T *t):t(t){}
+
     template<typename P>
-    auto operator[](P p) const ->decltype(t.*p)
+    auto operator[](P p) const ->decltype(t->*p)
     {
-        return t.*p;
+        return t->*p;
     }
 };
 
 template<typename T>
-ClassMap<T> makeClassMap(const T &t)
+ClassMap<T> makeClassMap(T *t)
 {
 	return ClassMap<T>(t);
 }
