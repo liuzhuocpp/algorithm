@@ -72,8 +72,8 @@ struct Property: public _NextProperty
     template<typename Head, typename... Args>
     Property(const Head &value, const Args& ...args)
     : m_value(value), _NextProperty(args...)
-    {        
-        static_assert(PropertyPrivate::CountProperty<Property>::value == 
+    {
+        static_assert(PropertyPrivate::CountProperty<Property>::value ==
                       PropertyPrivate::CountVariadic<Head, Args...>::value,
                        "Parameters number is not equal");
     }
@@ -109,7 +109,7 @@ private:
             static auto get(Property &p)
             ->decltype(Get<QueryTag, typename NextProperty::Tag, NextProperty>::
               get(static_cast<NextProperty&>(p)))
-            {                
+            {
                 return Get<QueryTag, typename NextProperty::Tag, NextProperty>::
                        get(static_cast<NextProperty&>(p));
             }
@@ -117,7 +117,7 @@ private:
             static auto get(const Property &p)
             ->decltype(Get<QueryTag, typename NextProperty::Tag, NextProperty>::
               get(static_cast<const NextProperty&>(p)))
-            {                
+            {
                 return Get<QueryTag, typename NextProperty::Tag, NextProperty>::
                        get(static_cast<const NextProperty&>(p));
             }
