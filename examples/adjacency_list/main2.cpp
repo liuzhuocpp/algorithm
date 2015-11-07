@@ -19,8 +19,8 @@
 
 using namespace std;
 using namespace lz;
-
-IntegerIterator<int> gg(0);
+using II = IntegerIterator<int>;
+II gg(0);
 
 
 int main()
@@ -30,10 +30,23 @@ int main()
 	++gg;
 	++gg;
 	++gg;
+	gg++;
+	II kk = gg;
+//	cout << *gg << endl;
 
-	--gg;
-
+	kk = 2 + gg;
+	kk = 10 + gg;
+//	cout << (kk - gg) << endl;
+	gg += 11;
 	cout << *gg << endl;
+	cout <<  *kk << endl;
+
+	gg -= 10;
+	cout << *gg << endl;
+	cout << gg[10] << endl;
+
+
+
 
 
     return 0;
