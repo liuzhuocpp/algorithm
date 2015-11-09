@@ -20,16 +20,16 @@ namespace lz{
 
 forward iterator requires:
 	Derived& operator++() ;
-	reference operator*() const;
-	bool operator==(Derived const& f) const;
+	typename Derived::reference operator*() const;
+	bool operator==(Derived const& o) const;
 
 bidirectional_iterator requires:
 	Derived& operator--();
 
 random_access_iterator requires:
-	Derived& operator+=(typename Base::difference_type n);
-	typename Base::difference_type operator-(Derived const& f) const;
-	bool operator<(Derived const& f) const;
+	Derived& operator+=(typename Derived::difference_type n);
+	typename Derived::difference_type operator-(Derived const& o) const;
+	bool operator<(Derived const& o) const;
 
 
  */

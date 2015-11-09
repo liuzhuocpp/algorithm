@@ -5,6 +5,9 @@
  *      Author: LZ
  */
 
+/*
+ * AdjacencyList test
+ */
 #include <iostream>
 #include <cstdio>
 #include <cstring>
@@ -19,31 +22,45 @@
 
 using namespace std;
 using namespace lz;
-using II = IntegerIterator<int>;
-II gg(0);
 
 
 int main()
 {
-//	gg = 2;
-//	*gg = 4;
-	++gg;
-	++gg;
-	++gg;
-	gg++;
-	II kk = gg;
-//	cout << *gg << endl;
+	using G = AdjacencyList<>;
+	G g;
+	int n = 5;
+	for(int i = 0; i < n; ++ i)
+		g.addVertex();
 
-	kk = 2 + gg;
-	kk = 10 + gg;
-//	cout << (kk - gg) << endl;
-	gg += 11;
-	cout << *gg << endl;
-	cout <<  *kk << endl;
+	G::VertexIterator vi, end_vi;
+	for(tie(vi, end_vi) = g.vertices(); vi != end_vi; ++ vi)
+	{
+		cout << *vi << endl;
+	}
+	int m = 4;
+	g.addEdge(1, 2);
+	g.addEdge(4, 0);
+	g.addEdge(3, 2);
+	g.addEdge(4, 2);
 
-	gg -= 10;
-	cout << *gg << endl;
-	cout << gg[10] << endl;
+	G::EdgeIterator ei, end_ei;
+	for(tie(ei, end_ei) = g.edges(); ei != end_ei; ++ ei)
+	{
+		cout << *ei << endl;
+		cout << g.source(*ei) << " " << g.target(*ei) << endl;
+	}
+
+
+	cout << string(100, '-') << "\n";
+	G::OutEdgeIterator oi, end_oi;
+	tie(oi, end_oi) = g.outEdges(4);
+	for(; oi != end_oi; ++ oi)
+	{
+		cout << *oi << endl;
+		cout << g.source(*oi) << " " << g.target(*oi) << endl;
+	}
+
+
 
 
 
