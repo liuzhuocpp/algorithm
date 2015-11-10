@@ -28,7 +28,7 @@ int main()
 	using EP = Property<int_tag, int,
 			   Property<char_tag, char> >;
 
-	using G = AdjacencyList<DirectedGraphTag, NoProperty, EP>;
+	using G = AdjacencyList<UndirectedGraphTag, NoProperty, EP>;
 	G g;
 	int n = 5;
 	for(int i = 0; i < n; ++ i)

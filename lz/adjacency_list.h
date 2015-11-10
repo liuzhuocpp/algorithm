@@ -155,9 +155,9 @@ class AdjacencyList;
 
        	EdgePropertyMap() = default;
        	auto operator[](typename GraphTraits<G>::EdgeDescriptor e) const
-		->decltype(get(g->e[e].ep, Tag()))
+		->decltype(get(g->e[G::V2R(e)].ep, Tag()))
    		{
-       		return get(g->e[e].ep, Tag());
+       		return get(g->e[G::V2R(e)].ep, Tag());
    		}
    	};
 
@@ -233,7 +233,6 @@ class AdjacencyList: private AdjacencyListPrivate::DistinguishDirectionGraph<
 				 GP>;
 public:
 	using DirectedCategory = Direction;
-
 	using VertexProperties = VP;
 	using EdgeProperties = EP;
 	using GraphProperties = GP;
