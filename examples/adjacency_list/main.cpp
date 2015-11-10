@@ -9,15 +9,10 @@
 #include "lz/map.h"
 #include "lz/property.h"
 
+// property graph test
 using namespace std;
 using namespace lz;
 
-struct VP
-{
-	int a;
-	double b;
-	int c;
-};
 struct int_tag{};
 struct char_tag{};
 int main()
@@ -26,25 +21,21 @@ int main()
 			   Property<char_tag, char> >;
 
 
-	using G = AdjacencyList<Directed, VP >;
+	using G = AdjacencyList<DirectedGraphTag, VP>;
 	G g;
-	int n = 5;
-	for(int i = 0; i < n; ++ i)
-	{
-		VP vp = VP(22 + i, 33 + i);
-		cout << "YEYYE" << get(vp, int_tag()) << endl;
-		g.addVertex(vp);
-	}
-	for(int i = 0; i < n; ++ i)
-	{
-		cout << "IIIIII" << get(g.v[i].vp, int_tag()) << endl;
-	}
-	G::VertexPropertyMap<int_tag> test = g.vertexPropertyMap(int_tag());
-	for(int i = 0; i < n; ++ i)
-	{
+	int n = 2;
+	g.addVertex(VP(10, 'z'));
+	g.addVertex(VP(2222, '$'));
 
-		cout << test[i] << endl;
+	const G ng = g;
+	auto mp = ng.vertexPropertyMap(int_tag());
 
+	G::VertexIterator vi, vi_end;
+
+	for(tie(vi, vi_end) = ng.vertices(); vi != vi_end; ++ vi)
+	{
+//		mp[*vi] = 4444444;
+		cout << mp[*vi] << endl;
 	}
 
 

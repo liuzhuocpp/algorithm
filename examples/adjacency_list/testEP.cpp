@@ -1,13 +1,11 @@
 /*
- * main2.cpp
+ * testEP.cpp
  *
- *  Created on: 2015年11月3日
+ *  Created on: 2015年11月10日
  *      Author: LZ
  */
 
-/*
- * AdjacencyList test
- */
+
 #include <iostream>
 #include <cstdio>
 #include <cstring>
@@ -18,48 +16,60 @@
 #include "lz/adjacency_list.h"
 #include "lz/map.h"
 #include "lz/property.h"
-#include "lz/iterator.h"
 
+// property graph test
 using namespace std;
 using namespace lz;
 
-
+struct int_tag{};
+struct char_tag{};
 int main()
 {
-	using G = AdjacencyList<>;
+	using EP = Property<int_tag, int,
+			   Property<char_tag, char> >;
+
+	using G = AdjacencyList<DirectedGraphTag, NoProperty, EP>;
 	G g;
 	int n = 5;
 	for(int i = 0; i < n; ++ i)
-		g.addVertex();
-//
-	G::VertexIterator vi, end_vi;
-	for(tie(vi, end_vi) = g.vertices(); vi != end_vi; ++ vi)
 	{
-		cout << *vi << endl;
+		g.addVertex();
 	}
-	cout << string(100, '-') << "\n";
+
 	int m = 4;
-	g.addEdge(1, 2);
-	g.addEdge(4, 0);
-	g.addEdge(3, 2);
-	g.addEdge(4, 2);
+	g.addEdge(0, 1, EP(111, 'z'));
+	g.addEdge(0, 3, EP(33333, 'a'));
+	g.addEdge(2, 4, EP(1234, 'A'));
+	g.addEdge(3, 5, EP(5412, '$'));
+
 
 	G::EdgeIterator ei, end_ei;
 	for(tie(ei, end_ei) = g.edges(); ei != end_ei; ++ ei)
 	{
-		cout << *ei << endl;
 		cout << g.source(*ei) << " " << g.target(*ei) << endl;
 	}
-//
-//
 	cout << string(100, '-') << "\n";
+
+
+
 	G::OutEdgeIterator oi, end_oi;
-	tie(oi, end_oi) = g.outEdges(4);
+	tie(oi, end_oi) = g.outEdges(0);
+
+	const G ng = g;
+	auto mp = ng.edgePropertyMap(int_tag());
 	for(; oi != end_oi; ++ oi)
 	{
-		cout << *oi << endl;
-		cout << g.source(*oi) << " " << g.target(*oi) << endl;
+//		mp[*oi] = 66666;
+		cout << ng.source(*oi) << " " << ng.target(*oi) << " " << mp[*oi] << endl;
 	}
+
+
+
+
+
+
+
+
 
 
 
@@ -69,6 +79,11 @@ int main()
 
     return 0;
 }
+
+
+
+
+
 
 
 

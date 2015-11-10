@@ -11,8 +11,8 @@ namespace lz {
 /*
  * Indicate if a graph is directed
  */
-struct Directed {};
-struct Undirected {};
+struct DirectedGraphTag {};
+struct UndirectedGraphTag {};
 
 /*
  * Some common property tag
