@@ -73,7 +73,7 @@ class AdjacencyList;
     template<typename VP, typename EP, typename GP>
     struct GraphData
     {
-        vector<VertexData<VP> > v;
+    	vector<VertexData<VP> > v;
         vector<EdgeData<EP> > e;
         GraphData gp;
     };
@@ -97,15 +97,12 @@ class AdjacencyList;
 				typename GraphTraits<G>::EdgeDescriptor
 				>
 	{
-
-
-
     	template<typename Direction, typename VP, typename EP, typename GP>
-    	friend class AdjacencyList;
+		friend class AdjacencyList;
 
     	const G *g = nullptr;
-    	typename GraphTraits<G>::EdgeDescriptor i; // realED
-    	OutEdgeIterator(typename GraphTraits<G>::EdgeDescriptor i, const G *g): i(i), g(g){}
+    	EdgeDescriptor i; // realED
+    	OutEdgeIterator(EdgeDescriptor i, const G *g): i(i), g(g){} //AdjacencyList call this function
 	public:
     	OutEdgeIterator() = default;
 
@@ -128,7 +125,7 @@ class AdjacencyList;
 	class VertexPropertyMap
 	{
     	template<typename Direction, typename VP, typename EP, typename GP>
-		friend class AdjacencyListBase;
+		friend class AdjacencyList;
 
 		G *g = nullptr;
 		VertexPropertyMap(G *_g):g(_g){}
@@ -148,7 +145,7 @@ class AdjacencyList;
     class EdgePropertyMap
    	{
     	template<typename Direction, typename VP, typename EP, typename GP>
-		friend class AdjacencyListBase;
+		friend class AdjacencyList;
 
        	G *g = nullptr;
        	EdgePropertyMap(G *_g):g(_g){}
@@ -164,48 +161,48 @@ class AdjacencyList;
    		}
    	};
 
+    template<typename VP, typename EP, typename GP>
+    struct GraphDataWrapper: public GraphData<VP, EP, GP>
+    {
+    	EdgeDescriptor addSingleEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+		{
+			this->e.push_back(EdgeData<EP>(a, b, this->v[a].head, ep));
+			return this->v[a].head = this->e.size() - 1;
+		}
+    };
+
+
+
     // realED: in memory
     // virtualED: for user
+    // V2R: virtualED to realED
+    // R2V: realED to virtualED
+    // DistinguishDirectionGraph
     template<typename Direction,
              typename VP,
              typename EP,
              typename GP>
-    class AdjacencyListBase: protected GraphData<VP, EP, GP>
+    struct DistinguishDirectionGraph: public GraphDataWrapper<VP, EP, GP>
     {
-    	template<typename G>
-    	friend class OutEdgeIterator;
-    protected:
     	static EdgeDescriptor V2R(EdgeDescriptor e) { return e; }
     	static EdgeDescriptor R2V(EdgeDescriptor e) { return e; }
-    public:
-
     	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
     	{
-    		this->e.push_back(EdgeData<EP>(a, b, this->v[a].head, ep));
-    		return this->v[a].head = this->e.size() - 1;
+    		return this->addSingleEdge(a, b, ep);
     	}
     };
 
     template<typename VP,
 			 typename EP,
 			 typename GP>
-	class AdjacencyListBase<UndirectedGraphTag, VP, EP, GP>: protected GraphData<VP, EP, GP>
+    struct DistinguishDirectionGraph<UndirectedGraphTag, VP, EP, GP>: public GraphDataWrapper<VP, EP, GP>
     {
-    	template<typename G>
-    	friend class OutEdgeIterator;
-    protected:
     	static EdgeDescriptor V2R(EdgeDescriptor e) { return e << 1; }
     	static EdgeDescriptor R2V(EdgeDescriptor e) { return e >> 1; }
-    public:
-
-
-		EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+    	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
 		{
-			this->e.push_back(EdgeData<EP>(a, b, this->v[a].head, ep));
-			this->v[a].head = this->e.size() - 1;
-
-			this->e.push_back(EdgeData<EP>(b, a, this->v[b].head, ep));
-			return (this->v[b].head = this->e.size() - 1) >> 1;
+    		this->addSingleEdge(a, b, ep);
+			return this->addSingleEdge(b, a, ep) >> 1;
 		}
     };
 
@@ -216,17 +213,20 @@ template<typename Direction,
 		 typename VP,
 		 typename EP,
 		 typename GP>
-class AdjacencyList: public AdjacencyListPrivate::AdjacencyListBase<
+class AdjacencyList: private AdjacencyListPrivate::DistinguishDirectionGraph<
 					 Direction,
 					 VP,
 					 EP,
 					 GP>
 {
+	template<typename G> friend class AdjacencyListPrivate::OutEdgeIterator;
+	template<typename G, typename Tag> friend class AdjacencyListPrivate::VertexPropertyMap;
+	template<typename G, typename Tag> friend class AdjacencyListPrivate::EdgePropertyMap;
 
 	using VertexData = AdjacencyListPrivate::VertexData<VP> ;
 	using EdgeData = AdjacencyListPrivate::EdgeData<EP> ;
 	using G = AdjacencyList;
-	using Base = AdjacencyListPrivate::AdjacencyListBase<
+	using Base = AdjacencyListPrivate::DistinguishDirectionGraph<
 				 Direction,
 				 VP,
 				 EP,
@@ -271,6 +271,11 @@ public:
 	GP& graphProperties() { return this->gp; }
 	VertexDescriptor source(EdgeDescriptor e) const { return this->e[this->V2R(e)].source; }
 	VertexDescriptor target(EdgeDescriptor e) const { return this->e[this->V2R(e)].target; }
+
+	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+	{
+		return this->Base::addEdge(a, b, ep);
+	}
 
 	template<typename Tag>
 	typename VertexPropertyMap<Tag>::Type vertexPropertyMap(Tag tag)

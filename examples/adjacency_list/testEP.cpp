@@ -51,12 +51,10 @@ int main()
 	cout << string(100, '-') << "\n";
 
 
-
-	G::OutEdgeIterator oi, end_oi;
-	tie(oi, end_oi) = g.outEdges(0);
-
 	const G ng = g;
 	auto mp = ng.edgePropertyMap(int_tag());
+	G::OutEdgeIterator oi, end_oi;
+	tie(oi, end_oi) = ng.outEdges(0);
 	for(; oi != end_oi; ++ oi)
 	{
 //		mp[*oi] = 66666;
