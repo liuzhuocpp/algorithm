@@ -25,16 +25,21 @@ struct int_tag{};
 struct char_tag{};
 int main()
 {
+
+
 	using EP = Property<int_tag, int,
 			   Property<char_tag, char> >;
 
 	using G = AdjacencyList<UndirectedGraphTag, NoProperty, EP>;
 	G g;
+
 	int n = 5;
 	for(int i = 0; i < n; ++ i)
 	{
 		g.addVertex();
 	}
+
+
 
 	int m = 4;
 	g.addEdge(0, 1, EP(111, 'z'));

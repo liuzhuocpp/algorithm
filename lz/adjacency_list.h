@@ -9,7 +9,7 @@
 
 #include "lz/graph_utility.h"
 #include "lz/iterator.h"
-
+#include "lz/map.h"
 namespace lz {
 
 
@@ -137,12 +137,19 @@ class AdjacencyList;
 		}
 	};
 
+    template<typename G>
+    class VertexPropertyMap<G, VertexIndexTag>: public IdentityMap<VertexDescriptor>
+    {
+    public:
+    	using Type = VertexPropertyMap<G, VertexIndexTag>;
+    	using ConstType = VertexPropertyMap<const G, VertexIndexTag>;
+    };
+
+
     template<typename G, typename Tag>
     class EdgePropertyMap
    	{
     	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
-
-
        	G *g = nullptr;
        	EdgePropertyMap(G *_g):g(_g){}
    	public :
@@ -157,6 +164,14 @@ class AdjacencyList;
    		}
    	};
 
+    template<typename G>
+	class EdgePropertyMap<G, EdgeIndexTag>: public IdentityMap<EdgeDescriptor>
+	{
+	public:
+		using Type = EdgePropertyMap<G, EdgeIndexTag>;
+		using ConstType = EdgePropertyMap<const G, EdgeIndexTag>;
+	};
+
     template<typename VP, typename EP, typename GP>
     struct GraphDataWrapper: public GraphData<VP, EP, GP>
     {
@@ -166,8 +181,6 @@ class AdjacencyList;
 			return this->v[a].head = this->e.size() - 1;
 		}
     };
-
-
 
     // realED: in memory
     // virtualED: for user

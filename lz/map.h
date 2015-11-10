@@ -22,6 +22,17 @@ using std::function;
 using std::cout;
 using std::endl;
 
+template<typename Key>
+struct IdentityMap
+{
+	Key operator[](Key key) const
+	{
+		return key;
+	}
+};
+
+
+
 template<typename UnaryFunction>
 class FunctionMap
 {
