@@ -56,22 +56,24 @@ struct NoProperty {};
 
 
 
-template<typename _Tag, typename _Value, typename _NextProperty = NoProperty>
+template<typename _Tag, typename _ValueType, typename _NextProperty = NoProperty >
 struct Property: public _NextProperty
 {
     template<typename QueryTag, typename Tag, typename Property>
     friend struct PropertyPrivate::Get;
 
+    using Tag = _Tag;
+    using ValueType = _ValueType;
+    using NextProperty = _NextProperty;
 
-    typedef _Tag Tag;
-    typedef _Value Value;
-    typedef _NextProperty NextProperty;
 
-    Property(){}
+
+
+    Property() {}
 
     template<typename Head, typename... Args>
     Property(const Head &value, const Args& ...args)
-    : m_value(value), _NextProperty(args...)
+    : m_value(value), NextProperty(args...)
     {
         static_assert(PropertyPrivate::CountProperty<Property>::value ==
                       PropertyPrivate::CountVariadic<Head, Args...>::value,
@@ -82,7 +84,7 @@ struct Property: public _NextProperty
 
     template<typename Head, typename... Args>
     Property(Head &&value, Args&& ...args)
-    : m_value(std::move(value)), _NextProperty(args...)
+    : m_value(std::move(value)), NextProperty(args...)
     {
 
         static_assert(PropertyPrivate::CountProperty<Property>::value ==
@@ -90,9 +92,22 @@ struct Property: public _NextProperty
                        "Parameters number is not equal");
     }
 
+
+    template<typename QueryTag>
+    auto operator[](QueryTag tag)
+    ->decltype(PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this))
+	{
+    	return PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this);
+	}
+    template<typename QueryTag>
+	auto operator[](QueryTag tag) const
+    ->decltype(PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this))
+	{
+		return PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this);
+	}
 private:
-    _Value m_value;
-    // _NextProperty np;
+    ValueType m_value;
+
 };
 
 
@@ -101,40 +116,40 @@ private:
 
     namespace PropertyPrivate {
 
-        template<typename QueryTag, typename Tag, typename Property>
+        template<typename Property, typename Tag, typename QueryTag>
         struct Get
         {
             typedef typename Property::NextProperty  NextProperty;
 
             static auto get(Property &p)
-            ->decltype(Get<QueryTag, typename NextProperty::Tag, NextProperty>::
-              get(static_cast<NextProperty&>(p)))
+            ->decltype(Get<NextProperty, typename NextProperty::Tag, QueryTag>::
+            		   get(static_cast<NextProperty&>(p)))
             {
-                return Get<QueryTag, typename NextProperty::Tag, NextProperty>::
+                return Get<NextProperty, typename NextProperty::Tag, QueryTag>::
                        get(static_cast<NextProperty&>(p));
             }
 
             static auto get(const Property &p)
-            ->decltype(Get<QueryTag, typename NextProperty::Tag, NextProperty>::
-              get(static_cast<const NextProperty&>(p)))
+            ->decltype(Get<NextProperty, typename NextProperty::Tag, QueryTag>::
+            		   get(static_cast<const NextProperty&>(p)))
             {
-                return Get<QueryTag, typename NextProperty::Tag, NextProperty>::
+                return Get<NextProperty, typename NextProperty::Tag, QueryTag>::
                        get(static_cast<const NextProperty&>(p));
             }
 
         };
 
-        template<typename QueryTag, typename Property>
-        struct Get<QueryTag, QueryTag, Property>
+        template<typename Property, typename QueryTag>
+        struct Get<Property, QueryTag, QueryTag>
         {
-            typedef typename Property::Value Value;
+            typedef typename Property::ValueType ValueType;
 
-            static Value& get(Property &p)
+            static ValueType& get(Property &p)
             {
                 return p.m_value;
             }
 
-            static const Value& get(const Property &p)
+            static const ValueType& get(const Property &p)
             {
                 return p.m_value;
             }
@@ -147,19 +162,18 @@ private:
 
 
 
-
-template<typename QueryTag, typename Tag, typename Value, typename NextProperty>
-auto get(Property<Tag, Value, NextProperty> & p, QueryTag tag)
--> decltype(PropertyPrivate::Get<QueryTag, Tag, Property<Tag, Value, NextProperty> >::get(p))
+template<typename Tag, typename ValueType, typename NextProperty, typename QueryTag>
+auto get(Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
+-> decltype(PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p))
 {
-    return PropertyPrivate::Get<QueryTag, Tag, Property<Tag, Value, NextProperty> >::get(p);
+    return PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p);
 }
 
-template<typename QueryTag, typename Tag, typename Value, typename NextProperty>
-auto get(const Property<Tag, Value, NextProperty> & p, QueryTag tag)
--> decltype(PropertyPrivate::Get<QueryTag, Tag, Property<Tag, Value, NextProperty> >::get(p))
+template<typename Tag, typename ValueType, typename NextProperty, typename QueryTag>
+auto get(const Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
+-> decltype(PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p))
 {
-    return PropertyPrivate::Get<QueryTag, Tag, Property<Tag, Value, NextProperty> >::get(p);
+    return PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p);
 }
 
 
