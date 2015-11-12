@@ -6,6 +6,33 @@
 
 namespace lz {
 
+enum class DefaultColorType: unsigned char
+{
+    White,
+    Gray,
+    Black,
+	Green,
+	Red,
+};
+
+
+
+template<typename ColorType = DefaultColorType>
+struct ColorTraits
+{
+	using Type = ColorType;
+	static ColorType white() { return ColorType::White; }
+	static ColorType gray() { return ColorType::Gray; }
+	static ColorType black() { return ColorType::Black; }
+	static ColorType green() { return ColorType::Green; }
+	static ColorType red() { return ColorType::Red; }
+};
+
+
+
+
+
+
 
 
 /** 

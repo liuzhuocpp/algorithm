@@ -3,7 +3,9 @@
 /*
  * this header file define some base classes and functions for graph
  */
-#include <lz/property.h>
+//#include "lz/property.h"
+
+#include "lz/utility.h"
 namespace lz {
 	namespace GraphUtilityPrivate {
 	}
@@ -21,12 +23,7 @@ struct VertexIndexTag {};
 struct EdgeIndexTag {};
 
 
-enum class Color: unsigned char
-{
-    White,
-    Gray,
-    Black,
-};
+
 
 template<typename Graph>
 typename Graph::VertexDescriptor
@@ -36,8 +33,8 @@ opposite(const Graph &g,
 {
     if(g.source(e) != u) return g.source(e);
     return g.target(e);
-//    return g.source(e) != u ? g.source(e) : g.target(e);
 }
+
 
 
 template<typename G>
@@ -46,8 +43,25 @@ struct GraphTraits
 	using VertexDescriptor = typename G::VertexDescriptor;
 	using EdgeDescriptor = typename G::EdgeDescriptor;
 
-//	typedef typename G::VertexDescriptor VertexDescriptor;
+	using VertexIterator = typename G::VertexIterator;
+	using EdgeIterator = typename G::EdgeIterator;
+
+	using DirectedCategory = typename G::DirectedCategory;
+
+	using OutEdgeIterator = typename G::OutEdgeIterator;
 };
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -61,3 +75,4 @@ struct GraphTraits
 
 
 #endif // GRAPH_UTILITY_H
+

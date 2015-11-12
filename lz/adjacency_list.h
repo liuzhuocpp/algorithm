@@ -31,6 +31,8 @@ class AdjacencyList;
     using VertexDescriptor = int;
     using EdgeDescriptor = int;
 
+
+
     // vertex data
     template<typename VP>
     struct VertexData
@@ -38,15 +40,20 @@ class AdjacencyList;
     	EdgeDescriptor head;
         VP vp;
         VertexData():head(-1){}
-        VertexData(int head, const VP &vp):head(head), vp(vp) {}
+        VertexData(EdgeDescriptor head, const VP &vp):head(head), vp(vp) {}
     };
     template<>
     struct VertexData<NoProperty>
     {
     	EdgeDescriptor head;
         VertexData():head(-1){}
-        VertexData(int head, const NoProperty &vp):head(head) {}
+        VertexData(EdgeDescriptor head, const NoProperty &vp):head(head) {}
     };
+
+
+
+
+
 
     // edge data
     template<typename EP>
@@ -140,7 +147,11 @@ class AdjacencyList;
     template<typename G>
     class VertexPropertyMap<G, VertexIndexTag>: public IdentityMap<VertexDescriptor>
     {
+    	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
+//    	G *g = nullptr;
+    	VertexPropertyMap(G *_g) {}
     public:
+    	VertexPropertyMap(){}
     	using Type = VertexPropertyMap<G, VertexIndexTag>;
     	using ConstType = VertexPropertyMap<const G, VertexIndexTag>;
     };
@@ -167,10 +178,15 @@ class AdjacencyList;
     template<typename G>
 	class EdgePropertyMap<G, EdgeIndexTag>: public IdentityMap<EdgeDescriptor>
 	{
+    	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
+    	EdgePropertyMap(G *_g){}
 	public:
+    	EdgePropertyMap(){}
 		using Type = EdgePropertyMap<G, EdgeIndexTag>;
 		using ConstType = EdgePropertyMap<const G, EdgeIndexTag>;
 	};
+
+
 
     template<typename VP, typename EP, typename GP>
     struct GraphDataWrapper: public GraphData<VP, EP, GP>

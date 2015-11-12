@@ -22,6 +22,8 @@ using std::function;
 using std::cout;
 using std::endl;
 
+
+
 template<typename Key>
 struct IdentityMap
 {
@@ -36,18 +38,17 @@ struct IdentityMap
 template<typename UnaryFunction>
 class FunctionMap
 {
-	using F = UnaryFunction*;
+	const UnaryFunction* f = nullptr;
 
-	F f;
 public:
 	explicit FunctionMap() = default;
 
-	explicit FunctionMap(const F &f):f(f) {}
+	explicit FunctionMap(const UnaryFunction &f):f(&f) {}
 
 	template<typename Key>
-	auto operator[](Key i) const ->decltype(f(i))
+	auto operator[](Key i) const ->decltype((*f)(i))
 	{
-		return f(i);
+		return (*f)(i);
 	}
 
 };
