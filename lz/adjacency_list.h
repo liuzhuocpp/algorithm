@@ -34,47 +34,44 @@ class AdjacencyList;
 
 
     // vertex data
-    template<typename VP>
-    struct VertexData
-    {
-    	EdgeDescriptor head;
-        VP vp;
-        VertexData():head(-1){}
-        VertexData(EdgeDescriptor head, const VP &vp):head(head), vp(vp) {}
-    };
+    template<typename VP> struct VertexData;
+
     template<>
     struct VertexData<NoProperty>
     {
     	EdgeDescriptor head;
-        VertexData():head(-1){}
         VertexData(EdgeDescriptor head, const NoProperty &vp):head(head) {}
     };
 
-
+    template<typename VP>
+    struct VertexData:public VertexData<NoProperty>
+    {
+        VP vp;
+        VertexData(EdgeDescriptor _head, const VP &vp): VertexData<NoProperty>(_head, NoProperty()), vp(vp) {}
+    };
 
 
 
 
     // edge data
+	template<typename EP> struct EdgeData;
+
+	template<>
+	struct EdgeData<NoProperty>
+	{
+		VertexDescriptor source, target;
+		EdgeDescriptor next;
+		EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const NoProperty & ep)
+		:source(source), target(target), next(next){}
+	};
     template<typename EP>
-    struct EdgeData
+    struct EdgeData:public EdgeData<NoProperty>
     {
-    	VertexDescriptor source, target;
-        EdgeDescriptor next;
-        EP ep;
-        EdgeData() = default;
+    	EP ep;
         EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const EP & ep)
-            :source(source), target(target), next(next), ep(ep){}
+    	:EdgeData<NoProperty>(source, target, next, NoProperty()), ep(ep){}
     };
-    template<>
-    struct EdgeData<NoProperty>
-    {
-    	VertexDescriptor source, target;
-        EdgeDescriptor next;
-        EdgeData() = default;
-        EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const NoProperty & ep)
-            :source(source), target(target), next(next){}
-    };
+
 
     // graph data
     template<typename VP, typename EP, typename GP>
