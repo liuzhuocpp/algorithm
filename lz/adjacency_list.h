@@ -74,13 +74,7 @@ class AdjacencyList;
 
 
     // graph data
-    template<typename VP, typename EP, typename GP>
-    struct GraphData
-    {
-    	vector<VertexData<VP> > v;
-        vector<EdgeData<EP> > e;
-        GraphData gp;
-    };
+	template<typename VP, typename EP, typename GP> struct GraphData;
 
     template<typename VP, typename EP>
     struct GraphData<VP, EP, NoProperty>
@@ -88,6 +82,12 @@ class AdjacencyList;
         vector<VertexData<VP> > v;
         vector<EdgeData<EP> > e;
     };
+    template<typename VP, typename EP, typename GP>
+    struct GraphData:public GraphData<VP, EP, NoProperty>
+    {
+    	GraphData gp;
+    };
+
 
 
     template<typename G>
