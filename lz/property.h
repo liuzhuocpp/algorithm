@@ -18,7 +18,14 @@ using std::endl;
 
 
 
-struct NoProperty {};
+struct NoProperty {
+	using Tag = NoProperty;
+	using ValueType = NoProperty;
+	using NextProperty = NoProperty;
+
+
+};
+//static const NoProperty::instance = NoProperty();
 
 
     namespace PropertyPrivate {
@@ -66,13 +73,10 @@ struct Property: public _NextProperty
     using ValueType = _ValueType;
     using NextProperty = _NextProperty;
 
-
-
-
-    Property() {}
+    constexpr Property() = default;
 
     template<typename Head, typename... Args>
-    Property(const Head &value, const Args& ...args)
+    explicit Property(const Head &value, Args ...args)
     : m_value(value), NextProperty(args...)
     {
         static_assert(PropertyPrivate::CountProperty<Property>::value ==
@@ -81,10 +85,9 @@ struct Property: public _NextProperty
     }
 
 
-
     template<typename Head, typename... Args>
-    Property(Head &&value, Args&& ...args)
-    : m_value(std::move(value)), NextProperty(args...)
+    explicit Property(Head &&value, Args ...args)
+    : m_value(value), NextProperty(args...)
     {
 
         static_assert(PropertyPrivate::CountProperty<Property>::value ==
@@ -105,6 +108,12 @@ struct Property: public _NextProperty
 	{
 		return PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this);
 	}
+
+    template<typename QueryTag>
+    constexpr bool contains(QueryTag tag) const
+    {
+    	return !std::is_same<decltype((*this)[tag]), NoProperty::ValueType>::value;
+    }
 private:
     ValueType m_value;
 
@@ -154,6 +163,17 @@ private:
                 return p.m_value;
             }
         };
+
+        template<typename QueryTag>
+        struct Get<NoProperty, NoProperty::Tag, QueryTag>
+        {
+
+            static NoProperty::ValueType get(const NoProperty &p)
+            {
+                return NoProperty::ValueType();
+            }
+        };
+
 
 
     } // namespace PropertyPrivate

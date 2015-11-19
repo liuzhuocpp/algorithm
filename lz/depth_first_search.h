@@ -10,7 +10,8 @@
 
 #include "lz/graph_utility.h"
 #include "lz/utility.h"
-
+#include "lz/property.h"
+#include "lz/map.h"
 namespace lz {
 
 using std::tie;
@@ -19,175 +20,170 @@ using std::stack;
 using std::vector;
 using std::cout;
 using std::endl;
+
+
 	namespace DepthFirstSearchPrivate {
 
-		   
+		template<typename G, typename Params, typename ColorMap, typename OutEdges>
+		void dfsImpl(const G &g, Params &p, ColorMap color, typename GraphTraits<G>::VertexDescriptor u, OutEdges outEdges)
+		{
+			p.discoverVertex(u);
+			auto&& ei = outEdges(u);
+			for(;ei.first != ei.second; ++ ei.first)
+			{
+				auto e = *ei.first;
+				auto to = g.target(e);
+				p.examineEdge(e, u);
+				if(color[to] == p.white())
+				{
+					p.treeEdge(e, u);
+					dfsImpl(g, p, color, to, outEdges);
+					p.treeEdgeReturn(e, u);
+				}
+				else
+				{
+					p.notTreeEdge(e, u);
+				}
+				p.finishEdge(e, u);
+			}
+			color[u] = p.black();
+			p.finishVertex(u);
+		}
+
+		struct DefaultParam{};
+
+		template<bool con>  // default, no enter vertex
+		struct ChooseEnterVertex
+		{
+			template<typename G, typename Params, typename ColorMap, typename OutEdges>
+			static void run(const G &g, Params &p, ColorMap colorMap, OutEdges outEdges)
+			{
+				auto&& vi = g.vertices();
+				for(;vi.first != vi.second; ++vi.first)
+				{
+					auto&& u = *vi.first;
+					if(colorMap[u] == p.white())
+					{
+						p.startVertex(u);
+						DepthFirstSearchPrivate::dfsImpl(g, p, colorMap, u, outEdges);
+					}
+				}
+			}
+		};
+		template<> // has enter vertex
+		struct ChooseEnterVertex<0>
+		{
+			template<typename G, typename Params, typename ColorMap, typename OutEdges>
+			static void run(const G &g, Params &p, ColorMap colorMap, OutEdges outEdges)
+			{
+				auto u = p.enterVertex();
+				p.startVertex(u);
+				DepthFirstSearchPrivate::dfsImpl(g, p, colorMap, u, outEdges);
+			}
+
+		};
+
+
+
 	} // namespace DepthFirstSearchPrivate
 
 
 
+
+
+
+
+
 template<typename G>
-class DFSVisitor
+class DFSParams
 {
 	using V = typename GraphTraits<G>::VertexDescriptor;
 	using E = typename GraphTraits<G>::EdgeDescriptor;
+	using DefaultParam = DepthFirstSearchPrivate::DefaultParam;
 public:
-	void initializeVertex(const G &g, V u) {}
-	void startVertex(const G &g, V u) {}
-	void discoverVertex(const G &g, V u) {}
-	void examineEdge(const G &g, E e, V u) {}
-	void treeEdge(const G &g, E e, V u) {}
-	void treeEdgeReturn(const G &g, E e, V u) {}
-	void backEdge(const G &g, E e, V u) {}
-	void forwardOrCrossEdge(const G &g, E e, V u) {}
-	void finishEdge(const G &g, E e, V u) {}
-	void finishVertex(const G &g, V u) {}
+	void initializeVertex(V u) {}
+	void startVertex(V u) {}
+	void discoverVertex(V u) {}
+	void examineEdge(E e, V u) {}
+	void treeEdge(E e, V u) {}
+	void treeEdgeReturn(E e, V u) {}
+	void notTreeEdge(E e, V u) {}
+	void finishEdge(E e, V u) {}
+	void finishVertex(V u) {}
+
+	DefaultParam enterVertex(){}
+	DefaultParam colorMap() {}
+
+	auto white() ->decltype(ColorTraits<>::white()) { return ColorTraits<>::white(); }
+	auto black() ->decltype(ColorTraits<>::black()) { return ColorTraits<>::black(); }
+	bool isInit() { return true; }
+
+	DefaultParam vertexIndexMap() {}
+	DefaultParam outEdges(V u) {}
 };
 
-
-
-	namespace DepthFirstSearchPrivate {
-
-		template<typename G, typename DFSVisitor, typename ColorMap>
-		void dfsImpl(const G &g, DFSVisitor &vis, ColorMap color, typename G::VertexDescriptor u)
-		{
-			using OutEdgeIterator = typename GraphTraits<G>::OutEdgeIterator;
-			using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
-			using ColorType = typename std::remove_reference<decltype(color[u])>::type;
-			using Color = ColorTraits<ColorType>;
-
-			color[u] = Color::gray();
-			vis.discoverVertex(g, u);
-			OutEdgeIterator ei, ei_end;
-			tie(ei, ei_end) = g.outEdges(u);
-
-			for(; ei != ei_end; ++ ei)
-			{
-				auto e = *ei;
-				auto to = g.target(e);
-				vis.examineEdge(g, e, u);
-				if(color[to] == Color::white())
-				{
-					vis.treeEdge(g, e, u);
-					dfsImpl(g, vis, color, to);
-					vis.treeEdgeReturn(g, e, u);
-				}
-				else if(color[to] == Color::gray())
-				{
-					vis.backEdge(g, e, u);
-				}
-				else //if(color[to] == Color::black())
-				{
-					vis.forwardOrCrossEdge(g, e, u);
-				}
-				vis.finishEdge(g, e, u);
-			}
-			color[u] = Color::black();
-			vis.finishVertex(g, u);
-		}
-
-
-
-
-//		template<typename Graph, typename DFSVisitor, typename ColorIterator>
-//		void undfsImpl(const Graph &g,
-//					   DFSVisitor &vis,
-//					   ColorIterator color,
-//					   typename Graph::VertexDescriptor u,
-//					   bool is_start,
-//					   typename Graph::EdgeDescriptor pre_e )
-//		{
-//			typedef typename Graph::OutEdgeIterator OutEdgeIterator;
-//			typedef typename Graph::EdgeDescriptor EdgeDescriptor;
-//			typedef typename Graph::VertexDescriptor VertexDescriptor;
-//			color[u] = Color::Gray;
-//			vis.discoverVertex(g, u);
-//			OutEdgeIterator ei, ei_end;
-//			tie(ei, ei_end) = g.outEdges(u);
-//			for(; ei != ei_end; ++ ei)
-//			{
-//				EdgeDescriptor e = *ei;
-//				VertexDescriptor to = opposite(g, e, u);
-//
-//				vis.examineEdge(g, e, u);
-//				if(color[to] == Color::White)
-//				{
-//					vis.treeEdge(g, e, u);
-//					undfsImpl(g, vis, color, to, 0, e);
-//					vis.treeEdgeReturn(g, e, u);
-//				}
-//				else if(color[to] == Color::Gray && (is_start || e != pre_e))
-//				{
-//					vis.backEdge(g, e, u);
-//				}
-//				vis.finishEdge(g, e, u);
-//			}
-//			color[u] = Color::Black;
-//			vis.finishVertex(g, u);
-//		}
-
-
-
-
-
-	} // namespace DepthFirstSearchPrivate 
-
-
-template<typename G, typename DFSVisitor>
-void depthFirstSearch(const G &g, DFSVisitor &vis, typename GraphTraits<G>::VertexDescriptor start)
+template<typename G, typename DFSParams>
+void depthFirstSearch(const G &g, DFSParams &p)
 {
-	int n = g.vertexNumber();
-	using Color = ColorTraits<>;
+	using DefaultParam = DepthFirstSearchPrivate::DefaultParam;
 	using V = typename GraphTraits<G>::VertexDescriptor;
 
-	vector<Color::Type> color(n, Color::white());
-	for(int i = 0; i < n; ++ i) 
+	auto&& i_map = ChooseValue<
+				std::is_same<decltype(p.vertexIndexMap()), DefaultParam >::value,
+				decltype(g.vertexPropertyMap(VertexIndexTag())),
+				decltype(p.vertexIndexMap())>
+				::get(g.vertexPropertyMap(VertexIndexTag()), p.vertexIndexMap()  );
+
+
+	auto outEdgeWrapper =[&](V u) {
+		return ChooseValue<
+				std::is_same<decltype(p.outEdges(V())), DefaultParam >::value,
+				decltype(g.outEdges(u)),
+				decltype(p.outEdges(u))>
+				::get(g.outEdges(u),
+					  p.outEdges(u)  );
+
+	};
+
+
+
+
+	using VectorColor = std::vector<ColorTraits<>::Type>;
+
+	constexpr bool isDefaultColorMap = std::is_same<decltype(p.colorMap()), DefaultParam>::value;
+
+	VectorColor colors;
+
+	if(isDefaultColorMap)
 	{
-		vis.initializeVertex(g, i);
+		colors.assign(g.vertexNumber(), p.white());
 	}
 
-	auto vecToMap = [&](V u) ->Color::Type&  { return color[g.vertexPropertyMap(VertexIndexTag())[u]]; };
-	auto color_map = makeFunctionMap(vecToMap);
+	using CI = VectorColor::iterator;
 
-	vis.startVertex(g, start);
-	DepthFirstSearchPrivate::dfsImpl(g, vis, color_map, start);
-	return ;
+	auto default_color = makeComposeMap(i_map,
+										IteratorMap<CI, typename CI::difference_type, typename CI::reference>(colors.begin())   );
 
-//	for(int i = 0; i < n; ++ i)
-//	{
-//		if(color[i] == Color::White)
-//		{
-//			vis.startVertex(g, i);
-//			DepthFirstSearchPrivate::dfsImpl(g, vis, color.begin(), i);
-//		}
-//	}
+	auto colorMap = ChooseValue<isDefaultColorMap, decltype(default_color), decltype(p.colorMap())>
+						::get(default_color, p.colorMap());
+
+	if(p.isInit())
+	{
+		auto&& vi = g.vertices();
+		for(;vi.first != vi.second; ++vi.first)
+		{
+			auto&& u = *vi.first;
+			colorMap[u] = p.white();
+			p.initializeVertex(u);
+		}
+	}
+
+
+	DepthFirstSearchPrivate::ChooseEnterVertex<std::is_same<decltype(p.enterVertex()), DefaultParam>::value>
+	::run(g, p, colorMap, outEdgeWrapper);
+
 }
-
-
 	
-//template<typename Graph, typename DFSVisitor>
-//void undirectedDFS(const Graph &g, DFSVisitor &vis, int s = -1)
-//{
-//	int n = g.vertexNumber();
-//	vector<Color> color(n, Color::White);
-//
-//	for(int i = 0; i < n; ++ i) vis.initializeVertex(g, i);
-//	if(s >= 0)
-//	{
-//		vis.startVertex(g, s);
-//		DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), s, 1, typename Graph::EdgeDescriptor());
-//		return ;
-//	}
-//	for(int i = 0; i < n; ++ i)
-//	{
-//		if(color[i] == Color::White)
-//		{
-////			cout << "F$$$FF" << endl;
-//			vis.startVertex(g, i);
-//			DepthFirstSearchPrivate::undfsImpl(g, vis, color.begin(), i, 1, typename Graph::EdgeDescriptor());
-//		}
-//	}
-//}
 
 
 

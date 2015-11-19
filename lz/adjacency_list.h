@@ -39,13 +39,15 @@ class AdjacencyList;
     template<>
     struct VertexData<NoProperty>
     {
+    	using VP = NoProperty;
     	EdgeDescriptor head;
         VertexData(EdgeDescriptor head, const NoProperty &vp):head(head) {}
     };
 
-    template<typename VP>
+    template<typename _VP>
     struct VertexData:public VertexData<NoProperty>
     {
+    	using VP = _VP;
         VP vp;
         VertexData(EdgeDescriptor _head, const VP &vp): VertexData<NoProperty>(_head, NoProperty()), vp(vp) {}
     };
@@ -59,14 +61,16 @@ class AdjacencyList;
 	template<>
 	struct EdgeData<NoProperty>
 	{
+		using EP = NoProperty;
 		VertexDescriptor source, target;
 		EdgeDescriptor next;
 		EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const NoProperty & ep)
 		:source(source), target(target), next(next){}
 	};
-    template<typename EP>
+    template<typename _EP>
     struct EdgeData:public EdgeData<NoProperty>
     {
+    	using EP = _EP;
     	EP ep;
         EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const EP & ep)
     	:EdgeData<NoProperty>(source, target, next, NoProperty()), ep(ep){}
@@ -124,7 +128,9 @@ class AdjacencyList;
 	};
 
     template<typename G, typename Tag>
-	class VertexPropertyMap
+	class VertexPropertyMap:
+			public MapFacade<typename GraphTraits<G>::VertexDescriptor,
+    						 decltype(typename G::VertexData::VP()[Tag()])>
 	{
     	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
 		G *g = nullptr;
@@ -145,7 +151,6 @@ class AdjacencyList;
     class VertexPropertyMap<G, VertexIndexTag>: public IdentityMap<VertexDescriptor>
     {
     	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
-//    	G *g = nullptr;
     	VertexPropertyMap(G *_g) {}
     public:
     	VertexPropertyMap(){}
@@ -156,6 +161,8 @@ class AdjacencyList;
 
     template<typename G, typename Tag>
     class EdgePropertyMap
+//    		:public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
+//							               decltype(get(g->e[typename GraphTraits<G>::EdgeDescriptor()].ep, Tag()))>
    	{
     	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
        	G *g = nullptr;

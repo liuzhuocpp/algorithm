@@ -30,6 +30,36 @@ struct ColorTraits
 
 
 
+template<bool Con, typename T, typename F>
+struct ChooseValue
+{
+	static T get(T t, F f)
+	{
+		return t;
+	}
+};
+template<typename T, typename F>
+struct ChooseValue<false, T, F>
+{
+	static F get(T t, F f)
+	{
+		return f;
+	}
+};
+
+//template<bool con, typename T, typename F>
+//struct Choose
+//{
+//	static T get(T t, F f){ return  t; }
+//};
+//template<typename T, typename F>
+//struct Choose<0, T, F>
+//{
+//	static F get(T t, F f){ return  f; }
+//};
+
+
+
 
 
 

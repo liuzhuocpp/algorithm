@@ -25,6 +25,7 @@ struct EdgeIndexTag {};
 
 
 
+
 template<typename Graph>
 typename Graph::VertexDescriptor
 opposite(const Graph &g, 
