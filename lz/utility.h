@@ -17,35 +17,99 @@ enum class DefaultColorType: unsigned char
 
 
 
-template<typename ColorType = DefaultColorType>
+//template<typename ColorType = DefaultColorType>
+//struct ColorTraits
+//{
+//	using Type = ColorType;
+//	static ColorType white() { return ColorType::White; }
+//	static ColorType gray() { return ColorType::Gray; }
+//	static ColorType black() { return ColorType::Black; }
+//	static ColorType green() { return ColorType::Green; }
+//	static ColorType red() { return ColorType::Red; }
+//};
+//
+template<typename ColorType = int>
 struct ColorTraits
 {
 	using Type = ColorType;
-	static ColorType white() { return ColorType::White; }
-	static ColorType gray() { return ColorType::Gray; }
-	static ColorType black() { return ColorType::Black; }
-	static ColorType green() { return ColorType::Green; }
-	static ColorType red() { return ColorType::Red; }
+	static ColorType white() { return 0; }
+	static ColorType black() { return 1; }
 };
 
 
+struct ParamNotFound{};
 
-template<bool Con, typename T, typename F>
-struct ChooseValue
+	namespace UtilityPrivate{
+
+		template<typename UserParam, typename DefaultParam>
+		struct ChooseParam
+		{
+			static UserParam& get(UserParam &up, DefaultParam &dp)
+			{
+				return up;
+			}
+		};
+		template<typename DefaultParam>
+		struct ChooseParam<ParamNotFound, DefaultParam>
+		{
+			static DefaultParam& get(ParamNotFound &up, DefaultParam &dp)
+			{
+				return dp;
+			}
+		};
+
+	} // UtilityPrivate
+
+template<typename UserParam, typename DefaultParam>
+auto chooseParam(UserParam && up, DefaultParam && dp)->
+decltype(UtilityPrivate::ChooseParam<typename std::remove_reference<UserParam>::type,
+									 typename std::remove_reference<DefaultParam>::type>::get(up, dp))
 {
-	static T get(T t, F f)
-	{
-		return t;
-	}
-};
-template<typename T, typename F>
-struct ChooseValue<false, T, F>
+	return UtilityPrivate::ChooseParam<typename std::remove_reference<UserParam>::type,
+									   typename std::remove_reference<DefaultParam>::type>::get(up, dp);
+
+}
+
+
+
+template <class F1, class F2>
+struct LambdaOverloadSet : F1, F2
 {
-	static F get(T t, F f)
+	LambdaOverloadSet(F1 f1, F2 f2)
+		: F1(f1), F2(f2)
 	{
-		return f;
+
 	}
+
+	using F1::operator();
+	using F2::operator();
 };
+
+template <class F1, class F2>
+LambdaOverloadSet<F1, F2> lambdaOverload(F1 f1, F2 f2)
+{
+	return LambdaOverloadSet<F1, F2>(f1, f2);
+}
+
+
+
+
+//template<bool Con, typename T, typename F>
+//struct ChooseValue
+//{
+//	static T get(T t, F f)
+//	{
+//		return t;
+//	}
+//};
+//template<typename T, typename F>
+//struct ChooseValue<false, T, F>
+//{
+//	static F get(T t, F f)
+//	{
+//		return f;
+//	}
+//};
 
 //template<bool con, typename T, typename F>
 //struct Choose

@@ -50,6 +50,14 @@ struct GraphTraits
 	using DirectedCategory = typename G::DirectedCategory;
 
 	using OutEdgeIterator = typename G::OutEdgeIterator;
+
+
+	template<typename Tag>
+	using VertexPropertyMap = typename G::template VertexPropertyMap<Tag>;
+
+//	template<typename Tag>
+//	using EdgePropertyMap = G::EdgePropertyMap<Tag>;
+
 };
 
 

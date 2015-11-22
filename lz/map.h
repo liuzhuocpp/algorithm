@@ -27,7 +27,6 @@ struct MapTraits
 {
 	using KeyType = typename Map::KeyType;
 	using ValueType = typename Map::ValueType;
-	using Reference = typename Map::Reference;
 };
 
 template<typename Key, typename Value, typename ReferenceType = Value&>
@@ -35,7 +34,6 @@ struct MapFacade
 {
 	using KeyType = Key;
 	using ValueType = Value;
-	using Reference = ReferenceType;
 };
 
 
@@ -56,15 +54,14 @@ class FunctionMap:public MapFacade<Key, Value>
 public:
 	explicit FunctionMap() = default;
 	explicit FunctionMap(const UnaryFunction &f):f(&f) {}
-	typename Base::ValueType
-	operator[](typename Base::KeyType key) const
+	auto operator[](typename Base::KeyType key) const -> decltype((*f)[key])
 	{
 		return (*f)(key);
 	}
 };
 template<typename I,
 		 typename Key = typename std::iterator_traits<I>::difference_type,
-		 typename Value = typename  std::iterator_traits<I>::value_type>
+		 typename Value = decltype(I()[Key()]) >
 class IteratorMap:public MapFacade<Key, Value>
 {
 	I i;
@@ -72,12 +69,22 @@ class IteratorMap:public MapFacade<Key, Value>
 public:
 	IteratorMap() = default;
 	IteratorMap(I i):i(i){}
-	typename Base::ValueType
-	operator[](typename Base::KeyType key) const
+
+	using Iterator = I;
+	Iterator iterator() const { return i;}
+
+	auto operator[](typename Base::KeyType key) const->decltype(i[key])
 	{
 		return i[key];
 	}
 };
+template<typename I>
+IteratorMap<I> makeIteratorMap(I i)
+{
+	return IteratorMap<I>(i);
+}
+
+
 template<typename FM, typename SM>
 class ComposeMap:public MapFacade<typename MapTraits<FM>::KeyType, typename MapTraits<SM>::ValueType >
 {
@@ -85,10 +92,16 @@ class ComposeMap:public MapFacade<typename MapTraits<FM>::KeyType, typename MapT
 	SM sm;
 	using Base = MapFacade<typename MapTraits<FM>::KeyType, typename MapTraits<SM>::ValueType>;
 public:
+	using FirstMap = FM;
+	using SecondMap = SM;
+
 	explicit ComposeMap() = default;
 	explicit ComposeMap(FM fm, SM sm):fm(fm), sm(sm){}
-	typename Base::ValueType
-	operator[](typename Base::KeyType key) const
+
+	FirstMap firstMap() const { return fm; }
+	SecondMap secondMap() const { return sm; }
+
+	auto operator[](typename Base::KeyType key) const ->decltype(sm[fm[key]])
 	{
 		return sm[fm[key]];
 	}
@@ -143,3 +156,4 @@ ComposeMap<FM, SM> makeComposeMap(FM fm, SM sm)
 
 
 #endif /* LZ_MAP_H_ */
+

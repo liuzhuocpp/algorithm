@@ -10,26 +10,32 @@ using namespace std;
 using namespace lz;
 
 
-using G = AdjacencyList<>;
+using G = AdjacencyList<UndirectedGraphTag>;
 
-
-struct P:public DFSParams<G>
+//DepthFirstSearchParams
+struct P:public DepthFirstSearchParams
 {
 	using V = GraphTraits<G>::VertexDescriptor;
 	using E = typename GraphTraits<G>::EdgeDescriptor;
 
 	G &g;
 	P(G &g):g(g){}
+
 	void treeEdge(E e, V u)
 	{
 		V other = opposite(g, e, u);
-		cout << u << " " << other << endl;
+		cout << "TRee" << u << " " << other << endl;
 	}
+	void notTreeEdge(E e, V u)
+	{
+		V other = opposite(g, e, u);
+		cout <<"not Tree Edge: " <<  u << " " << other << endl;
+	}
+
 };
 
 int main()
 {
-
 
 	G g;
 	int n = 5;
@@ -39,7 +45,7 @@ int main()
 	g.addEdge(2, 3);
 	g.addEdge(3, 4);
 	g.addEdge(1, 0);
-
+	g.addEdge(4, 1);
 
 
 	P p(g);
