@@ -10,7 +10,7 @@ using namespace std;
 using namespace lz;
 
 
-using G = AdjacencyList<UndirectedGraphTag>;
+using G = AdjacencyList<>;
 
 //DepthFirstSearchParams
 struct P:public DepthFirstSearchParams
@@ -24,7 +24,7 @@ struct P:public DepthFirstSearchParams
 	void treeEdge(E e, V u)
 	{
 		V other = opposite(g, e, u);
-		cout << "TRee" << u << " " << other << endl;
+		cout << "Tree Edge: " << u << " " << other << endl;
 	}
 	void notTreeEdge(E e, V u)
 	{
