@@ -121,41 +121,28 @@ using std::endl;
 
 
 	template<typename G, typename Params>
-	struct Dispatch
+	struct Impl
 	{
 		using V = typename GraphTraits<G>::VertexDescriptor;
 
 
 		using ParamVertexIndexMap = typename std::result_of< decltype(&Params::vertexIndexMap)(Params)>::type;
-
 		using DefaultVertexIndexMap = decltype( typename std::add_const<G>::type().vertexPropertyMap(VertexIndexTag()));
-
 		using VertexIndexMap = typename std::conditional<std::is_same<ParamVertexIndexMap, ParamNotFound>::value,
 														 DefaultVertexIndexMap,
 														 ParamVertexIndexMap>::type;
 
 		using ParamColorMap = typename std::result_of< decltype(&Params::colorMap)(Params)>::type;
-
 		using DefaultColor = ColorTraits<>::Type;
 		using DefaultColorMap = ComposeMap<VertexIndexMap, IteratorMap<DefaultColor*> >;
-
 		using ColorMap = typename std::conditional<std::is_same<ParamColorMap, ParamNotFound>::value,
 												   DefaultColorMap,
 												   ParamColorMap>::type;
-
-
-
-
-
 		VertexIndexMap indexMap;
 		ColorMap colorMap;
-
-
-
 		const G &g;
 		Params &p;
-
-		Dispatch(const G &g, Params &p):g(g), p(p)
+		Impl(const G &g, Params &p):g(g), p(p)
 		{
 			indexMap = chooseParam(g.vertexPropertyMap(VertexIndexTag()),
 			  	  	   p.vertexIndexMap() );
@@ -200,7 +187,7 @@ using std::endl;
 		void chooseEnterVertex(EnterVertex u)
 		{
 			p.startVertex(u);
-			impl(u);
+			dfs(u);
 		}
 
 		void chooseEnterVertex(ParamNotFound )
@@ -213,7 +200,7 @@ using std::endl;
 				if(colorMap[u] == p.white())
 				{
 					p.startVertex(u);
-					impl(u);
+					dfs(u);
 				}
 			}
 		}
@@ -236,7 +223,7 @@ using std::endl;
 
 
 
-		void impl(typename GraphTraits<G>::VertexDescriptor u)
+		void dfs(typename GraphTraits<G>::VertexDescriptor u)
 		{
 			colorMap[u] = p.black();
 			p.discoverVertex(u);
@@ -249,7 +236,7 @@ using std::endl;
 				if(colorMap[to] == p.white())
 				{
 					p.treeEdge(e, u);
-					impl(to);
+					dfs(to);
 					p.treeEdgeReturn(e, u);
 				}
 				else
@@ -314,8 +301,8 @@ void depthFirstSearch(const G &g, Params &&p)
 	using RealParams = typename std::remove_reference<Params>::type;
 
 
-	DepthFirstSearchPrivate::Dispatch<G, RealParams> dispatch(g, p);
-	dispatch.run();
+	DepthFirstSearchPrivate::Impl<G, RealParams> impl(g, p);
+	impl.run();
 
 
 //	using T = typename DepthFirstSearchPrivate::Dispatch<G, RealParams>::DefaultVertexIndexMap;
