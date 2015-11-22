@@ -17,24 +17,24 @@ enum class DefaultColorType: unsigned char
 
 
 
-//template<typename ColorType = DefaultColorType>
-//struct ColorTraits
-//{
-//	using Type = ColorType;
-//	static ColorType white() { return ColorType::White; }
-//	static ColorType gray() { return ColorType::Gray; }
-//	static ColorType black() { return ColorType::Black; }
-//	static ColorType green() { return ColorType::Green; }
-//	static ColorType red() { return ColorType::Red; }
-//};
-//
-template<typename ColorType = int>
+template<typename ColorType = DefaultColorType>
 struct ColorTraits
 {
 	using Type = ColorType;
-	static ColorType white() { return 0; }
-	static ColorType black() { return 1; }
+	static ColorType white() { return ColorType::White; }
+	static ColorType gray() { return ColorType::Gray; }
+	static ColorType black() { return ColorType::Black; }
+	static ColorType green() { return ColorType::Green; }
+	static ColorType red() { return ColorType::Red; }
 };
+
+//template<typename ColorType = int>
+//struct ColorTraits
+//{
+//	using Type = ColorType;
+//	static ColorType white() { return 0; }
+//	static ColorType black() { return 1; }
+//};
 
 
 struct ParamNotFound{};

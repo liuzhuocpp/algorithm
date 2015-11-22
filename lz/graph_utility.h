@@ -58,9 +58,6 @@ struct GraphTraits
 	template<typename Tag>
 	using EdgePropertyMap = typename G::template EdgePropertyMap<Tag>;
 
-//	template<typename Tag>
-//	using EdgePropertyMap = G::EdgePropertyMap<Tag>;
-
 };
 
 

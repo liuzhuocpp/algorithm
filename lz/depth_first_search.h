@@ -163,7 +163,7 @@ using std::endl;
 		}
 
 
-		void init(std::integral_constant<bool, true>)
+		void init(std::true_type)
 		{
 			auto&& vi = g.vertices();
 			for(;vi.first != vi.second; ++vi.first)
@@ -173,7 +173,7 @@ using std::endl;
 				p.initializeVertex(u);
 			}
 		}
-		void init(std::integral_constant<bool, false>) {}
+		void init(std::false_type) {}
 
 
 
@@ -262,6 +262,7 @@ using std::endl;
 
 class DepthFirstSearchParams
 {
+	using DefaultColor = ColorTraits<>::Type;
 public:
 	template<typename V> void initializeVertex(V u) {}
 	template<typename V> void startVertex(V u) {}
@@ -273,15 +274,16 @@ public:
 	template<typename E, typename V> void finishEdge(E e, V u) {}
 	template<typename V> void finishVertex(V u) {}
 
-	auto white() ->decltype(ColorTraits<>::white()) { return ColorTraits<>::white(); }
-	auto black() ->decltype(ColorTraits<>::black()) { return ColorTraits<>::black(); }
+
+	DefaultColor white() { return ColorTraits<>::white(); }
+	DefaultColor black() { return ColorTraits<>::black(); }
 
 
 
 	ParamNotFound vertexIndexMap() {}
 	template<typename V> ParamNotFound outEdges(V u) {}
 	ParamNotFound colorMap() {}
-	std::integral_constant<bool, true> isInit() const {}
+	std::true_type isInit() const {}
 	ParamNotFound enterVertex(){}
 
 
