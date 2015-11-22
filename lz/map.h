@@ -52,6 +52,8 @@ class FunctionMap:public MapFacade<Key, Value>
 	const UnaryFunction* f = nullptr;
 	using Base = MapFacade<Key, Value>;
 public:
+	const UnaryFunction* function(){ return f;}
+
 	explicit FunctionMap() = default;
 	explicit FunctionMap(const UnaryFunction &f):f(&f) {}
 	auto operator[](typename Base::KeyType key) const -> decltype((*f)[key])
