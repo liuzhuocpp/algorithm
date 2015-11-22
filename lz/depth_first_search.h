@@ -125,7 +125,6 @@ using std::endl;
 	{
 		using V = typename GraphTraits<G>::VertexDescriptor;
 
-
 		using ParamVertexIndexMap = typename std::result_of< decltype(&Params::vertexIndexMap)(Params)>::type;
 		using DefaultVertexIndexMap = decltype( typename std::add_const<G>::type().vertexPropertyMap(VertexIndexTag()));
 		using VertexIndexMap = typename std::conditional<std::is_same<ParamVertexIndexMap, ParamNotFound>::value,
@@ -145,23 +144,18 @@ using std::endl;
 		Impl(const G &g, Params &p):g(g), p(p)
 		{
 			indexMap = chooseParam(g.vertexPropertyMap(VertexIndexTag()),
-			  	  	   p.vertexIndexMap() );
-
+			  	  	   	   	   	   p.vertexIndexMap());
 			colorMap = chooseColorMap(p.colorMap());
 		}
 
-
-		auto outEdges(V u)
-		->decltype(chooseParam(g.outEdges(u), p.outEdges(u)))
+		auto outEdges(V u) ->decltype(chooseParam(g.outEdges(u), p.outEdges(u)))
 		{
 			return chooseParam(g.outEdges(u), p.outEdges(u));
 		};
 
 		template<typename ParamColorMap>
 		ColorMap chooseColorMap(ParamColorMap colorMap)
-		{
-			return colorMap;
-		}
+		{ return colorMap; }
 		ColorMap chooseColorMap(ParamNotFound)
 		{
 			DefaultColor* colors = new DefaultColor[g.vertexNumber()];
@@ -213,15 +207,6 @@ using std::endl;
 			delete[] colorMap.secondMap().iterator();
 		}
 
-		void run()
-		{
-			init(p.isInit());
-			chooseEnterVertex(p.enterVertex());
-			deleteColorMap(p.colorMap());
-		}
-
-
-
 
 		void dfs(typename GraphTraits<G>::VertexDescriptor u)
 		{
@@ -246,6 +231,13 @@ using std::endl;
 				p.finishEdge(e, u);
 			}
 			p.finishVertex(u);
+		}
+
+		void run()
+		{
+			init(p.isInit());
+			chooseEnterVertex(p.enterVertex());
+			deleteColorMap(p.colorMap());
 		}
 
 
