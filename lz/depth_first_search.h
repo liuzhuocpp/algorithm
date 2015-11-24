@@ -25,10 +25,6 @@ using std::endl;
 
 	namespace DepthFirstSearchPrivate {
 
-
-
-
-
 	template<typename G, typename Params>
 	struct Impl
 	{
@@ -58,9 +54,6 @@ using std::endl;
 			return chooseParamReturnValue(p.outEdges(u), g.outEdges(u) );
 		};
 
-
-
-
 		void init(std::true_type)
 		{
 			auto&& vi = g.vertices();
@@ -72,8 +65,6 @@ using std::endl;
 			}
 		}
 		void init(std::false_type) {}
-
-
 
 		template<typename EnterVertex>
 		void chooseEnterVertex(EnterVertex u)
