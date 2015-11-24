@@ -37,6 +37,12 @@ struct ColorTraits
 //};
 
 
+
+/*
+ *  A params is param list, and every param is a member function.
+ *  Every param have a default value.
+ */
+
 struct ParamNotFound{};
 
 	namespace UtilityPrivate{
@@ -60,15 +66,76 @@ struct ParamNotFound{};
 
 	} // UtilityPrivate
 
-template<typename UserParam, typename DefaultParam>
-auto chooseParam(UserParam && up, DefaultParam && dp)->
-decltype(UtilityPrivate::ChooseParam<typename std::remove_reference<UserParam>::type,
-									 typename std::remove_reference<DefaultParam>::type>::get(up, dp))
+template<typename ParamRetrunType, typename Default>
+auto chooseParamReturnValue(ParamRetrunType && p, Default && d) ->
+decltype(UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
+									 typename std::remove_reference<Default>::type >::get(p, d))
 {
-	return UtilityPrivate::ChooseParam<typename std::remove_reference<UserParam>::type,
-									   typename std::remove_reference<DefaultParam>::type>::get(up, dp);
-
+	return UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
+									   typename std::remove_reference<Default>::type>::get(p, d);
 }
+
+//template<typename ParamRetrunType, typename Default>
+//Default& chooseParamReturnValue(ParamNotFound &&, Default && d)
+//{
+//	return d;
+//}
+
+
+
+// Choose the param type we hoped according to the ParamType, DefaultType
+template<typename ParamReturnType, typename DefaultType>
+using ChooseParamReturnType =  typename std::conditional<std::is_same<ParamReturnType, ParamNotFound>::value,
+																DefaultType,
+																ParamReturnType>::type;
+
+
+//In Params, Choose the return type of the function Param that is no other params list
+//template<typename Params, typename Param>
+//using ParamReturnType = typename std::result_of< Param(Params)>::type;
+
+
+
+template<typename Ret, typename Class>
+struct MemberFuntionPointer
+{
+    using ReturnType = Ret;
+    using ClassType = Class;
+};
+
+// now only for no param member function
+template<typename T, typename P>
+MemberFuntionPointer<T, P> makeMemberFuntionPointer(T (P::*s)() )
+{
+    return MemberFuntionPointer<T, P>();
+}
+
+
+
+
+// The only return value of the function Param that is no any params is the param that we want
+// is called :
+// GeneralParamReturnType
+template<typename ParamName>
+using GeneralParamReturnType =
+typename std::result_of< ParamName(
+		typename decltype(makeMemberFuntionPointer(ParamName()))::ClassType
+)>::type;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

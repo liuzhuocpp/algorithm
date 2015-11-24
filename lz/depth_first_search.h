@@ -25,98 +25,7 @@ using std::endl;
 
 	namespace DepthFirstSearchPrivate {
 
-//	template<typename G, typename Params, typename ColorMap, typename OutEdges>
-//	void dfsImpl(const G &g, Params &&p, ColorMap color, typename GraphTraits<G>::VertexDescriptor u, OutEdges outEdges)
-//	{
-//		color[u] = p.black();
-//		p.discoverVertex(u);
-//		auto&& ei = outEdges(u);
-//		for(;ei.first != ei.second; ++ ei.first)
-//		{
-//			auto e = *ei.first;
-//			auto to = g.target(e);
-//			p.examineEdge(e, u);
-//			if(color[to] == p.white())
-//			{
-//				p.treeEdge(e, u);
-//				dfsImpl(g, p, color, to, outEdges);
-//				p.treeEdgeReturn(e, u);
-//			}
-//			else
-//			{
-//				p.notTreeEdge(e, u);
-//			}
-//			p.finishEdge(e, u);
-//		}
-//		p.finishVertex(u);
-//	}
 
-
-
-//	template<typename G, typename Params, typename OutEdges, typename ColorMap, typename EnterVertex>
-//	static void dispatch3(const G &g, Params &&p, OutEdges outEdges, ColorMap colorMap, EnterVertex u)
-//	{
-//
-//		p.startVertex(u);
-//		dfsImpl(g, p, colorMap, u, outEdges);
-//	}
-//	template<typename G, typename Params, typename OutEdges, typename ColorMap>
-//	static void dispatch3(const G &g, Params &&p, OutEdges outEdges, ColorMap colorMap, ParamNotFound)
-//	{
-//		auto&& vi = g.vertices();
-//		for(;vi.first != vi.second; ++vi.first)
-//		{
-//			auto&& u = *vi.first;
-//			if(colorMap[u] == p.white())
-//			{
-//				p.startVertex(u);
-//				dfsImpl(g, p, colorMap, u, outEdges);
-//			}
-//		}
-//	}
-//
-//
-//	template<typename G, typename Params, typename OutEdges, typename ColorMap, typename EnterVertex> // need init
-//	static void dispatch2(const G &g, Params &&p, OutEdges outEdges, ColorMap colorMap, EnterVertex u, std::integral_constant<bool, true>)
-//	{
-//		auto&& vi = g.vertices();
-//		for(;vi.first != vi.second; ++vi.first)
-//		{
-//			auto&& u = *vi.first;
-//			colorMap[u] = p.white();
-//			p.initializeVertex(u);
-//
-//		}
-//		dispatch3(g, p, outEdges, colorMap, u);
-//	}
-//
-//	template<typename G, typename Params, typename OutEdges, typename ColorMap, typename EnterVertex>
-//	static void dispatch2(const G &g, Params &&p, OutEdges outEdges, ColorMap colorMap, EnterVertex u, std::integral_constant<bool, false>)
-//	{
-//		dispatch3(g, p, outEdges, colorMap, u);
-//	}
-//
-//
-//
-//	template<typename G, typename Params, typename IndexMap, typename OutEdges, typename ColorMap> // colorMap found!
-//	static void dispatch1(const G &g, Params &&p, IndexMap i_map, OutEdges outEdges, ColorMap colorMap)
-//	{
-//		DepthFirstSearchPrivate:: // i don`t know why must have this code
-//		dispatch2(g, p, outEdges, colorMap, p.enterVertex(), std::integral_constant<bool, p.isInit()>());
-//	}
-//	template<typename G, typename Params, typename IndexMap, typename OutEdges>
-//	static void dispatch1(const G &g, Params &&p, IndexMap i_map, OutEdges outEdges, ParamNotFound)
-//	{
-//		std::vector<ColorTraits<>::Type> colors(g.vertexNumber(), p.white());
-//		auto colorMap = makeComposeMap(i_map, makeIteratorMap(colors.begin()));
-//
-//		DepthFirstSearchPrivate:: // i don`t know why must have this code
-//		dispatch2(g, p, outEdges, colorMap, p.enterVertex(), std::integral_constant<bool, p.isInit()>());
-//	}
-
-
-
-//	template<typename Dispatch>
 
 
 
@@ -125,42 +34,31 @@ using std::endl;
 	{
 		using V = typename GraphTraits<G>::VertexDescriptor;
 
-		using ParamVertexIndexMap = typename std::result_of< decltype(&Params::vertexIndexMap)(Params)>::type;
-		using DefaultVertexIndexMap = decltype( typename std::add_const<G>::type().vertexPropertyMap(VertexIndexTag()));
-		using VertexIndexMap = typename std::conditional<std::is_same<ParamVertexIndexMap, ParamNotFound>::value,
-														 DefaultVertexIndexMap,
-														 ParamVertexIndexMap>::type;
+		using VertexIndexMap = ChooseVertexIndexMap<typename std::add_const<G>::type, decltype(&Params::vertexIndexMap)>;
 
-		using ParamColorMap = typename std::result_of< decltype(&Params::colorMap)(Params)>::type;
 		using DefaultColor = ColorTraits<>::Type;
-		using DefaultColorMap = ComposeMap<VertexIndexMap, IteratorMap<DefaultColor*> >;
-		using ColorMap = typename std::conditional<std::is_same<ParamColorMap, ParamNotFound>::value,
-												   DefaultColorMap,
-												   ParamColorMap>::type;
+
+		using ColorMap = ChooseVertexIndexComposeMap<decltype(&Params::colorMap), VertexIndexMap, DefaultColor>;
+
+
 		VertexIndexMap indexMap;
 		ColorMap colorMap;
 		const G &g;
 		Params &p;
 		Impl(const G &g, Params &p):g(g), p(p)
 		{
-			indexMap = chooseParam(g.vertexPropertyMap(VertexIndexTag()),
-			  	  	   	   	   	   p.vertexIndexMap());
-			colorMap = chooseColorMap(p.colorMap());
+			indexMap = chooseParamReturnValue(p.vertexIndexMap(),
+											  g.vertexPropertyMap(VertexIndexTag()));
+
+			colorMap = chooseVertexIndexComposeMap<ColorTraits<>::Type>(p.colorMap(), indexMap, g.vertexNumber());
 		}
 
-		auto outEdges(V u) ->decltype(chooseParam(g.outEdges(u), p.outEdges(u)))
+		auto outEdges(V u) ->decltype(chooseParamReturnValue(p.outEdges(u), g.outEdges(u) )  )
 		{
-			return chooseParam(g.outEdges(u), p.outEdges(u));
+			return chooseParamReturnValue(p.outEdges(u), g.outEdges(u) );
 		};
 
-		template<typename ParamColorMap>
-		ColorMap chooseColorMap(ParamColorMap colorMap)
-		{ return colorMap; }
-		ColorMap chooseColorMap(ParamNotFound)
-		{
-			DefaultColor* colors = new DefaultColor[g.vertexNumber()];
-			return makeComposeMap(indexMap, makeIteratorMap(colors) );
-		}
+
 
 
 		void init(std::true_type)
@@ -199,14 +97,6 @@ using std::endl;
 			}
 		}
 
-		template<typename ParamColorMap>
-		void deleteColorMap(ParamColorMap) {}
-
-		void deleteColorMap(DefaultColorMap)
-		{
-			delete[] colorMap.secondMap().iterator();
-		}
-
 
 		void dfs(typename GraphTraits<G>::VertexDescriptor u)
 		{
@@ -235,9 +125,9 @@ using std::endl;
 
 		void run()
 		{
-			init(p.isInit());
+			init(typename Params::IsInit());
 			chooseEnterVertex(p.enterVertex());
-			deleteColorMap(p.colorMap());
+			deleteVertexIndexComposeMap(colorMap, p.colorMap());
 		}
 
 
@@ -279,11 +169,13 @@ public:
 	DefaultColor black() { return ColorTraits<>::black(); }
 
 
+	using IsInit = std::true_type;
+
 
 	ParamNotFound vertexIndexMap() {}
-	template<typename V> ParamNotFound outEdges(V u) {}
+	template<typename V>
+	ParamNotFound outEdges(V u) {}
 	ParamNotFound colorMap() {}
-	std::true_type isInit() const {}
 	ParamNotFound enterVertex(){}
 
 
@@ -299,26 +191,7 @@ void depthFirstSearch(const G &g, Params &&p)
 	impl.run();
 
 
-//	using T = typename DepthFirstSearchPrivate::Dispatch<G, RealParams>::DefaultVertexIndexMap;
-//	using Tar = typename GraphTraits<G>::template VertexPropertyMap<VertexIndexTag>::ConstType;
-//
-//	bool ans = std::is_same<T, Tar>::value;
-//
-//	cout << "ANS " << ans << endl;
 
-
-
-//	using V = typename GraphTraits<G>::VertexDescriptor;
-//
-//	auto&& i_map = chooseParam(g.vertexPropertyMap(VertexIndexTag()),
-//							  p.vertexIndexMap() );
-//
-//	auto outEdgesWrapper =[&](V u) {
-//		return chooseParam(g.outEdges(u), p.outEdges(u));
-//	};
-//
-//
-//	DepthFirstSearchPrivate::dispatch1(g, p, i_map, outEdgesWrapper, p.colorMap());
 
 }
 	

@@ -6,6 +6,7 @@
 //#include "lz/property.h"
 
 #include "lz/utility.h"
+#include "lz/map.h"
 namespace lz {
 	namespace GraphUtilityPrivate {
 	}
@@ -17,7 +18,7 @@ struct DirectedGraphTag {};
 struct UndirectedGraphTag {};
 
 /*
- * Some common property tag
+ * Some common graph`s vertex or edge property tag
  */
 struct VertexIndexTag {};
 struct EdgeIndexTag {};
@@ -66,13 +67,56 @@ struct GraphTraits
 
 
 
+// for graph param
+template<typename G, typename VertexIndexMapName>
+using ChooseVertexIndexMap = ChooseParamReturnType<GeneralParamReturnType<VertexIndexMapName>,
+												   decltype( G().vertexPropertyMap(VertexIndexTag()))  >;
+
+
+template<typename GeneralParamName, typename VertexIndexMap, typename ValueType>
+using ChooseVertexIndexComposeMap = ChooseParamReturnType<
+		GeneralParamReturnType<GeneralParamName>,
+		ComposeMap<VertexIndexMap, IteratorMap<ValueType*> >
+>;
+
+
+template<typename DefaultValueType, typename ParamReturnType, typename VertexIndexMap, typename VertexNumberType>
+auto
+chooseVertexIndexComposeMap(ParamReturnType paramMap, VertexIndexMap indexMap, VertexNumberType n)
+->decltype(paramMap)
+{
+	return paramMap;
+}
+
+template<typename DefaultValueType, typename VertexIndexMap, typename VertexNumberType>
+auto
+chooseVertexIndexComposeMap( ParamNotFound, VertexIndexMap indexMap, VertexNumberType n)
+->decltype(makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n])))
+{
+	return makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n]));
+}
+
+template<typename Map, typename ParamRetrunType>
+void deleteVertexIndexComposeMap(Map map, ParamRetrunType )
+{
+
+}
+template<typename Map>
+void deleteVertexIndexComposeMap(Map map, ParamNotFound )
+{
+//	cout << "YEEE" << endl;
+	delete[] map.secondMap().iterator();
+}
 
 
 
-
-
-
-
+//template<typename ParamColorMap>
+//void deleteColorMap(ParamColorMap) {}
+//
+//void deleteColorMap(DefaultColorMap)
+//{
+//	delete[] colorMap.secondMap().iterator();
+//}
 
 
 
