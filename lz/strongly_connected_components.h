@@ -99,9 +99,10 @@ struct StronglyConnectedComponentsParams{
 		}
 		void notTreeEdge(E e, V u)
 		{
-			if(inStack[u])
+			V to = opposite(g, e, u);
+			if(inStack[to])
 			{
-				V to = opposite(g, e, u);
+
 				rootMap[u] = minRoot(rootMap[u], to);
 			}
 
@@ -160,7 +161,6 @@ struct StronglyConnectedComponentsParams{
 
 
 
-//		return StronglyConnectedComponentsPrivate::dispatch1(g, compMap, p, i_map, p.discoverTimeMap());
     }
 
 

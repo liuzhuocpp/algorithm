@@ -76,7 +76,6 @@ using std::endl;
 		void chooseEnterVertex(ParamNotFound )
 		{
 			auto&& vi = g.vertices();
-			int n = g.vertexNumber();
 			for(;vi.first != vi.second; ++vi.first)
 			{
 				auto&& u = *vi.first;
