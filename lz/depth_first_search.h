@@ -49,7 +49,9 @@ using std::endl;
 			colorMap = chooseVertexIndexComposeMap<ColorTraits<>::Type>(p.colorMap(), indexMap, g.vertexNumber());
 		}
 
-		auto outEdges(V u) ->decltype(chooseParamReturnValue(p.outEdges(u), g.outEdges(u) )  )
+		auto outEdges(V u)
+		->typename std::remove_reference<
+			decltype(chooseParamReturnValue(p.outEdges(u), g.outEdges(u) )  )>::type
 		{
 			return chooseParamReturnValue(p.outEdges(u), g.outEdges(u) );
 		};
