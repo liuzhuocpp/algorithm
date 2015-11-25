@@ -30,7 +30,7 @@ using G = AdjacencyList<>;
 
 int main()
 {
-//	freopen("in.txt", "r", stdin);
+	freopen("in.txt", "r", stdin);
 
 	G g;
 	int n;

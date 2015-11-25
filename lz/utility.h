@@ -39,7 +39,7 @@ struct ColorTraits
 
 
 /*
- *  A params is param list, and every param is a member function.
+ *  A params is param list, and every param is a member function in params.
  *  Every param have a default value.
  */
 
@@ -96,31 +96,12 @@ using ChooseParamReturnType =  typename std::conditional<std::is_same<ParamRetur
 
 
 
-template<typename Ret, typename Class>
-struct MemberFuntionPointer
-{
-    using ReturnType = Ret;
-    using ClassType = Class;
-};
-
-// now only for no param member function
-template<typename T, typename P>
-MemberFuntionPointer<T, P> makeMemberFuntionPointer(T (P::*s)() )
-{
-    return MemberFuntionPointer<T, P>();
-}
 
 
-
-
-// The only return value of the function Param that is no any params is the param that we want
-// is called :
-// GeneralParamReturnType
 template<typename ParamName>
-using GeneralParamReturnType =
-typename std::result_of< ParamName(
-		typename decltype(makeMemberFuntionPointer(ParamName()))::ClassType
-)>::type;
+using MemberFunctionReturnType =
+		typename decltype(std::mem_fn(ParamName()))::result_type;
+
 
 
 

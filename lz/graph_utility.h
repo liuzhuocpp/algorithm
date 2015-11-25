@@ -69,13 +69,13 @@ struct GraphTraits
 
 // for graph param
 template<typename G, typename VertexIndexMapName>
-using ChooseVertexIndexMap = ChooseParamReturnType<GeneralParamReturnType<VertexIndexMapName>,
+using ChooseVertexIndexMap = ChooseParamReturnType<MemberFunctionReturnType<VertexIndexMapName>,
 												   decltype( G().vertexPropertyMap(VertexIndexTag()))  >;
 
 
 template<typename GeneralParamName, typename VertexIndexMap, typename ValueType>
 using ChooseVertexIndexComposeMap = ChooseParamReturnType<
-		GeneralParamReturnType<GeneralParamName>,
+		MemberFunctionReturnType<GeneralParamName>,
 		ComposeMap<VertexIndexMap, IteratorMap<ValueType*> >
 >;
 

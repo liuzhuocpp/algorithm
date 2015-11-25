@@ -35,24 +35,15 @@ struct StronglyConnectedComponentsParams{
 		using E = typename GraphTraits<G>::EdgeDescriptor;
 
 		using VertexIndexMap = ChooseVertexIndexMap<typename std::add_const<G>::type, decltype(&Params::vertexIndexMap)>;
-
-
 		using DiscoverTimeMap = ChooseVertexIndexComposeMap<decltype(&Params::discoverTimeMap), VertexIndexMap, size_t>;
-
-
 		using RootMap = ChooseVertexIndexComposeMap<decltype(&Params::rootMap), VertexIndexMap, V>;
-
-
 
 		using ComponentType = typename std::decay<typename MapTraits<ComponentMap>::ValueType>::type;
 		using TimeType = typename std::decay<typename MapTraits<DiscoverTimeMap>::ValueType>::type;
 
-
 		const G &g;
 		ComponentMap compMap;
 		Params &p;
-
-
 		DiscoverTimeMap discoverTimeMap;
 		RootMap rootMap;
 		vector<bool> inStack;
@@ -77,15 +68,12 @@ struct StronglyConnectedComponentsParams{
 			inStack.assign(n, 0);
 		}
 
-
-
 		DiscoverTimeMap colorMap() { return discoverTimeMap; }
 		TimeType white() { return 0; }
 		TimeType black()
 		{
 			return ++ dfsTime;
 		}
-
 		void discoverVertex(V u)
 		{
 			rootMap[u] = u;
@@ -105,7 +93,6 @@ struct StronglyConnectedComponentsParams{
 
 				rootMap[u] = minRoot(rootMap[u], to);
 			}
-
 		}
 		void finishVertex(V u)
 		{
@@ -130,36 +117,20 @@ struct StronglyConnectedComponentsParams{
 		}
 	};
 
-
-
-
-
-
-
     } // namespace StronglyConnectedComponentsPrivate
-
-
 
     template<typename G, typename ComponentMap, typename Params = StronglyConnectedComponentsParams>
 
     typename std::decay<typename MapTraits<ComponentMap>::ValueType>::type
-
 	stronglyConnectedComponents(const G &g, ComponentMap compMap, Params &&p = StronglyConnectedComponentsParams() )
     {
 		static_assert(std::is_same<typename GraphTraits<G>::DirectedCategory, DirectedGraphTag>::value, "this graph is not directed");
-
 		using RealParams = typename std::remove_reference<Params>::type;
-
 		StronglyConnectedComponentsPrivate::Impl<G, ComponentMap, RealParams> impl(g, compMap, p);
-
 		depthFirstSearch(g, impl);
 		deleteVertexIndexComposeMap(impl.rootMap, p.rootMap());
 		deleteVertexIndexComposeMap(impl.discoverTimeMap, p.discoverTimeMap());
-
-
 		return impl.compNumber;
-
-
 
     }
 

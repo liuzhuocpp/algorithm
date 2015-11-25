@@ -29,13 +29,9 @@ using std::endl;
 	struct Impl
 	{
 		using V = typename GraphTraits<G>::VertexDescriptor;
-
 		using VertexIndexMap = ChooseVertexIndexMap<typename std::add_const<G>::type, decltype(&Params::vertexIndexMap)>;
-
 		using DefaultColor = ColorTraits<>::Type;
-
 		using ColorMap = ChooseVertexIndexComposeMap<decltype(&Params::colorMap), VertexIndexMap, DefaultColor>;
-
 
 		VertexIndexMap indexMap;
 		ColorMap colorMap;
@@ -45,17 +41,14 @@ using std::endl;
 		{
 			indexMap = chooseParamReturnValue(p.vertexIndexMap(),
 											  g.vertexPropertyMap(VertexIndexTag()));
-
 			colorMap = chooseVertexIndexComposeMap<ColorTraits<>::Type>(p.colorMap(), indexMap, g.vertexNumber());
 		}
-
 		auto outEdges(V u)
 		->typename std::remove_reference<
 			decltype(chooseParamReturnValue(p.outEdges(u), g.outEdges(u) )  )>::type
 		{
 			return chooseParamReturnValue(p.outEdges(u), g.outEdges(u) );
 		};
-
 		void init(std::true_type)
 		{
 			auto&& vi = g.vertices();
@@ -74,7 +67,6 @@ using std::endl;
 			p.startVertex(u);
 			dfs(u);
 		}
-
 		void chooseEnterVertex(ParamNotFound )
 		{
 			auto&& vi = g.vertices();
@@ -121,26 +113,8 @@ using std::endl;
 			chooseEnterVertex(p.enterVertex());
 			deleteVertexIndexComposeMap(colorMap, p.colorMap());
 		}
-
-
-
-
-
-
-
 	};
-
-
-
 	} // namespace DepthFirstSearchPrivate
-
-
-
-
-
-
-
-
 
 class DepthFirstSearchParams
 {
@@ -156,21 +130,15 @@ public:
 	template<typename E, typename V> void finishEdge(E e, V u) {}
 	template<typename V> void finishVertex(V u) {}
 
-
 	DefaultColor white() { return ColorTraits<>::white(); }
 	DefaultColor black() { return ColorTraits<>::black(); }
 
-
 	using IsInit = std::true_type;
-
-
 	ParamNotFound vertexIndexMap() {}
 	template<typename V>
 	ParamNotFound outEdges(V u) {}
 	ParamNotFound colorMap() {}
 	ParamNotFound enterVertex(){}
-
-
 };
 
 template<typename G, typename Params>
@@ -178,20 +146,9 @@ void depthFirstSearch(const G &g, Params &&p)
 {
 	using RealParams = typename std::remove_reference<Params>::type;
 
-
 	DepthFirstSearchPrivate::Impl<G, RealParams> impl(g, p);
 	impl.run();
-
-
-
-
 }
-	
-
-
-
-
-
 
 
 } // namesace lz
