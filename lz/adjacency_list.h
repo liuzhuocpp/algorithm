@@ -10,6 +10,8 @@
 #include "lz/graph_utility.h"
 #include "lz/iterator.h"
 #include "lz/map.h"
+
+
 namespace lz {
 
 
@@ -39,15 +41,13 @@ class AdjacencyList;
     template<>
     struct VertexData<NoProperty>
     {
-    	using VP = NoProperty;
     	EdgeDescriptor head;
         VertexData(EdgeDescriptor head, const NoProperty &vp):head(head) {}
     };
 
-    template<typename _VP>
+    template<typename VP>
     struct VertexData:public VertexData<NoProperty>
     {
-    	using VP = _VP;
         VP vp;
         VertexData(EdgeDescriptor _head, const VP &vp): VertexData<NoProperty>(_head, NoProperty()), vp(vp) {}
     };
@@ -61,16 +61,14 @@ class AdjacencyList;
 	template<>
 	struct EdgeData<NoProperty>
 	{
-		using EP = NoProperty;
 		VertexDescriptor source, target;
 		EdgeDescriptor next;
 		EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const NoProperty & ep)
 		:source(source), target(target), next(next){}
 	};
-    template<typename _EP>
+    template<typename EP>
     struct EdgeData:public EdgeData<NoProperty>
     {
-    	using EP = _EP;
     	EP ep;
         EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const EP & ep)
     	:EdgeData<NoProperty>(source, target, next, NoProperty()), ep(ep){}
@@ -130,7 +128,7 @@ class AdjacencyList;
     template<typename G, typename Tag>
 	class VertexPropertyMap:
 			public MapFacade<typename GraphTraits<G>::VertexDescriptor,
-    						 decltype(typename G::VertexData::VP()[Tag()])>
+							 typename GraphTraits<G>::template VertexPropertyMap<Tag> >
 	{
     	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
 		G *g = nullptr;
@@ -162,7 +160,7 @@ class AdjacencyList;
     template<typename G, typename Tag>
     class EdgePropertyMap
     		:public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
-                              decltype(typename G::EdgeData::EP()[Tag()])>
+                              typename GraphTraits<G>::template EdgePropertyMap<Tag> >
    	{
     	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
        	G *g = nullptr;
