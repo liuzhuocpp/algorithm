@@ -161,8 +161,8 @@ class AdjacencyList;
 
     template<typename G, typename Tag>
     class EdgePropertyMap
-//    		:public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
-//							               decltype(get(g->e[typename GraphTraits<G>::EdgeDescriptor()].ep, Tag()))>
+    		:public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
+                              decltype(typename G::EdgeData::EP()[Tag()])>
    	{
     	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
        	G *g = nullptr;
