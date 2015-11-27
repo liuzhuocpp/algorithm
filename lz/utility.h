@@ -37,6 +37,62 @@ struct ColorTraits
 //};
 
 
+template<typename Derived>
+struct EqualityComparableFacade
+{
+	bool operator!=(const Derived o) const
+	{
+		return this->derived() == o;
+	}
+protected:
+	Derived& derived()
+	{ return *static_cast<Derived*>(this); }
+
+	Derived const& derived() const
+	{ return *static_cast<Derived const*>(this); }
+};
+
+template<typename Derived>
+struct FacadeBase
+{
+protected:
+	Derived& derived()
+	{ return *static_cast<Derived*>(this); }
+
+	Derived const& derived() const
+	{ return *static_cast<Derived const*>(this); }
+};
+
+template<typename Derived>
+struct EqualityComparableFacade:public FacadeBase<Derived>
+{
+	bool operator!=(const Derived o) const
+	{
+		return this->derived() == o;
+	}
+};
+
+template<typename Derived>
+struct LessThanComparable: public FacadeBase<Derived>
+{
+	bool operator>(const Derived &o) const
+	{
+		return o < this->derived();
+	}
+	bool operator<=(const Derived &o) const
+	{
+		return !(o < this->derived());
+	}
+	bool operator>=(const Derived &o) const
+	{
+		return !(this->derived() < o);
+	}
+
+};
+
+
+
+
 
 /*
  *  A params is param list, and every param is a member function in params.

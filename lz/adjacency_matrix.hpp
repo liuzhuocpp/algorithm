@@ -2,7 +2,7 @@
 #define ADJACENCY_MATRIX_H
 
 #include <vector>
-#include "graph_utility.h"
+#include "lz/graph_utility.h"
 //#include "multi_array.h"
 
 namespace lz {
@@ -187,55 +187,172 @@ namespace lz {
 
 	namespace AdjacencyMatrixPrivate{
 
+//	template<typename T> using MultiArray = std::vector<std::vector<T> >;
+
+	using VertexDescriptor = int;
+	using SizeType = int;
+	struct EdgeDescriptor: public EqualityComparableFacade<EdgeDescriptor>
+	{
+		VertexDescriptor source, target;
+		EdgeDescriptor(){}
+		EdgeDescriptor(VertexDescriptor s, VertexDescriptor t):
+		source(s > t ? s : t), target(s < t ? s : t) {}
+
+		bool operator==(EdgeDescriptor o) const
+		{
+			return source == o.source && target = o.target;
+		}
+	};
+
+//	template<bool Con, typename T> struct ChooseDefineMember { T value; };
+//	template<typename T> struct ChooseDefineMember<false> {};
+
+
+	template<typename Property> struct HasProperty
+	{
+		Property p;
+		void set(const Property &_p) { p = _p; }
+	};
+	template<> struct HasProperty<NoProperty>
+	{ void set(const Property &_p) {  } };
+
+
+
+	template<typename VP>
+	struct VertexDataList
+	{
+		std::vector<VP> v;
+		void assignVertex(SizeType _n, const VP &vp)
+		{
+			v.assign(_n, vp);
+		}
+		SizeType vertexNumber() const
+		{
+			return v.size();
+		}
+	};
+	template<> struct VertexDataList<NoProperty>
+	{
+		SizeType n;
+		void assignVertex(SizeType _n, const NoProperty &vp)
+		{
+			n = _n;
+		}
+		SizeType vertexNumber() const
+		{
+			return n;
+		}
+	};
 	template<typename T>
-	using MultiArray = std::vector<std::vector<T>>;
-
-	template<typename _VP>
-	struct VertexData
+	static T progressionSum(T n)
 	{
-		using VP = _VP;
-		_VP vp;
-	};
-	template<>
-	struct VertexData<NoProperty> {};
+		if(n & 1) return ((n + 1) >> 1) * n;
+		else return (n >> 1) * (n + 1) ;
+	}
 
-	template<typename _EP>
-	struct EdgeData
+
+	template<typename EP>
+	struct EdgeData: public HasProperty<EP>
 	{
-		using EP = _EP;
-		bool e;
-		EP ep;
-
+		bool exist = 0;
 	};
 
-	template<>
-	struct EdgeData<NoProperty>
+	template<typename VP, typename EP, typename GP>
+	struct GraphData: public VertexDataList<VP>,
+					  public HasProperty<GP>
 	{
-
+		std::vector<EdgeData<EP> > e;
 	};
+    // DistinguishDirectionGraph
+    template<typename Direction, typename VP, typename EP, typename GP>
+    struct DistinguishDirectionGraph: public GraphData<VP, EP, GP>
+    {
+    	using Base = GraphData<VP, EP, GP>;
+		void assignVertex(SizeType n, VP vp)
+		{
+			VertexDataList<VP>::assignVertex(n, vp);
+			e.assign(n * n, EdgeData<EP>());
+		}
+    	SizeType edToId(EdgeDescriptor e)
+    	{
+    		SizeType n = vertexNumber();
+    		return n * e.source + e.target;
+    	}
+    };
 
-	struct GraphData
+    template<typename VP, typename EP, typename GP>
+	struct DistinguishDirectionGraph<UndirectedGraphTag>: public GraphData<VP, EP, GP>
 	{
-
+    	using Base = GraphData<VP, EP, GP>;
+    	void assignVertex(SizeType n, VP vp)
+		{
+			VertexDataList<VP>::assignVertex(n, vp);
+			e.assign(progressionSum(n), EdgeData<EP>());
+		}
+    	SizeType edToId(EdgeDescriptor e) // ensure e.source >= e.target
+		{
+    		SizeType s = e.source, t = e.target; // return (s + 1) * s / 2 + t
+    		return progressionSum(s) + t;
+		}
 	};
-
-
-
-
-
-
-
-
 
 
 
 	}
 
 
-
-	class AdjacencyMatrix
+	template<typename Direction, typename VP, typename EP, typename GP>
+	class AdjacencyMatrix:private AdjacencyMatrixPrivate::DistinguishDirectionGraph<
+						  Direction, VP, EP, GP>
 	{
+		using Base = AdjacencyMatrixPrivate::DistinguishDirectionGraph<
+					 Direction, VP, EP, GP>;
+		using EdgeData = AdjacencyMatrixPrivate::EdgeData<EP>;
+		using SizeType = AdjacencyMatrixPrivate::SizeType;
+		using Base::edToId;
 	public:
+		using DirectedCategory = Direction;
+		using VertexProperties = VP;
+		using EdgeProperties = EP;
+		using GraphProperties = GP;
+
+		using VertexDescriptor = AdjacencyMatrixPrivate::VertexDescriptor ;
+		using EdgeDescriptor = AdjacencyMatrixPrivate::EdgeDescriptor ;
+
+		explicit AdjacencyMatrix(SizeType n = 0, const VP & vp = VP())
+		{
+			assignVertex(n, vp);
+		}
+		void assignVertex(SizeType n, const VP &vp = VP())
+		{
+			assignVertex(n, vp);
+		}
+		EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+		{
+			EdgeDescriptor ed(a, b);
+			SizeType i = edToId(ed);
+			this->e[i].exist = 1;
+			this->e[i].set(ep);
+			return ed;
+		}
+		std::pair<EdgeDescriptor, bool> edge(VertexDescriptor a, VertexDescriptor b) const
+		{
+			EdgeDescriptor ed(a, b);
+			SizeType i = this->edToId(ed);
+			return std::make_pair(ed, this->e[i].exist);
+		}
+		VertexDescriptor source(EdgeDescriptor ed) const { return ed.source; }
+		VertexDescriptor target(EdgeDescriptor ed) const { return ed.target; }
+		const GP& graphProperties() const { return this->p; }
+		GP& graphProperties() { return this->p; }
+
+
+		const VP& vertexProperties(VertexDescriptor u) const { return this->v[u].p; }
+		VP& vertexProperties(VertexDescriptor u) { return this->v[u].p; }
+
+		const EP& edgeProperties(EdgeDescriptor ed) const { return this->e[edToId(ed)].p; }
+		EP& edgeProperties(EdgeDescriptor ed) { return this->e[edToId(ed)].p; }
+
 
 
 	};

@@ -5,13 +5,13 @@
  *      Author: LZ
  */
 
+#include <lz/adjacency_matrix.hpp>
 #include <iostream>
 #include <cstdio>
 #include <cstring>
 #include <tuple>
 #include <vector>
 
-#include "lz/AdjacencyMatrix.hpp"
 
 using namespace std;
 using namespace lz;
