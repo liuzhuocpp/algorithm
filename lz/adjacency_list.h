@@ -168,7 +168,6 @@ class AdjacencyList;
 
 
 
-//template<typename G>
 template<typename D, typename VP, typename EP, typename GP>
 class VertexPropertyMap<AdjacencyList<D, VP, EP, GP>, VertexIndexTag>
 	:public IdentityMap<typename GraphTraits<AdjacencyList<D, VP, EP, GP>>::VertexDescriptor>
@@ -179,7 +178,6 @@ class VertexPropertyMap<AdjacencyList<D, VP, EP, GP>, VertexIndexTag>
 public:
 	VertexPropertyMap() = default;
 	VertexPropertyMap(G *_g) {}
-
 	using Type = VertexPropertyMap<G, VertexIndexTag>;
 	using ConstType = VertexPropertyMap<const G, VertexIndexTag>;
 };
