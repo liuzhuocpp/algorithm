@@ -37,8 +37,6 @@ opposite(const Graph &g,
     return g.target(e);
 }
 
-
-
 template<typename G>
 struct GraphTraits
 {
@@ -52,6 +50,8 @@ struct GraphTraits
 
 	using OutEdgeIterator = typename G::OutEdgeIterator;
 
+	using VertexProperties = typename G::VertexProperties;
+	using EdgeProperties = typename G::EdgeProperties;
 
 	template<typename Tag>
 	using VertexPropertyMap = typename G::template VertexPropertyMap<Tag>;
@@ -60,6 +60,56 @@ struct GraphTraits
 	using EdgePropertyMap = typename G::template EdgePropertyMap<Tag>;
 
 };
+
+
+
+
+
+
+
+template<typename G, typename Tag>
+class VertexPropertyMap: public MapFacade<typename GraphTraits<G>::VertexDescriptor,
+						 	 	 	 	  decltype(typename GraphTraits<G>::VertexProperties()[Tag()]) >
+{
+	G *g = nullptr;
+public:
+	VertexPropertyMap() = default;
+	VertexPropertyMap(G *_g):g(_g){}
+	using Type = VertexPropertyMap<G, Tag>;
+	using ConstType = VertexPropertyMap<const G, Tag>;
+
+	auto operator[](typename GraphTraits<G>::VertexDescriptor u) const
+	->decltype(get(g->vertexProperties(u), Tag()))
+	{
+		return get(g->vertexProperties(u), Tag());
+	}
+};
+
+
+template<typename G, typename Tag>
+class EdgePropertyMap: public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
+										decltype(typename GraphTraits<G>::EdgeProperties()[Tag()])>
+{
+	G *g = nullptr;
+public :
+	EdgePropertyMap() = default;
+	EdgePropertyMap(G *_g):g(_g) {}
+
+	using Type = EdgePropertyMap<G, Tag>;
+	using ConstType = EdgePropertyMap<const G, Tag>;
+
+	auto operator[](typename GraphTraits<G>::EdgeDescriptor e) const
+	->decltype(get(g->edgeProperties(e), Tag()))
+	{
+		return get(g->edgeProperties(e), Tag());
+	}
+};
+
+
+
+
+
+
 
 
 

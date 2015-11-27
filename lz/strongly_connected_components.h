@@ -1,13 +1,12 @@
-
-
-
-
 #ifndef STRONG_COMPONENTS_H
 #define STRONG_COMPONENTS_H
 
 #include <utility>
 #include <functional>
 #include "lz/depth_first_search.h"
+#include "lz/map.h"
+#include "lz/utility.h"
+#include "lz/graph_utility.h"
 
 namespace lz {
 
@@ -35,7 +34,9 @@ struct StronglyConnectedComponentsParams{
 		using E = typename GraphTraits<G>::EdgeDescriptor;
 
 		using VertexIndexMap = ChooseVertexIndexMap<typename std::add_const<G>::type, decltype(&Params::vertexIndexMap)>;
+
 		using DiscoverTimeMap = ChooseVertexIndexComposeMap<decltype(&Params::discoverTimeMap), VertexIndexMap, size_t>;
+
 		using RootMap = ChooseVertexIndexComposeMap<decltype(&Params::rootMap), VertexIndexMap, V>;
 
 		using ComponentType = typename std::decay<typename MapTraits<ComponentMap>::ValueType>::type;

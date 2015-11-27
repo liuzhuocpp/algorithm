@@ -37,20 +37,20 @@ struct ColorTraits
 //};
 
 
-template<typename Derived>
-struct EqualityComparableFacade
-{
-	bool operator!=(const Derived o) const
-	{
-		return this->derived() == o;
-	}
-protected:
-	Derived& derived()
-	{ return *static_cast<Derived*>(this); }
-
-	Derived const& derived() const
-	{ return *static_cast<Derived const*>(this); }
-};
+//template<typename Derived>
+//struct FacadeBase
+//{
+//	bool operator!=(const Derived o) const
+//	{
+//		return this->derived() == o;
+//	}
+//protected:
+//	Derived& derived()
+//	{ return *static_cast<Derived*>(this); }
+//
+//	Derived const& derived() const
+//	{ return *static_cast<Derived const*>(this); }
+//};
 
 template<typename Derived>
 struct FacadeBase
@@ -64,7 +64,7 @@ protected:
 };
 
 template<typename Derived>
-struct EqualityComparableFacade:public FacadeBase<Derived>
+struct EqualityComparableFacade: public FacadeBase<Derived>
 {
 	bool operator!=(const Derived o) const
 	{
@@ -87,7 +87,6 @@ struct LessThanComparable: public FacadeBase<Derived>
 	{
 		return !(this->derived() < o);
 	}
-
 };
 
 

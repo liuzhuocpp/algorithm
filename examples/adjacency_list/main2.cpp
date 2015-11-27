@@ -8,6 +8,7 @@
 /*
  * AdjacencyList test
  */
+#include <lz/iterator_facade.h>
 #include <iostream>
 #include <cstdio>
 #include <cstring>
@@ -18,7 +19,6 @@
 #include "lz/adjacency_list.h"
 #include "lz/map.h"
 #include "lz/property.h"
-#include "lz/iterator.h"
 
 using namespace std;
 using namespace lz;

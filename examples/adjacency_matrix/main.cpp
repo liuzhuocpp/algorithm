@@ -5,22 +5,39 @@
  *      Author: LZ
  */
 
-#include <lz/adjacency_matrix.hpp>
 #include <iostream>
 #include <cstdio>
 #include <cstring>
 #include <tuple>
 #include <vector>
 
+#include <lz/adjacency_matrix.hpp>
 
 using namespace std;
 using namespace lz;
 
 int main()
 {
+	using G = AdjacencyMatrix<>;
+	G g;
+
+	g.assignVertex(6);
+	g.addEdge(0, 1);
+
+	g.addEdge(3, 1);
+	auto ed = g.addEdge(2, 5);
+
+	g.removeEdge(ed);
+
+	auto i = g.edge(2, 5);
 
 
-	cout << "JJJ " << endl;
+	cout << i.second << endl;
+//	cout << i.first.target << endl;
+
+
+
+
 
 
 

@@ -11,8 +11,6 @@
 #include <cstring>
 #include <tuple>
 #include "lz/adjacency_list.h"
-//#include "lz/depth_first_search.h"
-//#include "lz/property.h"
 
 #include "lz/strongly_connected_components.h"
 
@@ -22,20 +20,6 @@ using namespace lz;
 
 using G = AdjacencyList<>;
 
-
-//struct P:public DepthFirstSearchParams
-//{
-//	using V = GraphTraits<G>::VertexDescriptor;
-//	using E = typename GraphTraits<G>::EdgeDescriptor;
-//
-//	G &g;
-//	P(G &g):g(g){}
-//	void treeEdge(E e, V u)
-//	{
-//		V other = opposite(g, e, u);
-//		cout << u << " " << other << endl;
-//	}
-//};
 
 int main()
 {
@@ -50,6 +34,7 @@ int main()
 	g.addEdge(4, 1);
 
 	vector<int> a(n);
+	cout << "FFF " << endl;
 	int comp = stronglyConnectedComponents(g, makeIteratorMap(a.begin()));
 
 	cout << comp << endl;
