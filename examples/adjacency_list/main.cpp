@@ -21,7 +21,7 @@ int main()
 			   Property<char_tag, char> >;
 
 
-	using G = AdjacencyList<DirectedGraphTag, VP>;
+	using G = AdjacencyList<UndirectedGraphTag, VP>;
 	G g;
 	int n = 2;
 	g.addVertex(VP(10, 'z'));

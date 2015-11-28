@@ -201,6 +201,16 @@ auto get(const Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
 
 
 
+template<typename P>
+struct ChooseDefineProperties
+{
+	P properties;
+	void set(const P &_p) { properties = _p; }
+};
+template<> struct ChooseDefineProperties<NoProperty>
+{
+	void set(const NoProperty &_p) {  }
+};
 
 
 

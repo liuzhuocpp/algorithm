@@ -87,6 +87,10 @@ namespace lz {
     		SizeType n = this->vertexNumber();
     		return n * e.source + e.target;
     	}
+    	EdgeDescriptor makeEdgeDescriptor(VertexDescriptor a, VertexDescriptor b) const
+    	{
+    		return EdgeDescriptor(a, b);
+    	}
     };
 
     template<typename VP, typename EP, typename GP>
@@ -95,8 +99,12 @@ namespace lz {
     	SizeType edToId(EdgeDescriptor e)  const // ensure e.source >= e.target
 		{
     		SizeType s = e.source, t = e.target; // return (s + 1) * s / 2 + t
-    		if(s < t) std::swap(s, t);
     		return progressionSum(s) + t;
+		}
+    	EdgeDescriptor makeEdgeDescriptor(VertexDescriptor a, VertexDescriptor b) const
+		{
+    		if(a < b) std::swap(a, b);
+			return EdgeDescriptor(a, b);
 		}
 	};
 
@@ -128,7 +136,6 @@ namespace lz {
 		using Base = AdjacencyMatrixPrivate::Graph<
 					 Direction, VP, EP, GP>;
 		using EdgeData = AdjacencyMatrixPrivate::EdgeData<EP>;
-		using SizeType = AdjacencyMatrixPrivate::SizeType;
 
 	public:
 		using DirectedCategory = Direction;
@@ -138,6 +145,7 @@ namespace lz {
 
 		using VertexDescriptor = AdjacencyMatrixPrivate::VertexDescriptor ;
 		using EdgeDescriptor = AdjacencyMatrixPrivate::EdgeDescriptor ;
+		using SizeType = AdjacencyMatrixPrivate::SizeType;
 
 		explicit AdjacencyMatrix(SizeType n = 0, const VP & vp = VP())
 		{
@@ -149,7 +157,7 @@ namespace lz {
 		}
 		EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
 		{
-			EdgeDescriptor ed(a, b);
+			auto ed = this->makeEdgeDescriptor(a, b);
 			this->edgeData(ed).exist = 1;
 			this->edgeData(ed).set(ep);
 			return ed;
@@ -161,7 +169,7 @@ namespace lz {
 
 		std::pair<EdgeDescriptor, bool> edge(VertexDescriptor a, VertexDescriptor b) const
 		{
-			EdgeDescriptor ed(a, b);
+			auto ed = this->makeEdgeDescriptor(a, b);
 			return std::make_pair(ed, this->edgeData(ed).exist);
 		}
 		VertexDescriptor source(EdgeDescriptor ed) const { return ed.source; }

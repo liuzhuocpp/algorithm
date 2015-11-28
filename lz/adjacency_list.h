@@ -27,29 +27,15 @@ template<typename DirectedCategory = DirectedGraphTag,
          typename GP = NoProperty>
 class AdjacencyList;
 
-
-
     namespace AdjacencyListPrivate {
-
 
     using VertexDescriptor = int;
     using EdgeDescriptor = int;
     using SizeType = int;
 
-    template<typename P>
-    struct ChooseDefineProperties
-    {
-    	P properties;
-    	void set(const P &_p) { properties = _p; }
-    };
-    template<> struct ChooseDefineProperties<NoProperty>
-    {
-    	void set(const NoProperty &_p) {  }
-    };
 
 
     // vertex data
-
     template<typename VP>
     struct VertexData: public ChooseDefineProperties<VP>
 	{
@@ -59,10 +45,6 @@ class AdjacencyList;
     		ChooseDefineProperties<VP>::set(vp);
     	}
 	};
-
-
-
-
 
     // edge data
 	template<typename EP>
@@ -84,6 +66,11 @@ class AdjacencyList;
     {
         vector<VertexData<VP> > v;
         vector<EdgeData<EP> > e;
+        EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+		{
+			this->e.push_back(EdgeData<EP>(a, b, this->v[a].head, ep));
+			return this->v[a].head = this->e.size() - 1;
+		}
     };
 
 
@@ -119,48 +106,32 @@ class AdjacencyList;
 		}
 	};
 
-
-
-    template<typename VP, typename EP, typename GP>
-    struct GraphDataWrapper: public GraphData<VP, EP, GP>
-    {
-    	EdgeDescriptor addSingleEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
-		{
-			this->e.push_back(EdgeData<EP>(a, b, this->v[a].head, ep));
-			return this->v[a].head = this->e.size() - 1;
-		}
-    };
-
     // realED: in memory
     // virtualED: for user
     // V2R: virtualED to realED
     // R2V: realED to virtualED
     // DistinguishDirectionGraph
-    template<typename Direction,
-             typename VP,
-             typename EP,
-             typename GP>
-    struct DistinguishDirectionGraph: public GraphDataWrapper<VP, EP, GP>
+    template<typename Direction, typename VP, typename EP, typename GP>
+    struct DistinguishDirectionGraph: public GraphData<VP, EP, GP>
     {
     	static EdgeDescriptor V2R(EdgeDescriptor e) { return e; }
     	static EdgeDescriptor R2V(EdgeDescriptor e) { return e; }
-    	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
-    	{
-    		return this->addSingleEdge(a, b, ep);
-    	}
+    	using GraphData<VP, EP, GP>::addEdge;
     };
 
     template<typename VP,
 			 typename EP,
 			 typename GP>
-    struct DistinguishDirectionGraph<UndirectedGraphTag, VP, EP, GP>: public GraphDataWrapper<VP, EP, GP>
+    struct DistinguishDirectionGraph<UndirectedGraphTag, VP, EP, GP>
+    	:public GraphData<VP, EP, GP>
     {
     	static EdgeDescriptor V2R(EdgeDescriptor e) { return e << 1; }
     	static EdgeDescriptor R2V(EdgeDescriptor e) { return e >> 1; }
+    	using Base = GraphData<VP, EP, GP>;
     	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
 		{
-    		this->addSingleEdge(a, b, ep);
-			return this->addSingleEdge(b, a, ep) >> 1;
+    		Base::addEdge(a, b, ep);
+			return Base::addEdge(b, a, ep) >> 1;
 		}
     };
 
@@ -173,8 +144,6 @@ class VertexPropertyMap<AdjacencyList<D, VP, EP, GP>, VertexIndexTag>
 	:public IdentityMap<typename GraphTraits<AdjacencyList<D, VP, EP, GP>>::VertexDescriptor>
 {
 	using G = AdjacencyList<D, VP, EP, GP>;
-
-	template<typename _D, typename _VP, typename _EP, typename _GP> friend class AdjacencyList;
 public:
 	VertexPropertyMap() = default;
 	VertexPropertyMap(G *_g) {}
@@ -187,7 +156,6 @@ class EdgePropertyMap<AdjacencyList<D, VP, EP, GP>, EdgeIndexTag>
 	:public IdentityMap<typename GraphTraits<AdjacencyList<D, VP, EP, GP>>::EdgeDescriptor>
 {
 	using G = AdjacencyList<D, VP, EP, GP>;
-	template<typename _D, typename _VP, typename _EP, typename _GP> friend class AdjacencyList;
 public:
 	EdgePropertyMap() = default;
 	EdgePropertyMap(G *_g){}
@@ -227,7 +195,7 @@ public:
 	template<typename Tag>
 	using EdgePropertyMap = lz::EdgePropertyMap<G, Tag>;
 
-	explicit AdjacencyList(int n = 0, const VP & vp = VP())
+	explicit AdjacencyList(SizeType n = 0, const VP & vp = VP())
 	{
 		this->v.assign(n, VertexData(-1, vp));
 	}
