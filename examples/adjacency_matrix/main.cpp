@@ -18,7 +18,7 @@ using namespace lz;
 
 int main()
 {
-	using G = AdjacencyMatrix<>;
+	using G = AdjacencyMatrix<UndirectedGraphTag>;
 	G g;
 
 	g.assignVertex(6);
@@ -27,9 +27,15 @@ int main()
 	g.addEdge(3, 1);
 	auto ed = g.addEdge(2, 5);
 
-	g.removeEdge(ed);
+	cout << "edgeN " <<  g.edgeNumber() << endl;
+	g.removeEdge(g.edge(5, 2).first);
 
+	cout << "edgeN&& " <<  g.edgeNumber() << endl;
 	auto i = g.edge(2, 5);
+	cout << g.vertexNumber() << endl;
+
+
+
 
 
 	cout << i.second << endl;

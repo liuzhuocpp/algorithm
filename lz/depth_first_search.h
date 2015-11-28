@@ -29,7 +29,7 @@ using std::endl;
 	struct Impl
 	{
 		using V = typename GraphTraits<G>::VertexDescriptor;
-		using VertexIndexMap = ChooseVertexIndexMap<typename std::add_const<G>::type, decltype(&Params::vertexIndexMap)>;
+		using VertexIndexMap = ChooseVertexIndexMap<G, decltype(&Params::vertexIndexMap)>;
 		using DefaultColor = ColorTraits<>::Type;
 		using ColorMap = ChooseVertexIndexComposeMap<decltype(&Params::colorMap), VertexIndexMap, DefaultColor>;
 
@@ -44,8 +44,8 @@ using std::endl;
 			colorMap = chooseVertexIndexComposeMap<ColorTraits<>::Type>(p.colorMap(), indexMap, g.vertexNumber());
 		}
 		auto outEdges(V u)
-		->typename std::remove_reference<
-			decltype(chooseParamReturnValue(p.outEdges(u), g.outEdges(u) )  )>::type
+//		->typename std::remove_reference<
+//			decltype(chooseParamReturnValue(p.outEdges(u), g.outEdges(u) )  )>::type
 		{
 			return chooseParamReturnValue(p.outEdges(u), g.outEdges(u) );
 		};

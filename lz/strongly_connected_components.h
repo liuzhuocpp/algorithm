@@ -33,7 +33,7 @@ struct StronglyConnectedComponentsParams{
 		using V = typename GraphTraits<G>::VertexDescriptor;
 		using E = typename GraphTraits<G>::EdgeDescriptor;
 
-		using VertexIndexMap = ChooseVertexIndexMap<typename std::add_const<G>::type, decltype(&Params::vertexIndexMap)>;
+		using VertexIndexMap = ChooseVertexIndexMap<G, decltype(&Params::vertexIndexMap)>;
 
 		using DiscoverTimeMap = ChooseVertexIndexComposeMap<decltype(&Params::discoverTimeMap), VertexIndexMap, size_t>;
 
@@ -122,13 +122,18 @@ struct StronglyConnectedComponentsParams{
 
     template<typename G, typename ComponentMap, typename Params = StronglyConnectedComponentsParams>
 
-    typename std::decay<typename MapTraits<ComponentMap>::ValueType>::type
-	stronglyConnectedComponents(const G &g, ComponentMap compMap, Params &&p = StronglyConnectedComponentsParams() )
+//    typename std::decay<typename MapTraits<ComponentMap>::ValueType>::type
+	auto stronglyConnectedComponents(const G &g, ComponentMap compMap, Params &&p = StronglyConnectedComponentsParams() )
     {
 		static_assert(std::is_same<typename GraphTraits<G>::DirectedCategory, DirectedGraphTag>::value, "this graph is not directed");
 		using RealParams = typename std::remove_reference<Params>::type;
+
 		StronglyConnectedComponentsPrivate::Impl<G, ComponentMap, RealParams> impl(g, compMap, p);
+
+
 		depthFirstSearch(g, impl);
+
+
 		deleteVertexIndexComposeMap(impl.rootMap, p.rootMap());
 		deleteVertexIndexComposeMap(impl.discoverTimeMap, p.discoverTimeMap());
 		return impl.compNumber;

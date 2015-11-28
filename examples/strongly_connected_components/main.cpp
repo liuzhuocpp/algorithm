@@ -20,6 +20,10 @@ using namespace lz;
 
 using G = AdjacencyList<>;
 
+struct StronglyConnectedComponentsParams
+{
+
+};
 
 int main()
 {

@@ -138,31 +138,28 @@ class AdjacencyList;
     } // AdjacencyListPrivate
 
 
-
 template<typename D, typename VP, typename EP, typename GP>
-class VertexPropertyMap<AdjacencyList<D, VP, EP, GP>, VertexIndexTag>
-	:public IdentityMap<typename GraphTraits<AdjacencyList<D, VP, EP, GP>>::VertexDescriptor>
+class VertexPropertyMap< AdjacencyList<D, VP, EP, GP>, VertexIndexTag>
+	:public IdentityMap<typename GraphTraits< AdjacencyList<D, VP, EP, GP> >::VertexDescriptor>
 {
-	using G = AdjacencyList<D, VP, EP, GP>;
 public:
 	VertexPropertyMap() = default;
-	VertexPropertyMap(G *_g) {}
-	using Type = VertexPropertyMap<G, VertexIndexTag>;
-	using ConstType = VertexPropertyMap<const G, VertexIndexTag>;
+	VertexPropertyMap(const AdjacencyList<D, VP, EP, GP> &_g){}
+
+	using Type = VertexPropertyMap;
+	using ConstType = Type;
 };
 
 template<typename D, typename VP, typename EP, typename GP>
 class EdgePropertyMap<AdjacencyList<D, VP, EP, GP>, EdgeIndexTag>
 	:public IdentityMap<typename GraphTraits<AdjacencyList<D, VP, EP, GP>>::EdgeDescriptor>
 {
-	using G = AdjacencyList<D, VP, EP, GP>;
 public:
 	EdgePropertyMap() = default;
-	EdgePropertyMap(G *_g){}
-	using Type = EdgePropertyMap<G, EdgeIndexTag>;
-	using ConstType = EdgePropertyMap<const G, EdgeIndexTag>;
+	EdgePropertyMap(const AdjacencyList<D, VP, EP, GP> &_g){}
+	using Type = EdgePropertyMap;
+	using ConstType = Type;
 };
-
 
 
 template<typename Direction, typename VP,
@@ -229,21 +226,18 @@ public:
 	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
 	{ return this->Base::addEdge(a, b, ep); }
 
-	template<typename Tag>
-	typename VertexPropertyMap<Tag>::Type vertexPropertyMap(Tag tag)
-	{ return typename VertexPropertyMap<Tag>::Type(this); }
+	template<typename Tag> auto vertexPropertyMap(Tag tag)
+	{ return makeVertexPropertyMap(*this, tag); }
 
-	template<typename Tag>
-	typename VertexPropertyMap<Tag>::ConstType vertexPropertyMap(Tag tag) const
-	{ return typename VertexPropertyMap<Tag>::ConstType(this); }
+	template<typename Tag> auto vertexPropertyMap(Tag tag) const
+	{ return makeVertexPropertyMap(*this, tag); }
 
-	template<typename Tag>
-	typename EdgePropertyMap<Tag>::Type edgePropertyMap(Tag tag)
-	{ return typename EdgePropertyMap<Tag>::Type(this); }
+	template<typename Tag> auto edgePropertyMap(Tag tag)
+	{ return makeEdgePropertyMap(*this, tag); }
 
-	template<typename Tag>
-	typename EdgePropertyMap<Tag>::ConstType edgePropertyMap(Tag tag) const
-	{ return typename EdgePropertyMap<Tag>::ConstType(this); }
+	template<typename Tag> auto edgePropertyMap(Tag tag) const
+	{ return makeEdgePropertyMap(*this, tag); }
+
 
 	pair<VertexIterator, VertexIterator> vertices() const
 	{
@@ -261,6 +255,8 @@ public:
 	}
 
 };
+
+
 
 
 

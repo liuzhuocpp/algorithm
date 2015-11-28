@@ -25,8 +25,6 @@ struct EdgeIndexTag {};
 
 
 
-
-
 template<typename Graph>
 typename Graph::VertexDescriptor
 opposite(const Graph &g, 
@@ -69,22 +67,21 @@ struct GraphTraits
 
 template<typename G, typename Tag>
 class VertexPropertyMap: public MapFacade<typename GraphTraits<G>::VertexDescriptor,
-						 	 	 	 	  decltype(typename GraphTraits<G>::VertexProperties()[Tag()]) >
+						 	 	 	 	  decltype(typename GraphTraits<G>::VertexProperties()[Tag()])>
 {
 	G *g = nullptr;
 public:
 	VertexPropertyMap() = default;
-	VertexPropertyMap(G *_g):g(_g){}
+	VertexPropertyMap(G &_g):g(&_g) { }
+
 	using Type = VertexPropertyMap<G, Tag>;
 	using ConstType = VertexPropertyMap<const G, Tag>;
 
 	auto operator[](typename GraphTraits<G>::VertexDescriptor u) const
-	->decltype(get(g->vertexProperties(u), Tag()))
 	{
-		return get(g->vertexProperties(u), Tag());
+		return g->vertexProperties(u)[Tag()];
 	}
 };
-
 
 template<typename G, typename Tag>
 class EdgePropertyMap: public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
@@ -93,20 +90,40 @@ class EdgePropertyMap: public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
 	G *g = nullptr;
 public :
 	EdgePropertyMap() = default;
-	EdgePropertyMap(G *_g):g(_g) {}
+	EdgePropertyMap(G &_g):g(&_g) { }
 
 	using Type = EdgePropertyMap<G, Tag>;
 	using ConstType = EdgePropertyMap<const G, Tag>;
 
 	auto operator[](typename GraphTraits<G>::EdgeDescriptor e) const
-	->decltype(get(g->edgeProperties(e), Tag()))
 	{
-		return get(g->edgeProperties(e), Tag());
+		return g->edgeProperties(e)[Tag()];
 	}
 };
 
+template<typename G, typename Tag>
+auto makeVertexPropertyMap(G &g, Tag)
+{
+	return typename VertexPropertyMap<G, Tag>::Type(g);
+}
 
+template<typename G, typename Tag>
+auto makeVertexPropertyMap(const G &g, Tag tag)
+{
+	return typename VertexPropertyMap<G, Tag>::ConstType(g);
+}
 
+template<typename G, typename Tag>
+auto makeEdgePropertyMap( G &g, Tag tag)
+{
+	return typename EdgePropertyMap<G, Tag>::Type(g);
+}
+
+template<typename G, typename Tag>
+auto makeEdgePropertyMap(const G &g, Tag tag)
+{
+	return typename EdgePropertyMap<G, Tag>::ConstType(g);
+}
 
 
 
@@ -119,8 +136,11 @@ public :
 
 // for graph param
 template<typename G, typename VertexIndexMapName>
+
+
 using ChooseVertexIndexMap = ChooseParamReturnType<MemberFunctionReturnType<VertexIndexMapName>,
-												   decltype( G().vertexPropertyMap(VertexIndexTag()))  >;
+		                                           typename GraphTraits<G>::template VertexPropertyMap<VertexIndexTag>::ConstType
+												   >;
 
 
 template<typename GeneralParamName, typename VertexIndexMap, typename ValueType>
@@ -141,35 +161,20 @@ chooseVertexIndexComposeMap(ParamReturnType paramMap, VertexIndexMap indexMap, V
 template<typename DefaultValueType, typename VertexIndexMap, typename VertexNumberType>
 auto
 chooseVertexIndexComposeMap( ParamNotFound, VertexIndexMap indexMap, VertexNumberType n)
-->decltype(makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n])))
+//->decltype(makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n])))
 {
 	return makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n]));
 }
 
 template<typename Map, typename ParamRetrunType>
-void deleteVertexIndexComposeMap(Map map, ParamRetrunType )
-{
+void deleteVertexIndexComposeMap(Map map, ParamRetrunType ) { }
 
-}
 template<typename Map>
 void deleteVertexIndexComposeMap(Map map, ParamNotFound )
 {
 //	cout << "YEEE" << endl;
 	delete[] map.secondMap().iterator();
 }
-
-
-
-//template<typename ParamColorMap>
-//void deleteColorMap(ParamColorMap) {}
-//
-//void deleteColorMap(DefaultColorMap)
-//{
-//	delete[] colorMap.secondMap().iterator();
-//}
-
-
-
 
 
 } // namespace lz
