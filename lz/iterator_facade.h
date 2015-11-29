@@ -58,7 +58,8 @@ template <
 >
 class IteratorFacade<Derived, std::forward_iterator_tag, T, Distance, Pointer, Reference>
 		: public std::iterator<std::forward_iterator_tag, T, Distance, Pointer, Reference>,
-		  public lz::FacadeBase<Derived>
+		  public lz::FacadeBase<Derived>,
+		  public lz::EqualityComparableFacade<Derived>
 {
 	using Base = std::iterator<std::forward_iterator_tag, T, Distance, Pointer, Reference>;
 public:
@@ -74,10 +75,10 @@ public:
 		return &*this->derived();
 	}
 
-	bool operator!=(const Derived &o) const
-	{
-		return !(this->derived() == o);
-	}
+//	bool operator!=(const Derived &o) const
+//	{
+//		return !(this->derived() == o);
+//	}
 };
 
 /*
@@ -116,10 +117,10 @@ template <
 >
 class IteratorFacade<Derived, std::random_access_iterator_tag, T, Distance, Pointer, Reference>
 		: public IteratorFacade<Derived,std::bidirectional_iterator_tag, T, Distance, Pointer, Reference>
-//		,public lz::LessThanComparablFacade<Derived>
+		, public lz::LessThanComparableFacade<Derived>
 {
 	using Base = IteratorFacade<Derived,std::bidirectional_iterator_tag, T, Distance, Pointer, Reference>;
-//	using Base::derived;
+
 public:
 	using iterator_category = std::random_access_iterator_tag;
 
@@ -153,18 +154,18 @@ public:
 	}
 
 
-	bool operator>(const Derived &o) const
-	{
-		return o < this->derived();
-	}
-	bool operator<=(const Derived &o) const
-	{
-		return !(o < this->derived());
-	}
-	bool operator>=(const Derived &o) const
-	{
-		return !(this->derived() < o);
-	}
+//	bool operator>(const Derived &o) const
+//	{
+//		return o < this->derived();
+//	}
+//	bool operator<=(const Derived &o) const
+//	{
+//		return !(o < this->derived());
+//	}
+//	bool operator>=(const Derived &o) const
+//	{
+//		return !(this->derived() < o);
+//	}
 
 };
 

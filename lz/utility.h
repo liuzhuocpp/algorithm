@@ -15,8 +15,6 @@ enum class DefaultColorType: unsigned char
 	Red,
 };
 
-
-
 template<typename ColorType = DefaultColorType>
 struct ColorTraits
 {
@@ -48,29 +46,31 @@ protected:
 	{ return *static_cast<Derived const*>(this); }
 };
 
+// requires operator==
 template<typename Derived>
-struct EqualityComparableFacade:  public FacadeBase<Derived>
+struct EqualityComparableFacade
 {
-	bool operator!=(const Derived o) const
+	friend bool operator!=(const Derived &a, const Derived &b)
 	{
-		return !(this->derived() == o);
+		return !(a == b);
 	}
 };
 
+// requires operator<
 template<typename Derived>
-struct LessThanComparablFacade: public FacadeBase<Derived>
+struct LessThanComparableFacade
 {
-	bool operator>(const Derived &o) const
+	friend bool operator>(const Derived &a, const Derived &b)
 	{
-		return o < this->derived();
+		return b < a;
 	}
-	bool operator<=(const Derived &o) const
+	friend bool operator<=(const Derived &a, const Derived &b)
 	{
-		return !(o < this->derived());
+		return !(b < a);
 	}
-	bool operator>=(const Derived &o) const
+	friend bool operator>=(const Derived &a, const Derived &b)
 	{
-		return !(this->derived() < o);
+		return !(a < b);
 	}
 };
 
