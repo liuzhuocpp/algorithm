@@ -34,9 +34,12 @@ int main()
 
 	g.addEdge(0, 1, EP(5555, '!'));
 	const G ng = g;
-	auto vi_mp = ng.vertexPropertyMap(VertexIndexTag);
+	auto vi_mp = ng.vertexPropertyMap(VertexIndexTag());
 	auto mp = ng.vertexPropertyMap(int_tag());
 	auto edge_mp = ng.edgePropertyMap(char_tag());
+
+
+	cout << "imap " << vi_mp[0] << endl;
 
 	cout << mp[0] << endl;
 

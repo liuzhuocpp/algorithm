@@ -91,20 +91,8 @@ namespace lz {
 		}
 	};
 
-    template<typename Direction, typename VP, typename EP, typename GP>
-    struct Graph: public DistinguishDirectionGraph<Direction, VP, EP, GP>
-	{
-    	const EdgeData<EP>& edgeData(EdgeDescriptor ed) const { return this->e[this->edToId(ed)]; }
-    	EdgeData<EP>& edgeData(EdgeDescriptor ed) { return this->e[this->edToId(ed)]; }
 
-    	using Base = DistinguishDirectionGraph<Direction, VP, EP, GP>;
-		void assignVertex(SizeType n, VP vp)
-		{
-			Base::assignVertex(n, vp);
-			Base::e.assign(Base::edToId(this->makeEdgeDescriptor(n - 1, n - 1)) + 1, EdgeData<EP>());
-		}
-	};
-	}
+	} // namespace AdjacencyMatrixPrivate
 
 template<typename Direction = DirectedGraphTag, typename VP = NoProperty,
 		 typename EP = NoProperty, typename GP = NoProperty>
@@ -117,22 +105,25 @@ class VertexPropertyMap<AdjacencyMatrix<D, VP, EP, GP>, VertexIndexTag>
 	using G = AdjacencyMatrix<D, VP, EP, GP>;
 public:
 	VertexPropertyMap() = default;
-	VertexPropertyMap(G *_g) {}
-	using Type = VertexPropertyMap<G, VertexIndexTag>;
-	using ConstType = VertexPropertyMap<const G, VertexIndexTag>;
+	VertexPropertyMap(const G &_g) {}
+	using Type = VertexPropertyMap;
+	using ConstType = Type;
 };
 
 
 
 template<typename Direction, typename VP, typename EP, typename GP>
 
-class AdjacencyMatrix:private AdjacencyMatrixPrivate::Graph<Direction, VP, EP, GP>
+class AdjacencyMatrix:private AdjacencyMatrixPrivate::DistinguishDirectionGraph<Direction, VP, EP, GP>
 {
-	using Base = AdjacencyMatrixPrivate::Graph<
+	using Base = AdjacencyMatrixPrivate::DistinguishDirectionGraph<
 				 Direction, VP, EP, GP>;
 	using EdgeData = AdjacencyMatrixPrivate::EdgeData<EP>;
 
 	using G = AdjacencyMatrix;
+	using Base::edToId;
+	using Base::makeEdgeDescriptor;
+	using Base::e;
 public:
 	using DirectedCategory = Direction;
 	using VertexProperties = VP;
@@ -155,27 +146,28 @@ public:
 
 	explicit AdjacencyMatrix(SizeType n = 0, const VP & vp = VP())
 	{
-		Base::assignVertex(n, vp);
+		assignVertex(n, vp);
 	}
 	void assignVertex(SizeType n, const VP &vp = VP())
 	{
 		Base::assignVertex(n, vp);
+		e.assign(edToId(makeEdgeDescriptor(n - 1, n - 1)) + 1, EdgeData());
 	}
 	SizeType vertexNumber() const
 	{ return Base::vertexNumber(); }
 
 	std::pair<VertexIterator, VertexIterator> vertices() const
 	{
-		return std::make_pair(0, vertexNumber());
+		return std::make_pair(VertexIterator(0), VertexIterator(vertexNumber()));
 	}
 
 
 	// Be careful to call this function,
-	// the time complexity of this function is O(E)
+	// the time complexity of this function is O(V * V)
 	SizeType edgeNumber() const
 	{
 		SizeType edge_num = 0;
-		for(auto i = this->e.begin(); i != this->e.end(); ++ i)
+		for(auto i = e.begin(); i != e.end(); ++ i)
 		{
 			if(i->exist) edge_num ++;
 		}
@@ -185,19 +177,20 @@ public:
 
 	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
 	{
-		auto ed = this->makeEdgeDescriptor(a, b);
-		this->edgeData(ed).exist = 1;
-		this->edgeData(ed).set(ep);
+		auto ed = makeEdgeDescriptor(a, b);
+		auto id = edToId(ed);
+		e[id].exist = 1;
+		e[id].set(ep);
 		return ed;
 	}
 	void removeEdge(EdgeDescriptor ed)
 	{
-		this->edgeData(ed).exist = 0;
+		e[edToId(ed)].exist = 0;
 	}
 	std::pair<EdgeDescriptor, bool> edge(VertexDescriptor a, VertexDescriptor b) const
 	{
-		auto ed = this->makeEdgeDescriptor(a, b);
-		return std::make_pair(ed, this->edgeData(ed).exist);
+		auto ed = makeEdgeDescriptor(a, b);
+		return std::make_pair(ed, e[edToId(ed)].exist);
 	}
 	VertexDescriptor source(EdgeDescriptor ed) const { return ed.source; }
 	VertexDescriptor target(EdgeDescriptor ed) const { return ed.target; }
@@ -208,8 +201,8 @@ public:
 	const VP& vertexProperties(VertexDescriptor u) const { return this->v[u]; }
 	VP& vertexProperties(VertexDescriptor u) { return this->v[u]; }
 
-	const EP& edgeProperties(EdgeDescriptor ed) const { return this->edgeData(ed).properties; }
-	EP& edgeProperties(EdgeDescriptor ed) { return this->edgeData(ed).properties; }
+	const EP& edgeProperties(EdgeDescriptor ed) const { return e[edToId(ed)].properties; }
+	EP& edgeProperties(EdgeDescriptor ed) { return e[edToId(ed)].properties; }
 };
 
 
