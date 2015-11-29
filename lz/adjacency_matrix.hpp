@@ -42,12 +42,6 @@ namespace lz {
 		void assignVertex(SizeType _n, const NoProperty &vp) { n = _n; }
 		SizeType vertexNumber() const { return n; }
 	};
-	template<typename T>
-	static T progressionSum(T n)
-	{
-		if(n & 1) return ((n + 1) >> 1) * n;
-		else return (n >> 1) * (n + 1) ;
-	}
 	template<typename EP>
 	struct EdgeData: public ChooseDefineProperties<EP>
 	{
@@ -60,6 +54,13 @@ namespace lz {
 	{
 		std::vector<EdgeData<EP> > e;
 	};
+
+	template<typename T>
+	static T progressionSum(T n)
+	{
+		if(n & 1) return ((n + 1) >> 1) * n;
+		else return (n >> 1) * (n + 1) ;
+	}
 
     // DistinguishDirectionGraph
     template<typename Direction, typename VP, typename EP, typename GP>
@@ -194,9 +195,10 @@ public:
 	}
 	VertexDescriptor source(EdgeDescriptor ed) const { return ed.source; }
 	VertexDescriptor target(EdgeDescriptor ed) const { return ed.target; }
+
+
 	const GP& graphProperties() const { return this->properties; }
 	GP& graphProperties() { return this->properties; }
-
 
 	const VP& vertexProperties(VertexDescriptor u) const { return this->v[u]; }
 	VP& vertexProperties(VertexDescriptor u) { return this->v[u]; }

@@ -54,7 +54,7 @@ public:
 
 	explicit FunctionMap() = default;
 	explicit FunctionMap(const UnaryFunction &f):f(&f) {}
-	auto operator[](typename Base::KeyType key) const -> decltype((*f)[key])
+	typename Base::ValueType operator[](typename Base::KeyType key) const
 	{
 		return (*f)(key);
 	}
@@ -73,7 +73,7 @@ public:
 	using Iterator = I;
 	Iterator iterator() const { return i;}
 
-	auto operator[](typename Base::KeyType key) const->decltype(i[key])
+	typename Base::ValueType operator[](typename Base::KeyType key)
 	{
 		return i[key];
 	}
@@ -102,7 +102,6 @@ public:
 	SecondMap secondMap() const { return sm; }
 
 	typename Base::ValueType operator[](typename Base::KeyType key) const
-//	->decltype(sm[fm[key]])
 	{
 		return sm[fm[key]];
 	}
@@ -113,37 +112,6 @@ ComposeMap<FM, SM> makeComposeMap(FM fm, SM sm)
 {
 	return ComposeMap<FM, SM>(fm, sm);
 }
-
-
-//template<typename UnaryFunction>
-//FunctionMap<UnaryFunction> makeFunctionMap(const UnaryFunction &f)
-//{
-//	return FunctionMap<UnaryFunction>(f);
-//}
-
-
-//template<typename T>
-//class ClassMap
-//{
-//	T *t;
-//public:
-//	ClassMap() = default;
-//
-//    ClassMap(T *t):t(t){}
-//
-//    template<typename P>
-//    auto operator[](P p) const ->decltype(t->*p)
-//    {
-//        return t->*p;
-//    }
-//};
-//
-//template<typename T>
-//ClassMap<T> makeClassMap(T *t)
-//{
-//	return ClassMap<T>(t);
-//}
-
 
 
 
