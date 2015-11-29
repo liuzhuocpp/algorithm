@@ -8,7 +8,7 @@
 #ifndef LZ_ITERATOR_FACADE_H_
 #define LZ_ITERATOR_FACADE_H_
 #include <iterator>
-
+#include "lz/utility.h"
 namespace lz{
 
 
@@ -57,51 +57,29 @@ template <
 	class Reference
 >
 class IteratorFacade<Derived, std::forward_iterator_tag, T, Distance, Pointer, Reference>
-		: public std::iterator<std::forward_iterator_tag, T, Distance, Pointer, Reference>
+		: public std::iterator<std::forward_iterator_tag, T, Distance, Pointer, Reference>,
+		  public lz::FacadeBase<Derived>
 {
-
 	using Base = std::iterator<std::forward_iterator_tag, T, Distance, Pointer, Reference>;
 public:
-
-//** You should implement the function
-//	Derived& operator++();
-
-	friend Derived operator++(Derived& a, int)
+  	friend Derived operator++(Derived& a, int)
 	{
 		Derived	tmp(a);
 		++a;
 		return tmp;
 	}
 
-//** You should implement the function
-//	typename Base::reference operator*() const;
-
 	typename Base::pointer operator->() const
 	{
 		return &*this->derived();
 	}
 
-//** You should implement the function
-//	bool operator==(const Derived &o) const;
-
 	bool operator!=(const Derived &o) const
 	{
 		return !(this->derived() == o);
 	}
-
-
-protected:
-
-	Derived& derived()
-	{
-		return *static_cast<Derived*>(this);
-	}
-
-	Derived const& derived() const
-	{
-		return *static_cast<Derived const*>(this);
-	}
 };
+
 /*
  * Implementation for bidirectional traversal iterators
  */
@@ -119,9 +97,6 @@ class IteratorFacade<Derived, std::bidirectional_iterator_tag, T, Distance, Poin
 	using Base = IteratorFacade<Derived, std::forward_iterator_tag, T, Distance, Pointer, Reference>;
 public:
 	using iterator_category = std::bidirectional_iterator_tag;
-
-//** You should implement the function
-//	Derived& operator--();
 
 	friend Derived operator--(Derived&a, int)
 	{
@@ -141,14 +116,12 @@ template <
 >
 class IteratorFacade<Derived, std::random_access_iterator_tag, T, Distance, Pointer, Reference>
 		: public IteratorFacade<Derived,std::bidirectional_iterator_tag, T, Distance, Pointer, Reference>
+//		,public lz::LessThanComparablFacade<Derived>
 {
 	using Base = IteratorFacade<Derived,std::bidirectional_iterator_tag, T, Distance, Pointer, Reference>;
-
+//	using Base::derived;
 public:
 	using iterator_category = std::random_access_iterator_tag;
-
-//** You should implement the function
-//	Derived& operator+=(typename Base::difference_type o) const;
 
 	friend Derived operator+(const Derived &a, typename Base::difference_type b)
 	{
@@ -173,19 +146,14 @@ public:
 		this->derived() += -o;
 		return this->derived();
 	}
+
 	typename Base::reference operator[](typename Base::difference_type o) const
 	{
 		return *(this->derived() + o);
 	}
 
 
-//** You should implement the function
-//	typename Base::difference_type operator-(const Derived &a) const;
-
-//** You should implement the function
-//	bool operator<(const Derived &o) const;
-
-;	bool operator>(const Derived &o) const
+	bool operator>(const Derived &o) const
 	{
 		return o < this->derived();
 	}

@@ -37,21 +37,6 @@ struct ColorTraits
 //};
 
 
-//template<typename Derived>
-//struct FacadeBase
-//{
-//	bool operator!=(const Derived o) const
-//	{
-//		return this->derived() == o;
-//	}
-//protected:
-//	Derived& derived()
-//	{ return *static_cast<Derived*>(this); }
-//
-//	Derived const& derived() const
-//	{ return *static_cast<Derived const*>(this); }
-//};
-
 template<typename Derived>
 struct FacadeBase
 {
@@ -64,16 +49,16 @@ protected:
 };
 
 template<typename Derived>
-struct EqualityComparableFacade: public FacadeBase<Derived>
+struct EqualityComparableFacade:  public FacadeBase<Derived>
 {
 	bool operator!=(const Derived o) const
 	{
-		return this->derived() == o;
+		return !(this->derived() == o);
 	}
 };
 
 template<typename Derived>
-struct LessThanComparable: public FacadeBase<Derived>
+struct LessThanComparablFacade: public FacadeBase<Derived>
 {
 	bool operator>(const Derived &o) const
 	{
@@ -130,44 +115,17 @@ decltype(UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunT
 									   typename std::remove_reference<Default>::type>::get(p, d);
 }
 
-//template<typename ParamRetrunType, typename Default>
-//Default& chooseParamReturnValue(ParamNotFound &&, Default && d)
-//{
-//	return d;
-//}
 
 
-
-// Choose the param type we hoped according to the ParamType, DefaultType
+// Choose the param return type we hoped according to the ParamType, DefaultType
 template<typename ParamReturnType, typename DefaultType>
 using ChooseParamReturnType =  typename std::conditional<std::is_same<ParamReturnType, ParamNotFound>::value,
 														 DefaultType,
 														 ParamReturnType>::type;
 
-
-//In Params, Choose the return type of the function Param that is no other params list
-//template<typename Params, typename Param>
-//using ParamReturnType = typename std::result_of< Param(Params)>::type;
-
-
-
-
-
 template<typename ParamName>
 using MemberFunctionReturnType =
 		typename decltype(std::mem_fn(ParamName()))::result_type;
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -194,36 +152,6 @@ LambdaOverloadSet<F1, F2> lambdaOverload(F1 f1, F2 f2)
 	return LambdaOverloadSet<F1, F2>(f1, f2);
 }
 
-
-
-
-//template<bool Con, typename T, typename F>
-//struct ChooseValue
-//{
-//	static T get(T t, F f)
-//	{
-//		return t;
-//	}
-//};
-//template<typename T, typename F>
-//struct ChooseValue<false, T, F>
-//{
-//	static F get(T t, F f)
-//	{
-//		return f;
-//	}
-//};
-
-//template<bool con, typename T, typename F>
-//struct Choose
-//{
-//	static T get(T t, F f){ return  t; }
-//};
-//template<typename T, typename F>
-//struct Choose<0, T, F>
-//{
-//	static F get(T t, F f){ return  f; }
-//};
 
 
 

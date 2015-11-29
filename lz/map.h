@@ -13,14 +13,12 @@
 #ifndef LZ_MAP_H_
 #define LZ_MAP_H_
 
-#include <functional>
-#include <iostream>
-#include <utility>
+//#include <iostream>
+
 namespace lz {
 
-using std::function;
-using std::cout;
-using std::endl;
+//using std::cout;
+//using std::endl;
 
 template<typename Map>
 struct MapTraits
@@ -103,7 +101,8 @@ public:
 	FirstMap firstMap() const { return fm; }
 	SecondMap secondMap() const { return sm; }
 
-	auto operator[](typename Base::KeyType key) const ->decltype(sm[fm[key]])
+	typename Base::ValueType operator[](typename Base::KeyType key) const
+//	->decltype(sm[fm[key]])
 	{
 		return sm[fm[key]];
 	}

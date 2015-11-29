@@ -136,8 +136,6 @@ auto makeEdgePropertyMap(const G &g, Tag tag)
 
 // for graph param
 template<typename G, typename VertexIndexMapName>
-
-
 using ChooseVertexIndexMap = ChooseParamReturnType<MemberFunctionReturnType<VertexIndexMapName>,
 		                                           typename GraphTraits<G>::template VertexPropertyMap<VertexIndexTag>::ConstType
 												   >;
@@ -153,7 +151,7 @@ using ChooseVertexIndexComposeMap = ChooseParamReturnType<
 template<typename DefaultValueType, typename ParamReturnType, typename VertexIndexMap, typename VertexNumberType>
 auto
 chooseVertexIndexComposeMap(ParamReturnType paramMap, VertexIndexMap indexMap, VertexNumberType n)
-->decltype(paramMap)
+//->decltype(paramMap)
 {
 	return paramMap;
 }
@@ -163,7 +161,9 @@ auto
 chooseVertexIndexComposeMap( ParamNotFound, VertexIndexMap indexMap, VertexNumberType n)
 //->decltype(makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n])))
 {
-	return makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n]));
+	return makeComposeMap(indexMap, makeIteratorMap(
+									new DefaultValueType[n]
+								 ));
 }
 
 template<typename Map, typename ParamRetrunType>
@@ -172,7 +172,6 @@ void deleteVertexIndexComposeMap(Map map, ParamRetrunType ) { }
 template<typename Map>
 void deleteVertexIndexComposeMap(Map map, ParamNotFound )
 {
-//	cout << "YEEE" << endl;
 	delete[] map.secondMap().iterator();
 }
 
