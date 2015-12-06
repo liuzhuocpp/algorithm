@@ -70,54 +70,77 @@ struct GetReference<ArgList, QueryKeyword, ParamNotFound>
 };
 
 template<typename _Keyword, typename _Default>
-struct KeywordWithDefault
+struct Default
 {
 	using Keyword =_Keyword;
 	using Reference =_Default;
 
 	Reference ref;
-	KeywordWithDefault(Reference ref):ref(std::forward<Reference>(ref)) {}
+	Default(Reference ref):ref(std::forward<Reference>(ref)) {}
 
-	KeywordWithDefault(const KeywordWithDefault &o)
+	Default(const Default &o)
 	:ref(std::forward<Reference>(o.ref)) {}
 };
 
 template<typename _Keyword, typename _Default>
-struct KeywordWithLazyDefault
+struct LazyDefault
 {
 	using Keyword =_Keyword;
 	using Reference =_Default;
 
 	Reference ref;
 
-	KeywordWithLazyDefault(Reference ref):ref(std::forward<Reference>(ref)) {}
+	LazyDefault(Reference ref):ref(std::forward<Reference>(ref)) {}
 };
 
 
-template<typename ArgList, typename KeywordWithDefault,
-		 typename Base = typename GetArgList<ArgList, typename KeywordWithDefault::Keyword>::ArgListType>
+template<typename ArgList, typename Default,
+		 typename Base = typename GetArgList<ArgList, typename Default::Keyword>::ArgListType>
 struct ComputeDefault
 {
-	static auto apply(const ArgList &ar, KeywordWithDefault o)
-	->decltype(ar[typename KeywordWithDefault::Keyword()])
+	static auto apply(const ArgList &ar, Default o)
+	->decltype(ar[typename Default::Keyword()])
 	{
-//		cout << "JJJ " <<endl;
-		return ar[typename KeywordWithDefault::Keyword()];
+		return ar[typename Default::Keyword()];
 	}
 };
-template<typename ArgList, typename KeywordWithDefault>
-struct ComputeDefault<ArgList, KeywordWithDefault, ParamNotFound>
+template<typename ArgList, typename Default>
+struct ComputeDefault<ArgList, Default, ParamNotFound>
 {
-	static auto apply(const ArgList &ar, KeywordWithDefault o)
-	->decltype(std::forward<typename KeywordWithDefault::Reference>(o.ref))
+	static auto apply(const ArgList &ar, Default o)
+	->decltype(std::forward<typename Default::Reference>(o.ref))
 	{
-//		cout << "JJJ------------ " <<endl;
-		return std::forward<typename KeywordWithDefault::Reference>(o.ref);
+		return std::forward<typename Default::Reference>(o.ref);
 	}
 };
 
-template<typename Tag>
-struct Keyword;
+
+
+
+
+
+template<typename ArgList, typename LazyDefault,
+		 typename Base = typename GetArgList<ArgList, typename LazyDefault::Keyword>::ArgListType>
+struct ComputeLazyDefault
+{
+	static auto apply(const ArgList &ar, LazyDefault o)
+	->decltype(ar[typename LazyDefault::Keyword()])
+	{
+		return ar[typename LazyDefault::Keyword()];
+	}
+};
+template<typename ArgList, typename LazyDefault>
+struct ComputeLazyDefault<ArgList, LazyDefault, ParamNotFound>
+{
+	static auto apply(const ArgList &ar, LazyDefault o)
+	->decltype(o.ref())
+	{
+		return o.ref();
+	}
+};
+
+//template<typename Tag>
+//struct Keyword;
 
 template<typename _Keyword, typename _Reference, typename _Next = ParamNotFound>
 struct ArgList:public _Next
@@ -142,25 +165,27 @@ public:
 	auto operator[](QueryKeyword keyword) const
 	->decltype(GetReference<ArgList, QueryKeyword>::apply(*this))
 	{
-//		cout << "HEHEH" << endl;
 		return GetReference<ArgList, QueryKeyword>::apply(*this);
 	}
 
-//	template<typename Tag>
-//	auto operator[](Keyword<Tag>) const
-//	->decltype(GetReference<ArgList, Keyword<Tag>>::apply(*this))
-//	{
-//		cout << "HEHEH" << endl;
-//		return GetReference<ArgList, Keyword<Tag>>::apply(*this);
-//	}
 
-	template<typename QueryKeyword, typename Default>
-	auto operator[](KeywordWithDefault<QueryKeyword, Default> o) const
 
-	->decltype(ComputeDefault<ArgList, KeywordWithDefault<QueryKeyword, Default>>::apply(*this, o))
+	template<typename QueryKeyword, typename _Default>
+	auto operator[](Default<QueryKeyword, _Default> o) const
+
+	->decltype(ComputeDefault<ArgList, Default<QueryKeyword, _Default>>::apply(*this, o))
 	{
-//		cout << "SBFFF" << endl;
-		return ComputeDefault<ArgList, KeywordWithDefault<QueryKeyword, Default>>::apply(*this, o);
+		return ComputeDefault<ArgList, Default<QueryKeyword, _Default>>::apply(*this, o);
+	}
+
+
+
+	template<typename QueryKeyword, typename _Default>
+	auto operator[](LazyDefault<QueryKeyword, _Default> o) const
+
+	->decltype(ComputeLazyDefault<ArgList, LazyDefault<QueryKeyword, _Default> >::apply(*this, o))
+	{
+		return ComputeLazyDefault<ArgList, LazyDefault<QueryKeyword, _Default> >::apply(*this, o);
 	}
 
 };
@@ -183,11 +208,20 @@ struct Keyword
 
 	template<typename T>
 	auto operator|(T &&t) const
-	->KeywordWithDefault<Keyword, decltype(std::forward<T>(t)) >
+	->Default<Keyword, decltype(std::forward<T>(t)) >
 	{
-		cout << "FJJFJFJF" << endl;
-		return KeywordWithDefault<Keyword, decltype(std::forward<T>(t)) >(std::forward<T>(t));
+		return Default<Keyword, decltype(std::forward<T>(t)) >(std::forward<T>(t));
 	}
+
+	template<typename T>
+	auto operator||(T &&t) const
+	->LazyDefault<Keyword, decltype(std::forward<T>(t))>
+	{
+		return LazyDefault<Keyword, decltype(std::forward<T>(t))>(std::forward<T>(t));
+	}
+
+
+
 
 	static const Keyword<Tag> instance;
 };
