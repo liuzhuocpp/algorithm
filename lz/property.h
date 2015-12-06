@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <type_traits>
-
+#include <tuple>
 namespace lz {
 
 using std::integral_constant;
@@ -23,9 +23,17 @@ struct NoProperty {
 	using ValueType = NoProperty;
 	using NextProperty = NoProperty;
 
+	NoProperty() = default;
+
+protected:
+    template<typename ...Args, size_t N>
+    NoProperty(const std::tuple<Args...> &tp, std::integral_constant<size_t, N> t)
+	{
+//    	cout << "SB" << endl;
+	}
+
 
 };
-//static const NoProperty::instance = NoProperty();
 
 
     namespace PropertyPrivate {
@@ -58,9 +66,22 @@ struct NoProperty {
         struct Get;
 
 
+        template <typename Property, typename CntTag, typename Tuple, size_t CntId>
+		struct AssignTuple;
+
+        template<typename Property, typename Tag, typename QueryTag>
+        struct GetType;
 
     } // namespace PropertyPrivate
 
+
+template<typename P>
+struct PropertySize:public std::integral_constant<
+	size_t, PropertySize<typename P::NextProperty>::value + 1> {};
+
+template<>
+struct PropertySize<NoProperty>
+: public integral_constant<size_t, 0> { };
 
 
 template<typename _Tag, typename _ValueType, typename _NextProperty = NoProperty >
@@ -69,52 +90,89 @@ struct Property: public _NextProperty
     template<typename QueryTag, typename Tag, typename Property>
     friend struct PropertyPrivate::Get;
 
+    template <typename Property, typename CntTag, typename Tuple, size_t CntId>
+    friend struct PropertyPrivate::AssignTuple;
+
     using Tag = _Tag;
     using ValueType = _ValueType;
     using NextProperty = _NextProperty;
 
-    constexpr Property() = default;
+    template<typename QueryTag>
+    using QueryValueType = typename PropertyPrivate::GetType<Property, Tag, QueryTag>::ValueType;
 
-    template<typename Head, typename... Args>
-    explicit Property(const Head &value, Args ...args)
-    : m_value(value), NextProperty(args...)
-    {
-        static_assert(PropertyPrivate::CountProperty<Property>::value ==
-                      PropertyPrivate::CountVariadic<Head, Args...>::value,
-                       "Parameters number is not equal");
-    }
+    template<typename QueryTag>
+    using QueryPropertyType = typename PropertyPrivate::GetType<Property, Tag, QueryTag>::PropertyType;
+
+    Property() = default;
+
+//    Property(const ValueType &value, const NextProperty & np):
+//    	NextProperty(np),m_value(value){}
+
+    Property(ValueType &&value, const NextProperty & np):
+		NextProperty(np), m_value(value){}
+
+protected:
+    template<typename ...Args, size_t N>
+    Property(const std::tuple<Args...> &tp, std::integral_constant<size_t, N> t):
+		m_value(std::get<N>(tp)), NextProperty(tp, std::integral_constant<size_t, N + 1>())
+	{
+
+	}
+public:
+    template<typename ...Args>
+	Property( const std::tuple<Args...> &tp):
+		Property(tp, std::integral_constant<size_t, 0>())
+	{
+
+	}
 
 
-    template<typename Head, typename... Args>
-    explicit Property(Head &&value, Args ...args)
-    : m_value(value), NextProperty(args...)
-    {
 
-        static_assert(PropertyPrivate::CountProperty<Property>::value ==
-                      PropertyPrivate::CountVariadic<Head, Args...>::value,
-                       "Parameters number is not equal");
-    }
+//    template <class... UTypes>
+//    Property(const std::tuple<UTypes...>& tp)
+//	{
+//    	PropertyPrivate::AssignTuple<Property, Tag, std::tuple<UTypes...>, 0>::apply(*this, tp);
+//	}
+
+//    template <class... UTypes>
+//    Property(std::tuple<UTypes...>&& tp)
+//	{
+//    	PropertyPrivate::AssignTuple<Property, Tag, std::tuple<UTypes...>, 0>::apply(*this, tp);
+//	}
+
+//    template <class... UTypes>
+//    Property& operator=(const std::tuple<UTypes...>& tp)
+//	{
+//    	PropertyPrivate::AssignTuple<Property, Tag, std::tuple<UTypes...>, 0>::apply(*this, tp);
+//	}
+//
+//    template <class... UTypes>
+//    Property& operator=(std::tuple<UTypes...>&& tp)
+//	{
+//    	PropertyPrivate::AssignTuple<Property, Tag, std::tuple<UTypes...>, 0>::apply(*this, tp);
+//	}
 
 
     template<typename QueryTag>
-    auto operator[](QueryTag tag)
-    ->decltype(PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this))
+    QueryValueType<QueryTag>& operator[](QueryTag tag)
 	{
-    	return PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this);
+    	using Base = QueryPropertyType<QueryTag>;
+    	return this->Base::m_value;
 	}
     template<typename QueryTag>
-	auto operator[](QueryTag tag) const
-    ->decltype(PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this))
+	const QueryValueType<QueryTag>& operator[](QueryTag tag) const
 	{
-		return PropertyPrivate::Get<Property, Tag, QueryTag>::get(*this);
+		using Base = QueryPropertyType<QueryTag>;
+		return this->Base::m_value;
 	}
 
     template<typename QueryTag>
     constexpr bool contains(QueryTag tag) const
     {
-    	return !std::is_same<decltype((*this)[tag]), NoProperty::ValueType>::value;
+    	return !std::is_same<decltype((*this)[tag]), NoProperty>::value;
     }
-private:
+
+protected:
     ValueType m_value;
 
 };
@@ -125,54 +183,80 @@ private:
 
     namespace PropertyPrivate {
 
-        template<typename Property, typename Tag, typename QueryTag>
-        struct Get
-        {
-            typedef typename Property::NextProperty  NextProperty;
+	template<typename Property, typename Tag, typename QueryTag>
+	struct GetType
+	{
+	private:
+		using NextProperty = typename Property::NextProperty  ;
+		using NextTag = typename NextProperty::Tag;
+	public:
+		using ValueType = typename GetType<NextProperty, NextTag, QueryTag>::ValueType;
+		using PropertyType = typename GetType<NextProperty, NextTag, QueryTag>::PropertyType;
+	};
 
-            static auto get(Property &p)
-            ->decltype(Get<NextProperty, typename NextProperty::Tag, QueryTag>::
-            		   get(static_cast<NextProperty&>(p)))
-            {
-                return Get<NextProperty, typename NextProperty::Tag, QueryTag>::
-                       get(static_cast<NextProperty&>(p));
-            }
+	template<typename Property, typename QueryTag>
+	struct GetType<Property, QueryTag, QueryTag>
+	{
+		using ValueType = typename Property::ValueType;
+		using PropertyType = Property;
+	};
 
-            static auto get(const Property &p)
-            ->decltype(Get<NextProperty, typename NextProperty::Tag, QueryTag>::
-            		   get(static_cast<const NextProperty&>(p)))
-            {
-                return Get<NextProperty, typename NextProperty::Tag, QueryTag>::
-                       get(static_cast<const NextProperty&>(p));
-            }
+	template<typename Property, typename QueryTag>
+	struct GetType<Property, NoProperty, QueryTag>
+	{
+		using ValueType = NoProperty;
+		using PropertyType = NoProperty;
+	};
 
-        };
 
-        template<typename Property, typename QueryTag>
-        struct Get<Property, QueryTag, QueryTag>
-        {
-            typedef typename Property::ValueType ValueType;
 
-            static ValueType& get(Property &p)
-            {
-                return p.m_value;
-            }
 
-            static const ValueType& get(const Property &p)
-            {
-                return p.m_value;
-            }
-        };
 
-        template<typename QueryTag>
-        struct Get<NoProperty, NoProperty::Tag, QueryTag>
-        {
+	template <typename Property, typename Tag, typename Tuple, size_t Id>
+	struct AssignTuple
+	{
+		static void apply(Property &p, const Tuple &t)
+		{
+//			typename std::tuple_element<Id, Tuple>::type x = std::get<Id>(t);
 
-            static NoProperty::ValueType get(const NoProperty &p)
-            {
-                return NoProperty::ValueType();
-            }
-        };
+			p[Tag()] = std::get<Id>(t);
+
+			AssignTuple<typename Property::NextProperty,
+						typename Property::NextProperty::Tag,
+						Tuple,
+						Id + 1>::apply(p, t);
+		}
+		static void apply(Property &p, Tuple &&t)
+		{
+//			 typename std::tuple_element<Id, Tuple>::type x = std::get<Id>(t);
+
+			 p[Tag()] = std::get<Id>(t);
+
+			 AssignTuple<typename Property::NextProperty,
+						 typename Property::NextProperty::Tag,
+						 Tuple,
+						 Id + 1>::apply(p, t);
+		}
+
+	};
+
+	template <typename Property, typename Tuple, size_t CntId>
+	struct AssignTuple<Property, NoProperty, Tuple, CntId>
+	{
+		static void apply(Property &p, const Tuple &t)
+		{
+
+		}
+	};
+
+
+
+
+
+
+
+
+
 
 
 
@@ -182,19 +266,19 @@ private:
 
 
 
-template<typename Tag, typename ValueType, typename NextProperty, typename QueryTag>
-auto get(Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
--> decltype(PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p))
-{
-    return PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p);
-}
-
-template<typename Tag, typename ValueType, typename NextProperty, typename QueryTag>
-auto get(const Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
--> decltype(PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p))
-{
-    return PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p);
-}
+//template<typename Tag, typename ValueType, typename NextProperty, typename QueryTag>
+//auto get(Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
+//-> decltype(PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p))
+//{
+//    return PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p);
+//}
+//
+//template<typename Tag, typename ValueType, typename NextProperty, typename QueryTag>
+//auto get(const Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
+//-> decltype(PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p))
+//{
+//    return PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p);
+//}
 
 
 
