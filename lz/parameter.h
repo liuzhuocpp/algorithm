@@ -13,44 +13,52 @@
 
 namespace lz{
 
+
 struct ParamNotFound {
 	using Keyword = ParamNotFound;
 	using Reference = ParamNotFound;
 	using Next = ParamNotFound;
-
-
 };
+struct EmptyParamPack;
 
 namespace Parameter{
 
+template<typename _Tag>
+struct Keyword;
+template<typename _Keyword, typename _Default>
+struct Default;
+
+template<typename _Keyword, typename _Default>
+struct LazyDefault;
+
 template<typename ArgList, typename QueryKeyword, typename Keyword>
-struct GetArgListImpl
+struct GetParamPackImpl
 {
-	using ArgListType = typename GetArgListImpl<typename ArgList::Next,
-							QueryKeyword, typename ArgList::Next::Keyword>::ArgListType;
+	using ParamPackType = typename GetParamPackImpl<typename ArgList::Next,
+							QueryKeyword, typename ArgList::Next::Keyword>::ParamPackType;
 };
 
 template<typename ArgList, typename QueryKeyword>
-struct GetArgListImpl<ArgList, QueryKeyword, QueryKeyword>
+struct GetParamPackImpl<ArgList, QueryKeyword, QueryKeyword>
 {
-	using ArgListType = ArgList;
+	using ParamPackType = ArgList;
 };
 
 template<typename ArgList, typename QueryKeyword>
-struct GetArgListImpl<ArgList, QueryKeyword, ParamNotFound>
+struct GetParamPackImpl<ArgList, QueryKeyword, EmptyParamPack>
 {
-	using ArgListType = ParamNotFound;
+	using ParamPackType = EmptyParamPack;
 };
 
 template<typename ArgList, typename QueryKeyword>
-struct GetArgList
+struct GetParamPack
 {
-	using ArgListType = typename GetArgListImpl<ArgList, QueryKeyword, typename ArgList::Keyword>::ArgListType;
+	using ParamPackType = typename GetParamPackImpl<ArgList, QueryKeyword, typename ArgList::Keyword>::ParamPackType;
 };
 
 
 
-template<typename ArgList, typename QueryKeyword, typename Base = typename GetArgList<ArgList, QueryKeyword>::ArgListType >
+template<typename ArgList, typename QueryKeyword, typename Base = typename GetParamPack<ArgList, QueryKeyword>::ParamPackType >
 struct GetReference
 {
 	static auto apply(const ArgList &ag)
@@ -60,10 +68,10 @@ struct GetReference
 	}
 };
 
-template<typename ArgList, typename QueryKeyword>
-struct GetReference<ArgList, QueryKeyword, ParamNotFound>
+template<typename ParamPack, typename QueryKeyword>
+struct GetReference<ParamPack, QueryKeyword, EmptyParamPack>
 {
-	static ParamNotFound apply(const ArgList &ag)
+	static ParamNotFound apply(const ParamPack &ag)
 	{
 		return ParamNotFound();
 	}
@@ -94,20 +102,20 @@ struct LazyDefault
 };
 
 
-template<typename ArgList, typename Default,
-		 typename Base = typename GetArgList<ArgList, typename Default::Keyword>::ArgListType>
+template<typename ParamPack, typename Default,
+		 typename Base = typename GetParamPack<ParamPack, typename Default::Keyword>::ParamPackType>
 struct ComputeDefault
 {
-	static auto apply(const ArgList &ar, Default o)
+	static auto apply(const ParamPack &ar, Default o)
 	->decltype(ar[typename Default::Keyword()])
 	{
 		return ar[typename Default::Keyword()];
 	}
 };
-template<typename ArgList, typename Default>
-struct ComputeDefault<ArgList, Default, ParamNotFound>
+template<typename ParamPack, typename Default>
+struct ComputeDefault<ParamPack, Default, EmptyParamPack>
 {
-	static auto apply(const ArgList &ar, Default o)
+	static auto apply(const ParamPack &ar, Default o)
 	->decltype(std::forward<typename Default::Reference>(o.ref))
 	{
 		return std::forward<typename Default::Reference>(o.ref);
@@ -116,77 +124,143 @@ struct ComputeDefault<ArgList, Default, ParamNotFound>
 
 
 
-
-
-
-template<typename ArgList, typename LazyDefault,
-		 typename Base = typename GetArgList<ArgList, typename LazyDefault::Keyword>::ArgListType>
+template<typename ParamPack, typename LazyDefault,
+		 typename Base = typename GetParamPack<ParamPack, typename LazyDefault::Keyword>::ParamPackType>
 struct ComputeLazyDefault
 {
-	static auto apply(const ArgList &ar, LazyDefault o)
+	static auto apply(const ParamPack &ar, LazyDefault o)
 	->decltype(ar[typename LazyDefault::Keyword()])
 	{
 		return ar[typename LazyDefault::Keyword()];
 	}
 };
-template<typename ArgList, typename LazyDefault>
-struct ComputeLazyDefault<ArgList, LazyDefault, ParamNotFound>
+template<typename ParamPack, typename LazyDefault>
+struct ComputeLazyDefault<ParamPack, LazyDefault, EmptyParamPack>
 {
-	static auto apply(const ArgList &ar, LazyDefault o)
+	static auto apply(const ParamPack &ar, LazyDefault o)
 	->decltype(o.ref())
 	{
 		return o.ref();
 	}
 };
 
-//template<typename Tag>
-//struct Keyword;
 
-template<typename _Keyword, typename _Reference, typename _Next = ParamNotFound>
-struct ArgList:public _Next
+
+
+
+} // namespace Parameter
+
+
+
+struct EmptyParamPack
 {
+
+	using Keyword = EmptyParamPack;
+	using Reference = EmptyParamPack;
+	using Next = EmptyParamPack;
+
+	template<typename QTag>
+	ParamNotFound operator[](Parameter::Keyword<QTag>) const
+	{
+		return ParamNotFound();
+	}
+
+	template<typename QK, typename D>
+	auto operator[](Parameter::Default<QK, D> o) const
+	->decltype(std::forward<decltype(o.ref)>(o.ref))
+	{
+		return std::forward<decltype(o.ref)>(o.ref);
+	}
+
+
+	template<typename QK, typename D>
+	auto operator[](Parameter::LazyDefault<QK, D> o) const
+	->decltype(o.ref())
+	{
+		return o.ref();
+	}
+
+
+//	template<typename QTag>
+//	auto operator[](Parameter::Keyword<QTag>) const
+//	->decltype(Parameter::GetReference<EmptyParamPack, Parameter::Keyword<QTag> >::apply(*this))
+//	{
+//		return Parameter::GetReference<EmptyParamPack, Parameter::Keyword<QTag> >::apply(*this);
+//	}
+//
+//	template<typename QK, typename D>
+//	auto operator[](Parameter::Default<QK, D> o) const
+//
+//	->decltype(Parameter::ComputeDefault<EmptyParamPack, Parameter::Default<QK, D>>::apply(*this, o))
+//	{
+//		return Parameter::ComputeDefault<EmptyParamPack, Parameter::Default<QK, D>>::apply(*this, o);
+//	}
+//
+//
+//
+//	template<typename QK, typename D>
+//	auto operator[](Parameter::LazyDefault<QK, D> o) const
+//	->decltype(Parameter::ComputeLazyDefault<EmptyParamPack, Parameter::LazyDefault<QK, D> >::apply(*this, o))
+//	{
+//		return Parameter::ComputeLazyDefault<EmptyParamPack, Parameter::LazyDefault<QK, D> >::apply(*this, o);
+//	}
+
+
+
+};
+
+
+
+namespace Parameter{
+
+
+
+
+
+
+template<typename _Keyword, typename _Reference, typename _Next = EmptyParamPack>
+struct ParamPack:public _Next
+{
+	_Reference ref;
+	ParamPack(_Reference ref):ref(std::forward<_Reference>(ref)){}
+	ParamPack(_Reference ref, const _Next &next):ref(std::forward<_Reference>(ref)), _Next(next) {}
+
+	ParamPack(const ParamPack &o):ref(std::forward<_Reference>(o.ref)), _Next(*static_cast<const _Next*>(&o) ){}
+
+	template<typename OKeyword, typename OReference>
+	ParamPack<OKeyword, OReference, ParamPack> operator,(ParamPack<OKeyword, OReference> o) const
+	{
+		return ParamPack<OKeyword, OReference, ParamPack>
+				(std::forward<OReference>(o.ref), *this);
+	}
+
+	template<typename QTag>
+	auto operator[](Parameter::Keyword<QTag>) const
+	->decltype(GetReference<ParamPack, Parameter::Keyword<QTag> >::apply(*this))
+	{
+		return GetReference<ParamPack, Parameter::Keyword<QTag> >::apply(*this);
+	}
+
+	template<typename QK, typename D>
+	auto operator[](Default<QK, D> o) const
+
+	->decltype(ComputeDefault<ParamPack, Default<QK, D>>::apply(*this, o))
+	{
+		return ComputeDefault<ParamPack, Default<QK, D>>::apply(*this, o);
+	}
+
+
+
+	template<typename QK, typename D>
+	auto operator[](LazyDefault<QK, D> o) const
+	->decltype(ComputeLazyDefault<ParamPack, LazyDefault<QK, D> >::apply(*this, o))
+	{
+		return ComputeLazyDefault<ParamPack, LazyDefault<QK, D> >::apply(*this, o);
+	}
+
 	using Keyword = _Keyword;
 	using Reference = _Reference;
 	using Next = _Next;
-	Reference ref;
-	ArgList(Reference ref):ref(std::forward<Reference>(ref)){}
-	ArgList(Reference ref, const Next &next):ref(std::forward<Reference>(ref)), Next(next) {}
-
-	ArgList(const ArgList &o):ref(std::forward<Reference>(o.ref)), Next(*static_cast<const Next*>(&o) ){}
-
-	template<typename OKeyword, typename OReference>
-	ArgList<OKeyword, OReference, ArgList> operator,(ArgList<OKeyword, OReference> o) const
-	{
-		return ArgList<OKeyword, OReference, ArgList>
-				(std::forward<OReference>(o.ref), *this);
-	}
-public:
-	template<typename QueryKeyword>
-	auto operator[](QueryKeyword keyword) const
-	->decltype(GetReference<ArgList, QueryKeyword>::apply(*this))
-	{
-		return GetReference<ArgList, QueryKeyword>::apply(*this);
-	}
-
-
-
-	template<typename QueryKeyword, typename _Default>
-	auto operator[](Default<QueryKeyword, _Default> o) const
-
-	->decltype(ComputeDefault<ArgList, Default<QueryKeyword, _Default>>::apply(*this, o))
-	{
-		return ComputeDefault<ArgList, Default<QueryKeyword, _Default>>::apply(*this, o);
-	}
-
-
-
-	template<typename QueryKeyword, typename _Default>
-	auto operator[](LazyDefault<QueryKeyword, _Default> o) const
-
-	->decltype(ComputeLazyDefault<ArgList, LazyDefault<QueryKeyword, _Default> >::apply(*this, o))
-	{
-		return ComputeLazyDefault<ArgList, LazyDefault<QueryKeyword, _Default> >::apply(*this, o);
-	}
 
 };
 
@@ -200,9 +274,9 @@ struct Keyword
 
 	template<typename T>
 	auto operator=(T &&t) const
-	->ArgList<Keyword, decltype(std::forward<T>(t))>
+	->ParamPack<Keyword, decltype(std::forward<T>(t))>
 	{
-		return ArgList<Keyword, decltype(std::forward<T>(t))>(std::forward<T>(t));
+		return ParamPack<Keyword, decltype(std::forward<T>(t))>(std::forward<T>(t));
 	}
 
 

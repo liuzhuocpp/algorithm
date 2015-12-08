@@ -52,19 +52,26 @@ int main()
 	double K = 1222.312221111;
 
 
-	auto store = (aa = 3333
-			, bb = K
-			, cc= "***********"
-			);
+	auto store =
+			EmptyParamPack();
 
-	 auto aa_val = store[aa];
+//			(aa = 3333
+//			, bb = K
+////			, cc= "***********"
+//			);
 
-	 cout << store[aa] << endl;
+	 auto aa_val = store[aa | 10];
+
+	 cout << store[aa | 9999] << endl;
 	 cout << store[cc | string("LSKDFJLSJDFLJ")] << endl;
 
 	 auto lazy = std::bind(std::plus<string>(), string("IIIIIIIi"), string("JJJJJJJJj")  );
 
 //	 cout << lazy() << endl;
+//	 cout << lazy() << endl;
+
+	 store[cc ||  lazy  ];
+
 	 cout << store[cc ||  lazy  ] << endl;
 
 
