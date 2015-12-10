@@ -8,7 +8,7 @@
 #ifndef LZ_PARAMETER_H_
 #define LZ_PARAMETER_H_
 
-#include "lz/property.h"
+//#include "lz/property.h"
 #include <utility>
 
 namespace lz{
@@ -21,7 +21,10 @@ struct ParamNotFound {
 };
 struct EmptyParamPack;
 
+
 namespace Parameter{
+
+
 
 template<typename _Tag>
 struct Keyword;
@@ -331,7 +334,32 @@ const Keyword<_Tag> Keyword<_Tag>::instance = {};
 
 
 
-}} // namespace lz::Parameter
+}// namespace lz::Parameter
+
+
+
+//template<typename ArgList, typename QueryKeyword>
+//struct GetParamPack
+//{
+//	using ParamPackType = typename GetParamPackImpl<ArgList, QueryKeyword, typename ArgList::Keyword>::ParamPackType;
+//};
+
+
+
+template<typename ParamPack, typename KeywordType, typename Default = ParamNotFound>
+using ChooseParamType =	typename std::conditional<
+
+	!std::is_same<typename Parameter::GetParamPack<ParamPack, KeywordType>::ParamPackType::Reference, ParamNotFound >::value,
+
+	typename Parameter::GetParamPack<ParamPack, KeywordType>::ParamPackType::Reference,
+
+
+	Default>::type;
+
+
+
+
+} // namespace lz
 
 
 

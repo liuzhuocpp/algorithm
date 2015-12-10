@@ -83,52 +83,52 @@ struct LessThanComparableFacade
  *  Every param have a default value.
  */
 
-struct ParamNotFound{};
+//struct ParamNotFound{};
 
-	namespace UtilityPrivate{
+//	namespace UtilityPrivate{
+//
+//		template<typename UserParam, typename DefaultParam>
+//		struct ChooseParam
+//		{
+//			static UserParam& get(UserParam &up, DefaultParam &dp)
+//			{
+//				return up;
+//			}
+//		};
+//		template<typename DefaultParam>
+//		struct ChooseParam<ParamNotFound, DefaultParam>
+//		{
+//			static DefaultParam& get(ParamNotFound &up, DefaultParam &dp)
+//			{
+//				return dp;
+//			}
+//		};
+//
+//	} // UtilityPrivate
 
-		template<typename UserParam, typename DefaultParam>
-		struct ChooseParam
-		{
-			static UserParam& get(UserParam &up, DefaultParam &dp)
-			{
-				return up;
-			}
-		};
-		template<typename DefaultParam>
-		struct ChooseParam<ParamNotFound, DefaultParam>
-		{
-			static DefaultParam& get(ParamNotFound &up, DefaultParam &dp)
-			{
-				return dp;
-			}
-		};
-
-	} // UtilityPrivate
-
-template<typename ParamRetrunType, typename Default>
-auto chooseParamReturnValue(ParamRetrunType && p, Default && d) ->
-decltype(UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
-									 typename std::remove_reference<Default>::type >::get(p, d))
-{
-	return UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
-									   typename std::remove_reference<Default>::type>::get(p, d);
-}
-
-
-
-// Choose the param return type we hoped according to the ParamType, DefaultType
-template<typename ParamReturnType, typename DefaultType>
-using ChooseParamReturnType =  typename std::conditional<std::is_same<ParamReturnType, ParamNotFound>::value,
-														 DefaultType,
-														 ParamReturnType>::type;
-
-template<typename ParamName>
-using MemberFunctionReturnType =
-		typename decltype(std::mem_fn(ParamName()))::result_type;
-
-
-
+//template<typename ParamRetrunType, typename Default>
+//auto chooseParamReturnValue(ParamRetrunType && p, Default && d) ->
+//decltype(UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
+//									 typename std::remove_reference<Default>::type >::get(p, d))
+//{
+//	return UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
+//									   typename std::remove_reference<Default>::type>::get(p, d);
+//}
+//
+//
+//
+//// Choose the param return type we hoped according to the ParamType, DefaultType
+//template<typename ParamReturnType, typename DefaultType>
+//using ChooseParamReturnType =  typename std::conditional<std::is_same<ParamReturnType, ParamNotFound>::value,
+//														 DefaultType,
+//														 ParamReturnType>::type;
+//
+//template<typename ParamName>
+//using MemberFunctionReturnType =
+//		typename decltype(std::mem_fn(ParamName()))::result_type;
+//
+//
+//
 
 
 

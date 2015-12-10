@@ -41,7 +41,7 @@ struct AA
     }
     ~AA()
     {
-        cout << "des con " << endl;
+        cout << "des " << endl;
     }
 };
 

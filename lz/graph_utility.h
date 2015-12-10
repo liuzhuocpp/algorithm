@@ -5,7 +5,7 @@
  */
 //#include "lz/property.h"
 
-#include "lz/utility.h"
+//#include "lz/utility.h"
 #include "lz/map.h"
 namespace lz {
 	namespace GraphUtilityPrivate {
@@ -134,46 +134,46 @@ auto makeEdgePropertyMap(const G &g, Tag tag)
 
 
 
-// for graph param
-template<typename G, typename VertexIndexMapName>
-using ChooseVertexIndexMap = ChooseParamReturnType<MemberFunctionReturnType<VertexIndexMapName>,
-		                                           typename GraphTraits<G>::template VertexPropertyMap<VertexIndexTag>::ConstType
-												   >;
-
-
-template<typename GeneralParamName, typename VertexIndexMap, typename ValueType>
-using ChooseVertexIndexComposeMap = ChooseParamReturnType<
-		MemberFunctionReturnType<GeneralParamName>,
-		ComposeMap<VertexIndexMap, IteratorMap<ValueType*> >
->;
-
-
-template<typename DefaultValueType, typename ParamReturnType, typename VertexIndexMap, typename VertexNumberType>
-auto
-chooseVertexIndexComposeMap(ParamReturnType paramMap, VertexIndexMap indexMap, VertexNumberType n)
-//->decltype(paramMap)
-{
-	return paramMap;
-}
-
-template<typename DefaultValueType, typename VertexIndexMap, typename VertexNumberType>
-auto
-chooseVertexIndexComposeMap( ParamNotFound, VertexIndexMap indexMap, VertexNumberType n)
-//->decltype(makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n])))
-{
-	return makeComposeMap(indexMap, makeIteratorMap(
-									new DefaultValueType[n]
-								 ));
-}
-
-template<typename Map, typename ParamRetrunType>
-void deleteVertexIndexComposeMap(Map map, ParamRetrunType ) { }
-
-template<typename Map>
-void deleteVertexIndexComposeMap(Map map, ParamNotFound )
-{
-	delete[] map.secondMap().iterator();
-}
+//// for graph param
+//template<typename G, typename VertexIndexMapName>
+//using ChooseVertexIndexMap = ChooseParamReturnType<MemberFunctionReturnType<VertexIndexMapName>,
+//		                                           typename GraphTraits<G>::template VertexPropertyMap<VertexIndexTag>::ConstType
+//												   >;
+//
+//
+//template<typename GeneralParamName, typename VertexIndexMap, typename ValueType>
+//using ChooseVertexIndexComposeMap = ChooseParamReturnType<
+//		MemberFunctionReturnType<GeneralParamName>,
+//		ComposeMap<VertexIndexMap, IteratorMap<ValueType*> >
+//>;
+//
+//
+//template<typename DefaultValueType, typename ParamReturnType, typename VertexIndexMap, typename VertexNumberType>
+//auto
+//chooseVertexIndexComposeMap(ParamReturnType paramMap, VertexIndexMap indexMap, VertexNumberType n)
+////->decltype(paramMap)
+//{
+//	return paramMap;
+//}
+//
+//template<typename DefaultValueType, typename VertexIndexMap, typename VertexNumberType>
+//auto
+//chooseVertexIndexComposeMap( ParamNotFound, VertexIndexMap indexMap, VertexNumberType n)
+////->decltype(makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n])))
+//{
+//	return makeComposeMap(indexMap, makeIteratorMap(
+//									new DefaultValueType[n]
+//								 ));
+//}
+//
+//template<typename Map, typename ParamRetrunType>
+//void deleteVertexIndexComposeMap(Map map, ParamRetrunType ) { }
+//
+//template<typename Map>
+//void deleteVertexIndexComposeMap(Map map, ParamNotFound )
+//{
+//	delete[] map.secondMap().iterator();
+//}
 
 
 } // namespace lz

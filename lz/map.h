@@ -27,12 +27,36 @@ struct MapTraits
 	using ValueType = typename Map::ValueType;
 };
 
-template<typename Key, typename Value, typename ReferenceType = Value&>
+template<typename Key, typename Value>
 struct MapFacade
 {
 	using KeyType = Key;
 	using ValueType = Value;
 };
+
+
+template<typename UniqueArray>
+struct UniqueArrayMap: public MapFacade<std::ptrdiff_t, typename UniqueArray::element_type&>
+{
+	UniqueArrayMap(UniqueArray &&u):u(move(u))
+	{
+
+	}
+	typename UniqueArray::element_type& operator[](ptrdiff_t d) const
+	{
+		return u[d];
+	}
+private:
+	UniqueArray u;
+};
+
+template<typename UniqueArray>
+UniqueArrayMap<typename std::remove_reference<UniqueArray>::type> makeUniqueArrayMap(UniqueArray && u)
+{
+	return UniqueArrayMap<typename std::remove_reference<UniqueArray>::type>(move(u));
+}
+
+
 
 
 template<typename Key>
@@ -96,7 +120,11 @@ public:
 	using SecondMap = SM;
 
 	explicit ComposeMap() = default;
-	explicit ComposeMap(FM fm, SM sm):fm(fm), sm(sm){}
+	explicit ComposeMap(FM &&fm, SM &&sm):fm(std::move(fm)), sm(std::move(sm)) { }
+	explicit ComposeMap(FM &&fm, const SM &sm):fm(std::move(fm)), sm(sm) {}
+	explicit ComposeMap(const FM &fm, SM &&sm):fm(fm), sm(std::move(sm)) {}
+	explicit ComposeMap(const FM &fm, const SM &sm):fm(fm), sm(sm) {}
+
 
 	FirstMap firstMap() const { return fm; }
 	SecondMap secondMap() const { return sm; }
@@ -108,9 +136,12 @@ public:
 };
 
 template<typename FM, typename SM>
-ComposeMap<FM, SM> makeComposeMap(FM fm, SM sm)
+ComposeMap<typename std::remove_reference<FM>::type,
+  	  	   typename std::remove_reference<SM>::type> makeComposeMap(FM &&fm, SM &&sm)
+
 {
-	return ComposeMap<FM, SM>(fm, sm);
+	return ComposeMap<typename std::remove_reference<FM>::type,
+					  typename std::remove_reference<SM>::type>(std::forward<FM>(fm), std::forward<SM>(sm));
 }
 
 

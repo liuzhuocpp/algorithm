@@ -29,7 +29,6 @@ protected:
     template<typename ...Args, size_t N>
     NoProperty(const std::tuple<Args...> &tp, std::integral_constant<size_t, N> t)
 	{
-//    	cout << "SB" << endl;
 	}
 
 

@@ -2,8 +2,12 @@
 #include <cstdio>
 #include <cstring>
 #include <tuple>
-#include "lz/adjacency_list.h"
 #include "lz/depth_first_search.h"
+
+
+#include "lz/adjacency_list.h"
+
+
 #include "lz/property.h"
 
 using namespace std;
@@ -12,8 +16,10 @@ using namespace lz;
 
 using G = AdjacencyList<>;
 
-//DepthFirstSearchParams
-struct P:public DepthFirstSearchParams
+
+
+
+struct P:public DepthFirstSearchVisitor
 {
 	using V = GraphTraits<G>::VertexDescriptor;
 	using E = typename GraphTraits<G>::EdgeDescriptor;
@@ -36,6 +42,25 @@ struct P:public DepthFirstSearchParams
 
 int main()
 {
+	struct int_tag{};
+	struct char_tag{};
+	Property<int_tag, int,
+	Property<char_tag, char>>  pp(std::make_tuple(3333, '%'));
+//	pp[int_tag()] = 111;
+//	pp[char_tag()] = '$';
+	cout << pp[int_tag()] << endl;
+	cout << pp[char_tag()] << endl;
+
+
+
+
+
+
+
+
+
+
+
 
 	G g;
 	int n = 5;
@@ -50,7 +75,20 @@ int main()
 
 	P p(g);
 
-	depthFirstSearch(g, p);
+	using namespace DepthFirstSearchKeyword;
+	depthFirstSearch(g,
+
+
+			(visitor = p)
+
+	);
+
+
+
+
+
+
+
 
 
 
