@@ -14,7 +14,7 @@
 #define LZ_MAP_H_
 
 //#include <iostream>
-
+#include <memory>
 namespace lz {
 
 //using std::cout;
@@ -50,11 +50,52 @@ private:
 	UniqueArray u;
 };
 
+
 template<typename UniqueArray>
 UniqueArrayMap<typename std::remove_reference<UniqueArray>::type> makeUniqueArrayMap(UniqueArray && u)
 {
 	return UniqueArrayMap<typename std::remove_reference<UniqueArray>::type>(move(u));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+template<typename _ValueType>
+struct SharedArrayMap: public MapFacade<std::ptrdiff_t, _ValueType&>
+{
+	SharedArrayMap(std::shared_ptr<_ValueType> sp):sp(sp){}
+	SharedArrayMap() :sp(nullptr) {}
+
+	SharedArrayMap(size_t n)
+	:sp(new _ValueType[n], std::default_delete<_ValueType[]>())  { }
+
+	_ValueType& operator[](ptrdiff_t d) const
+	{
+		return	sp.get()[d];
+	}
+private:
+	std::shared_ptr<_ValueType> sp;
+};
+
+
+//template<typename _ValueType>
+//SharedArrayMap<_ValueType> makeUniqueArrayMap(size_t n)
+//{
+//
+//}
+
+
 
 
 
@@ -120,10 +161,10 @@ public:
 	using SecondMap = SM;
 
 	explicit ComposeMap() = default;
-	explicit ComposeMap(FM &&fm, SM &&sm):fm(std::move(fm)), sm(std::move(sm)) { }
-	explicit ComposeMap(FM &&fm, const SM &sm):fm(std::move(fm)), sm(sm) {}
-	explicit ComposeMap(const FM &fm, SM &&sm):fm(fm), sm(std::move(sm)) {}
-	explicit ComposeMap(const FM &fm, const SM &sm):fm(fm), sm(sm) {}
+//	explicit ComposeMap(FM &&fm, SM &&sm):fm(std::move(fm)), sm(std::move(sm)) { }
+//	explicit ComposeMap(FM &&fm, const SM &sm):fm(std::move(fm)), sm(sm) {}
+//	explicit ComposeMap(const FM &fm, SM &&sm):fm(fm), sm(std::move(sm)) {}
+	explicit ComposeMap(FM fm,  SM sm):fm(fm), sm(sm) {}
 
 
 	FirstMap firstMap() const { return fm; }
@@ -137,11 +178,11 @@ public:
 
 template<typename FM, typename SM>
 ComposeMap<typename std::remove_reference<FM>::type,
-  	  	   typename std::remove_reference<SM>::type> makeComposeMap(FM &&fm, SM &&sm)
+  	  	   typename std::remove_reference<SM>::type> makeComposeMap(FM fm, SM sm)
 
 {
 	return ComposeMap<typename std::remove_reference<FM>::type,
-					  typename std::remove_reference<SM>::type>(std::forward<FM>(fm), std::forward<SM>(sm));
+					  typename std::remove_reference<SM>::type>(fm, sm) ;
 }
 
 

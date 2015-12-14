@@ -23,7 +23,7 @@ int main()
 			   Property<char_tag, char> >;
 
 	using EP = Property<int_tag, int,
-				   Property<char_tag, char> >;
+			Property<char_tag, char> >;
 
 
 	using G = AdjacencyList<UndirectedGraphTag, VP, EP>;

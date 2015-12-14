@@ -130,6 +130,13 @@ struct LessThanComparableFacade
 //
 //
 
+//
+//template<typename... Args>
+//void emptyFunction(Args... args)
+//{
+//
+//}
+
 
 
 

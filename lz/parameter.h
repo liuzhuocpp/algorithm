@@ -67,6 +67,8 @@ struct GetReference
 	static auto apply(const ArgList &ag)
 	->decltype(std::forward<typename Base::Reference>(ag.Base::ref))
 	{
+//		cout << "HH " << endl;
+//		cout << ag.ref << endl;
 		return std::forward<typename Base::Reference>(ag.Base::ref);
 	}
 };
@@ -102,6 +104,9 @@ struct LazyDefault
 	Reference ref;
 
 	LazyDefault(Reference ref):ref(std::forward<Reference>(ref)) {}
+
+	LazyDefault(const LazyDefault &o)
+	:ref(std::forward<Reference>(o.ref)) {}
 };
 
 
@@ -224,11 +229,31 @@ namespace Parameter{
 template<typename _Keyword, typename _Reference, typename _Next = EmptyParamPack>
 struct ParamPack:public _Next
 {
+
+
+	template<typename QK>
+	using QueryReference = decltype(GetReference<ParamPack, typename std::decay<QK>::type>::apply(
+
+			std::declval<ParamPack>()
+			   ) );
+
 	_Reference ref;
-	ParamPack(_Reference ref):ref(std::forward<_Reference>(ref)){}
+	ParamPack(_Reference _ref):ref(std::forward<_Reference>(*&_ref)  )
+	{
+//		cout << std::is_same<int&&, decltype(ref)>::value << "|||||||" <<  endl;
+//		cout << "CON" <<  _ref << endl;
+//		cout << "CON" <<  ref << endl;
+//		cout << "REF: " << &ref << endl;
+	}
 	ParamPack(_Reference ref, const _Next &next):ref(std::forward<_Reference>(ref)), _Next(next) {}
 
-	ParamPack(const ParamPack &o):ref(std::forward<_Reference>(o.ref)), _Next(*static_cast<const _Next*>(&o) ){}
+	ParamPack(const ParamPack &o)
+	:ref(std::forward<_Reference>(o.ref)), _Next(*static_cast<const _Next*>(&o) )
+//	:ParamPack(std::forward<_Reference>(o.ref), o.Next)
+	{
+//		cout << "HHEHEHEEH" << endl;
+
+	}
 
 	template<typename OKeyword, typename OReference>
 	ParamPack<OKeyword, OReference, ParamPack> operator,(ParamPack<OKeyword, OReference> o) const
@@ -241,6 +266,8 @@ struct ParamPack:public _Next
 	auto operator[](Parameter::Keyword<QTag>) const
 	->decltype(GetReference<ParamPack, Parameter::Keyword<QTag> >::apply(*this))
 	{
+//		cout << "SB " << ref << endl;
+//		cout << "REF: " << &ref << endl;
 		return GetReference<ParamPack, Parameter::Keyword<QTag> >::apply(*this);
 	}
 
@@ -279,6 +306,7 @@ struct Keyword
 	auto operator=(T &&t) const
 	->ParamPack<Keyword, decltype(std::forward<T>(t))>
 	{
+//		cout <<" T: " << t << endl;
 		return ParamPack<Keyword, decltype(std::forward<T>(t))>(std::forward<T>(t));
 	}
 

@@ -19,37 +19,22 @@ using G = AdjacencyList<>;
 
 
 
-struct P:public DepthFirstSearchVisitor
+
+
+struct AA
 {
-	using V = GraphTraits<G>::VertexDescriptor;
-	using E = typename GraphTraits<G>::EdgeDescriptor;
-
-	G &g;
-	P(G &g):g(g){}
-
-	void treeEdge(E e, V u)
+	void operator()()
 	{
-		V other = opposite(g, e, u);
-		cout << "Tree Edge: " << u << " " << other << endl;
+		cout << "FFF000000000" << endl;
 	}
-	void notTreeEdge(E e, V u)
-	{
-		V other = opposite(g, e, u);
-		cout <<"not Tree Edge: " <<  u << " " << other << endl;
-	}
-
 };
 
+LZ_PARAMETER_KEYWORD(tag, aa)
+LZ_PARAMETER_KEYWORD(tag, bb)
 int main()
 {
-	struct int_tag{};
-	struct char_tag{};
-	Property<int_tag, int,
-	Property<char_tag, char>>  pp(std::make_tuple(3333, '%'));
-//	pp[int_tag()] = 111;
-//	pp[char_tag()] = '$';
-	cout << pp[int_tag()] << endl;
-	cout << pp[char_tag()] << endl;
+
+
 
 
 
@@ -72,16 +57,44 @@ int main()
 	g.addEdge(1, 0);
 	g.addEdge(4, 1);
 
+	using namespace DepthFirstSearchKeywords;
 
-	P p(g);
 
-	using namespace DepthFirstSearchKeyword;
+	using V = GraphTraits<G>::VertexDescriptor;
+	using E = typename GraphTraits<G>::EdgeDescriptor;
+
+//	G &g;
+//	P(G &g):g(g){}
+
+	auto _treeEdge = [&](E e, V u)
+	{
+		V other = opposite(g, e, u);
+		cout << "Tree Edge: " << u << " " << other << endl;
+	};
+	auto _notTreeEdge = [&](E e, V u)
+	{
+		V other = opposite(g, e, u);
+		cout <<"not Tree Edge: " <<  u << " " << other << endl;
+	};
+
+
 	depthFirstSearch(g,
+			(
+			isInit = std::true_type(),
+			treeEdge = _treeEdge,
+			notTreeEdge = _notTreeEdge
+			)   );
 
 
-			(visitor = p)
+//	P p(g);
 
-	);
+	using namespace DepthFirstSearchKeywords;
+//	depthFirstSearch(g,
+//
+//			(isInit = std::true_type())
+////			(visitor = p)
+//
+//	);
 
 
 
