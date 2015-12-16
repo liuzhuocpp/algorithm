@@ -154,19 +154,13 @@ void depthFirstSearch(const G &g, const ParamPack &p)
 
 	auto iMap = p[vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
 
-	auto gg = std::bind(
-			makeVertexIndexComposeMap<ColorValue, decltype(iMap), decltype(n) >,
-			iMap, n);
+//	auto gg = std::bind(
+//			makeVertexIndexComposeMap<ColorValue, decltype(iMap), decltype(n) >,
+//			iMap, n);
 
-
-	auto _colorMap = p[colorMap
-					   ||
-
-					   std::bind(
-					   			makeVertexIndexComposeMap<ColorValue, decltype(iMap), decltype(n) >,
-					   			iMap, n)
-
-					   ];
+	auto _colorMap = p[colorMap ||
+					   std::bind(makeVertexIndexComposeMap<ColorValue, decltype(iMap), decltype(n) >,
+					   			iMap, n)];
 	auto _enterVertex = p[enterVertex];
 
 	using V = typename GraphTraits<G>::VertexDescriptor;

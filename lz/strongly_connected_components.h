@@ -40,7 +40,8 @@ namespace StronglyConnectedComponentsKeywords {
 
     template<typename G, typename ComponentMap, typename ParamPack = lz::EmptyParamPack>
 
-	auto stronglyConnectedComponents(const G &g, ComponentMap compMap, const ParamPack &p = lz::EmptyParamPack() )
+    typename MapTraits<ComponentMap>::ValueType
+	stronglyConnectedComponents(const G &g, ComponentMap compMap, const ParamPack &p = lz::EmptyParamPack() )
     {
 		static_assert(std::is_same<typename GraphTraits<G>::DirectedCategory, DirectedGraphTag>::value, "this graph is not directed");
 
@@ -63,9 +64,8 @@ namespace StronglyConnectedComponentsKeywords {
 						  std::bind(makeVertexIndexComposeMap<Vertex, decltype(indexMap), decltype(n) >,
 						  		    indexMap, n)];
 
-
-		using ComponentType = typename std::decay<typename MapTraits<ComponentMap>::ValueType>::type;
-		using TimeType = typename std::decay<typename MapTraits<decltype(discoverTimeMap)>::ValueType>::type;
+		using ComponentType = typename MapTraits<ComponentMap>::ValueType;
+		using TimeType = typename MapTraits<decltype(discoverTimeMap)>::ValueType;
 
 		using namespace DepthFirstSearchKeywords;
 
@@ -86,7 +86,7 @@ namespace StronglyConnectedComponentsKeywords {
 		depthFirstSearch(g, (
 
 				colorMap = discoverTimeMap,
-				white =  []()->TimeType { return 0; },
+				white = []()->TimeType { return 0; },
 				black = [&]()->TimeType { return ++dfsTime; }
 				,
 

@@ -12,29 +12,22 @@
 
 namespace lz {
 
-
-
-struct DisjointSetsParams
+struct DefaultChangeParent
 {
-	template<typename V>
-	void initializeParent(V u) {}
-
-	template<typename V>
-	void changeParent(V u, V new_parent) {}
-
+	template<typename  V>
+	void operator()(V u, V p) {}
 };
 
-template<typename ParentMap, typename Params = DisjointSetsParams>
+
+template<typename ParentMap, typename ChangeParent = DefaultChangeParent>
 class DisjointSets
 {
 	ParentMap p;
-	Params params;
 public:
-	using ValueType = typename MapTraits<ParentMap>::ValueType;
-	DisjointSets(ParentMap p, Params &params):p(p), params(params) {}
+	using ValueType = std::decay_t<typename MapTraits<ParentMap>::ValueType>;
+	DisjointSets(ParentMap p):p(p) {}
 	void makeSet(ValueType u)
 	{
-		params.initializeParent(u);
 		p[u] = u;
 	}
 	template<typename ElementIterator>
@@ -50,14 +43,14 @@ public:
 		if(p[u] != u)
 		{
 			ValueType new_parent = findSet(p[u]);
-			params.changeParent(u, new_parent);
+			ChangeParent()(u, new_parent);
 			p[u] = new_parent;
 		}
 		return p[u];
 	}
 	void link(ValueType x, ValueType y)
 	{
-		params.changeParent(x, y);
+		ChangeParent()(x, y);
 		p[x] = y;
 	}
 	void unionSet(ValueType x, ValueType y)
