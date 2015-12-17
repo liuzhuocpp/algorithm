@@ -4,7 +4,7 @@
 #include <utility>
 #include <functional>
 
-#include "lz/adjacency_list.h"
+//#include "lz/adjacency_list.h"
 #include "lz/parameter.h"
 #include "lz/depth_first_search.h"
 
