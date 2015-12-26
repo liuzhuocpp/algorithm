@@ -26,8 +26,6 @@ struct MapTraits
 {
 	using KeyType = typename Map::KeyType;
 	using ValueType = typename Map::ValueType;
-
-//	using DecayValueType = std::decay_t
 };
 
 template<typename Key, typename Value>
@@ -36,39 +34,6 @@ struct MapFacade
 	using KeyType = Key;
 	using ValueType = Value;
 };
-
-
-//template<typename UniqueArray>
-//struct UniqueArrayMap: public MapFacade<std::ptrdiff_t, typename UniqueArray::element_type&>
-//{
-//	UniqueArrayMap(UniqueArray &&u):u(move(u))
-//	{
-//
-//	}
-//	typename UniqueArray::element_type& operator[](ptrdiff_t d) const
-//	{
-//		return u[d];
-//	}
-//private:
-//	UniqueArray u;
-//};
-//
-//
-//template<typename UniqueArray>
-//UniqueArrayMap<typename std::remove_reference<UniqueArray>::type> makeUniqueArrayMap(UniqueArray && u)
-//{
-//	return UniqueArrayMap<typename std::remove_reference<UniqueArray>::type>(move(u));
-//}
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -86,21 +51,11 @@ public:
 	SharedArrayMap(size_t n)
 	:sp(new _ValueType[n], std::default_delete<_ValueType[]>())  { }
 
-//	_ValueType&  operator[](ptrdiff_t d) const
-
 	auto operator[](ptrdiff_t d) const ->decltype(sp.get()[d])
 	{
 		return	sp.get()[d];
 	}
 };
-
-
-//template<typename _ValueType>
-//SharedArrayMap<_ValueType> makeUniqueArrayMap(size_t n)
-//{
-//
-//}
-
 
 
 
@@ -115,26 +70,7 @@ struct IdentityMap:public MapFacade<Key, Key>
 	}
 };
 
-//template<typename UnaryFunction, typename Key, typename Value>
-//class FunctionMap:public MapFacade<Key, Value>
-//{
-//	const UnaryFunction* f = nullptr;
-//	using Base = MapFacade<Key, Value>;
-//public:
-//	const UnaryFunction* function(){ return f;}
-//
-//	explicit FunctionMap() = default;
-//	explicit FunctionMap(const UnaryFunction &f):f(&f) {}
-//	typename Base::ValueType operator[](typename Base::KeyType key) const
-//	{
-//		return (*f)(key);
-//	}
-//};
-template<typename I
-//,
-//		 typename Key = typename std::iterator_traits<I>::difference_type,
-//		 typename Value = decltype(I()[Key()])
-		 >
+template<typename I>
 class IteratorMap:public MapFacade<
 //Key
 typename std::iterator_traits<I>::difference_type
@@ -145,7 +81,6 @@ typename std::iterator_traits<I>::value_type
 >
 {
 	I i;
-//	using Base = MapFacade<Key, Value>;
 public:
 	IteratorMap() = default;
 	IteratorMap(I i):i(i){}
@@ -153,7 +88,6 @@ public:
 	using Iterator = I;
 	Iterator iterator() const { return i;}
 
-//	template<typename Key>
 	auto operator[](typename std::iterator_traits<I>::difference_type key) const ->decltype(i[key])
 	{
 
@@ -178,9 +112,6 @@ public:
 	using SecondMap = SM;
 
 	explicit ComposeMap() = default;
-//	explicit ComposeMap(FM &&fm, SM &&sm):fm(std::move(fm)), sm(std::move(sm)) { }
-//	explicit ComposeMap(FM &&fm, const SM &sm):fm(std::move(fm)), sm(sm) {}
-//	explicit ComposeMap(const FM &fm, SM &&sm):fm(fm), sm(std::move(sm)) {}
 	explicit ComposeMap(const FM &fm,  const SM &sm):fm(fm), sm(sm) {}
 
 
@@ -195,22 +126,12 @@ public:
 };
 
 template<typename FM, typename SM>
-//ComposeMap<typename std::remove_reference<FM>::type,
-//  	  	   typename std::remove_reference<SM>::type>
 ComposeMap<FM, SM>
 makeComposeMap(const FM &fm, const SM &sm)
 
 {
 	return ComposeMap<FM, SM>(fm, sm);
-//	return ComposeMap<typename std::remove_reference<FM>::type,
-//					  typename std::remove_reference<SM>::type>(fm, sm) ;
 }
-
-
-
-
-
-
 
 }// namespace lz
 

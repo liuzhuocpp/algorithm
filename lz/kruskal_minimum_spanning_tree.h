@@ -35,11 +35,7 @@ namespace lz {
 
 template<typename G, typename Function, typename ParamPack = EmptyParamPack>
 void kruskalMinimumSpanningTree(const G &g, Function found_tree, const ParamPack &p = EmptyParamPack())
-
-
-//void kruskalMinimumSpanningTree(const auto &g, auto found_tree,  auto p = EmptyParamPack())
 {
-//	using G = decltype(g);
 
 
 	namespace k = KruskalMinimumSpanningTreeKeywords;
@@ -81,17 +77,10 @@ void kruskalMinimumSpanningTree(const G &g, Function found_tree, const ParamPack
 			}
 	);
 
-//	auto ewMap = g.edgePropertyMap(EdgeWeightTag());
-//	for(auto e = ei.first; e != ei.second; ++ e)
 	for(auto e: edges)
 	{
 		Vertex a = g.source(e), b = g.target(e);
 		Vertex ra = disjointSets.findSet(a), rb = disjointSets.findSet(b);
-//		std::cout << "EEE: " << g.source(e) << " " << g.target(e) << " " <<  weightMap[e] << "\n";
-
-
-
-
 
 		if(ra != rb)
 		{
@@ -100,16 +89,6 @@ void kruskalMinimumSpanningTree(const G &g, Function found_tree, const ParamPack
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
 
 
 }// namesapce lz

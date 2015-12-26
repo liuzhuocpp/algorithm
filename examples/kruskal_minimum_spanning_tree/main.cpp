@@ -11,6 +11,33 @@
 using namespace std;
 using namespace lz;
 
+//using G = AdjacencyList<UndirectedGraphTag>;
+//G g;
+//void display(int u)
+//{
+//	auto ei = g.outEdges(u);
+//	for(auto i = ei.first; i != ei.second; ++ i)
+//	{
+//		cout << "edge: " << g.source(*i) << " " << g.target(*i) << "\n";
+//	}
+//}
+//int main()
+//{
+//
+//	for(int i = 0; i < 10; ++ i) g.addVertex();
+//
+//	g.addEdge(0, 1);
+//
+//	display(0);
+//	cout << string(100, '|') << "\n";
+//	display(1);
+//
+//	return 0;
+//}
+
+
+
+
 using EP = Property<EdgeWeightTag, int>;
 using G = AdjacencyList<UndirectedGraphTag, NoProperty, EP>;
 
