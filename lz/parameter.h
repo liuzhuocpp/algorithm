@@ -357,6 +357,8 @@ const Keyword<_Tag> Keyword<_Tag>::instance = {};
 		= ::lz::Parameter::Keyword<tag_namespace::name>::instance;  \
     }																\
 
+
+
 #define LZ_PARAMETER_KEYWORD_TAG_NAMESPACE(name)   \
 	LZ_PARAMETER_KEYWORD(tag, name)
 

@@ -255,12 +255,14 @@ public:
 	typename EdgePropertyMap<Tag>::Type
 	edgePropertyMap(Tag tag)
 
-	{ return makeEdgePropertyMap(*this, tag); }
+	{ return makeEdgePropertyMap<G, Tag>(*this, tag); }
 
 	template<typename Tag>
 	typename EdgePropertyMap<Tag>::ConstType
 	edgePropertyMap(Tag tag) const
-	{ return makeEdgePropertyMap(*this, tag); }
+	{
+		return makeEdgePropertyMap<G, Tag>(*this, tag);
+	}
 
 
 	pair<VertexIterator, VertexIterator> vertices() const

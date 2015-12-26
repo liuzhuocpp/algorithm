@@ -110,6 +110,9 @@ struct Property: public _NextProperty
     Property(ValueType &&value, const NextProperty & np):
 		NextProperty(np), m_value(value){}
 
+    Property(const ValueType &value): m_value(value){}
+    Property(ValueType &&value): m_value(std::move(value)){}
+
 protected:
     template<typename ...Args, size_t N>
     Property(const std::tuple<Args...> &tp, std::integral_constant<size_t, N> t):

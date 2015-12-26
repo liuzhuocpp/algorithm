@@ -16,16 +16,16 @@
 #include "lz/utility.h"
 
 namespace lz{
-namespace ConnectedComponentsKeywords{
 
-//	LZ_PARAMETER_KEYWORD(tag, componentMap)
+
+	namespace ConnectedComponentsKeywords{
+
 	LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
 	LZ_PARAMETER_KEYWORD(tag, colorMap)
 	LZ_PARAMETER_KEYWORD(tag, white)
 	LZ_PARAMETER_KEYWORD(tag, black)
 
-
-}
+	}
 
 
 

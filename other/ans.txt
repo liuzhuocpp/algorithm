@@ -1,0 +1,2324 @@
+/*
+ * 100203H.cpp
+ *
+ *  Created on: 2015年12月23日
+ *      Author: LZ
+ *
+ *
+ *
+ * http://codeforces.com/problemset/gymProblem/100203/H
+ */
+
+#include <bits/stdc++.h>
+/*
+ * kruskal_minimum_spanning_tree.h
+ *
+ *  Created on: 2015年12月23日
+ *      Author: LZ
+ */
+
+#ifndef LZ_KRUSKAL_MINIMUM_SPANNING_TREE_H_
+#define LZ_KRUSKAL_MINIMUM_SPANNING_TREE_H_
+
+/*
+ * parameter.h
+ *
+ *  Created on: 2015年11月30日
+ *      Author: LZ
+ */
+
+#ifndef LZ_PARAMETER_H_
+#define LZ_PARAMETER_H_
+
+//#include "lz/property.h"
+#include <utility>
+
+namespace lz{
+
+
+struct ParamNotFound {
+	using Keyword = ParamNotFound;
+	using Reference = ParamNotFound;
+	using Next = ParamNotFound;
+};
+struct EmptyParamPack;
+
+
+namespace Parameter{
+
+
+
+template<typename _Tag>
+struct Keyword;
+template<typename _Keyword, typename _Default>
+struct Default;
+
+template<typename _Keyword, typename _Default>
+struct LazyDefault;
+
+template<typename ArgList, typename QueryKeyword, typename Keyword>
+struct GetParamPackImpl
+{
+	using ParamPackType = typename GetParamPackImpl<typename ArgList::Next,
+							QueryKeyword, typename ArgList::Next::Keyword>::ParamPackType;
+};
+
+template<typename ArgList, typename QueryKeyword>
+struct GetParamPackImpl<ArgList, QueryKeyword, QueryKeyword>
+{
+	using ParamPackType = ArgList;
+};
+
+template<typename ArgList, typename QueryKeyword>
+struct GetParamPackImpl<ArgList, QueryKeyword, EmptyParamPack>
+{
+	using ParamPackType = EmptyParamPack;
+};
+
+template<typename ArgList, typename QueryKeyword>
+struct GetParamPack
+{
+	using ParamPackType = typename GetParamPackImpl<ArgList, QueryKeyword, typename ArgList::Keyword>::ParamPackType;
+};
+
+
+
+template<typename ArgList, typename QueryKeyword, typename Base = typename GetParamPack<ArgList, QueryKeyword>::ParamPackType >
+struct GetReference
+{
+	static auto apply(const ArgList &ag)
+	->decltype(std::forward<typename Base::Reference>(ag.Base::ref))
+	{
+//		cout << "HH " << endl;
+//		cout << ag.ref << endl;
+		return std::forward<typename Base::Reference>(ag.Base::ref);
+	}
+};
+
+template<typename ParamPack, typename QueryKeyword>
+struct GetReference<ParamPack, QueryKeyword, EmptyParamPack>
+{
+	static ParamNotFound apply(const ParamPack &ag)
+	{
+		return ParamNotFound();
+	}
+};
+
+template<typename _Keyword, typename _Default>
+struct Default
+{
+	using Keyword =_Keyword;
+	using Reference =_Default;
+
+	Reference ref;
+	Default(Reference ref):ref(std::forward<Reference>(ref)) {}
+
+	Default(const Default &o)
+	:ref(std::forward<Reference>(o.ref)) {}
+};
+
+template<typename _Keyword, typename _Default>
+struct LazyDefault
+{
+	using Keyword =_Keyword;
+	using Reference =_Default;
+
+	Reference ref;
+
+	LazyDefault(Reference ref):ref(std::forward<Reference>(ref)) {}
+
+	LazyDefault(const LazyDefault &o)
+	:ref(std::forward<Reference>(o.ref)) {}
+};
+
+
+template<typename ParamPack, typename Default,
+		 typename Base = typename GetParamPack<ParamPack, typename Default::Keyword>::ParamPackType>
+struct ComputeDefault
+{
+	static auto apply(const ParamPack &ar, Default o)
+	->decltype(ar[typename Default::Keyword()])
+	{
+		return ar[typename Default::Keyword()];
+	}
+};
+template<typename ParamPack, typename Default>
+struct ComputeDefault<ParamPack, Default, EmptyParamPack>
+{
+	static auto apply(const ParamPack &ar, Default o)
+	->decltype(std::forward<typename Default::Reference>(o.ref))
+	{
+		return std::forward<typename Default::Reference>(o.ref);
+	}
+};
+
+
+
+template<typename ParamPack, typename LazyDefault,
+		 typename Base = typename GetParamPack<ParamPack, typename LazyDefault::Keyword>::ParamPackType>
+struct ComputeLazyDefault
+{
+	static auto apply(const ParamPack &ar, LazyDefault o)
+	->decltype(ar[typename LazyDefault::Keyword()])
+	{
+		return ar[typename LazyDefault::Keyword()];
+	}
+};
+template<typename ParamPack, typename LazyDefault>
+struct ComputeLazyDefault<ParamPack, LazyDefault, EmptyParamPack>
+{
+	static auto apply(const ParamPack &ar, LazyDefault o)
+	->decltype(o.ref())
+	{
+		return o.ref();
+	}
+};
+
+
+
+
+
+} // namespace Parameter
+
+
+
+struct EmptyParamPack
+{
+
+	using Keyword = EmptyParamPack;
+	using Reference = EmptyParamPack;
+	using Next = EmptyParamPack;
+
+	template<typename QTag>
+	ParamNotFound operator[](Parameter::Keyword<QTag>) const
+	{
+		return ParamNotFound();
+	}
+
+	template<typename QK, typename D>
+	auto operator[](Parameter::Default<QK, D> o) const
+	->decltype(std::forward<decltype(o.ref)>(o.ref))
+	{
+		return std::forward<decltype(o.ref)>(o.ref);
+	}
+
+
+	template<typename QK, typename D>
+	auto operator[](Parameter::LazyDefault<QK, D> o) const
+	->decltype(o.ref())
+	{
+		return o.ref();
+	}
+
+
+//	template<typename QTag>
+//	auto operator[](Parameter::Keyword<QTag>) const
+//	->decltype(Parameter::GetReference<EmptyParamPack, Parameter::Keyword<QTag> >::apply(*this))
+//	{
+//		return Parameter::GetReference<EmptyParamPack, Parameter::Keyword<QTag> >::apply(*this);
+//	}
+//
+//	template<typename QK, typename D>
+//	auto operator[](Parameter::Default<QK, D> o) const
+//
+//	->decltype(Parameter::ComputeDefault<EmptyParamPack, Parameter::Default<QK, D>>::apply(*this, o))
+//	{
+//		return Parameter::ComputeDefault<EmptyParamPack, Parameter::Default<QK, D>>::apply(*this, o);
+//	}
+//
+//
+//
+//	template<typename QK, typename D>
+//	auto operator[](Parameter::LazyDefault<QK, D> o) const
+//	->decltype(Parameter::ComputeLazyDefault<EmptyParamPack, Parameter::LazyDefault<QK, D> >::apply(*this, o))
+//	{
+//		return Parameter::ComputeLazyDefault<EmptyParamPack, Parameter::LazyDefault<QK, D> >::apply(*this, o);
+//	}
+
+
+
+};
+
+
+
+namespace Parameter{
+
+
+
+
+
+
+template<typename _Keyword, typename _Reference, typename _Next = EmptyParamPack>
+struct ParamPack:public _Next
+{
+
+
+	template<typename QK>
+	using QueryReference = decltype(GetReference<ParamPack, typename std::decay<QK>::type>::apply(
+
+			std::declval<ParamPack>()
+			   ) );
+
+	_Reference ref;
+	ParamPack(_Reference _ref):ref(std::forward<_Reference>(*&_ref)  )
+	{
+//		cout << std::is_same<int&&, decltype(ref)>::value << "|||||||" <<  endl;
+//		cout << "CON" <<  _ref << endl;
+//		cout << "CON" <<  ref << endl;
+//		cout << "REF: " << &ref << endl;
+	}
+	ParamPack(_Reference ref, const _Next &next):ref(std::forward<_Reference>(ref)), _Next(next) {}
+
+	ParamPack(const ParamPack &o)
+	:ref(std::forward<_Reference>(o.ref)), _Next(*static_cast<const _Next*>(&o) )
+//	:ParamPack(std::forward<_Reference>(o.ref), o.Next)
+	{
+//		cout << "HHEHEHEEH" << endl;
+
+	}
+
+	template<typename OKeyword, typename OReference>
+	ParamPack<OKeyword, OReference, ParamPack> operator,(ParamPack<OKeyword, OReference> o) const
+	{
+		return ParamPack<OKeyword, OReference, ParamPack>
+				(std::forward<OReference>(o.ref), *this);
+	}
+
+	template<typename QTag>
+	auto operator[](Parameter::Keyword<QTag>) const
+	->decltype(GetReference<ParamPack, Parameter::Keyword<QTag> >::apply(*this))
+	{
+//		cout << "SB " << ref << endl;
+//		cout << "REF: " << &ref << endl;
+		return GetReference<ParamPack, Parameter::Keyword<QTag> >::apply(*this);
+	}
+
+	template<typename QK, typename D>
+	auto operator[](Default<QK, D> o) const
+
+	->decltype(ComputeDefault<ParamPack, Default<QK, D>>::apply(*this, o))
+	{
+		return ComputeDefault<ParamPack, Default<QK, D>>::apply(*this, o);
+	}
+
+
+
+	template<typename QK, typename D>
+	auto operator[](LazyDefault<QK, D> o) const
+	->decltype(ComputeLazyDefault<ParamPack, LazyDefault<QK, D> >::apply(*this, o))
+	{
+		return ComputeLazyDefault<ParamPack, LazyDefault<QK, D> >::apply(*this, o);
+	}
+
+	using Keyword = _Keyword;
+	using Reference = _Reference;
+	using Next = _Next;
+
+};
+
+
+
+
+template<typename _Tag>
+struct Keyword
+{
+	using Tag = _Tag;
+
+	template<typename T>
+	auto operator=(T &&t) const
+	->ParamPack<Keyword, decltype(std::forward<T>(t))>
+	{
+//		cout <<" T: " << t << endl;
+		return ParamPack<Keyword, decltype(std::forward<T>(t))>(std::forward<T>(t));
+	}
+
+
+	template<typename T>
+	auto operator|(T &&t) const
+	->Default<Keyword, decltype(std::forward<T>(t)) >
+	{
+		return Default<Keyword, decltype(std::forward<T>(t)) >(std::forward<T>(t));
+	}
+
+	template<typename T>
+	auto operator||(T &&t) const
+	->LazyDefault<Keyword, decltype(std::forward<T>(t))>
+	{
+		return LazyDefault<Keyword, decltype(std::forward<T>(t))>(std::forward<T>(t));
+	}
+
+
+
+
+	static const Keyword<Tag> instance;
+};
+template<typename _Tag>
+const Keyword<_Tag> Keyword<_Tag>::instance = {};
+
+
+
+
+
+
+
+
+
+
+
+
+#define LZ_PARAMETER_KEYWORD(tag_namespace,name)                    \
+    namespace tag_namespace                                         \
+    {                                                               \
+		struct name                                                 \
+		{                                                           \
+		};                                                          \
+    }                                                               \
+    namespace                                                       \
+    {                                                               \
+		::lz::Parameter::Keyword<tag_namespace::name> const& name   \
+		= ::lz::Parameter::Keyword<tag_namespace::name>::instance;  \
+    }																\
+
+
+
+#define LZ_PARAMETER_KEYWORD_TAG_NAMESPACE(name)   \
+	LZ_PARAMETER_KEYWORD(tag, name)
+
+
+
+}// namespace lz::Parameter
+
+
+
+//template<typename ArgList, typename QueryKeyword>
+//struct GetParamPack
+//{
+//	using ParamPackType = typename GetParamPackImpl<ArgList, QueryKeyword, typename ArgList::Keyword>::ParamPackType;
+//};
+
+
+
+template<typename ParamPack, typename KeywordType, typename Default = ParamNotFound>
+using ChooseParamType =	typename std::conditional<
+
+	!std::is_same<typename Parameter::GetParamPack<ParamPack, KeywordType>::ParamPackType::Reference, ParamNotFound >::value,
+
+	typename Parameter::GetParamPack<ParamPack, KeywordType>::ParamPackType::Reference,
+
+
+	Default>::type;
+
+
+
+
+} // namespace lz
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif /* LZ_PARAMETER_H_ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * disjoint_sets.h
+ *
+ *  Created on: 2015年11月29日
+ *      Author: LZ
+ */
+#ifndef LZ_DISJOINT_SETS_H_
+#define LZ_DISJOINT_SETS_H_
+
+
+/*
+ * map.h
+ *
+ *  Created on: 2015年8月5日
+ *      Author: LZ
+ */
+
+/*
+ * Map concept is similar to boost property map library,
+ * but Map concept is sample. It only contain operator[] for
+ * a Map object.
+ */
+#ifndef LZ_MAP_H_
+#define LZ_MAP_H_
+
+//#include <iostream>
+#include <memory>
+#include <type_traits>
+namespace lz {
+
+//using std::cout;
+//using std::endl;
+
+template<typename Map>
+struct MapTraits
+{
+	using KeyType = typename Map::KeyType;
+	using ValueType = typename Map::ValueType;
+
+//	using DecayValueType = std::decay_t
+};
+
+template<typename Key, typename Value>
+struct MapFacade
+{
+	using KeyType = Key;
+	using ValueType = Value;
+};
+
+
+//template<typename UniqueArray>
+//struct UniqueArrayMap: public MapFacade<std::ptrdiff_t, typename UniqueArray::element_type&>
+//{
+//	UniqueArrayMap(UniqueArray &&u):u(move(u))
+//	{
+//
+//	}
+//	typename UniqueArray::element_type& operator[](ptrdiff_t d) const
+//	{
+//		return u[d];
+//	}
+//private:
+//	UniqueArray u;
+//};
+//
+//
+//template<typename UniqueArray>
+//UniqueArrayMap<typename std::remove_reference<UniqueArray>::type> makeUniqueArrayMap(UniqueArray && u)
+//{
+//	return UniqueArrayMap<typename std::remove_reference<UniqueArray>::type>(move(u));
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+template<typename _ValueType>
+struct SharedArrayMap: public MapFacade<std::ptrdiff_t, _ValueType>
+{
+private:
+	std::shared_ptr<_ValueType> sp;
+public:
+	SharedArrayMap(std::shared_ptr<_ValueType> sp):sp(sp){}
+	SharedArrayMap() :sp(nullptr) {}
+
+	SharedArrayMap(size_t n)
+	:sp(new _ValueType[n], std::default_delete<_ValueType[]>())  { }
+
+//	_ValueType&  operator[](ptrdiff_t d) const
+
+	auto operator[](ptrdiff_t d) const ->decltype(sp.get()[d])
+	{
+		return	sp.get()[d];
+	}
+};
+
+
+//template<typename _ValueType>
+//SharedArrayMap<_ValueType> makeUniqueArrayMap(size_t n)
+//{
+//
+//}
+
+
+
+
+
+
+template<typename Key>
+struct IdentityMap:public MapFacade<Key, Key>
+{
+	const Key& operator[](const Key &key) const
+	{
+		return key;
+	}
+};
+
+//template<typename UnaryFunction, typename Key, typename Value>
+//class FunctionMap:public MapFacade<Key, Value>
+//{
+//	const UnaryFunction* f = nullptr;
+//	using Base = MapFacade<Key, Value>;
+//public:
+//	const UnaryFunction* function(){ return f;}
+//
+//	explicit FunctionMap() = default;
+//	explicit FunctionMap(const UnaryFunction &f):f(&f) {}
+//	typename Base::ValueType operator[](typename Base::KeyType key) const
+//	{
+//		return (*f)(key);
+//	}
+//};
+template<typename I
+//,
+//		 typename Key = typename std::iterator_traits<I>::difference_type,
+//		 typename Value = decltype(I()[Key()])
+		 >
+class IteratorMap:public MapFacade<
+//Key
+typename std::iterator_traits<I>::difference_type
+,
+typename std::iterator_traits<I>::value_type
+//Value
+
+>
+{
+	I i;
+//	using Base = MapFacade<Key, Value>;
+public:
+	IteratorMap() = default;
+	IteratorMap(I i):i(i){}
+
+	using Iterator = I;
+	Iterator iterator() const { return i;}
+
+//	template<typename Key>
+	auto operator[](typename std::iterator_traits<I>::difference_type key) const ->decltype(i[key])
+	{
+
+		return i[key];
+	}
+};
+template<typename I>
+IteratorMap<I> makeIteratorMap(I i)
+{
+	return IteratorMap<I>(i);
+}
+
+
+template<typename FM, typename SM>
+class ComposeMap:public MapFacade<typename MapTraits<FM>::KeyType, typename MapTraits<SM>::ValueType >
+{
+	FM fm;
+	SM sm;
+	using Base = MapFacade<typename MapTraits<FM>::KeyType, typename MapTraits<SM>::ValueType>;
+public:
+	using FirstMap = FM;
+	using SecondMap = SM;
+
+	explicit ComposeMap() = default;
+//	explicit ComposeMap(FM &&fm, SM &&sm):fm(std::move(fm)), sm(std::move(sm)) { }
+//	explicit ComposeMap(FM &&fm, const SM &sm):fm(std::move(fm)), sm(sm) {}
+//	explicit ComposeMap(const FM &fm, SM &&sm):fm(fm), sm(std::move(sm)) {}
+	explicit ComposeMap(const FM &fm,  const SM &sm):fm(fm), sm(sm) {}
+
+
+	FirstMap firstMap() const { return fm; }
+	SecondMap secondMap() const { return sm; }
+
+	template<typename Key>
+	auto operator[](Key && key) const ->decltype(sm[fm[key]])
+	{
+		return sm[fm[key]];
+	}
+};
+
+template<typename FM, typename SM>
+//ComposeMap<typename std::remove_reference<FM>::type,
+//  	  	   typename std::remove_reference<SM>::type>
+ComposeMap<FM, SM>
+makeComposeMap(const FM &fm, const SM &sm)
+
+{
+	return ComposeMap<FM, SM>(fm, sm);
+//	return ComposeMap<typename std::remove_reference<FM>::type,
+//					  typename std::remove_reference<SM>::type>(fm, sm) ;
+}
+
+
+
+
+
+
+
+}// namespace lz
+
+
+
+
+#endif /* LZ_MAP_H_ */
+
+
+
+namespace lz {
+
+struct DefaultChangeParent
+{
+	template<typename  Element>
+	void operator()(Element u, Element p) {}
+};
+
+
+template<typename ParentMap, typename ChangeParent = DefaultChangeParent>
+class DisjointSets
+{
+	ParentMap p;
+public:
+	using Element = typename MapTraits<ParentMap>::ValueType;
+	DisjointSets(ParentMap p):p(p) {}
+	void makeSet(Element u)
+	{
+		p[u] = u;
+	}
+	Element findSet(Element u)
+	{
+		if(p[u] != u)
+		{
+			Element new_parent = findSet(p[u]);
+			ChangeParent()(u, new_parent);
+			p[u] = new_parent;
+		}
+		return p[u];
+	}
+	void link(Element x, Element y)
+	{
+		p[x] = y;
+	}
+	void unionSet(Element x, Element y)
+	{
+		link(findSet(x), findSet(y));
+	}
+
+};
+
+
+
+
+}
+
+
+
+
+
+
+
+#endif /* LZ_DISJOINT_SETS_H_ */
+
+#ifndef UTILITY_H
+#define UTILITY_H
+
+#include <functional>
+// some little and mess functions
+
+namespace lz {
+
+enum class DefaultColorType: unsigned char
+{
+    White,
+    Gray,
+    Black,
+	Green,
+	Red,
+};
+
+template<typename ColorType = DefaultColorType>
+struct ColorTraits
+{
+	using Type = ColorType;
+	static ColorType white() { return ColorType::White; }
+	static ColorType gray() { return ColorType::Gray; }
+	static ColorType black() { return ColorType::Black; }
+	static ColorType green() { return ColorType::Green; }
+	static ColorType red() { return ColorType::Red; }
+};
+
+//template<typename ColorType = int>
+//struct ColorTraits
+//{
+//	using Type = ColorType;
+//	static ColorType white() { return 0; }
+//	static ColorType black() { return 1; }
+//};
+
+
+template<typename Derived>
+struct FacadeBase
+{
+protected:
+	Derived& derived()
+	{ return *static_cast<Derived*>(this); }
+
+	Derived const& derived() const
+	{ return *static_cast<Derived const*>(this); }
+};
+
+// requires operator==
+template<typename Derived>
+struct EqualityComparableFacade
+{
+	friend bool operator!=(const Derived &a, const Derived &b)
+	{
+		return !(a == b);
+	}
+};
+
+// requires operator<
+template<typename Derived>
+struct LessThanComparableFacade
+{
+	friend bool operator>(const Derived &a, const Derived &b)
+	{
+		return b < a;
+	}
+	friend bool operator<=(const Derived &a, const Derived &b)
+	{
+		return !(b < a);
+	}
+	friend bool operator>=(const Derived &a, const Derived &b)
+	{
+		return !(a < b);
+	}
+};
+
+
+
+
+
+/*
+ *  A params is param list, and every param is a member function in params.
+ *  Every param have a default value.
+ */
+
+//struct ParamNotFound{};
+
+//	namespace UtilityPrivate{
+//
+//		template<typename UserParam, typename DefaultParam>
+//		struct ChooseParam
+//		{
+//			static UserParam& get(UserParam &up, DefaultParam &dp)
+//			{
+//				return up;
+//			}
+//		};
+//		template<typename DefaultParam>
+//		struct ChooseParam<ParamNotFound, DefaultParam>
+//		{
+//			static DefaultParam& get(ParamNotFound &up, DefaultParam &dp)
+//			{
+//				return dp;
+//			}
+//		};
+//
+//	} // UtilityPrivate
+
+//template<typename ParamRetrunType, typename Default>
+//auto chooseParamReturnValue(ParamRetrunType && p, Default && d) ->
+//decltype(UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
+//									 typename std::remove_reference<Default>::type >::get(p, d))
+//{
+//	return UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
+//									   typename std::remove_reference<Default>::type>::get(p, d);
+//}
+//
+//
+//
+//// Choose the param return type we hoped according to the ParamType, DefaultType
+//template<typename ParamReturnType, typename DefaultType>
+//using ChooseParamReturnType =  typename std::conditional<std::is_same<ParamReturnType, ParamNotFound>::value,
+//														 DefaultType,
+//														 ParamReturnType>::type;
+//
+//template<typename ParamName>
+//using MemberFunctionReturnType =
+//		typename decltype(std::mem_fn(ParamName()))::result_type;
+//
+//
+//
+
+//
+//template<typename... Args>
+//void emptyFunction(Args... args)
+//{
+//
+//}
+
+
+
+
+template <class F1, class F2>
+struct LambdaOverloadSet : F1, F2
+{
+	LambdaOverloadSet(F1 f1, F2 f2)
+		: F1(f1), F2(f2)
+	{
+
+	}
+
+	using F1::operator();
+	using F2::operator();
+};
+
+template <class F1, class F2>
+LambdaOverloadSet<F1, F2> lambdaOverload(F1 f1, F2 f2)
+{
+	return LambdaOverloadSet<F1, F2>(f1, f2);
+}
+
+
+
+
+
+
+
+
+
+/** 
+ * @prama T should be integer
+ * @prama x  should be no less than 0
+ * @return number of bits in the minimal two's-complement representation of this integer
+ */
+template<typename T>
+int integerBitLength(T x)
+{
+    if(x == 0) return 1;
+    int r = 0;
+    for(;x > 0; x >>= 1)
+    {
+        r ++;
+    }
+    return r;
+}
+
+/** 
+ * @prama T should be integer
+ * @return a^b % c
+ */
+
+template<typename T>
+T modPow(T a, T b, const T &c)
+{
+    T r = 1;
+    while(b > 0)
+    {
+        if(b & 1) r = r * b % c;
+        a = a * a % c;
+        b >>= 1;
+    }
+    return r;
+}
+
+
+
+
+
+} // namespace lz
+
+#endif // UTILITY_H
+
+#ifndef GRAPH_UTILITY_H
+#define GRAPH_UTILITY_H
+/*
+ * this header file define some base classes and functions for graph
+ */
+//#include "lz/property.h"
+
+//#include "lz/utility.h"
+
+#include <memory>
+//#include "lz/adjacency_list.h"
+
+namespace lz {
+	namespace GraphUtilityPrivate {
+	}
+
+/*
+ * Indicate if a graph is directed
+ */
+struct DirectedGraphTag {};
+struct UndirectedGraphTag {};
+
+/*
+ * Some common graph`s vertex or edge property tag
+ */
+struct VertexIndexTag {};
+struct EdgeIndexTag {};
+
+struct EdgeWeightTag {};
+
+
+
+
+
+template<typename Graph>
+typename Graph::VertexDescriptor
+opposite(const Graph &g, 
+         typename Graph::EdgeDescriptor e,
+         typename Graph::VertexDescriptor u)
+{
+    if(g.source(e) != u) return g.source(e);
+    return g.target(e);
+}
+
+template<typename G>
+struct GraphTraits
+{
+	using VertexDescriptor = typename G::VertexDescriptor;
+	using EdgeDescriptor = typename G::EdgeDescriptor;
+
+	using VertexIterator = typename G::VertexIterator;
+	using EdgeIterator = typename G::EdgeIterator;
+
+	using DirectedCategory = typename G::DirectedCategory;
+
+	using OutEdgeIterator = typename G::OutEdgeIterator;
+
+	using VertexProperties = typename G::VertexProperties;
+	using EdgeProperties = typename G::EdgeProperties;
+
+	template<typename Tag>
+	using VertexPropertyMap = typename G::template VertexPropertyMap<Tag>;
+
+	template<typename Tag>
+	using EdgePropertyMap = typename G::template EdgePropertyMap<Tag>;
+
+};
+
+
+
+
+
+
+
+template<typename G, typename Tag>
+class VertexPropertyMap
+{
+	using _ValueType = typename std::decay<decltype(typename GraphTraits<G>::VertexProperties()[Tag()])>::type;
+	G *g = nullptr;
+public:
+	using KeyType = typename GraphTraits<G>::VertexDescriptor;
+	using ValueType = _ValueType&;
+
+	VertexPropertyMap() = default;
+	VertexPropertyMap(G &_g):g(&_g) { }
+	ValueType operator[](typename GraphTraits<G>::VertexDescriptor u) const
+	{
+		return g->vertexProperties(u)[Tag()];
+	}
+
+	using Type = VertexPropertyMap<G, Tag>;
+
+	struct ConstType
+	{
+		using KeyType = typename GraphTraits<G>::VertexDescriptor;
+		using ValueType = const _ValueType &;
+		const G *g;
+		ConstType():g(nullptr){}
+		ConstType(const G &g):g(&g){}
+		ValueType operator[](KeyType u) const
+		{
+			return g->vertexProperties(u)[Tag()];
+		}
+	};
+};
+
+
+template<typename G, typename Tag>
+class EdgePropertyMap
+{
+	using _ValueType = typename std::decay<decltype(typename GraphTraits<G>::EdgeProperties()[Tag()])>::type;
+	G *g = nullptr;
+public:
+	using KeyType = typename GraphTraits<G>::EdgeDescriptor;
+	using ValueType = _ValueType&;
+
+	EdgePropertyMap() = default;
+	EdgePropertyMap(G &_g):g(&_g) { }
+	ValueType operator[](KeyType u) const
+	{
+		return g->edgeProperties(u)[Tag()];
+	}
+
+	using Type = EdgePropertyMap<G, Tag>;
+
+	struct ConstType
+	{
+	private:
+		const G *g;
+	public:
+		using KeyType = typename GraphTraits<G>::EdgeDescriptor;
+		using ValueType = const _ValueType &;
+
+		ConstType():g(nullptr){}
+		ConstType(const G &g):g(&g){}
+		ValueType operator[](KeyType u) const
+		{
+			return g->edgeProperties(u)[Tag()];
+		}
+	};
+};
+
+
+//template<typename G, typename Tag>
+//class EdgePropertyMap: public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
+//										decltype(typename GraphTraits<G>::EdgeProperties()[Tag()])>
+//{
+//	G *g = nullptr;
+//public :
+//	EdgePropertyMap() = default;
+//	EdgePropertyMap(G &_g):g(&_g) { }
+//
+//	using Type = EdgePropertyMap<G, Tag>;
+//	using ConstType = EdgePropertyMap<const G, Tag>;
+//
+//	auto operator[](typename GraphTraits<G>::EdgeDescriptor e) const
+//	{
+//		return g->edgeProperties(e)[Tag()];
+//	}
+//};
+
+
+
+template<typename G, typename Tag>
+typename VertexPropertyMap<G, Tag>::Type
+makeVertexPropertyMap(G &g, Tag)
+{
+	return typename VertexPropertyMap<G, Tag>::Type(g);
+}
+
+template<typename G, typename Tag>
+typename VertexPropertyMap<G, Tag>::ConstType
+makeVertexPropertyMap(const G &g, Tag tag)
+
+{
+	return typename VertexPropertyMap<G, Tag>::ConstType(g);
+}
+
+template<typename G, typename Tag>
+auto makeEdgePropertyMap( G &g, Tag tag)
+->decltype(typename EdgePropertyMap<G, Tag>::Type(g))
+{
+	return typename EdgePropertyMap<G, Tag>::Type(g);
+}
+
+template<typename G, typename Tag>
+auto makeEdgePropertyMap(const G &g, Tag tag)
+->decltype(typename EdgePropertyMap<G, Tag>::ConstType(g))
+{
+	return typename EdgePropertyMap<G, Tag>::ConstType(g);
+}
+
+
+
+
+
+
+
+//
+//auto lazyDiscoverTimeMap = [&]() {
+//		auto d_array = std::unique_ptr<std::size_t[]>(new std::size_t[g.vertexNumber()]);
+//
+//		return makeComposeMap(_vertexIndexMap,
+//							  std::move(makeUniqueArrayMap( d_array )    ) );
+//	};
+
+//template<typename ValueType, typename VertexIndexMap, typename VertexNumberType>
+//auto
+//makeVertexIndexComposeMap(VertexIndexMap indexMap, VertexNumberType n)
+//->decltype(makeComposeMap(indexMap,
+//		  std::move(makeUniqueArrayMap(std::unique_ptr<ValueType[]>(new ValueType[n])))	))
+//
+//{
+////	auto value_array = ;
+//	return makeComposeMap(indexMap,
+//						  std::move(makeUniqueArrayMap(std::unique_ptr<ValueType[]>(new ValueType[n])))	);
+//}
+
+
+template<typename ValueType, typename VertexIndexMap, typename VertexNumberType>
+auto
+makeVertexIndexComposeMap(VertexIndexMap indexMap, VertexNumberType n)
+->decltype(makeComposeMap(indexMap, SharedArrayMap<ValueType>(n)) )
+
+{
+
+	return makeComposeMap(indexMap, SharedArrayMap<ValueType>(n) );
+}
+
+
+
+
+//// for graph param
+//template<typename G, typename VertexIndexMapName>
+//using ChooseVertexIndexMap = ChooseParamReturnType<MemberFunctionReturnType<VertexIndexMapName>,
+//		                                           typename GraphTraits<G>::template VertexPropertyMap<VertexIndexTag>::ConstType
+//												   >;
+//
+//
+//template<typename GeneralParamName, typename VertexIndexMap, typename ValueType>
+//using ChooseVertexIndexComposeMap = ChooseParamReturnType<
+//		MemberFunctionReturnType<GeneralParamName>,
+//		ComposeMap<VertexIndexMap, IteratorMap<ValueType*> >
+//>;
+//
+//
+//template<typename DefaultValueType, typename ParamReturnType, typename VertexIndexMap, typename VertexNumberType>
+//auto
+//chooseVertexIndexComposeMap(ParamReturnType paramMap, VertexIndexMap indexMap, VertexNumberType n)
+////->decltype(paramMap)
+//{
+//	return paramMap;
+//}
+//
+//template<typename DefaultValueType, typename VertexIndexMap, typename VertexNumberType>
+//auto
+//chooseVertexIndexComposeMap( ParamNotFound, VertexIndexMap indexMap, VertexNumberType n)
+////->decltype(makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n])))
+//{
+//	return makeComposeMap(indexMap, makeIteratorMap(
+//									new DefaultValueType[n]
+//								 ));
+//}
+//
+//template<typename Map, typename ParamRetrunType>
+//void deleteVertexIndexComposeMap(Map map, ParamRetrunType ) { }
+//
+//template<typename Map>
+//void deleteVertexIndexComposeMap(Map map, ParamNotFound )
+//{
+//	delete[] map.secondMap().iterator();
+//}
+
+
+} // namespace lz
+
+
+
+
+#endif // GRAPH_UTILITY_H
+
+
+
+#include <bits/stdc++.h>
+
+
+
+namespace lz {
+
+	namespace KruskalMinimumSpanningTreeKeywords{
+
+	LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
+	LZ_PARAMETER_KEYWORD(tag, weightMap)
+	LZ_PARAMETER_KEYWORD(tag, disjointSets)
+	LZ_PARAMETER_KEYWORD(tag, weightCompare)
+
+
+
+
+	} // namespace KruskalMinimumSpanningTreeKeywords
+
+
+
+template<typename G, typename Function, typename ParamPack = EmptyParamPack>
+void kruskalMinimumSpanningTree(const G &g, Function found_tree, const ParamPack &p = EmptyParamPack())
+
+
+//void kruskalMinimumSpanningTree(const auto &g, auto found_tree,  auto p = EmptyParamPack())
+{
+//	using G = decltype(g);
+
+
+	namespace k = KruskalMinimumSpanningTreeKeywords;
+	using Vertex = typename GraphTraits<G>::VertexDescriptor;
+	using Edge = typename GraphTraits<G>::EdgeDescriptor;
+	auto n = g.vertexNumber();
+
+	auto indexMap = p[k::vertexIndexMap | g.vertexPropertyMap(VertexIndexTag()) ];
+
+	auto disjointSets = p[k::disjointSets || std::bind(
+
+			[&]()
+			{
+				return DisjointSets<decltype(makeVertexIndexComposeMap<Vertex>(indexMap, n))>
+						(makeVertexIndexComposeMap<Vertex>(indexMap, n));
+			}
+	)];
+	auto weightMap = p[k::weightMap | g.edgePropertyMap(EdgeWeightTag())];
+
+	using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
+	auto weightCompare = p[k::weightCompare | std::less<WeightType>()  ];
+
+	auto vi = g.vertices();
+	for(;vi.first != vi.second; vi.first ++)
+		disjointSets.makeSet(*vi.first);
+	auto ei = g.edges();
+
+	std::vector<Edge> edges;
+	edges.reserve(g.edgeNumber());
+	for(auto e = ei.first; e != ei.second; ++ e)
+	{
+		edges.push_back(*e);
+	}
+
+	std::sort(edges.begin(), edges.end(),
+			[&](Edge a, Edge b)->bool
+			{
+				return weightCompare(weightMap[a], weightMap[b]) ;
+			}
+	);
+
+//	auto ewMap = g.edgePropertyMap(EdgeWeightTag());
+//	for(auto e = ei.first; e != ei.second; ++ e)
+	for(auto e: edges)
+	{
+		Vertex a = g.source(e), b = g.target(e);
+		Vertex ra = disjointSets.findSet(a), rb = disjointSets.findSet(b);
+//		std::cout << "EEE: " << g.source(e) << " " << g.target(e) << " " <<  weightMap[e] << "\n";
+
+
+
+
+
+		if(ra != rb)
+		{
+			found_tree(e);
+			disjointSets.link(ra, rb);
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+}// namesapce lz
+
+#endif /* LZ_KRUSKAL_MINIMUM_SPANNING_TREE_H_ */
+
+
+#ifndef ADJACENCY_LIST_H
+#define ADJACENCY_LIST_H
+
+
+#include <vector>
+#include <tuple>
+#include <algorithm>
+#ifndef PORPERTY_H
+#define PORPERTY_H
+
+
+
+
+#include <iostream>
+#include <typeinfo>
+#include <vector>
+
+#include <type_traits>
+#include <tuple>
+namespace lz {
+
+using std::integral_constant;
+using std::cout;
+using std::endl;
+
+
+
+struct NoProperty {
+	using Tag = NoProperty;
+	using ValueType = NoProperty;
+	using NextProperty = NoProperty;
+
+	NoProperty() = default;
+
+protected:
+    template<typename ...Args, size_t N>
+    NoProperty(const std::tuple<Args...> &tp, std::integral_constant<size_t, N> t)
+	{
+	}
+
+
+};
+
+
+    namespace PropertyPrivate {
+
+        template<typename P>
+        struct CountProperty
+        : public integral_constant<size_t, CountProperty<typename P::NextProperty>::value + 1>
+        { };
+
+        template<>
+        struct CountProperty<NoProperty>
+        : public integral_constant<size_t, 0>
+        { };
+
+        template<typename... T>
+        struct CountVariadic;
+
+        template<typename Head, typename...T>
+        struct CountVariadic<Head, T...>
+        : public integral_constant< size_t, CountVariadic<T...>::value + 1>
+        { };
+
+        template<>
+        struct CountVariadic<>
+        : public integral_constant<size_t, 0>
+        { };
+
+
+        template<typename QueryTag, typename Tag, typename Property>
+        struct Get;
+
+
+        template <typename Property, typename CntTag, typename Tuple, size_t CntId>
+		struct AssignTuple;
+
+        template<typename Property, typename Tag, typename QueryTag>
+        struct GetType;
+
+    } // namespace PropertyPrivate
+
+
+template<typename P>
+struct PropertySize:public std::integral_constant<
+	size_t, PropertySize<typename P::NextProperty>::value + 1> {};
+
+template<>
+struct PropertySize<NoProperty>
+: public integral_constant<size_t, 0> { };
+
+
+template<typename _Tag, typename _ValueType, typename _NextProperty = NoProperty >
+struct Property: public _NextProperty
+{
+    template<typename QueryTag, typename Tag, typename Property>
+    friend struct PropertyPrivate::Get;
+
+    template <typename Property, typename CntTag, typename Tuple, size_t CntId>
+    friend struct PropertyPrivate::AssignTuple;
+
+    using Tag = _Tag;
+    using ValueType = _ValueType;
+    using NextProperty = _NextProperty;
+
+    template<typename QueryTag>
+    using QueryValueType = typename PropertyPrivate::GetType<Property, Tag, QueryTag>::ValueType;
+
+    template<typename QueryTag>
+    using QueryPropertyType = typename PropertyPrivate::GetType<Property, Tag, QueryTag>::PropertyType;
+
+    Property() = default;
+
+//    Property(const ValueType &value, const NextProperty & np):
+//    	NextProperty(np),m_value(value){}
+
+    Property(ValueType &&value, const NextProperty & np):
+		NextProperty(np), m_value(value){}
+
+    Property(const ValueType &value): m_value(value){}
+    Property(ValueType &&value): m_value(std::move(value)){}
+
+protected:
+    template<typename ...Args, size_t N>
+    Property(const std::tuple<Args...> &tp, std::integral_constant<size_t, N> t):
+		m_value(std::get<N>(tp)), NextProperty(tp, std::integral_constant<size_t, N + 1>())
+	{
+
+	}
+public:
+    template<typename ...Args>
+	Property( const std::tuple<Args...> &tp):
+		Property(tp, std::integral_constant<size_t, 0>())
+	{
+
+	}
+
+
+
+//    template <class... UTypes>
+//    Property(const std::tuple<UTypes...>& tp)
+//	{
+//    	PropertyPrivate::AssignTuple<Property, Tag, std::tuple<UTypes...>, 0>::apply(*this, tp);
+//	}
+
+//    template <class... UTypes>
+//    Property(std::tuple<UTypes...>&& tp)
+//	{
+//    	PropertyPrivate::AssignTuple<Property, Tag, std::tuple<UTypes...>, 0>::apply(*this, tp);
+//	}
+
+//    template <class... UTypes>
+//    Property& operator=(const std::tuple<UTypes...>& tp)
+//	{
+//    	PropertyPrivate::AssignTuple<Property, Tag, std::tuple<UTypes...>, 0>::apply(*this, tp);
+//	}
+//
+//    template <class... UTypes>
+//    Property& operator=(std::tuple<UTypes...>&& tp)
+//	{
+//    	PropertyPrivate::AssignTuple<Property, Tag, std::tuple<UTypes...>, 0>::apply(*this, tp);
+//	}
+
+
+    template<typename QueryTag>
+    QueryValueType<QueryTag>& operator[](QueryTag tag)
+	{
+    	using Base = QueryPropertyType<QueryTag>;
+    	return this->Base::m_value;
+	}
+    template<typename QueryTag>
+	const QueryValueType<QueryTag>& operator[](QueryTag tag) const
+	{
+		using Base = QueryPropertyType<QueryTag>;
+		return this->Base::m_value;
+	}
+
+    template<typename QueryTag>
+    constexpr bool contains(QueryTag tag) const
+    {
+    	return !std::is_same<decltype((*this)[tag]), NoProperty>::value;
+    }
+
+protected:
+    ValueType m_value;
+
+};
+
+
+
+
+
+    namespace PropertyPrivate {
+
+	template<typename Property, typename Tag, typename QueryTag>
+	struct GetType
+	{
+	private:
+		using NextProperty = typename Property::NextProperty  ;
+		using NextTag = typename NextProperty::Tag;
+	public:
+		using ValueType = typename GetType<NextProperty, NextTag, QueryTag>::ValueType;
+		using PropertyType = typename GetType<NextProperty, NextTag, QueryTag>::PropertyType;
+	};
+
+	template<typename Property, typename QueryTag>
+	struct GetType<Property, QueryTag, QueryTag>
+	{
+		using ValueType = typename Property::ValueType;
+		using PropertyType = Property;
+	};
+
+	template<typename Property, typename QueryTag>
+	struct GetType<Property, NoProperty, QueryTag>
+	{
+		using ValueType = NoProperty;
+		using PropertyType = NoProperty;
+	};
+
+
+
+
+
+	template <typename Property, typename Tag, typename Tuple, size_t Id>
+	struct AssignTuple
+	{
+		static void apply(Property &p, const Tuple &t)
+		{
+//			typename std::tuple_element<Id, Tuple>::type x = std::get<Id>(t);
+
+			p[Tag()] = std::get<Id>(t);
+
+			AssignTuple<typename Property::NextProperty,
+						typename Property::NextProperty::Tag,
+						Tuple,
+						Id + 1>::apply(p, t);
+		}
+		static void apply(Property &p, Tuple &&t)
+		{
+//			 typename std::tuple_element<Id, Tuple>::type x = std::get<Id>(t);
+
+			 p[Tag()] = std::get<Id>(t);
+
+			 AssignTuple<typename Property::NextProperty,
+						 typename Property::NextProperty::Tag,
+						 Tuple,
+						 Id + 1>::apply(p, t);
+		}
+
+	};
+
+	template <typename Property, typename Tuple, size_t CntId>
+	struct AssignTuple<Property, NoProperty, Tuple, CntId>
+	{
+		static void apply(Property &p, const Tuple &t)
+		{
+
+		}
+	};
+
+
+
+
+
+
+
+
+
+
+
+
+    } // namespace PropertyPrivate
+
+
+
+
+
+//template<typename Tag, typename ValueType, typename NextProperty, typename QueryTag>
+//auto get(Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
+//-> decltype(PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p))
+//{
+//    return PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p);
+//}
+//
+//template<typename Tag, typename ValueType, typename NextProperty, typename QueryTag>
+//auto get(const Property<Tag, ValueType, NextProperty> & p, QueryTag tag)
+//-> decltype(PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p))
+//{
+//    return PropertyPrivate::Get<Property<Tag, ValueType, NextProperty>, Tag, QueryTag>::get(p);
+//}
+
+
+
+
+
+
+template<typename P>
+struct ChooseDefineProperties
+{
+	P properties;
+	void set(const P &_p) { properties = _p; }
+};
+template<> struct ChooseDefineProperties<NoProperty>
+{
+	void set(const NoProperty &_p) {  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+} // namepspace lz
+
+
+
+
+
+
+#endif // PORPERTY_H
+
+
+
+/*
+ * iterator.h
+ *
+ *  Created on: 2015年11月4日
+ *      Author: LZ
+ */
+
+#ifndef LZ_ITERATOR_FACADE_H_
+#define LZ_ITERATOR_FACADE_H_
+#include <iterator>
+
+namespace lz{
+
+
+
+
+/*
+ * You should implement the below method:
+
+
+forward iterator requires:
+	Derived& operator++() ;
+	typename Derived::reference operator*() const;
+	bool operator==(Derived const& o) const;
+
+bidirectional_iterator requires:
+	Derived& operator--();
+
+random_access_iterator requires:
+	Derived& operator+=(typename Derived::difference_type n);
+	typename Derived::difference_type operator-(Derived const& o) const;
+	bool operator<(Derived const& o) const;
+
+
+ */
+
+
+template <
+	class Derived,
+	class Category,
+	class T,
+	class Distance = std::ptrdiff_t,
+	class Pointer = T*,
+	class Reference = T&
+>
+class IteratorFacade;
+
+/*
+ * Implementation for forward traversal iterators
+ */
+
+template <
+	class Derived,
+	class T,
+	class Distance ,
+	class Pointer,
+	class Reference
+>
+class IteratorFacade<Derived, std::forward_iterator_tag, T, Distance, Pointer, Reference>
+		: public std::iterator<std::forward_iterator_tag, T, Distance, Pointer, Reference>,
+		  public lz::FacadeBase<Derived>,
+		  public lz::EqualityComparableFacade<Derived>
+{
+	using Base = std::iterator<std::forward_iterator_tag, T, Distance, Pointer, Reference>;
+public:
+  	friend Derived operator++(Derived& a, int)
+	{
+		Derived	tmp(a);
+		++a;
+		return tmp;
+	}
+
+	typename Base::pointer operator->() const
+	{
+		return &*this->derived();
+	}
+
+//	bool operator!=(const Derived &o) const
+//	{
+//		return !(this->derived() == o);
+//	}
+};
+
+/*
+ * Implementation for bidirectional traversal iterators
+ */
+
+template <
+	class Derived,
+	class T,
+	class Distance,
+	class Pointer,
+	class Reference
+>
+class IteratorFacade<Derived, std::bidirectional_iterator_tag, T, Distance, Pointer, Reference>
+		: public IteratorFacade<Derived, std::forward_iterator_tag, T, Distance, Pointer, Reference>
+{
+	using Base = IteratorFacade<Derived, std::forward_iterator_tag, T, Distance, Pointer, Reference>;
+public:
+	using iterator_category = std::bidirectional_iterator_tag;
+
+	friend Derived operator--(Derived&a, int)
+	{
+		Derived	tmp(a);
+		--a;
+		return tmp;
+	}
+};
+
+// Implementation for random access traversal iterators
+template <
+	class Derived,
+	class T,
+	class Distance,
+	class Pointer,
+	class Reference
+>
+class IteratorFacade<Derived, std::random_access_iterator_tag, T, Distance, Pointer, Reference>
+		: public IteratorFacade<Derived,std::bidirectional_iterator_tag, T, Distance, Pointer, Reference>
+		, public lz::LessThanComparableFacade<Derived>
+{
+	using Base = IteratorFacade<Derived,std::bidirectional_iterator_tag, T, Distance, Pointer, Reference>;
+
+public:
+	using iterator_category = std::random_access_iterator_tag;
+
+	friend Derived operator+(const Derived &a, typename Base::difference_type b)
+	{
+		Derived res = a;
+		res += b;
+		return res;
+	}
+	friend Derived operator+(typename Base::difference_type b, const Derived &a)
+	{
+		Derived res = a;
+		res += b;
+		return res;
+	}
+	Derived operator-(typename Base::difference_type b) const
+	{
+		Derived res = this->derived();
+		res += -b;
+		return res;
+	}
+	Derived& operator-=(typename Base::difference_type o)
+	{
+		this->derived() += -o;
+		return this->derived();
+	}
+
+	typename Base::reference operator[](typename Base::difference_type o) const
+	{
+		return *(this->derived() + o);
+	}
+
+
+//	bool operator>(const Derived &o) const
+//	{
+//		return o < this->derived();
+//	}
+//	bool operator<=(const Derived &o) const
+//	{
+//		return !(o < this->derived());
+//	}
+//	bool operator>=(const Derived &o) const
+//	{
+//		return !(this->derived() < o);
+//	}
+
+};
+
+
+template<typename Integer>
+class IntegerIterator: public IteratorFacade<
+							IntegerIterator<Integer>,
+							std::random_access_iterator_tag,
+							Integer,
+							std::ptrdiff_t,
+							Integer*,
+							Integer>
+{
+	Integer m_val;
+	using Base = IteratorFacade<
+			IntegerIterator<Integer>,
+			std::random_access_iterator_tag,
+			Integer,
+			std::ptrdiff_t,
+			Integer*,
+			Integer>;
+	using Derived = IntegerIterator<Integer>;
+public:
+	IntegerIterator() = default;
+	explicit IntegerIterator(Integer val):m_val(val) {}
+
+	//forward iterator requires:
+	Derived& operator++()
+	{
+		++ m_val;
+		return this->derived();
+	}
+	typename Base::reference operator*() const
+	{
+		return m_val;
+	}
+	bool operator==(Derived const& f) const
+	{
+		return m_val == f.m_val;
+	}
+
+	//bidirectional_iterator requires:
+	Derived& operator--()
+	{
+		-- m_val;
+		return this->derived();
+	}
+
+	//random_access_iterator requires:
+	Derived& operator+=(typename Base::difference_type n)
+	{
+		m_val += n;
+		return this->derived();
+	}
+	typename Base::difference_type operator-(Derived const& f) const
+	{
+		return m_val - f.m_val;
+	}
+
+	bool operator<(IntegerIterator const& f) const
+	{
+		return m_val < f.m_val;
+	}
+
+
+
+};
+
+
+
+} // namespace lz
+
+
+
+#endif /* LZ_ITERATOR_FACADE_H_ */
+
+
+
+
+namespace lz {
+
+
+using std::vector;
+using std::cout;
+using std::endl;
+using std::pair;
+using std::make_pair;
+
+template<typename DirectedCategory = DirectedGraphTag,
+         typename VP = NoProperty,
+         typename EP = NoProperty,
+         typename GP = NoProperty>
+class AdjacencyList;
+
+    namespace AdjacencyListPrivate {
+
+    using VertexDescriptor = int;
+    using EdgeDescriptor = int;
+    using SizeType = int;
+
+
+
+    // vertex data
+    template<typename VP>
+    struct VertexData: public ChooseDefineProperties<VP>
+	{
+    	EdgeDescriptor head;
+    	VertexData(EdgeDescriptor _head, const VP &vp):head(_head)
+    	{
+    		ChooseDefineProperties<VP>::set(vp);
+    	}
+	};
+
+    // edge data
+	template<typename EP>
+	struct EdgeData:ChooseDefineProperties<EP>
+	{
+		VertexDescriptor source, target;
+		EdgeDescriptor next;
+
+		EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const EP & ep)
+		:source(source), target(target), next(next)
+		{
+			ChooseDefineProperties<EP>::set(ep);
+		}
+	};
+
+    // graph data
+    template<typename VP, typename EP, typename GP>
+    struct GraphData:public ChooseDefineProperties<GP>
+    {
+        vector<VertexData<VP> > v;
+        vector<EdgeData<EP> > e;
+        EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+		{
+			this->e.push_back(EdgeData<EP>(a, b, this->v[a].head, ep));
+			return this->v[a].head = this->e.size() - 1;
+		}
+    };
+
+
+
+    template<typename G>
+    class OutEdgeIterator: public IteratorFacade<
+		OutEdgeIterator<G>,
+		std::forward_iterator_tag,
+		typename GraphTraits<G>::EdgeDescriptor,
+		std::ptrdiff_t,
+		typename GraphTraits<G>::EdgeDescriptor*,
+		typename GraphTraits<G>::EdgeDescriptor >
+	{
+    	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
+
+    	EdgeDescriptor i; // realED
+    	const G *g;
+    	OutEdgeIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
+
+	public:
+    	OutEdgeIterator():i(-1), g(nullptr) {}
+
+    	OutEdgeIterator& operator++()
+		{
+    		i = g->e[i].next;
+    		return *this;
+		}
+    	typename OutEdgeIterator::reference operator*() const
+    	{
+    		return G::R2V(i);
+    	}
+    	bool operator==(OutEdgeIterator const& o) const
+		{
+    		return G::R2V(i) == G::R2V(o.i) && g == o.g;
+		}
+	};
+
+    // realED: in memory
+    // virtualED: for user
+    // V2R: virtualED to realED
+    // R2V: realED to virtualED
+    // DistinguishDirectionGraph
+    template<typename Direction, typename VP, typename EP, typename GP>
+    struct DistinguishDirectionGraph: public GraphData<VP, EP, GP>
+    {
+    	static EdgeDescriptor V2R(EdgeDescriptor e) { return e; }
+    	static EdgeDescriptor R2V(EdgeDescriptor e) { return e; }
+    	using GraphData<VP, EP, GP>::addEdge;
+    };
+
+    template<typename VP,
+			 typename EP,
+			 typename GP>
+    struct DistinguishDirectionGraph<UndirectedGraphTag, VP, EP, GP>
+    	:public GraphData<VP, EP, GP>
+    {
+    	static EdgeDescriptor V2R(EdgeDescriptor e) { return e << 1; }
+    	static EdgeDescriptor R2V(EdgeDescriptor e) { return e >> 1; }
+    	using Base = GraphData<VP, EP, GP>;
+    	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+		{
+    		Base::addEdge(a, b, ep);
+			return Base::addEdge(b, a, ep) >> 1;
+		}
+    };
+
+    } // AdjacencyListPrivate
+
+
+
+
+template<typename D, typename VP, typename EP, typename GP>
+class VertexPropertyMap< AdjacencyList<D, VP, EP, GP>, VertexIndexTag>
+	:public IdentityMap<typename GraphTraits< AdjacencyList<D, VP, EP, GP> >::VertexDescriptor>
+{
+public:
+	VertexPropertyMap() = default;
+	VertexPropertyMap(const AdjacencyList<D, VP, EP, GP> &_g){}
+
+	using Type = VertexPropertyMap< AdjacencyList<D, VP, EP, GP>, VertexIndexTag>;
+	using ConstType = Type;
+};
+
+template<typename D, typename VP, typename EP, typename GP>
+class EdgePropertyMap<AdjacencyList<D, VP, EP, GP>, EdgeIndexTag>
+	:public IdentityMap<typename GraphTraits<AdjacencyList<D, VP, EP, GP>>::EdgeDescriptor>
+{
+public:
+	EdgePropertyMap() = default;
+	EdgePropertyMap(const AdjacencyList<D, VP, EP, GP> &_g){}
+	using Type = EdgePropertyMap;
+	using ConstType = Type;
+};
+
+
+
+
+template<typename Direction, typename VP,
+		 typename EP, typename GP>
+class AdjacencyList: private AdjacencyListPrivate::DistinguishDirectionGraph<
+					 Direction, VP, EP, GP>
+{
+	template<typename G> friend class AdjacencyListPrivate::OutEdgeIterator;
+
+	using VertexData = AdjacencyListPrivate::VertexData<VP> ;
+	using EdgeData = AdjacencyListPrivate::EdgeData<EP> ;
+	using G = AdjacencyList;
+	using Base = AdjacencyListPrivate::DistinguishDirectionGraph<
+				 Direction, VP, EP, GP>;
+public:
+	using DirectedCategory = Direction;
+	using VertexProperties = VP;
+	using EdgeProperties = EP;
+	using GraphProperties = GP;
+
+	using VertexDescriptor = AdjacencyListPrivate::VertexDescriptor ;
+	using EdgeDescriptor = AdjacencyListPrivate::EdgeDescriptor ;
+	using SizeType = AdjacencyListPrivate::SizeType;
+
+	using VertexIterator = IntegerIterator<VertexDescriptor>;
+	using EdgeIterator = IntegerIterator<EdgeDescriptor>;
+	using OutEdgeIterator = AdjacencyListPrivate::OutEdgeIterator<G>;
+	template<typename Tag>
+	using VertexPropertyMap = lz::VertexPropertyMap<G, Tag>;
+	template<typename Tag>
+	using EdgePropertyMap = lz::EdgePropertyMap<G, Tag>;
+
+	explicit AdjacencyList(SizeType n = 0, const VP & vp = VP())
+	{
+		this->v.assign(n, VertexData(-1, vp));
+	}
+	void clear()
+	{
+		this->v.clear();
+		this->e.clear();
+	}
+	VertexDescriptor addVertex(const VP &vp = VP())
+	{
+		this->v.push_back(VertexData(-1, vp));
+		return this->v.size() - 1;
+	}
+	SizeType vertexNumber() const { return this->v.size(); }
+	SizeType edgeNumber() const { return this->R2V(this->e.size() - 1) + 1; }
+	const GP& graphProperties() const { return this->properties; }
+	GP& graphProperties() { return this->properties; }
+	VertexDescriptor source(EdgeDescriptor e) const { return this->e[this->V2R(e)].source; }
+	VertexDescriptor target(EdgeDescriptor e) const { return this->e[this->V2R(e)].target; }
+
+	VP& vertexProperties(VertexDescriptor u)
+	{ return this->v[u].properties; }
+	const VP& vertexProperties(VertexDescriptor u) const
+	{ return this->v[u].properties; }
+
+	EP& edgeProperties(EdgeDescriptor e)
+	{ return this->e[this->V2R(e)].properties; }
+	const EP& edgeProperties(EdgeDescriptor e) const
+	{ return this->e[this->V2R(e)].properties; }
+
+	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+	{ return this->Base::addEdge(a, b, ep); }
+
+	template<typename Tag>
+	typename VertexPropertyMap<Tag>::Type
+	vertexPropertyMap(Tag tag)
+	{
+		return makeVertexPropertyMap<G, Tag>(*this, tag);
+	}
+
+	template<typename Tag>
+	typename VertexPropertyMap<Tag>::ConstType
+	vertexPropertyMap(Tag tag) const
+	{
+		return makeVertexPropertyMap<G, Tag>(*this, tag);
+
+// I dont know why wrong with below
+//		return makeVertexPropertyMap(*this, tag);
+	}
+
+
+
+	template<typename Tag>
+	typename EdgePropertyMap<Tag>::Type
+	edgePropertyMap(Tag tag)
+
+	{ return makeEdgePropertyMap<G, Tag>(*this, tag); }
+
+	template<typename Tag>
+	typename EdgePropertyMap<Tag>::ConstType
+	edgePropertyMap(Tag tag) const
+	{
+		return makeEdgePropertyMap<G, Tag>(*this, tag);
+	}
+
+
+	pair<VertexIterator, VertexIterator> vertices() const
+	{
+		return make_pair(VertexIterator(0),
+						 VertexIterator(this->vertexNumber()));
+	}
+	pair<EdgeIterator, EdgeIterator> edges() const
+	{
+		return make_pair(EdgeIterator(0), EdgeIterator(this->edgeNumber()));
+	}
+	pair<OutEdgeIterator, OutEdgeIterator> outEdges(VertexDescriptor u) const
+	{
+		return make_pair(OutEdgeIterator(this->v[u].head, this),
+						 OutEdgeIterator(-1, this)) ;
+	}
+
+};
+
+
+
+
+
+
+
+} // namespace lz
+
+
+#endif // ADJACENCY_LIST_H
+
+
+#pragma GCC diagnostic error "-std=c++14"
+using namespace std;
+using namespace lz;
+
+using EP = Property<EdgeWeightTag, double>;
+
+using Graph = AdjacencyList<UndirectedGraphTag, NoProperty, EP>;
+const int N = 750 + 9;
+
+vector<pair<int, int> > p;
+double dis(int i, int j)
+{
+	double a = p[i].first - p[j].first;
+	double b = p[i].second - p[j].second;
+	return sqrt(a * a + b * b);
+}
+int main()
+{
+
+	Graph g;
+
+
+	int n;
+	cin >> n;
+	p.clear();
+	for(int i = 0; i < n; ++ i)
+	{
+		int x, y; cin >> x >> y;
+		p.push_back(make_pair(x, y));
+		g.addVertex();
+	}
+
+	for(int i = 0; i < n; ++ i)
+	{
+		for(int j = i; j < n; ++ j)
+		{
+			double x = dis(i, j);
+			g.addEdge(i, j, EP(x )  );
+		}
+	}
+	cin >> n;
+	while(n --)
+	{
+		int x, y; cin >> x >> y;
+		x -- ,y --;
+		g.addEdge(x, y, EP(0.0)  );
+	}
+
+
+
+	kruskalMinimumSpanningTree(g,
+		[&](auto e)
+		{
+			auto a = g.source(e);
+			auto b = g.target(e);
+			a ++ ; b++;
+			if(g.edgeProperties(e)[EdgeWeightTag()] > 0)
+			{
+
+				cout << a << " " << b << "\n";
+			}
+			else
+			{
+//				cout << "GG" << endl;
+			}
+		}
+	);
+
+
+
+
+
+
+
+	//	while(m --)
+//	{
+//		int x, y, _g, _s;
+//		cin >> x >> y >> _g >> _s;
+//		--x;
+//		--y;
+//		LL t = G * _g + S * _s;
+////		cout << "T " << t << endl;
+//		g.addEdge(x, y, EP(make_tuple(t, _g, _s)));
+//	}
+//
+//	auto ewMap = g.edgePropertyMap(EdgeWeightTag());
+//	auto gold = g.edgePropertyMap(GoldTag());
+//	auto silver = g.edgePropertyMap(SilverTag());
+//	LL sum1 = 0, sum2 = 0;
+//	int cot = 0;
+//	kruskalMinimumSpanningTree(g,
+//		[&](auto e)
+//		{
+//			sum1 = max(sum1, gold[e]);
+//			sum2 = max(sum2, silver[e]);
+//			cot ++;
+//		}
+//	);
+//
+//	if(cot == n - 1)
+//	{
+//
+//		cout << (sum1 * G + sum2 * S) << "\n";
+//	}
+//	else
+//	{
+//		cout << "-1\n";
+//	}
+//
+
+
+
+
+
+
+
+
+
+
+
+	return 0;
+}

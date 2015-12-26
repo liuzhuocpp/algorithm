@@ -26,6 +26,10 @@ struct UndirectedGraphTag {};
 struct VertexIndexTag {};
 struct EdgeIndexTag {};
 
+struct EdgeWeightTag {};
+
+
+
 
 
 template<typename Graph>
