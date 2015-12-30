@@ -2,60 +2,43 @@
 #include <cstdio>
 #include <cstring>
 #include <tuple>
+#include <list>
+#include <algorithm>
+#include <vector>
 #include "lz/depth_first_search.h"
 
 
 #include "lz/adjacency_list.h"
 
 
-#include "lz/property.h"
 
 using namespace std;
+
+
 using namespace lz;
+using G = AdjacencyList<UndirectedGraphTag>;
 
-
-using G = AdjacencyList<>;
-
-
-
-
-
-
-struct AA
-{
-	void operator()()
-	{
-		cout << "FFF000000000" << endl;
-	}
-};
-
-LZ_PARAMETER_KEYWORD(tag, aa)
-LZ_PARAMETER_KEYWORD(tag, bb)
 int main()
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	G g;
 	int n = 5;
 	for(int i = 0; i < n; ++ i)
 		g.addVertex();
-	g.addEdge(1, 2);
+	g.addEdge(0, 2);
+
+//	auto e1 = *g.outEdges(0).first;
+//	auto e2 = *g.outEdges(2).first;
+//
+//	cout << e1 << "++ " << e2 << endl;
+
 	g.addEdge(2, 3);
-	g.addEdge(3, 4);
-	g.addEdge(1, 0);
-	g.addEdge(4, 1);
+	g.addEdge(0, 1);
+	g.addEdge(1, 4);
+
+
+
+
 
 	using namespace DepthFirstSearchKeywords;
 
@@ -63,18 +46,17 @@ int main()
 	using V = GraphTraits<G>::VertexDescriptor;
 	using E = typename GraphTraits<G>::EdgeDescriptor;
 
-//	G &g;
-//	P(G &g):g(g){}
-
 	auto _treeEdge = [&](E e, V u)
 	{
 		V other = opposite(g, e, u);
-		cout << "Tree Edge: " << u << " " << other << endl;
+		cout << "Tree Edge!!: " //<< e << " "
+				<< u << " " << other << endl;
 	};
 	auto _notTreeEdge = [&](E e, V u)
 	{
 		V other = opposite(g, e, u);
-		cout <<"not Tree Edge: " <<  u << " " << other << endl;
+		cout <<"not Tree Edge: "  //<< e << " "
+				<< u << " " << other << endl;
 	};
 
 
@@ -83,18 +65,23 @@ int main()
 			isInit = std::true_type(),
 			treeEdge = _treeEdge,
 			notTreeEdge = _notTreeEdge
+//			,
+//			isTree = std::true_type()
+
 			)   );
 
 
-//	P p(g);
 
-	using namespace DepthFirstSearchKeywords;
-//	depthFirstSearch(g,
-//
-//			(isInit = std::true_type())
-////			(visitor = p)
-//
-//	);
+
+
+
+
+
+
+
+
+
+
 
 
 

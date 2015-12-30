@@ -45,9 +45,11 @@ namespace DepthFirstSearchKeywords {
 	LZ_PARAMETER_KEYWORD(tag, colorMap)
 	LZ_PARAMETER_KEYWORD(tag, white)
 	LZ_PARAMETER_KEYWORD(tag, black)
+	LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
+
 
 	LZ_PARAMETER_KEYWORD(tag, isInit)
-	LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
+	LZ_PARAMETER_KEYWORD(tag, isTree)
 	LZ_PARAMETER_KEYWORD(tag, outEdges)
 	LZ_PARAMETER_KEYWORD(tag, enterVertex)
 }
@@ -63,24 +65,30 @@ namespace DepthFirstSearchKeywords {
 	template<typename G, typename ParamPack>
 	struct Impl
 	{
+		using Vertex = typename GraphTraits<G>::VertexDescriptor;
+		using DirectedTag = typename GraphTraits<G>::DirectedCategory;
+
 		const G &g;
 		const ParamPack &p;
 
+
 		Impl(const G &g, const ParamPack &p):g(g), p(p)
 		{
-			init(p[isInit]);
-			chooseEnterVertex(p[enterVertex]);
+			init(p[isInit], p[isTree]);
+			chooseEnterVertex(p[enterVertex], p[isTree]);
 		}
 
-		void dfs(typename GraphTraits<G>::VertexDescriptor u)
+
+
+
+		void dfs(Vertex u)
 		{
 			p[colorMap][u] = p[black]();
 			p[discoverVertex](u);
-			auto ei = p[outEdges](g, u);
-			for(;ei.first != ei.second; ++ ei.first)
+			for(auto ei = p[outEdges](g, u); ei.first != ei.second; ++ ei.first)
 			{
 				auto e = *ei.first;
-				auto to = g.target(e);
+				auto to = opposite(g, e, u);
 				p[examineEdge](e, u);
 				if(p[colorMap][to] == p[white]())
 				{
@@ -96,42 +104,221 @@ namespace DepthFirstSearchKeywords {
 			}
 			p[finishVertex](u);
 		}
-
-		void init(std::true_type)
+		void dfsPolytree(Vertex u)
 		{
-			auto&& vi = g.vertices();
-			for(;vi.first != vi.second; ++vi.first)
+			p[discoverVertex](u);
+			for(auto ei = p[outEdges](g, u); ei.first != ei.second; ++ ei.first)
 			{
-				auto&& u = *vi.first;
+				auto e = *ei.first;
+				auto to = g.target(e);
+				p[examineEdge](e, u);
+				p[treeEdge](e, u);
+				dfsPolytree(to);
+				p[treeEdgeReturn](e, u);
+				p[finishEdge](e, u);
+			}
+			p[finishVertex](u);
+		}
+
+		void dfsTree(Vertex u, Vertex fa)
+		{
+			p[discoverVertex](u);
+			for(auto ei = p[outEdges](g, u); ei.first != ei.second; ++ ei.first)
+			{
+				auto e = *ei.first;
+				auto to = lz::opposite(g, e, u);
+				p[examineEdge](e, u);
+				if(to != fa)
+				{
+					p[treeEdge](e, u);
+					dfsTree(to, u);
+					p[treeEdgeReturn](e, u);
+				}
+//				else
+//				{
+//					p[notTreeEdge](e, u);
+//				}
+				p[finishEdge](e, u);
+			}
+			p[finishVertex](u);
+		}
+
+		template<typename IsInit, typename IsTree>
+		void init(IsInit, IsTree) {}
+
+
+		void init(std::true_type, std::false_type)
+		{
+			for(auto vi = g.vertices(); vi.first != vi.second; ++vi.first)
+			{
+				auto u = *vi.first;
 				p[colorMap][u] = p[white]();
 				p[initializeVertex](u);
 			}
 		}
-		void init(std::false_type) {}
 
-
-		template<typename EnterVertex>
-		void chooseEnterVertex(EnterVertex u)
+		void init(std::true_type, std::true_type)
 		{
-			p[startVertex](u);
-			dfs(u);
-		}
-		void chooseEnterVertex(ParamNotFound )
-		{
-			auto&& vi = g.vertices();
-			for(;vi.first != vi.second; ++vi.first)
+			for(auto vi = g.vertices(); vi.first != vi.second; ++vi.first)
 			{
-				auto&& u = *vi.first;
-				if(p[colorMap][u] == p[white]())
-				{
-					p[startVertex](u);
-					dfs(u);
-				}
+				auto u = *vi.first;
+				p[initializeVertex](u);
 			}
 		}
 
 
+
+
+
+		template<typename EnterVertex, typename is>
+		void chooseEnterVertex(EnterVertex u, is)
+		{
+			p[startVertex](u);
+			dfsDispatch(u, DirectedTag(), p[isTree]);
+		}
+		void chooseEnterVertex(ParamNotFound, std::false_type )
+		{
+			for(auto vi = g.vertices();vi.first != vi.second; ++vi.first)
+			{
+				auto u = *vi.first;
+				if(p[colorMap][u] == p[white]())
+				{
+					p[startVertex](u);
+					dfsDispatch(u, DirectedTag(), p[isTree]);
+				}
+			}
+		}
+
+		void chooseEnterVertex(ParamNotFound, std::true_type )
+		{
+			auto u = *g.vertices().first;
+			p[startVertex](u);
+			dfsDispatch(u, DirectedTag(), p[isTree]);
+		}
+
+
+
+
+
+		template<typename EnterVertex , typename Directed>
+		void dfsDispatch(EnterVertex u, Directed, std::false_type )
+		{
+			dfs(u);
+		}
+
+		template<typename EnterVertex>
+		void dfsDispatch(EnterVertex u, DirectedGraphTag, std::true_type)
+		{
+			dfsPolytree(u);
+		}
+
+		template<typename EnterVertex>
+		void dfsDispatch(EnterVertex u, UndirectedGraphTag, std::true_type)
+		{
+			dfsTree(u, u);
+		}
+
+
+
 	};
+
+
+
+
+	template<typename G, typename ParamPack>
+	void dispatch(const G &g, const ParamPack &p , std::false_type )
+	{
+		auto _white = p[white | ColorTraits<>::white];
+		auto _black = p[black | ColorTraits<>::black];
+		auto _vertexIndexMap = p[vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
+		auto n = g.vertexNumber();
+		auto indexMap = p[vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
+		auto _colorMap = p[colorMap ||
+						   std::bind(makeVertexIndexComposeMap<decltype(_white()), decltype(indexMap), decltype(n) >,
+								   indexMap, n)];
+
+		auto _enterVertex = p[enterVertex];
+		auto _isInit = p[isInit | std::true_type()];
+		auto _outEdges = p[outEdges | std::mem_fn(&G::outEdges)];
+		auto _isTree = std::false_type();
+
+
+		using V = typename GraphTraits<G>::VertexDescriptor;
+		using E = typename GraphTraits<G>::EdgeDescriptor;
+
+		auto actionVertex = [](V u){};
+		auto actionEdge = [](E e, V u){};
+
+		auto newParamPack = (
+				initializeVertex = p[initializeVertex | actionVertex],
+				startVertex = p[startVertex | actionVertex],
+				discoverVertex = p[discoverVertex | actionVertex],
+				examineEdge = p[examineEdge | actionEdge],
+				treeEdge = p[treeEdge | actionEdge],
+				treeEdgeReturn = p[treeEdgeReturn | actionEdge],
+				notTreeEdge = p[notTreeEdge | actionEdge],
+				finishEdge = p[finishEdge | actionEdge],
+				finishVertex = p[finishVertex | actionVertex],
+
+
+
+				white = _white,
+				black = _black,
+				colorMap = _colorMap,
+
+				isTree = _isTree,
+				outEdges = _outEdges,
+				isInit = _isInit,
+				enterVertex =  _enterVertex);
+
+
+
+
+		DepthFirstSearchPrivate::Impl <G, decltype(newParamPack)>
+
+		impl(g, newParamPack);
+
+
+	}
+
+	// this graph is a forest;
+	template<typename G, typename ParamPack>
+	void dispatch(const G &g, const ParamPack &p, std::true_type )
+	{
+		auto _enterVertex = p[enterVertex];
+		auto _isInit = p[isInit | std::true_type()];
+		auto _outEdges = p[outEdges | std::mem_fn(&G::outEdges)];
+		auto _isTree = std::true_type();
+
+		using V = typename GraphTraits<G>::VertexDescriptor;
+		using E = typename GraphTraits<G>::EdgeDescriptor;
+
+		auto actionVertex = [](V u) {};
+		auto actionEdge = [](E e, V u) {};
+
+		auto newParamPack = (
+				initializeVertex = p[initializeVertex | actionVertex],
+				startVertex = p[startVertex | actionVertex],
+				discoverVertex = p[discoverVertex | actionVertex],
+				examineEdge = p[examineEdge | actionEdge],
+				treeEdge = p[treeEdge | actionEdge],
+				treeEdgeReturn = p[treeEdgeReturn | actionEdge],
+				notTreeEdge = p[notTreeEdge | actionEdge],
+				finishEdge = p[finishEdge | actionEdge],
+				finishVertex = p[finishVertex | actionVertex],
+
+				isTree = _isTree,
+				outEdges = _outEdges,
+				isInit = _isInit,
+				enterVertex =  _enterVertex);
+
+		DepthFirstSearchPrivate::Impl <G, decltype(newParamPack)>
+		impl(g, newParamPack);
+
+
+	}
+
+
 
 	}
 
@@ -139,194 +326,13 @@ namespace DepthFirstSearchKeywords {
 template<typename G, typename ParamPack>
 void depthFirstSearch(const G &g, const ParamPack &p)
 {
-	using namespace DepthFirstSearchKeywords;
-
-	auto _white = p[white | ColorTraits<>::white];
-	auto _black = p[black | ColorTraits<>::black];
-	auto _isInit = p[isInit | std::true_type()];
-
-	auto _outEdges = p[outEdges | std::mem_fn(&G::outEdges)];
-	auto _vertexIndexMap = p[vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
-
-	using ColorValue = decltype(_white());
-
-	auto n = g.vertexNumber();
-
-	auto iMap = p[vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
-
-//	auto gg = std::bind(
-//			makeVertexIndexComposeMap<ColorValue, decltype(iMap), decltype(n) >,
-//			iMap, n);
-
-	auto _colorMap = p[colorMap ||
-					   std::bind(makeVertexIndexComposeMap<ColorValue, decltype(iMap), decltype(n) >,
-					   			iMap, n)];
-	auto _enterVertex = p[enterVertex];
-
-	using V = typename GraphTraits<G>::VertexDescriptor;
-	using E = typename GraphTraits<G>::EdgeDescriptor;
-
-	auto actionVertex = [](V u){};
-	auto actionEdge = [](E e, V u){};
-
-	auto newParamPack = (
-			initializeVertex = p[initializeVertex | actionVertex],
-			startVertex = p[startVertex | actionVertex],
-			discoverVertex = p[discoverVertex | actionVertex],
-			examineEdge = p[examineEdge | actionEdge],
-			treeEdge = p[treeEdge | actionEdge],
-			treeEdgeReturn = p[treeEdgeReturn | actionEdge],
-			notTreeEdge = p[notTreeEdge | actionEdge],
-			finishEdge = p[finishEdge | actionEdge],
-			finishVertex = p[finishVertex | actionVertex],
-
-			white = _white,
-			black = _black,
-			isInit = _isInit,
-			outEdges = _outEdges,
-			vertexIndexMap = _vertexIndexMap,
-			colorMap = _colorMap,
-			enterVertex =  _enterVertex);
-
-
-	DepthFirstSearchPrivate::Impl
-	<G, decltype(newParamPack)>(g, newParamPack);
-
-
-
-
-
-
+	DepthFirstSearchPrivate::dispatch(g, p,
+			p[DepthFirstSearchKeywords::isTree | std::false_type()] );
 }
 
 
 
 
-
-//	namespace DepthFirstSearchPrivate {
-//
-//	template<typename G, typename Params>
-//	struct Impl
-//	{
-//		using V = typename GraphTraits<G>::VertexDescriptor;
-//		using VertexIndexMap = ChooseVertexIndexMap<G, decltype(&Params::vertexIndexMap)>;
-//		using DefaultColor = ColorTraits<>::Type;
-//		using ColorMap = ChooseVertexIndexComposeMap<decltype(&Params::colorMap), VertexIndexMap, DefaultColor>;
-//
-//		VertexIndexMap indexMap;
-//		ColorMap colorMap;
-//		const G &g;
-//		Params &p;
-//		Impl(const G &g, Params &p):g(g), p(p)
-//		{
-//			indexMap = chooseParamReturnValue(p.vertexIndexMap(),
-//											  g.vertexPropertyMap(VertexIndexTag()));
-//			colorMap = chooseVertexIndexComposeMap<ColorTraits<>::Type>(p.colorMap(), indexMap, g.vertexNumber());
-//		}
-//		auto outEdges(V u)
-//		{
-//			return chooseParamReturnValue(p.outEdges(u), g.outEdges(u) );
-//		};
-//		void init(std::true_type)
-//		{
-//			auto&& vi = g.vertices();
-//			for(;vi.first != vi.second; ++vi.first)
-//			{
-//				auto&& u = *vi.first;
-//				colorMap[u] = p.white();
-//				p.initializeVertex(u);
-//			}
-//		}
-//		void init(std::false_type) {}
-//
-//		template<typename EnterVertex>
-//		void chooseEnterVertex(EnterVertex u)
-//		{
-//			p.startVertex(u);
-//			dfs(u);
-//		}
-//		void chooseEnterVertex(ParamNotFound )
-//		{
-//			auto&& vi = g.vertices();
-//			for(;vi.first != vi.second; ++vi.first)
-//			{
-//				auto&& u = *vi.first;
-//				if(colorMap[u] == p.white())
-//				{
-//					p.startVertex(u);
-//					dfs(u);
-//				}
-//			}
-//		}
-//
-//
-//		void dfs(typename GraphTraits<G>::VertexDescriptor u)
-//		{
-//			colorMap[u] = p.black();
-//			p.discoverVertex(u);
-//			auto ei = outEdges(u);
-//			for(;ei.first != ei.second; ++ ei.first)
-//			{
-//				auto e = *ei.first;
-//				auto to = g.target(e);
-//				p.examineEdge(e, u);
-//				if(colorMap[to] == p.white())
-//				{
-//					p.treeEdge(e, u);
-//					dfs(to);
-//					p.treeEdgeReturn(e, u);
-//				}
-//				else
-//				{
-//					p.notTreeEdge(e, u);
-//				}
-//				p.finishEdge(e, u);
-//			}
-//			p.finishVertex(u);
-//		}
-//
-//		void run()
-//		{
-//			init(typename Params::IsInit());
-//			chooseEnterVertex(p.enterVertex());
-//			deleteVertexIndexComposeMap(colorMap, p.colorMap());
-//		}
-//	};
-//	} // namespace DepthFirstSearchPrivate
-//
-//class DepthFirstSearchParams
-//{
-//	using DefaultColor = ColorTraits<>::Type;
-//public:
-//	template<typename V> void initializeVertex(V u) {}
-//	template<typename V> void startVertex(V u) {}
-//	template<typename V> void discoverVertex(V u) {}
-//	template<typename E, typename V> void examineEdge(E e, V u) {}
-//	template<typename E, typename V> void treeEdge(E e, V u) {}
-//	template<typename E, typename V> void treeEdgeReturn(E e, V u) {}
-//	template<typename E, typename V> void notTreeEdge(E e, V u) {}
-//	template<typename E, typename V> void finishEdge(E e, V u) {}
-//	template<typename V> void finishVertex(V u) {}
-//
-//	DefaultColor white() { return ColorTraits<>::white(); }
-//	DefaultColor black() { return ColorTraits<>::black(); }
-//
-//	using IsInit = std::true_type;
-//	ParamNotFound vertexIndexMap() {}
-//	template<typename V>
-//	ParamNotFound outEdges(V u) {}
-//	ParamNotFound colorMap() {}
-//	ParamNotFound enterVertex(){}
-//};
-//
-//template<typename G, typename Params>
-//void depthFirstSearch(const G &g, Params &&p)
-//{
-//	using RealParams = typename std::remove_reference<Params>::type;
-//
-//	DepthFirstSearchPrivate::Impl<G, RealParams> impl(g, p);
-//	impl.run();
-//}
 
 
 

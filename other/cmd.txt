@@ -1,5 +1,5 @@
 cd D:\code\github\algorithm\examples
-g++  -std=c++11 -ID:\code\github\algorithm      main.cpp     -o main && main
+g++  -std=c++14 -ID:\code\github\algorithm      main.cpp     -o main && main
 
 #pragma GCC diagnostic error "-std=c++14"
 #pragma comment(linker, "/STACK:102400000,102400000")

@@ -84,8 +84,10 @@ class AdjacencyList;
 		typename GraphTraits<G>::EdgeDescriptor*,
 		typename GraphTraits<G>::EdgeDescriptor >
 	{
-    	template<typename D, typename VP, typename EP, typename GP> friend class AdjacencyList;
+    	template<typename D, typename VP, typename EP, typename GP>
+    	friend class lz::AdjacencyList;
 
+//    	friend G;
     	EdgeDescriptor i; // realED
     	const G *g;
     	OutEdgeIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function

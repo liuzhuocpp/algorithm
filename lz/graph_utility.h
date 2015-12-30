@@ -20,6 +20,12 @@ namespace lz {
 struct DirectedGraphTag {};
 struct UndirectedGraphTag {};
 
+//struct AcyclicGraphTag {};
+//
+//struct DirectedAcyclicGraphTag: DirectedGraphTag, AcyclicGraphTag {};
+//struct UndirectedAcyclicGraphTag: UndirectedGraphTag, AcyclicGraphTag {};
+//using ForestTag = UndirectedAcyclicGraphTag;
+
 /*
  * Some common graph`s vertex or edge property tag
  */
