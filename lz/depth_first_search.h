@@ -4,7 +4,6 @@
 #include <tuple>
 #include <algorithm>
 #include <vector>
-#include <stack>
 #include <type_traits>
 #include <iostream>
 #include <memory>
@@ -22,7 +21,7 @@ namespace lz {
 
 using std::tie;
 using std::pair;
-using std::stack;
+//using std::stack;
 using std::vector;
 using std::cout;
 using std::endl;
@@ -66,6 +65,8 @@ namespace DepthFirstSearchKeywords {
 	struct Impl
 	{
 		using Vertex = typename GraphTraits<G>::VertexDescriptor;
+		using OutEdgeIterator = typename GraphTraits<G>::OutEdgeIterator;
+		using Edge = typename GraphTraits<G>::EdgeDescriptor;
 		using DirectedTag = typename GraphTraits<G>::DirectedCategory;
 
 		const G &g;
@@ -75,8 +76,62 @@ namespace DepthFirstSearchKeywords {
 		Impl(const G &g, const ParamPack &p):g(g), p(p)
 		{
 			init(p[isInit], p[isTree]);
+//			cout << "II" << endl;
 			chooseEnterVertex(p[enterVertex], p[isTree]);
 		}
+
+
+		void dfsNotRecursive(Vertex u)
+		{
+			std::vector<std::pair<Vertex, OutEdgeIterator > > stack;
+
+			p[discoverVertex](u);
+			p[colorMap][u] = p[black]();
+			stack.push_back(std::make_pair(u,  p[outEdges](g, u).first)   );
+
+
+			while(!stack.empty())
+			{
+				auto u = stack.back().first;
+				auto& ei = stack.back().second;
+
+				for(;ei != p[outEdges](g, u).second; ++ ei)
+				{
+					auto e = *ei;
+					auto to = opposite(g, e, u);
+					p[examineEdge](e, u);
+					if(p[colorMap][to] == p[white]())
+					{
+						p[treeEdge](e, u);
+
+						p[discoverVertex](to);
+						p[colorMap][to] = p[black]();
+						stack.push_back(std::make_pair(to, p[outEdges](g, to).first));
+						break;
+					}
+					else
+					{
+						p[notTreeEdge](e, u);
+					}
+					p[finishEdge](e, u);
+				}
+				if(ei == p[outEdges](g, u).second)
+				{
+					p[finishVertex](u);
+
+					stack.pop_back();
+					if(!stack.empty())
+					{
+						p[treeEdgeReturn](*stack.back().second, stack.back().first);
+						++stack.back().second;
+					}
+				}
+
+			}
+
+		}
+
+
 
 
 
@@ -85,9 +140,10 @@ namespace DepthFirstSearchKeywords {
 		{
 			p[colorMap][u] = p[black]();
 			p[discoverVertex](u);
-			for(auto ei = p[outEdges](g, u); ei.first != ei.second; ++ ei.first)
+			auto ei_pair = p[outEdges](g, u);
+			for(auto ei = ei_pair.first; ei != ei_pair.second; ++ ei)
 			{
-				auto e = *ei.first;
+				auto e = *ei;
 				auto to = opposite(g, e, u);
 				p[examineEdge](e, u);
 				if(p[colorMap][to] == p[white]())
@@ -134,10 +190,10 @@ namespace DepthFirstSearchKeywords {
 					dfsTree(to, u);
 					p[treeEdgeReturn](e, u);
 				}
-//				else
-//				{
-//					p[notTreeEdge](e, u);
-//				}
+				else
+				{
+					p[notTreeEdge](e, u);
+				}
 				p[finishEdge](e, u);
 			}
 			p[finishVertex](u);
@@ -203,7 +259,8 @@ namespace DepthFirstSearchKeywords {
 		template<typename EnterVertex , typename Directed>
 		void dfsDispatch(EnterVertex u, Directed, std::false_type )
 		{
-			dfs(u);
+			dfsNotRecursive(u);
+//			dfs(u);
 		}
 
 		template<typename EnterVertex>
@@ -228,6 +285,7 @@ namespace DepthFirstSearchKeywords {
 	template<typename G, typename ParamPack>
 	void dispatch(const G &g, const ParamPack &p , std::false_type )
 	{
+//		cout << "SB33333" << endl;
 		auto _white = p[white | ColorTraits<>::white];
 		auto _black = p[black | ColorTraits<>::black];
 		auto _vertexIndexMap = p[vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
@@ -281,7 +339,7 @@ namespace DepthFirstSearchKeywords {
 
 	}
 
-	// this graph is a forest;
+	// this graph is a tree;
 	template<typename G, typename ParamPack>
 	void dispatch(const G &g, const ParamPack &p, std::true_type )
 	{

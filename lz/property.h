@@ -107,8 +107,11 @@ struct Property: public _NextProperty
 //    Property(const ValueType &value, const NextProperty & np):
 //    	NextProperty(np),m_value(value){}
 
-    Property(ValueType &&value, const NextProperty & np):
-		NextProperty(np), m_value(value){}
+    explicit Property(ValueType &&value, const NextProperty & np):
+		NextProperty(np), m_value(value)
+    {
+//    	cout << "FFF"<< endl;
+    }
 
     Property(const ValueType &value): m_value(value){}
     Property(ValueType &&value): m_value(std::move(value)){}
@@ -125,7 +128,7 @@ public:
 	Property( const std::tuple<Args...> &tp):
 		Property(tp, std::integral_constant<size_t, 0>())
 	{
-
+    	cout << "SBSB" << endl;
 	}
 
 

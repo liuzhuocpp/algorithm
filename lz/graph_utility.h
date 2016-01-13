@@ -81,15 +81,17 @@ struct GraphTraits
 template<typename G, typename Tag>
 class VertexPropertyMap
 {
+//	using _ValueType = std::decay_t<decltype(typename GraphTraits<G>::VertexProperties()[Tag()])>;
+
 	using _ValueType = typename std::decay<decltype(typename GraphTraits<G>::VertexProperties()[Tag()])>::type;
 	G *g = nullptr;
 public:
 	using KeyType = typename GraphTraits<G>::VertexDescriptor;
-	using ValueType = _ValueType&;
+	using ValueType = _ValueType;
 
 	VertexPropertyMap() = default;
 	VertexPropertyMap(G &_g):g(&_g) { }
-	ValueType operator[](typename GraphTraits<G>::VertexDescriptor u) const
+	auto operator[](KeyType u) const->decltype(g->vertexProperties(u)[Tag()])
 	{
 		return g->vertexProperties(u)[Tag()];
 	}
@@ -99,11 +101,11 @@ public:
 	struct ConstType
 	{
 		using KeyType = typename GraphTraits<G>::VertexDescriptor;
-		using ValueType = const _ValueType &;
+		using ValueType = _ValueType;
 		const G *g;
 		ConstType():g(nullptr){}
 		ConstType(const G &g):g(&g){}
-		ValueType operator[](KeyType u) const
+		auto operator[](KeyType u) const->decltype(g->vertexProperties(u)[Tag()])
 		{
 			return g->vertexProperties(u)[Tag()];
 		}
@@ -114,11 +116,12 @@ public:
 template<typename G, typename Tag>
 class EdgePropertyMap
 {
+//	using _ValueType = typename std::decay<decltype(typename GraphTraits<G>::EdgeProperties()[Tag()])>::type;
 	using _ValueType = typename std::decay<decltype(typename GraphTraits<G>::EdgeProperties()[Tag()])>::type;
 	G *g = nullptr;
 public:
 	using KeyType = typename GraphTraits<G>::EdgeDescriptor;
-	using ValueType = _ValueType&;
+	using ValueType = _ValueType;
 
 	EdgePropertyMap() = default;
 	EdgePropertyMap(G &_g):g(&_g) { }

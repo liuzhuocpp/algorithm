@@ -16,7 +16,7 @@ using namespace std;
 
 
 using namespace lz;
-using G = AdjacencyList<UndirectedGraphTag>;
+using G = AdjacencyList<DirectedGraphTag>;
 
 int main()
 {
@@ -60,11 +60,23 @@ int main()
 	};
 
 
+
+//	cout << "OOO" << endl;
 	depthFirstSearch(g,
 			(
 			isInit = std::true_type(),
 			treeEdge = _treeEdge,
-			notTreeEdge = _notTreeEdge
+			notTreeEdge = _notTreeEdge,
+
+			treeEdgeReturn = [&](E e, V u)
+			{
+				V other = opposite(g, e, u);
+				cout <<"Tree Ruturn Edge: "  //<< e << " "
+						<< u << " " << other << endl;
+			},
+			enterVertex = 0
+
+
 //			,
 //			isTree = std::true_type()
 

@@ -14,7 +14,8 @@
 using namespace std;
 
 string includedDirPath = "D:\\code\\github\\algorithm\\";
-string fileName= "D:\\code\\github\\algorithm\\examples\\kruskal_minimum_spanning_tree\\100203H.cpp";
+
+string fileName= "D:\\code\\github\\algorithm\\examples\\strongly_connected_components\\cf402_E.cpp";
 string ansFileName = "ans.txt";
 
 
