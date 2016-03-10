@@ -1,4 +1,4 @@
-cd D:\code\github\algorithm\examples
+cd D:\code\github\algorithm\examples && D:
 clang++  -std=c++14 -ID:\code\github\algorithm      main.cpp     -o main.exe && main.exe
 
 #pragma GCC diagnostic error "-std=c++14"
