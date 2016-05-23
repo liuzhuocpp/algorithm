@@ -1,33 +1,7 @@
-/*
- * main.cpp
- *
- *  Created on: 2015Äê11ÔÂ20ÈÕ
- *      Author: LZ
- */
 
-struct No{};
-
-struct PPPPPPPPP
+int A, B;
+void test()
 {
-	void f() {}
-
-};
-
-
-
-
-PPPPPPPPP f()
-{
-	PPPPPPPPP p;
-
-//	sizeof(PPPPPPPPP)
-
-	return p;
-}
-
-void g()
-{
-
-
-
+  A = B + 1;
+  B = 0;
 }

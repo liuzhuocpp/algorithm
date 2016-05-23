@@ -5,7 +5,7 @@
 
 
 
-#include "sort.h"
+#include "lz/sort.h"
 using namespace std;
 using namespace lz;
 
@@ -24,17 +24,33 @@ void out(Seq &a)
 
 int main()
 {
-    vector<int> a;
-    for(int i = 0; i < 10; ++ i) a.push_back(10 - i);
+	vector<int> a = {2, 3, 88, 5, 11, 23, 23, 23};
 
+//	lz::radixSort(a.begin(), a.end(), [](int x, int i) { return x; }, 1, 100);
 
-    random_shuffle(a.begin(), a.end());
-    out(a);
+	lz::radixSort(a.begin(), a.end(),
+			[](int x, int i) {
+				if(i == 0) return x % 10;
+				return x / 10;
+			},
+			2, 10);
 
+//	lz::quickSortNotRecursion(a.begin(), a.end());
+//	lz::quickSort(a.begin(), a.end());
+//	lz::quickSort(a.begin(), a.end());
+	out(a);
 
-    quickSort(a.begin(), a.end());
-    
-    out(a);    
+//    vector<int> a;
+//    for(int i = 0; i < 10; ++ i) a.push_back(10 - i);
+//
+//
+//    random_shuffle(a.begin(), a.end());
+//
+//
+//
+//    quickSort(a.begin(), a.end());
+//
+//    out(a);
 
     return 0;
 }
