@@ -52,7 +52,7 @@ int main()
 	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(2));
 	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(33));
 	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(1));
-//	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(2));
+	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(2));
 	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(44));
 
 
@@ -64,20 +64,37 @@ int main()
 
 	cout << string(100, '-') << endl;
 	BinerySearchTreeImplement<TestBinerySearchTree>::bfs(tbst);
+	cout << string(100, '-') << endl;
 
 	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 11);
+
+
 	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 8);
 	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 7);
 	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 2);
 	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 1);
+
+
+	cout << string(100, '*') << endl;
+	BinerySearchTreeImplement<TestBinerySearchTree>::bfs(tbst);
+	cout << string(100, '*') << endl;
+
+
+
 	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 33);
-	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 44);
 
 	cout << string(100, '-') << endl;
 	BinerySearchTreeImplement<TestBinerySearchTree>::bfs(tbst);
+	cout << string(100, '-') << endl;
 
-//	cout << tbst.root()->left->key << " " << tbst.root()->right->key << endl;
-//	tbst.root() = new
+
+
+
+//	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 44);
+
+//	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 2);
+
+
 
 	return 0;
 

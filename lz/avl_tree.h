@@ -33,33 +33,40 @@ using namespace std;
 
 	};
 
-	class TestBinerySearchTree
+	template<typename DerivedNode, typename _KeyType>
+	struct BinerySearchTreeNodeFacade
 	{
-		struct Node
-		{
-			int key;
-			Node* left;
-			Node* right;
-			Node* parent;
+		using KeyType = _KeyType;
 
-//			Node(int key):key(key), left(nullptr), right(nullptr), parent(nullptr){}
-		};
+		KeyType key;
+		DerivedNode* left;
+		DerivedNode* right;
+		DerivedNode* parent;
+
+		BinerySearchTreeNodeFacade(const KeyType &key, DerivedNode* left, DerivedNode *right, DerivedNode* parent):
+				key(key), left(left), right(right), parent(parent){}
+
+	};
+
+	template<typename Node, typename _KeyType, typename _KeyCompare = std::less<_KeyType> >
+	class BinerySearchTreeBase
+	{
 		Node* _root;
 	public:
-		using KeyType = int;
-		using KeyCompare = std::less<int>;
+		using KeyType = _KeyType;
+		using KeyCompare = _KeyCompare;
 		using VertexDescriptor = Node*;
 		static constexpr VertexDescriptor nullVertex() { return nullptr; }
 
-		TestBinerySearchTree():_root(nullptr){}
+		BinerySearchTreeBase():_root(nullptr){}
+
 		VertexDescriptor createVertex(const KeyType &key = KeyType(),
 									  Node* left = nullptr,
 									  Node* right = nullptr,
 									  Node* parent = nullptr
-
 									  )
 		{
-			return new Node{key, left, right, parent};
+			return new Node(key, left, right, parent);
 		}
 
 		void destoryVertex(VertexDescriptor u)
@@ -78,6 +85,64 @@ using namespace std;
 		const VertexDescriptor& rightChild(VertexDescriptor u) const { return u->right; }
 		const VertexDescriptor& parent(VertexDescriptor u) const { return u->parent; }
 		const KeyType& key(VertexDescriptor u) const { return u->key; }
+	};
+
+
+
+
+
+	struct TestBinerySearchTreeNode: public BinerySearchTreeNodeFacade<TestBinerySearchTreeNode, int>
+	{
+		using Base = BinerySearchTreeNodeFacade<TestBinerySearchTreeNode, int>;
+//		using Node = TestBinerySearchTreeNode;
+
+		TestBinerySearchTreeNode(const int &_key,
+									TestBinerySearchTreeNode* left ,
+									TestBinerySearchTreeNode* right,
+									TestBinerySearchTreeNode* parent ):
+									Base(_key, left, right, parent){}
+
+
+
+
+	};
+
+
+	class TestBinerySearchTree: public BinerySearchTreeBase<TestBinerySearchTreeNode, int>
+	{
+//	public:
+//		using KeyType = int;
+//		using KeyCompare = std::less<int>;
+//		using VertexDescriptor = Node*;
+//		static constexpr VertexDescriptor nullVertex() { return nullptr; }
+//
+//		TestBinerySearchTree():_root(nullptr){}
+//		VertexDescriptor createVertex(const KeyType &key = KeyType(),
+//									  Node* left = nullptr,
+//									  Node* right = nullptr,
+//									  Node* parent = nullptr
+//
+//									  )
+//		{
+//			return new Node{key, left, right, parent};
+//		}
+//
+//		void destoryVertex(VertexDescriptor u)
+//		{
+//			delete u;
+//		}
+//
+//		VertexDescriptor& root() { return _root; }
+//		VertexDescriptor& leftChild(VertexDescriptor u) { return u->left; }
+//		VertexDescriptor& rightChild(VertexDescriptor u) { return u->right; }
+//		VertexDescriptor& parent(VertexDescriptor u) { return u->parent; }
+//		KeyType& key(VertexDescriptor u) { return u->key; }
+//
+//		const VertexDescriptor& root() const { return _root; }
+//		const VertexDescriptor& leftChild(VertexDescriptor u) const { return u->left; }
+//		const VertexDescriptor& rightChild(VertexDescriptor u) const { return u->right; }
+//		const VertexDescriptor& parent(VertexDescriptor u) const { return u->parent; }
+//		const KeyType& key(VertexDescriptor u) const { return u->key; }
 
 	};
 
@@ -198,7 +263,9 @@ using namespace std;
 				{
 					bst.parent(r_most) = p;
 					bst.rightChild(r_most) = r;
+
 					if(p != nullVertex) u_p_pos = r_most;
+					bst.parent(r) = r_most;
 				}
 				else
 				{
@@ -331,6 +398,25 @@ using namespace std;
 
 
 	};
+
+
+	template<typename KeyType, typename KeyCompare = std::less<KeyType> >
+	class AvlTree
+	{
+		struct Node
+		{
+			Node* left;
+			Node* right;
+			Node* parent;
+			KeyType key;
+			int h;
+		};
+
+
+
+
+	};
+
 
 
 
