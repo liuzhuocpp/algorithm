@@ -135,7 +135,7 @@ using namespace std;
 			NodeDescriptor &r = bst.rightChild(u);
 
 
-			// u�ڸ����е�λ��
+			//
 			NodeDescriptor& u_p_pos = (p == nullNode ? copy_null : getParentChild(bst, u));
 
 			if(l == nullNode && r == nullNode)
