@@ -15,112 +15,71 @@
 using namespace std;
 using namespace lz;
 
-struct Node
+struct AvlTreeNode: public AvlTreeNodeFacade<AvlTreeNode, int>
 {
-	Node *L, *R, *P;
-	int _key;
 
-	using KeyType = int;
-	using KeyCompare = std::less<int>;
+	using Base = AvlTreeNodeFacade<AvlTreeNode, int>;
 
-	Node*& parent()
-	{
-		return P;
-	}
+//	using Base::leftChild;
+//	using Base::rightChild;
+//	using Base::parent;
+//	using Base::key;
+//	using Base::height;
+//
+//	void f()
+//	{
+//		leftChild = nullptr;
+//	}
 
-	Node*& leftChild()
+
+	AvlTreeNode(int a = 0):Base(a)
 	{
-		return L;
+
 	}
-	Node*& rightChild()
-	{
-		return R;
-	}
-	int& key()
-	{
-		return _key;
-	}
-	Node(int key):_key(key), L(nullptr), R(nullptr), P(nullptr){}
 };
+
+
+
 
 int main()
 {
 
-	TestBinerySearchTree tbst;
+	lz::AvlTree<AvlTreeNode> avl;
 
-	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(11));
-	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(2));
-	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(33));
-	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(1));
-	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(2));
-	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(44));
+	AvlTreeNode *p = new AvlTreeNode(20);
 
 
-	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(7));
-	BinerySearchTreeImplement<TestBinerySearchTree>::insert(tbst, tbst.createVertex(8));
+//	cout << "TEST: " << (p->parent == nullptr) << endl;
+
+	cout << "HHA" << endl;
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(10));
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(20));
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(220));
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(333));
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(300));
 
 
-
-
-	cout << string(100, '-') << endl;
-	BinerySearchTreeImplement<TestBinerySearchTree>::bfs(tbst);
-	cout << string(100, '-') << endl;
-
-	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 11);
-
-
-	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 8);
-	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 7);
-	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 2);
-	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 1);
-
-
-	cout << string(100, '*') << endl;
-	BinerySearchTreeImplement<TestBinerySearchTree>::bfs(tbst);
-	cout << string(100, '*') << endl;
-
-
-
-	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 33);
-
-	cout << string(100, '-') << endl;
-	BinerySearchTreeImplement<TestBinerySearchTree>::bfs(tbst);
-	cout << string(100, '-') << endl;
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(200	));
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(100	));
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(90	));
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(80	));
+	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(85	));
 
 
 
 
-//	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 44);
+//	BinerySearchTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(10));
+//	BinerySearchTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(20));
+//	BinerySearchTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(220));
 
-//	BinerySearchTreeImplement<TestBinerySearchTree>::remove(tbst, 2);
+	cout << "HHA------------------" << endl;
+
+
+	BinerySearchTreeImplement<lz::AvlTree<AvlTreeNode>>::bfs(avl);
 
 
 
-	return 0;
 
-//	Node* root = new Node(11);
-//
-//	bstInsert(root, new Node(22));
-//	bstInsert(root, new Node(33));
-//	bstInsert(root, new Node(44));
-//	bstInsert(root, new Node(1));
-//	bstInsert(root, new Node(22));
-//
-//	cout <<"bfs------" << endl;
-//	bstBfs(root);
-//
-//	cout <<"search------" << endl;
-//	cout << bstSearch(root, 22)->key() << endl;
-//
-//	cout <<"nextNode------" << endl;
-//	Node* test = root;
-//	while(test != nullptr)
-//	{
-//		cout << test->key() << endl;
-//		test = bstNextNode(test);
-//	}
-//
-//
 
 
 
