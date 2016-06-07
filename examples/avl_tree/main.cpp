@@ -1,7 +1,7 @@
 /*
  * main.cpp
  *
- *  Created on: 2016Äê5ÔÂ16ÈÕ
+ *  Created on: 2016ï¿½ï¿½5ï¿½ï¿½16ï¿½ï¿½
  *      Author: LZ
  */
 
@@ -15,10 +15,10 @@
 using namespace std;
 using namespace lz;
 
-struct AvlTreeNode: public AvlTreeNodeFacade<AvlTreeNode, int>
+struct AvlTreeNode: public AvlTreeNodeFacade< BstNodeFacade<AvlTreeNode, int> >
 {
 
-	using Base = AvlTreeNodeFacade<AvlTreeNode, int>;
+	using Base = AvlTreeNodeFacade< BstNodeFacade<AvlTreeNode, int> >;
 
 //	using Base::leftChild;
 //	using Base::rightChild;
@@ -26,10 +26,6 @@ struct AvlTreeNode: public AvlTreeNodeFacade<AvlTreeNode, int>
 //	using Base::key;
 //	using Base::height;
 //
-//	void f()
-//	{
-//		leftChild = nullptr;
-//	}
 
 
 	AvlTreeNode(int a = 0):Base(a)
@@ -44,41 +40,30 @@ struct AvlTreeNode: public AvlTreeNodeFacade<AvlTreeNode, int>
 int main()
 {
 
-	lz::AvlTree<AvlTreeNode> avl;
+//	lz::AvlTree<AvlTreeNode> avl;
 
-	AvlTreeNode *p = new AvlTreeNode(20);
+	using AvlTree = lz::AvlTree<lz::BinerySearchTree<AvlTreeNode>>;
+	AvlTree avl;
 
-
-//	cout << "TEST: " << (p->parent == nullptr) << endl;
-
-	cout << "HHA" << endl;
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(10));
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(20));
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(220));
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(333));
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(300));
+	using I = BinerySearchTreeImplement< AvlTree > ;
 
 
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(200	));
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(100	));
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(90	));
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(80	));
-	AvlTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(85	));
+	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(10));
+	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(20));
+	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(220));
+	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(333));
+	AvlTreeImplement<I>::insert(avl, new AvlTreeNode(300));
 
 
-
-
-//	BinerySearchTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(10));
-//	BinerySearchTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(20));
-//	BinerySearchTreeImplement<lz::AvlTree<AvlTreeNode> >::insert(avl, new AvlTreeNode(220));
-
-	cout << "HHA------------------" << endl;
-
-
-	BinerySearchTreeImplement<lz::AvlTree<AvlTreeNode>>::bfs(avl);
+	AvlTreeImplement<I>::insert(avl, new AvlTreeNode(200	));
+	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(100	));
+	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(90	));
+	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(80	));
+	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(85	));
 
 
 
+	AvlTreeImplement<I >::bfs(avl);
 
 
 
