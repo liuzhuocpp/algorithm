@@ -45,7 +45,7 @@ int main()
 	using AvlTree = lz::AvlTree<lz::BinerySearchTree<AvlTreeNode>>;
 	AvlTree avl;
 
-	using I = BinerySearchTreeImplement< AvlTree > ;
+	using I = BstImplement< AvlTree > ;
 
 
 	AvlTreeImplement<I >::insert(avl, new AvlTreeNode(10));

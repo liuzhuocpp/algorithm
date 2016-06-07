@@ -18,247 +18,29 @@ using namespace std;
 
 
 
-//	static NodeDescriptor& findInsertPos(Bst &bst, const KeyType &key, NodeDescriptor &parent)
-//	{
-//		if(bst.root() == nullNode) return bst.root();
-//
-//		NodeDescriptor u = bst.root();
-//		for(;;)
-//		{
-//
-//			if(KeyCompare()(key, bst.key(u)))
-//			{
-//				if(bst.leftChild(u) == nullNode)
-//				{
-//					parent = u;
-//					return bst.leftChild(u);
-//				}
-//				else u = bst.leftChild(u);
-//			}
-//			else
-//			{
-//				if(bst.rightChild(u) == nullNode)
-//				{
-//					parent = u;
-//					return bst.rightChild(u);
-//				}
-//				else u = bst.rightChild(u);
-//			}
-//		}
-//
-//		cout << "ERROR in findInsertPos" << endl;
-//
-//
-//	}
-//
-//	static void insert(Bst &bst, NodeDescriptor u)
-//	{
-//		NodeDescriptor parent = nullNode;
-//		findInsertPos(bst, bst.key(u), parent) = u;
-//		bst.parent(u) = parent;
-//	}
 
-//	struct EmptyFunctor
+
+
+
+
+
+
+//	template<typename BinerySearchTree>
+//	struct BinerySearchTreeTraits
 //	{
-//		template<typename ...Args>
-//		void operator()(Args...args ){}
+//
+//		using KeyType = typename BinerySearchTree::KeyType;
+//		using KeyCompare = typename BinerySearchTree::KeyCompare;
+//		using NodeDescriptor = typename BinerySearchTree::NodeDescriptor;
+//		static constexpr NodeDescriptor nullNode() { return BinerySearchTree::nullVertex(); }
+//
+////		VertexDescriptor& root();
+////		VertexDescriptor& leftChild(VertexDescriptor u);
+////		VertexDescriptor& rightChild(VertexDescriptor u);
+////      VertexDescriptor& parent(VertexDescriptor u);
+////      KeyType& key(VertexDesciptor u);
+//
 //	};
-//
-//	template<typename Bst, typename DiscoverNode = EmptyFunctor, typename FinishInsert = EmptyFunctor>
-//	void insert(Bst &bst, typename Bst::NodeDescriptor q,
-//				DiscoverNode discoverNode = EmptyFunctor(),
-//				FinishInsert finishInsert = EmptyFunctor()   )
-//	{
-//
-//		using NodeDescriptor = typename Bst::NodeDescriptor;
-//		using KeyCompare = typename Bst::KeyCompare;
-//		using KeyType = typename Bst::KeyType;
-//		NodeDescriptor nullNode = Bst::nullNode();
-//
-//		if(bst.root() == nullNode)
-//		{
-//			bst.root() = q;
-//			return ;
-//		}
-//
-//
-//		NodeDescriptor u = bst.root();
-//		const KeyType &qkey = bst.key(q);
-//		for(;;)
-//		{
-//			discoverNode(u);
-//			if(KeyCompare()(qkey, bst.key(u)))
-//			{
-//				if(bst.leftChild(u) == nullNode)
-//				{
-//					bst.leftChild(u) = q;
-//					bst.parent(q) = u;
-//					break;
-//				}
-//				else u = bst.leftChild(u);
-//			}
-//			else
-//			{
-//				if(bst.rightChild(u) == nullNode)
-//				{
-//					bst.rightChild(u) = q;
-//					bst.parent(q) = u;
-//					break;
-//				}
-//				else u = bst.rightChild(u);
-//			}
-//		}
-//		finishInsert(q);
-//	}
-//
-//	template<typename Bst, typename DiscoverNode = EmptyFunctor>
-//	typename Bst::NodeDescriptor find(const Bst &bst, const KeyType &key, DiscoverNode discoverNode = EmptyFunctor())
-//	{
-//		using NodeDescriptor = typename Bst::NodeDescriptor;
-//		using KeyCompare = typename Bst::KeyCompare;
-//		using KeyType = typename Bst::KeyType;
-//		NodeDescriptor nullNode = Bst::nullNode();
-//
-//
-//
-//		NodeDescriptor root = bst.root();
-//		for(;;)
-//		{
-//			if(root == nullNode) return nullNode;
-//			discoverNode(u);
-//
-//			if(KeyCompare()(key, bst.key(root)))
-//			{
-//				root = bst.leftChild(root);
-//			}
-//			else if(KeyCompare()(bst.key(root), key))
-//			{
-//				root = bst.rightChild(root);
-//			}
-//			else return root;
-//		}
-////		return nullNode;
-//	}
-//
-//
-//	template<typename Bst, typename DiscoverNode = EmptyFunctor, typename FinishInsert = EmptyFunctor>
-//	NodeDescriptor erase(Bst &bst, typename Bst::NodeDescriptor u,
-//			    			DiscoverNode discoverNode= EmptyFunctor(),
-//							FinishInsert finishInsert= EmptyFunctor()
-//							)
-//	{
-//		using NodeDescriptor = typename Bst::NodeDescriptor;
-//		using KeyCompare = typename Bst::KeyCompare;
-//		using KeyType = typename Bst::KeyType;
-//		NodeDescriptor nullNode = Bst::nullNode();
-//
-//
-//
-//
-//		NodeDescriptor copy_null = nullNode;
-//		NodeDescriptor &p = bst.parent(u);
-//		NodeDescriptor &l = bst.leftChild(u);
-//		NodeDescriptor &r = bst.rightChild(u);
-//
-//
-//		NodeDescriptor& u_p_pos = (p == nullNode ? copy_null : getParentChild(bst, u));
-//
-//		NodeDescriptor res = nullNode;
-//
-//		if(l == nullNode && r == nullNode)
-//		{
-//			if(p != nullNode) u_p_pos = nullNode;
-//			else bst.root() = nullNode;
-//			res = p;
-//		}
-//		else if(l != nullNode && r == nullNode)
-//		{
-//			if(p != nullNode) u_p_pos = l;
-//			else bst.root() = l;
-//			bst.parent(l) = p;
-//			res = p;
-//		}
-//		else if(l == nullNode && r != nullNode)
-//		{
-//			if(p != nullNode) u_p_pos = r;
-//			else bst.root() = r;
-//			bst.parent(r) = p;
-//			res = p;
-//		}
-//		else
-//		{
-//
-//
-//			NodeDescriptor r_most = l;
-//			for(;bst.rightChild(r_most) != nullNode; r_most = bst.rightChild(r_most) );
-//
-//			if(r_most == l)
-//			{
-//				bst.parent(r_most) = p;
-//				bst.rightChild(r_most) = r;
-//
-//				if(p != nullNode) u_p_pos = r_most;
-//				bst.parent(r) = r_most;
-//				res = l;
-//			}
-//			else
-//			{
-//				NodeDescriptor r_most_p = bst.parent(r_most);
-//				bst.rightChild(r_most_p) = bst.leftChild(r_most);
-//
-//				if(bst.leftChild(r_most) != nullNode)
-//					bst.parent(bst.leftChild(r_most)) = r_most_p;
-//
-//				bst.rightChild(r_most) = r;
-//				bst.leftChild(r_most) = l;
-//				bst.parent(r_most) = p;
-//
-//				if(p != nullNode) u_p_pos = r_most;
-//				bst.parent(l) = r_most;
-//				bst.parent(r) = r_most;
-//
-//				res = r_most_p;
-//			}
-//			if(u == bst.root())
-//				bst.root() = r_most;
-//
-//
-//		}
-//
-//
-//
-//
-//
-//		return res;
-////			bst.destoryVertex(u);
-//
-//	}
-
-
-
-
-
-
-
-
-
-
-	template<typename BinerySearchTree>
-	struct BinerySearchTreeTraits
-	{
-
-		using KeyType = typename BinerySearchTree::KeyType;
-		using KeyCompare = typename BinerySearchTree::KeyCompare;
-		using NodeDescriptor = typename BinerySearchTree::NodeDescriptor;
-		static constexpr NodeDescriptor nullNode() { return BinerySearchTree::nullVertex(); }
-
-//		VertexDescriptor& root();
-//		VertexDescriptor& leftChild(VertexDescriptor u);
-//		VertexDescriptor& rightChild(VertexDescriptor u);
-//      VertexDescriptor& parent(VertexDescriptor u);
-//      KeyType& key(VertexDesciptor u);
-
-	};
 
 
 
@@ -267,15 +49,15 @@ using namespace std;
 
 
 	template<typename Bst>
-	struct BinerySearchTreeImplement
+	struct BstImplement
 	{
 		using BstType = Bst;
 
-		using KeyType = typename BinerySearchTreeTraits<Bst>::KeyType;
-		using KeyCompare = typename BinerySearchTreeTraits<Bst>::KeyCompare;
-		using NodeDescriptor = typename BinerySearchTreeTraits<Bst>::NodeDescriptor;
+		using KeyType = typename Bst::KeyType;
+		using KeyCompare = typename Bst::KeyCompare;
+		using NodeDescriptor = typename Bst::NodeDescriptor;
 
-		static constexpr NodeDescriptor nullNode = BinerySearchTreeTraits<Bst>::nullNode();
+		static constexpr NodeDescriptor nullNode = Bst::nullNode();
 
 
 
@@ -614,7 +396,7 @@ using namespace std;
 		using KeyType = typename Node::KeyType;
 		using KeyCompare = _KeyCompare;
 		using NodeDescriptor = Node*;
-		static constexpr NodeDescriptor nullVertex() { return nullptr; }
+		static constexpr NodeDescriptor nullNode() { return nullptr; }
 
 
 
@@ -671,88 +453,44 @@ using namespace std;
 	};
 
 
-//	template<typename Node, typename _KeyCompare = std::less<typename Node::KeyType> >
-//	struct SizedBst: public BinerySearchTree<Node, _KeyCompare>
-//	{
-//		using HeightType = typename Node::HeightType;
-//
-//		using Base = BinerySearchTree<Node, _KeyCompare>;
-//		using typename Base::NodeDescriptor;
-//		using Base::key;
-//
-//		HeightType& size(NodeDescriptor u) { return u->size; }
-//		const HeightType& size(NodeDescriptor u) const { return u->size; }
-//
-//		void out(NodeDescriptor u) const
-//		{
-//			cout << "key:" << key(u) << " height:" << size(u) << endl;
-//		}
-//	};
-
-//
-
-//	template<typename Node, typename _KeyCompare = std::less<typename Node::KeyType> >
-//	struct AvlTree: public BinerySearchTree<Node, _KeyCompare>
-//	{
-//		using HeightType = typename Node::HeightType;
-//
-//		using Base = BinerySearchTree<Node, _KeyCompare>;
-//		using typename Base::NodeDescriptor;
-//		using Base::key;
-//
-//		HeightType& height(NodeDescriptor u) { return u->height; }
-//		const HeightType& height(NodeDescriptor u) const { return u->height; }
-//
-//		void out(NodeDescriptor u) const
-//		{
-//			cout << "key:" << key(u) << " height:" << height(u) << endl;
-//		}
-//	};
-
 
 
 	template<typename BstImplement>
 	struct AvlTreeImplement : BstImplement
 	{
+	private:
 		using AvlTree = typename BstImplement::BstType;
 
-		using KeyType = typename BinerySearchTreeTraits<AvlTree>::KeyType;
-		using KeyCompare = typename BinerySearchTreeTraits<AvlTree>::KeyCompare;
-		using NodeDescriptor = typename BinerySearchTreeTraits<AvlTree>::NodeDescriptor;
+		using KeyType = typename AvlTree::KeyType;
+		using KeyCompare = typename AvlTree::KeyCompare;
+		using NodeDescriptor = typename AvlTree::NodeDescriptor;
 		using HeightType = typename AvlTree::HeightType;
 
-		static constexpr NodeDescriptor nullNode = BinerySearchTreeTraits<AvlTree>::nullNode();
+		static constexpr NodeDescriptor nullNode = AvlTree::nullNode();
 
+
+		static HeightType height(const AvlTree &avl, NodeDescriptor u)
+		{
+			if(u != nullNode) return avl.height(u);
+			else return 0;
+		}
 
 		static HeightType diff(const AvlTree &avl, NodeDescriptor u)
 		{
-			HeightType lh = 0, rh = 0;
-			if(avl.leftChild(u) != nullNode) lh = avl.height(avl.leftChild(u)) ;
-			if(avl.rightChild(u) != nullNode) rh = avl.height(avl.rightChild(u)) ;
-			return lh - rh;
+			return height(avl, avl.leftChild(u)) - height(avl, avl.rightChild(u));
+//			HeightType lh = 0, rh = 0;
+//			if(avl.leftChild(u) != nullNode) lh = avl.height(avl.leftChild(u)) ;
+//			if(avl.rightChild(u) != nullNode) rh = avl.height(avl.rightChild(u)) ;
+//			return lh - rh;
 		}
 
 		static void updateHeight(AvlTree &avl, NodeDescriptor u)
 		{
-			HeightType lh = 0, rh = 0;
-			if(avl.leftChild(u) != nullNode) lh = avl.height(avl.leftChild(u)) ;
-			if(avl.rightChild(u) != nullNode) rh = avl.height(avl.rightChild(u)) ;
-			avl.height(u) = std::max(lh, rh) + 1;
-		}
-
-		static void leftRotate(AvlTree &avl, NodeDescriptor x)
-		{
-			NodeDescriptor y = avl.rightChild(x);
-			BstImplement::leftRotate(avl, x);
-			updateHeight(avl, x);
-			updateHeight(avl, y);
-		}
-		static void rightRotate(AvlTree &avl, NodeDescriptor x)
-		{
-			NodeDescriptor y = avl.leftChild(x);
-			BstImplement::rightRotate(avl, x);
-			updateHeight(avl, x);
-			updateHeight(avl, y);
+			avl.height(u) = 1 + std::max(height(avl, avl.leftChild(u)), height(avl, avl.rightChild(u)));
+//			HeightType lh = 0, rh = 0;
+//			if(avl.leftChild(u) != nullNode) lh = avl.height(avl.leftChild(u)) ;
+//			if(avl.rightChild(u) != nullNode) rh = avl.height(avl.rightChild(u)) ;
+//			avl.height(u) = std::max(lh, rh) + 1;
 		}
 
 		static void rebalance(AvlTree &avl, NodeDescriptor u)
@@ -769,16 +507,8 @@ using namespace std;
 					{
 						NodeDescriptor lr = avl.rightChild(l);
 						leftRotate(avl, l);
-//						BstImplement::leftRotate(avl, l);
-
-//						updateHeight(avl, l);
-//						updateHeight(avl, lr);
-						l = lr;
 					}
 					rightRotate(avl, u);
-//					BstImplement::rightRotate(avl, u);
-//					updateHeight(avl, u);
-//					updateHeight(avl, l);
 				}
 				else if(diff(avl, u) == -2)
 				{
@@ -787,72 +517,57 @@ using namespace std;
 					{
 						NodeDescriptor rl = avl.leftChild(r);
 						rightRotate(avl, r);
-
-//						BstImplement::rightRotate(avl, r);
-//						updateHeight(avl, r);
-//						updateHeight(avl, rl);
-						r = rl;
 					}
 
 					leftRotate(avl, u);
-//					BstImplement::leftRotate(avl, u);
-//					updateHeight(avl, u);
-//					updateHeight(avl, r);
-
 				}
 			}
 		}
+	public:
+		static void leftRotate(AvlTree &avl, NodeDescriptor x)
+		{
+			NodeDescriptor y = avl.rightChild(x);
+			BstImplement::leftRotate(avl, x);
+			updateHeight(avl, x);
+			updateHeight(avl, y);
+		}
+		static void rightRotate(AvlTree &avl, NodeDescriptor x)
+		{
+			NodeDescriptor y = avl.leftChild(x);
+			BstImplement::rightRotate(avl, x);
+			updateHeight(avl, x);
+			updateHeight(avl, y);
+		}
+
+
 		static void insert(AvlTree &avl, NodeDescriptor u)
 		{
 			BstImplement::insert(avl, u);
 			rebalance(avl, u);
 		}
 
-		static void erase(AvlTree &avl, NodeDescriptor u)
+		static NodeDescriptor erase(AvlTree &avl, NodeDescriptor u)
 		{
-			u = BstImplement::erase(avl, u);
-			rebalance(avl, u);
+			NodeDescriptor res = BstImplement::erase(avl, u);
+
+			rebalance(avl, res);
+
+			return res;
 		}
 	};
 
 
 
 
-
-
-
-
-
-
-
-//	template<typename Node, typename _KeyCompare = std::less<typename Node::KeyType> >
-//	struct SizedBst: public BinerySearchTree<Node, _KeyCompare>
-//	{
-//		using HeightType = typename Node::HeightType;
-//
-//		using Base = BinerySearchTree<Node, _KeyCompare>;
-//		using typename Base::NodeDescriptor;
-//		using Base::key;
-//
-//		HeightType& size(NodeDescriptor u) { return u->size; }
-//		const HeightType& size(NodeDescriptor u) const { return u->size; }
-//
-//		void out(NodeDescriptor u) const
-//		{
-//			cout << "key:" << key(u) << " height:" << size(u) << endl;
-//		}
-//	};
-
 	template<typename BstImplement>
 	struct SizedBstImplement : BstImplement
 	{
+	private:
 		using Bst = typename BstImplement::BstType;
-		using KeyType = typename BinerySearchTreeTraits<Bst>::KeyType;
-		using KeyCompare = typename BinerySearchTreeTraits<Bst>::KeyCompare;
-		using NodeDescriptor = typename BinerySearchTreeTraits<Bst>::NodeDescriptor;
-		static constexpr NodeDescriptor nullNode = BinerySearchTreeTraits<Bst>::nullNode();
-
-
+		using KeyType = typename Bst::KeyType;
+		using KeyCompare = typename Bst::KeyCompare;
+		using NodeDescriptor = typename Bst::NodeDescriptor;
+		static constexpr NodeDescriptor nullNode = Bst::nullNode();
 		using SizeType = typename Bst::SizeType;
 
 
@@ -866,17 +581,20 @@ using namespace std;
 		{
 			bst.size(u) = size(bst, bst.leftChild(u)) + size(bst, bst.rightChild(u)) + 1;
 		}
+	public:
 		static NodeDescriptor at(const Bst &bst, SizeType i)
 		{
 			NodeDescriptor u = bst.root();
 			for(;;)
 			{
 				SizeType ls = size(bst, u);
-				if(ls + 1 == i + 1) return u;
+				if(ls + 1 == i + 1) break;
 				if(ls + 1 < i + 1) u = bst.rightChild(u);
 				else u = bst.leftChild(u);
 			}
+			return u;
 		}
+
 		static void leftRotate(const Bst &bst, NodeDescriptor x)
 		{
 			NodeDescriptor y = bst.rightChild(x);
