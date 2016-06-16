@@ -40,8 +40,14 @@ private:
 	using KeyType = typename Bst::KeyType;
 	using KeyCompare = typename Bst::KeyCompare;
 	using NodeDescriptor = typename Bst::NodeDescriptor;
+
+
+	//	for clang++:下边的导致链接错误，不知道为何会这样
+	//	static constexpr NodeDescriptor nullNode = Bst::nullNode();
+
+	static const  NodeDescriptor nullNode ;
 public:
-	static constexpr NodeDescriptor nullNode = Bst::nullNode();
+
 
 public:
 
@@ -120,7 +126,7 @@ public:
 	}
 
 
-//返回受影响的深度最大的节点  and 替代删除节点的节点
+//返回受影响的深度最大的节点  and 替代被删除节点位置的节点
 	static std::pair<NodeDescriptor, NodeDescriptor> erase(Bst &bst, NodeDescriptor u)
 	{
 		NodeDescriptor copy_null = nullNode;
@@ -322,6 +328,14 @@ public:
 		}
 	}
 };
+
+template<typename Bst, typename Vistor>
+const typename Bst::NodeDescriptor BstImplement<Bst, Vistor>::nullNode = Bst::nullNode();
+
+
+
+
+
 
 
 

@@ -60,22 +60,6 @@ int main()
 		cout << avl.key( sizedBstAt(avl, i) ) << endl;
 	}
 
-
-
-
-	//	using Bst = BinerySearchTree<BstNode>;
-	//
-	//	Bst bst;
-	//	BstImplement<Bst>::insert(bst, new BstNode(111));
-	//	BstImplement<Bst>::insert(bst, new BstNode(211));
-	//	BstImplement<Bst>::insert(bst, new BstNode(311));
-	//
-	//	BstImplement<Bst>::bfs(bst);
-
-
-
-
-
 	return 0;
 }
 
