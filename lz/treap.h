@@ -102,7 +102,7 @@ public:
 	static void erase(Treap &tr, NodeDescriptor u)
 	{
 		NodeDescriptor res = Base::erase(tr, u);
-		adjust(tr, u);
+		adjust(tr, res);
 
 
 	}

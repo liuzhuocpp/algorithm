@@ -15,25 +15,7 @@
 using namespace std;
 using namespace lz;
 
-//struct AvlTreeNode: public AvlTreeNodeFacade< BstNodeFacade<AvlTreeNode, int> >
-//{
-//
-//	using Base = AvlTreeNodeFacade< BstNodeFacade<AvlTreeNode, int> >;
-//
-////	using Base::leftChild;
-////	using Base::rightChild;
-////	using Base::parent;
-////	using Base::key;
-////	using Base::height;
-////
-//
-//
-//	AvlTreeNode(int a = 0):Base(a)
-//	{
-//
-//	}
-//};
-//
+
 
 struct AvlTreeNode: lz::AvlTreeNodeFacade<AvlTreeNode, int>, lz::SizedBstNodeBase
 {
@@ -49,7 +31,7 @@ int main()
 {
 
 	MyAvl avl;
-	using I = AvlTreeImplement<MyAvl, SizedBstVisitor<MyAvl>>;
+	using I = AvlTreeImplement<MyAvl, SizedBstVisitor<MyAvl>   >;
 	I::insert(avl, new AvlTreeNode(10));
 	I::insert(avl, new AvlTreeNode(20));
 	I::insert(avl, new AvlTreeNode(220));

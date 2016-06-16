@@ -22,7 +22,7 @@ struct BstVisitor
 	static void finishInsert(B &b, N u){}
 
 	template<typename B, typename N>
-	static void finishErase(B &b, N u){}
+	static void finishErase(B &b, N u, N v){}
 
 	template<typename B, typename N>
 	static void finishLeftRotate(B &b, N u){}
@@ -32,14 +32,15 @@ struct BstVisitor
 };
 
 
-template<typename Bst, typename Vistors = BstVisitor>
+template<typename Bst, typename Vistor = BstVisitor>
 struct BstImplement
 {
+
 private:
 	using KeyType = typename Bst::KeyType;
 	using KeyCompare = typename Bst::KeyCompare;
 	using NodeDescriptor = typename Bst::NodeDescriptor;
-
+public:
 	static constexpr NodeDescriptor nullNode = Bst::nullNode();
 
 public:
@@ -83,7 +84,7 @@ public:
 		findInsertPos(bst, bst.key(u), parent) = u;
 		bst.parent(u) = parent;
 
-		Vistors::finishInsert(bst, u);
+		Vistor::finishInsert(bst, u);
 	}
 
 	static NodeDescriptor& getParentChild(Bst &bst, NodeDescriptor u)
@@ -119,45 +120,45 @@ public:
 	}
 
 
-//返回受影响的深度最大的节点
-	static NodeDescriptor erase(Bst &bst, NodeDescriptor u)
+//返回受影响的深度最大的节点  and 替代删除节点的节点
+	static std::pair<NodeDescriptor, NodeDescriptor> erase(Bst &bst, NodeDescriptor u)
 	{
 		NodeDescriptor copy_null = nullNode;
 
 		NodeDescriptor &p = bst.parent(u);
 		NodeDescriptor &l = bst.leftChild(u);
 		NodeDescriptor &r = bst.rightChild(u);
-
-
-
 		NodeDescriptor& u_p_pos = (p == nullNode ? copy_null : getParentChild(bst, u));
 
-		NodeDescriptor res = nullNode;
+		std::pair<NodeDescriptor, NodeDescriptor> res(nullNode, nullNode);
 
 		if(l == nullNode && r == nullNode)
 		{
 			if(p != nullNode) u_p_pos = nullNode;
 			else bst.root() = nullNode;
-			res = p;
+
+			res.first = p;
 		}
 		else if(l != nullNode && r == nullNode)
 		{
 			if(p != nullNode) u_p_pos = l;
 			else bst.root() = l;
 			bst.parent(l) = p;
-			res = p;
+
+			res.first = p;
+			res.second = l;
 		}
 		else if(l == nullNode && r != nullNode)
 		{
 			if(p != nullNode) u_p_pos = r;
 			else bst.root() = r;
 			bst.parent(r) = p;
-			res = p;
+
+			res.first = p;
+			res.second = r;
 		}
 		else
 		{
-
-
 			NodeDescriptor r_most = l;
 			for(;bst.rightChild(r_most) != nullNode; r_most = bst.rightChild(r_most) );
 
@@ -168,7 +169,10 @@ public:
 
 				if(p != nullNode) u_p_pos = r_most;
 				bst.parent(r) = r_most;
-				res = l;
+
+				res.first = p;
+				res.second = l;
+
 			}
 			else
 			{
@@ -186,7 +190,8 @@ public:
 				bst.parent(l) = r_most;
 				bst.parent(r) = r_most;
 
-				res = r_most_p;
+				res.first = r_most_p;
+				res.second = r_most;
 			}
 			if(u == bst.root())
 				bst.root() = r_most;
@@ -196,10 +201,9 @@ public:
 
 
 
-		Vistors::finishErase(bst, res);
+		Vistor::finishErase(bst, res.first, res.second);
 
 		return res;
-//			bst.destoryVertex(u);
 
 	}
 
@@ -231,7 +235,7 @@ public:
 		if(bst.root() == x) bst.root() = y;
 
 // 新的根为y
-		Vistors::finishLeftRotate(bst, y);
+		Vistor::finishLeftRotate(bst, y);
 
 	}
 	static void rightRotate(Bst &bst, NodeDescriptor y)
@@ -253,7 +257,7 @@ public:
 
 		if(bst.root() == y) bst.root() = x;
 
-		Vistors::finishRightRotate(bst, x);
+		Vistor::finishRightRotate(bst, x);
 
 	}
 
@@ -265,7 +269,7 @@ public:
 //		}
 
 
-	static NodeDescriptor nextVertex(const Bst &bst, NodeDescriptor root)
+	static NodeDescriptor nextNode(const Bst &bst, NodeDescriptor root)
 	{
 		if(bst.rightChild(root) == nullNode)
 		{
@@ -436,7 +440,7 @@ public:
 		updateSizeToRoot(bst, u);
 
 	}
-	static void finishErase(SizedBst &bst, NodeDescriptor u)
+	static void finishErase(SizedBst &bst, NodeDescriptor u, NodeDescriptor v)
 	{
 		updateSizeToRoot(bst, u);
 	}

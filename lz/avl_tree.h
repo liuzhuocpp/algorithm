@@ -489,12 +489,11 @@ using namespace std;
 			rebalance(avl, u);
 		}
 
-		static NodeDescriptor erase(AvlTree &avl, NodeDescriptor u)
+		static void erase(AvlTree &avl, NodeDescriptor u)
 		{
-			NodeDescriptor res = Base::erase(avl, u);
+			auto res = Base::erase(avl, u);
 
-			rebalance(avl, res);
-			return res;
+			rebalance(avl, res.first);
 		}
 
 
