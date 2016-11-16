@@ -10,135 +10,147 @@
 
 #include <queue>
 
-#include <lz/binary_search_tree.h>
+//#include <lz/binary_search_tree.h>
 namespace lz{
 
 //for DEBUG
 using namespace std;
 
-	template<typename DerivedNode, typename _KeyType>
-	struct AvlTreeNodeFacade: public BstNodeFacade<DerivedNode, _KeyType>
+/**
+ * AvlTreeNode concept requires:
+ * BstNode concept
+ * containing a type named HeightType
+ * containing a field named height
+ */
+struct AvlTreeNodeBase
+{
+	using HeightType = int;
+	HeightType height = 1;
+};
+
+
+
+/**
+ * _Node must require AvlTreeNode concept
+ *
+ * AvlTree concept requires:
+ * BinerySearchTree concept
+ * containing a type named HeightType
+ * containg one or some function named height(NodeDescriptor) to get or set the height value of a node
+ */
+template<typename _Node >
+struct AvlTreeBase
+{
+public:
+	using HeightType = typename _Node::HeightType;
+	HeightType& height(_Node* u) { return u->height; }
+	const HeightType& height(_Node* u) const { return u->height; }
+};
+
+
+
+template<typename BstImplement>
+struct AvlTreeImplement : BstImplement
+{
+	using AvlTree = typename BstImplement::BinarySearchTree;
+private:
+//	using Base = BstImplement<AvlTree, Visitors>;
+
+	using KeyType = typename AvlTree::KeyType;
+	using KeyCompare = typename AvlTree::KeyCompare;
+	using NodeDescriptor = typename AvlTree::NodeDescriptor;
+	using HeightType = typename AvlTree::HeightType;
+
+	static constexpr NodeDescriptor nullNode = AvlTree::nullNode();
+
+	static HeightType height(const AvlTree &avl, NodeDescriptor u)
 	{
-		using HeightType = int;
-		HeightType height = 1;
-		AvlTreeNodeFacade(const _KeyType &key = _KeyType()):
-			BstNodeFacade<DerivedNode, _KeyType>(key){}
-	};
+		if(u != nullNode) return avl.height(u);
+		else return 0;
+	}
 
-
-	template<typename _Node, typename _KeyCompare = std::less<typename _Node::KeyType> >
-	struct AvlTree: public BinarySearchTree<_Node, _KeyCompare>
+	static HeightType diff(const AvlTree &avl, NodeDescriptor u)
 	{
-		using Base = BinarySearchTree<_Node, _KeyCompare>;
-	public:
-		using Base::key;
-		using typename Base::NodeDescriptor;
+		return height(avl, avl.leftChild(u)) - height(avl, avl.rightChild(u));
+	}
 
-		using HeightType = typename _Node::HeightType;
-
-		HeightType& height(NodeDescriptor u) { return u->height; }
-		const HeightType& height(NodeDescriptor u) const { return u->height; }
-
-		void out(NodeDescriptor u) const
-		{
-			cout << "key:" << key(u) << " height:" << height(u) << endl;
-		}
-	};
-
-
-
-	template<typename AvlTree, typename Visitors = BstVisitor>
-	struct AvlTreeImplement : BstImplement<AvlTree, Visitors>
+	static void updateHeight(AvlTree &avl, NodeDescriptor u)
 	{
-	private:
-		using Base = BstImplement<AvlTree, Visitors>;
+		avl.height(u) = 1 + std::max(height(avl, avl.leftChild(u)), height(avl, avl.rightChild(u)));
+	}
 
-		using KeyType = typename AvlTree::KeyType;
-		using KeyCompare = typename AvlTree::KeyCompare;
-		using NodeDescriptor = typename AvlTree::NodeDescriptor;
-		using HeightType = typename AvlTree::HeightType;
-
-		static constexpr NodeDescriptor nullNode = AvlTree::nullNode();
-
-		static HeightType height(const AvlTree &avl, NodeDescriptor u)
+	static void rebalance(AvlTree &avl, NodeDescriptor u)
+	{
+		for(NodeDescriptor pu; u != nullNode; u = pu)
 		{
-			if(u != nullNode) return avl.height(u);
-			else return 0;
-		}
+			pu = avl.parent(u);
+			updateHeight(avl, u);
 
-		static HeightType diff(const AvlTree &avl, NodeDescriptor u)
-		{
-			return height(avl, avl.leftChild(u)) - height(avl, avl.rightChild(u));
-		}
-
-		static void updateHeight(AvlTree &avl, NodeDescriptor u)
-		{
-			avl.height(u) = 1 + std::max(height(avl, avl.leftChild(u)), height(avl, avl.rightChild(u)));
-		}
-
-		static void rebalance(AvlTree &avl, NodeDescriptor u)
-		{
-			for(NodeDescriptor pu; u != nullNode; u = pu)
+			if(diff(avl, u) == 2)
 			{
-				pu = avl.parent(u);
-				updateHeight(avl, u);
-
-				if(diff(avl, u) == 2)
+				NodeDescriptor l = avl.leftChild(u);
+				if(diff(avl, l) == -1)
 				{
-					NodeDescriptor l = avl.leftChild(u);
-					if(diff(avl, l) == -1)
-					{
-						NodeDescriptor lr = avl.rightChild(l);
-						leftRotate(avl, l);
-					}
-					rightRotate(avl, u);
-					break;
+					NodeDescriptor lr = avl.rightChild(l);
+					leftRotate(avl, l);
 				}
-				else if(diff(avl, u) == -2)
+				rightRotate(avl, u);
+				break;
+			}
+			else if(diff(avl, u) == -2)
+			{
+				NodeDescriptor r = avl.rightChild(u);
+				if(diff(avl, r) == 1)
 				{
-					NodeDescriptor r = avl.rightChild(u);
-					if(diff(avl, r) == 1)
-					{
-						NodeDescriptor rl = avl.leftChild(r);
-						rightRotate(avl, r);
-					}
-					leftRotate(avl, u);
-					break;
+					NodeDescriptor rl = avl.leftChild(r);
+					rightRotate(avl, r);
 				}
+				leftRotate(avl, u);
+				break;
 			}
 		}
-
-		static void leftRotate(AvlTree &avl, NodeDescriptor x)
-		{
-			NodeDescriptor y = avl.rightChild(x);
-			Base::leftRotate(avl, x);
-			updateHeight(avl, x);
-			updateHeight(avl, y);
-		}
-		static void rightRotate(AvlTree &avl, NodeDescriptor x)
-		{
-			NodeDescriptor y = avl.leftChild(x);
-			Base::rightRotate(avl, x);
-			updateHeight(avl, x);
-			updateHeight(avl, y);
-		}
-
-	public:
-		static void insert(AvlTree &avl, NodeDescriptor u)
-		{
-			Base::insert(avl, u);
-			rebalance(avl, u);
-		}
-
-		static void erase(AvlTree &avl, NodeDescriptor u)
-		{
-			auto res = Base::erase(avl, u);
-
-			rebalance(avl, res.first);
-		}
+	}
+public:
+	static void leftRotate(AvlTree &avl, NodeDescriptor x)
+	{
+//		cout << "LEFT RO" << endl;
+		NodeDescriptor y = avl.rightChild(x);
+//		cout << "ENTER left" << endl;
+		BstImplement::leftRotate(avl, x);
+//		cout << "ENTER left end" << endl;
+		updateHeight(avl, x);
+		updateHeight(avl, y);
+	}
+	static void rightRotate(AvlTree &avl, NodeDescriptor x)
+	{
+		NodeDescriptor y = avl.leftChild(x);
+		BstImplement::rightRotate(avl, x);
+		updateHeight(avl, x);
+		updateHeight(avl, y);
+	}
 
 
-	};
+	static void insert(AvlTree &avl, NodeDescriptor u)
+	{
+//		cout << "ENTER" << endl;
+		BstImplement::insert(avl, u);
+//		cout << "end insert" << endl;
+
+
+		rebalance(avl, u);
+//		cout << "end re" << endl;
+	}
+
+	static std::pair<NodeDescriptor, NodeDescriptor> erase(AvlTree &avl, NodeDescriptor u)
+	{
+		std::pair<NodeDescriptor, NodeDescriptor> res = BstImplement::erase(avl, u);
+
+		rebalance(avl, res.first);
+		return res;
+	}
+
+
+};
 
 
 

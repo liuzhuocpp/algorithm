@@ -16,25 +16,26 @@ namespace lz{
 using namespace std;
 
 
-struct BstVisitor
-{
-	template<typename B, typename N>
-	static void finishInsert(B &b, N u){}
+//struct BstVisitor
+//{
+//	template<typename B, typename N>
+//	static void finishInsert(B &b, N u){}
+//
+//	template<typename B, typename N>
+//	static void finishErase(B &b, N u, N v){}
+//
+//	template<typename B, typename N>
+//	static void finishLeftRotate(B &b, N u){}
+//
+//	template<typename B, typename N>
+//	static void finishRightRotate(B &b, N u){}
+//};
 
-	template<typename B, typename N>
-	static void finishErase(B &b, N u, N v){}
 
-	template<typename B, typename N>
-	static void finishLeftRotate(B &b, N u){}
-
-	template<typename B, typename N>
-	static void finishRightRotate(B &b, N u){}
-};
-
-
-template<typename Bst, typename Vistor = BstVisitor>
+template<typename Bst >
 struct BstImplement
 {
+	using BinarySearchTree = Bst;
 
 private:
 	using KeyType = typename Bst::KeyType;
@@ -90,7 +91,7 @@ public:
 		findInsertPos(bst, bst.key(u), parent) = u;
 		bst.parent(u) = parent;
 
-		Vistor::finishInsert(bst, u);
+//		Vistor::finishInsert(bst, u);
 	}
 
 	static NodeDescriptor& getParentChild(Bst &bst, NodeDescriptor u)
@@ -207,7 +208,7 @@ public:
 
 
 
-		Vistor::finishErase(bst, res.first, res.second);
+//		Vistor::finishErase(bst, res.first, res.second);
 
 		return res;
 
@@ -241,7 +242,7 @@ public:
 		if(bst.root() == x) bst.root() = y;
 
 // 新的根为y
-		Vistor::finishLeftRotate(bst, y);
+//		Vistor::finishLeftRotate(bst, y);
 
 	}
 	static void rightRotate(Bst &bst, NodeDescriptor y)
@@ -263,7 +264,7 @@ public:
 
 		if(bst.root() == y) bst.root() = x;
 
-		Vistor::finishRightRotate(bst, x);
+//		Vistor::finishRightRotate(bst, x);
 
 	}
 
@@ -298,6 +299,7 @@ public:
 
 	static void bfs(const Bst &bst)
 	{
+//		cout << "SB" << endl;
 		if(bst.root() == nullNode) return ;
 		using D = std::pair<NodeDescriptor, int>;
 		std::queue<D  > q;
@@ -329,8 +331,8 @@ public:
 	}
 };
 
-template<typename Bst, typename Vistor>
-const typename Bst::NodeDescriptor BstImplement<Bst, Vistor>::nullNode = Bst::nullNode();
+template<typename Bst>
+const typename Bst::NodeDescriptor BstImplement<Bst>::nullNode = Bst::nullNode();
 
 
 
@@ -357,8 +359,6 @@ struct BstNodeFacade
 };
 
 
-
-
 template<typename _Node, typename _KeyCompare = std::less<typename _Node::KeyType> >
 struct BinarySearchTree
 {
@@ -373,7 +373,7 @@ public:
 	}
 
 
-//below implement bst concept
+//below implement BST concept
 	using KeyType = typename _Node::KeyType;
 	using KeyCompare = _KeyCompare;
 	using NodeDescriptor = _Node*;
@@ -396,110 +396,110 @@ public:
 
 
 
-
-//对每个节点，添加表示以这个节点为根的子树的节点数目
-struct SizedBstNodeBase
-{
-public:
-	using SizeType = int;
-	SizeType size = 0;
-};
-
-
-template<typename _Node>
-struct SizedBstBase
-{
-private:
-//		using NodeDescriptor = _Node*;  // 使用此句会产生bug
-	using _NodeDescriptor = _Node*;
-public:
-	using SizeType = typename _Node::SizeType;
-	SizeType& size(_NodeDescriptor u) { return u->size; }
-	const SizeType& size(_NodeDescriptor u) const { return u->size; }
-};
-
-
-
-
-template<typename SizedBst>
-struct SizedBstVisitor
-{
-
-private:
-	using SizeType = typename SizedBst::SizeType;
-	using NodeDescriptor = typename SizedBst::NodeDescriptor;
-	static constexpr NodeDescriptor nullNode = SizedBst::nullNode();
-
-	static SizeType size(const SizedBst &bst, NodeDescriptor u)
-	{
-		if(u == nullNode) return 0;
-		else return bst.size(u);
-	}
-
-	static void updateSize(SizedBst &bst, NodeDescriptor u)
-	{
-		bst.size(u) = size(bst, bst.leftChild(u)) + size(bst, bst.rightChild(u)) + 1;
-	}
-	static void updateSizeToRoot(SizedBst &bst, NodeDescriptor u)
-	{
-		for(;u != nullNode; u = bst.parent(u))
-		{
-			updateSize(bst, u);
-		}
-	}
-
-public:
-	static void finishInsert(SizedBst &bst, NodeDescriptor u)
-	{
-		updateSizeToRoot(bst, u);
-
-	}
-	static void finishErase(SizedBst &bst, NodeDescriptor u, NodeDescriptor v)
-	{
-		updateSizeToRoot(bst, u);
-	}
-	static void finishLeftRotate(SizedBst &bst, NodeDescriptor x)
-	{
-		NodeDescriptor y = bst.leftChild(x);
-		updateSize(bst, y);
-		updateSize(bst, x);
-
-	}
-	static void finishRightRotate(SizedBst &bst, NodeDescriptor x)
-	{
-		NodeDescriptor y = bst.rightChild(x);
-		updateSize(bst, y);
-		updateSize(bst, x);
-
-	}
-//按照下标索引
-	static NodeDescriptor at(const SizedBst &bst, SizeType i)
-	{
-		++ i;
-		NodeDescriptor u = bst.root();
-		for(;;)
-		{
-
-			SizeType ls = size(bst, bst.leftChild(u));
-			if(ls + 1 == i ) break;
-			if(ls + 1 < i)
-			{
-				i -= ls + 1;
-				u = bst.rightChild(u);
-			}
-			else u = bst.leftChild(u);
-		}
-		return u;
-	}
-};
-
-template<typename SizedBst>
-typename SizedBst::NodeDescriptor sizedBstAt(const SizedBst &bst, typename SizedBst::SizeType i)
-{
-	return SizedBstVisitor<SizedBst>::at(bst, i);
-}
-
-
+//
+////对每个节点，添加表示以这个节点为根的子树的节点数目
+//struct SizedBstNodeBase
+//{
+//public:
+//	using SizeType = int;
+//	SizeType size = 0;
+//};
+//
+//
+//template<typename _Node>
+//struct SizedBstBase
+//{
+//private:
+////		using NodeDescriptor = _Node*;  // 使用此句会产生bug
+//	using _NodeDescriptor = _Node*;
+//public:
+//	using SizeType = typename _Node::SizeType;
+//	SizeType& size(_NodeDescriptor u) { return u->size; }
+//	const SizeType& size(_NodeDescriptor u) const { return u->size; }
+//};
+//
+//
+//
+//
+//template<typename SizedBst>
+//struct SizedBstVisitor
+//{
+//
+//private:
+//	using SizeType = typename SizedBst::SizeType;
+//	using NodeDescriptor = typename SizedBst::NodeDescriptor;
+//	static constexpr NodeDescriptor nullNode = SizedBst::nullNode();
+//
+//	static SizeType size(const SizedBst &bst, NodeDescriptor u)
+//	{
+//		if(u == nullNode) return 0;
+//		else return bst.size(u);
+//	}
+//
+//	static void updateSize(SizedBst &bst, NodeDescriptor u)
+//	{
+//		bst.size(u) = size(bst, bst.leftChild(u)) + size(bst, bst.rightChild(u)) + 1;
+//	}
+//	static void updateSizeToRoot(SizedBst &bst, NodeDescriptor u)
+//	{
+//		for(;u != nullNode; u = bst.parent(u))
+//		{
+//			updateSize(bst, u);
+//		}
+//	}
+//
+//public:
+//	static void finishInsert(SizedBst &bst, NodeDescriptor u)
+//	{
+//		updateSizeToRoot(bst, u);
+//
+//	}
+//	static void finishErase(SizedBst &bst, NodeDescriptor u, NodeDescriptor v)
+//	{
+//		updateSizeToRoot(bst, u);
+//	}
+//	static void finishLeftRotate(SizedBst &bst, NodeDescriptor x)
+//	{
+//		NodeDescriptor y = bst.leftChild(x);
+//		updateSize(bst, y);
+//		updateSize(bst, x);
+//
+//	}
+//	static void finishRightRotate(SizedBst &bst, NodeDescriptor x)
+//	{
+//		NodeDescriptor y = bst.rightChild(x);
+//		updateSize(bst, y);
+//		updateSize(bst, x);
+//
+//	}
+////按照下标索引
+//	static NodeDescriptor at(const SizedBst &bst, SizeType i)
+//	{
+//		++ i;
+//		NodeDescriptor u = bst.root();
+//		for(;;)
+//		{
+//
+//			SizeType ls = size(bst, bst.leftChild(u));
+//			if(ls + 1 == i ) break;
+//			if(ls + 1 < i)
+//			{
+//				i -= ls + 1;
+//				u = bst.rightChild(u);
+//			}
+//			else u = bst.leftChild(u);
+//		}
+//		return u;
+//	}
+//};
+//
+//template<typename SizedBst>
+//typename SizedBst::NodeDescriptor sizedBstAt(const SizedBst &bst, typename SizedBst::SizeType i)
+//{
+//	return SizedBstVisitor<SizedBst>::at(bst, i);
+//}
+//
+//
 
 
 
