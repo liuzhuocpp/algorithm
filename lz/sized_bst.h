@@ -81,9 +81,9 @@ public:
 
 //		cout << "sized bst left rotate end1" << endl;
 //		if(y != nullNode)
-		updateSize(bst, y);
-//		cout << "sized bst left rotate end2" << endl;
 		updateSize(bst, x);
+//		cout << "sized bst left rotate end2" << endl;
+		updateSize(bst, y);
 //		cout << "sized bst left rotate end3" << endl;
 
 	}
@@ -92,8 +92,8 @@ public:
 		NodeDescriptor y = bst.leftChild(x);
 		BstImplement::rightRotate(bst, x);
 
-		updateSize(bst, y);
 		updateSize(bst, x);
+		updateSize(bst, y);
 
 	}
 //按照下标索引

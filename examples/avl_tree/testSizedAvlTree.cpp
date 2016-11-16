@@ -49,6 +49,11 @@ int main()
 
 //	I::erase(avl, I::find(avl, 300) );
 	I::bfs(avl);
+
+	cout << string(140, '-') << endl;
+	I::erase(avl, I::find(avl, 300) );
+	I::bfs(avl);
+
 //
 //
 	cout << "Total:" << endl;
