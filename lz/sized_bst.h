@@ -24,9 +24,6 @@ public:
 template<typename _Node>
 struct SizedBstBase
 {
-private:
-//		using NodeDescriptor = _Node*;  // 使用此句会产生bug
-//	using _NodeDescriptor = _Node*;
 public:
 	using SizeType = typename _Node::SizeType;
 	SizeType& size(_Node* u) { return u->size; }

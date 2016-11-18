@@ -379,8 +379,6 @@ public:
 	using NodeDescriptor = _Node*;
 	static constexpr NodeDescriptor nullNode() { return nullptr; }
 
-
-
 	NodeDescriptor& root() { return _root; }
 	NodeDescriptor& leftChild(NodeDescriptor u) { return u->leftChild; }
 	NodeDescriptor& rightChild(NodeDescriptor u) { return u->rightChild; }

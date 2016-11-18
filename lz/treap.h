@@ -8,7 +8,7 @@
 #ifndef LZ_TREAP_H_
 #define LZ_TREAP_H_
 
-#include <lz/binary_search_tree.h>
+//#include <lz/binary_search_tree.h>
 
 
 namespace lz{
@@ -20,60 +20,48 @@ using namespace std;
 
 
 
-template<typename DerivedNode, typename KeyType>
-struct TreapNodeFacade: public BstNodeFacade<DerivedNode, KeyType>
+
+struct TreapNodeBase
 {
 	using PriorityType = int;
-
 	PriorityType priority;
-
-
-	TreapNodeFacade(const KeyType &key = KeyType(), const PriorityType &_p = PriorityType() ):
-					BstNodeFacade<DerivedNode, KeyType>(key),
-					priority(_p)
-					{}
-
-
 };
 
 
 
-template<typename _Node, typename _KeyCompare = std::less<typename _Node::KeyType> >
-struct Treap:public BinarySearchTree<_Node, _KeyCompare>
+template<typename TreapNode>
+struct TreapBase
 {
-private:
-	using Base = BinarySearchTree<_Node, _KeyCompare>;
-
 public:
-	using PriorityType = typename _Node::PriorityType;
-	using typename Base::NodeDescriptor;
+	using PriorityType = typename TreapNode::PriorityType;
 
-	PriorityType& priority(NodeDescriptor u) { return u->priority; }
-	const PriorityType& priority(NodeDescriptor u)const  { return u->priority; }
+	PriorityType& priority(TreapNode* u) { return u->priority; }
+	const PriorityType& priority(TreapNode* u)const  { return u->priority; }
 
-
-//	for debug
-	void out(NodeDescriptor u) const
-	{
-		Base::out(u);
-		cout << "| priority:" << priority(u);
-	}
-
+////	for debug
+//	void out(TreapNode* u) const
+//	{
+//		cout << "| priority:" << priority(u);
+//	}
+//
 };
 
 
-template<typename Treap, typename Visitor = BstVisitor>
-struct TreapImplement: BstImplement<Treap, Visitor>
+template<typename BstImplement>
+struct TreapImplement: BstImplement
 {
 private:
+	using Treap = typename BstImplement::BinarySearchTree;
+
 	using NodeDescriptor = typename Treap::NodeDescriptor;
 	using PriorityType = typename Treap::PriorityType;
-	using Base = BstImplement<Treap, Visitor>;
+
 	constexpr static NodeDescriptor nullNode = Treap::nullNode();
 
+	using BstImplement::rightRotate;
+	using BstImplement::leftRotate;
 	static void adjust(Treap &tr, NodeDescriptor u)
 	{
-
 		for(;;)
 		{
 			NodeDescriptor p = tr.parent(u);
@@ -83,11 +71,11 @@ private:
 			{
 				if(tr.leftChild(p) == u)
 				{
-					Base::rightRotate(tr, p);
+					BstImplement::rightRotate(tr, p);
 				}
 				else
 				{
-					Base::leftRotate(tr, p);
+					BstImplement::leftRotate(tr, p);
 				}
 			}
 			else u = p;
@@ -96,14 +84,15 @@ private:
 public:
 	static void insert(Treap &tr, NodeDescriptor u)
 	{
-		Base::insert(tr, u);
+		BstImplement::insert(tr, u);
 		adjust(tr, u);
 	}
-	static void erase(Treap &tr, NodeDescriptor u)
+	static std::pair<NodeDescriptor, NodeDescriptor> erase(Treap &tr, NodeDescriptor u)
 	{
-		NodeDescriptor res = Base::erase(tr, u);
-		adjust(tr, res);
+		std::pair<NodeDescriptor, NodeDescriptor> res = BstImplement::erase(tr, u);
+		adjust(tr, res.first);
 
+		return res;
 
 	}
 
