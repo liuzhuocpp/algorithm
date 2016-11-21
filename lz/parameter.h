@@ -1,7 +1,7 @@
 /*
  * parameter.h
  *
- *  Created on: 2015Äê11ÔÂ30ÈÕ
+ *  Created on: 2015.11.30
  *      Author: LZ
  */
 
