@@ -140,7 +140,7 @@ namespace DepthFirstSearchKeywords {
 		{
 			p[colorMap][u] = p[black]();
 			p[discoverVertex](u);
-			pair<OutEdgeIterator, OutEdgeIterator> ei_pair = g.outEdges(u);
+			std::pair<OutEdgeIterator, OutEdgeIterator> ei_pair = g.outEdges(u);
 			for(auto ei = ei_pair.first; ei != ei_pair.second; ++ ei)
 			{
 				Edge e = *ei;
