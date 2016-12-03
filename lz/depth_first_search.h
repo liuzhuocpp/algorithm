@@ -48,9 +48,10 @@ namespace DepthFirstSearchKeywords {
 
 
 	LZ_PARAMETER_KEYWORD(tag, isInit)
-//	LZ_PARAMETER_KEYWORD(tag, isTree)
-//	LZ_PARAMETER_KEYWORD(tag, outEdges)
 	LZ_PARAMETER_KEYWORD(tag, enterVertex)
+
+	//	LZ_PARAMETER_KEYWORD(tag, isTree)
+	//	LZ_PARAMETER_KEYWORD(tag, outEdges)
 }
 
 

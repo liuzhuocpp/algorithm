@@ -191,6 +191,8 @@ public:
 	using VertexDescriptor = AdjacencyListPrivate::VertexDescriptor ;
 	using EdgeDescriptor = AdjacencyListPrivate::EdgeDescriptor ;
 	using SizeType = AdjacencyListPrivate::SizeType;
+	using VertexSizeType = AdjacencyListPrivate::SizeType;
+	using EdgeSizeType = AdjacencyListPrivate::SizeType;
 
 	using VertexIterator = IntegerIterator<VertexDescriptor>;
 	using EdgeIterator = IntegerIterator<EdgeDescriptor>;

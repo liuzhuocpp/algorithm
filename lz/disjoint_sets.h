@@ -1,7 +1,7 @@
 /*
  * disjoint_sets.h
  *
- *  Created on: 2015Äê11ÔÂ29ÈÕ
+ *  Created on: 2015ï¿½ï¿½11ï¿½ï¿½29ï¿½ï¿½
  *      Author: LZ
  */
 #ifndef LZ_DISJOINT_SETS_H_
@@ -12,44 +12,86 @@
 
 namespace lz {
 
-struct DefaultChangeParent
+
+
+/*
+ * DisjointSets concept:
+ * parent(u): return the reference of the parent of u
+ * VertexDescriptor: the type of the vertex descriptor of DisjointSets
+ */
+template<typename ParentMap>
+struct DisjointSets
 {
-	template<typename  Element>
-	void operator()(Element u, Element p) {}
+	using VertexDescriptor = typename MapTraits<ParentMap>::ValueType;
+	VertexDescriptor& parent(VertexDescriptor u) { return parentMap[u]; }
+	const VertexDescriptor& parent(VertexDescriptor u) const { return parentMap[u]; }
+
+	DisjointSets(ParentMap parentMap): parentMap(parentMap){}
+private:
+	ParentMap parentMap;
 };
 
-
-template<typename ParentMap, typename ChangeParent = DefaultChangeParent>
-class DisjointSets
+/*
+ * DisjointSets must require DisjointSets concept
+ * DisjointSetsImplement concept:
+ * makeSet(u)
+ * findSet(u)
+ * link(x, y) //x, y must be the root of different set
+ */
+template<typename DisjointSets>
+class DisjointSetsImplement
 {
-	ParentMap p;
+	using VertexDescriptor = typename DisjointSets::VertexDescriptor;
 public:
-	using Element = typename MapTraits<ParentMap>::ValueType;
-	DisjointSets(ParentMap p):p(p) {}
-	void makeSet(Element u)
+	static void makeSet(DisjointSets &sets, VertexDescriptor u)
 	{
-		p[u] = u;
-	}
-	Element findSet(Element u)
-	{
-		if(p[u] != u)
-		{
-			Element new_parent = findSet(p[u]);
-			ChangeParent()(u, new_parent);
-			p[u] = new_parent;
-		}
-		return p[u];
-	}
-	void link(Element x, Element y)
-	{
-		p[x] = y;
-	}
-	void unionSet(Element x, Element y)
-	{
-		link(findSet(x), findSet(y));
+		sets.parent(u) = u;
 	}
 
+	template<typename BeforeParentChange>
+	static VertexDescriptor findSet(DisjointSets &sets, VertexDescriptor u, BeforeParentChange beforeParentChange)
+	{
+		VertexDescriptor root = u;
+		while(root != sets.parent(root))
+		{
+			root = sets.parent(root);
+		}
+		while(u != root)
+		{
+			VertexDescriptor parent = sets.parent(u);
+			beforeParentChange(u, root);
+			sets.parent(u) = root;
+			u = parent;
+		}
+		return root;
+	}
+
+	static VertexDescriptor findSet(DisjointSets &sets, VertexDescriptor u)
+	{
+		return findSet(sets, u, [](VertexDescriptor current, VertexDescriptor newParent){});
+	}
+
+
+//	void f(auto a)
+//	{
+//
+//	}
+
+	// x, y must be a representative(root) of a set
+	static void link(DisjointSets &sets, VertexDescriptor x, VertexDescriptor y)
+	{
+		sets.parent(x ) = y;
+	}
+//	static void unionSet(DisjointSets &sets, VertexDescriptor x, VertexDescriptor y)
+//	{
+//		link(findSet(x), findSet(y));
+//	}
 };
+
+
+
+
+
 
 
 

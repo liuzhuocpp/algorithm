@@ -1,7 +1,7 @@
 /*
  * main.cpp
  *
- *  Created on: 2015Äê12ÔÂ23ÈÕ
+ *  Created on: 2015ï¿½ï¿½12ï¿½ï¿½23ï¿½ï¿½
  *      Author: LZ
  */
 
@@ -44,6 +44,7 @@ using G = AdjacencyList<UndirectedGraphTag, NoProperty, EP>;
 int main()
 {
 
+	namespace Keys = KruskalMinimumSpanningTreeKeywords;
 	G g;
 	int n = 3;
 	for(int i = 0; i < n; ++ i)
@@ -53,10 +54,13 @@ int main()
 	g.addEdge(1, 2, EP(20)  );
 	g.addEdge(2, 0, EP(320)  );
 	kruskalMinimumSpanningTree(g,
-		[&](auto e) ->void
-        {
-			cout <<  "| " << g.source(e) << " " <<  g.target(e) <<endl;
-	    }
+		Keys::discoverTreeEdge =
+		(
+			[&](auto e) ->void
+			{
+				cout <<  "| " << g.source(e) << " " <<  g.target(e) <<endl;
+			}
+	)
 
 	);
 
