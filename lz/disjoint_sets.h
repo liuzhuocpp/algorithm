@@ -72,11 +72,6 @@ public:
 	}
 
 
-//	void f(auto a)
-//	{
-//
-//	}
-
 	// x, y must be a representative(root) of a set
 	static void link(DisjointSets &sets, VertexDescriptor x, VertexDescriptor y)
 	{
