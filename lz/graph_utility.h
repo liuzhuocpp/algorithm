@@ -64,6 +64,9 @@ struct GraphTraits
 	using VertexProperties = typename G::VertexProperties;
 	using EdgeProperties = typename G::EdgeProperties;
 
+	using VertexSizeType = typename G::VertexSizeType;
+	using EdgeSizeType = typename G::EdgeSizeType;
+
 	template<typename Tag>
 	using VertexPropertyMap = typename G::template VertexPropertyMap<Tag>;
 

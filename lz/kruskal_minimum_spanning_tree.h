@@ -34,63 +34,58 @@ namespace lz {
 
 
 template<typename G, typename ParamPack>
-void kruskalMinimumSpanningTree(const G &g, const ParamPack &p)
+void kruskalMinimumSpanningTree(const G &g, const ParamPack &params)
 {
 	namespace Keys = KruskalMinimumSpanningTreeKeywords;
+	using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
+	using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
+	using VertexIterator = typename GraphTraits<G>::VertexIterator;
+	using EdgeIterator = typename GraphTraits<G>::EdgeIterator;
 
-	using Vertex = typename GraphTraits<G>::VertexDescriptor;
-	using Edge = typename GraphTraits<G>::EdgeDescriptor;
-	auto n = g.vertexNumber();
+	typename GraphTraits<G>::VertexSizeType n = g.vertexNumber();
 
-	auto indexMap = p[Keys::vertexIndexMap | g.vertexPropertyMap(VertexIndexTag()) ];
+	auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(VertexIndexTag()) ];
 
-	auto disjointSets = p[Keys::disjointSets || std::bind(
-
+	auto disjointSets = params[Keys::disjointSets || std::bind(
 			[&]()
 			{
 				return DisjointSets<
-						decltype(makeVertexIndexComposeMap<Vertex>(indexMap, n))>
-						(makeVertexIndexComposeMap<Vertex>(indexMap, n))  ;
+						decltype(makeVertexIndexComposeMap<VertexDescriptor>(indexMap, n))>
+						(makeVertexIndexComposeMap<VertexDescriptor>(indexMap, n))  ;
 			}
 	)];
 
-	using DisjointSets = typename std::decay<decltype(disjointSets)>::type;
+	using DisjointSets = std::decay_t<decltype(disjointSets)>;
 
 //	auto disjointSetsImplement = p[Keys::disjointSetsImplement | std::declval<DisjointSetsImplement<DisjointSets>>() ];
-	auto disjointSetsImplement = p[Keys::disjointSetsImplement | DisjointSetsImplement<DisjointSets>() ];
+	auto disjointSetsImplement = params[Keys::disjointSetsImplement | DisjointSetsImplement<DisjointSets>() ];
 
-	auto weightMap = p[Keys::weightMap | g.edgePropertyMap(EdgeWeightTag())];
+	auto weightMap = params[Keys::weightMap | g.edgePropertyMap(EdgeWeightTag())];
 
 	using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
-	auto weightCompare = p[Keys::weightCompare | std::less<WeightType>()  ];
+	auto weightCompare = params[Keys::weightCompare | std::less<WeightType>()  ];
 
-	auto vi = g.vertices();
+	std::pair<VertexIterator, VertexIterator> vi = g.vertices();
 	for(;vi.first != vi.second; vi.first ++)
 		disjointSetsImplement.makeSet(disjointSets, *vi.first);
-	auto ei = g.edges();
-
-	std::vector<Edge> edges;
-	edges.reserve(g.edgeNumber());
-	for(auto e = ei.first; e != ei.second; ++ e)
-	{
-		edges.push_back(*e);
-	}
+	std::pair<EdgeIterator, EdgeIterator> ei = g.edges();
+	std::vector<EdgeDescriptor> edges(ei.first, ei.second);
 
 	std::sort(edges.begin(), edges.end(),
-			[&](Edge a, Edge b)->bool
+			[&](EdgeDescriptor a, EdgeDescriptor b)->bool
 			{
 				return weightCompare(weightMap[a], weightMap[b]) ;
 			}
 	);
 
-	for(auto e: edges)
+	for(EdgeDescriptor e: edges)
 	{
-		Vertex a = g.source(e), b = g.target(e);
-		Vertex ra = disjointSetsImplement.findSet(disjointSets, a), rb = disjointSetsImplement.findSet(disjointSets, b);
+		VertexDescriptor a = g.source(e), b = g.target(e);
+		VertexDescriptor ra = disjointSetsImplement.findSet(disjointSets, a), rb = disjointSetsImplement.findSet(disjointSets, b);
 
 		if(ra != rb)
 		{
-			p[Keys::discoverTreeEdge](e);
+			params[Keys::discoverTreeEdge](e);
 			disjointSetsImplement.link(disjointSets, ra, rb);
 		}
 	}
