@@ -18,16 +18,16 @@ vector<int> a(n, 0);
 vector<int> id(n, 0);
 struct BeforeKeyChange
 {
-	void operator()(vector<int>::iterator cnt, vector<int>::iterator _new)
+	void operator()(vector<int>::iterator cnt, const int & newKey)
 	{
-		id[*_new] = cnt - a.begin();
+		id[newKey] = cnt - a.begin();
 	}
 };
 int main()
 {
 	cout << "FF" << endl;
 
-	using HeapImpl = HeapImplement<vector<int>::iterator, BeforeKeyChange>;
+	using HeapImpl = HeapImplement<vector<int>::iterator, std::less<int>, BeforeKeyChange>;
 
 	for(int i = 0; i < n; ++ i) a[i] = i;
 	random_shuffle(a.begin(), a.end());

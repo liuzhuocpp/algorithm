@@ -8,148 +8,277 @@
 #include "lz/map.h"
 namespace lz {
 
-//template<typename _RandomIterator, typename _KeyCompare, typename IndexMap>
-//class Heap
-//{
-//public:
-//	using RandomIterator = _RandomIterator;
-//	using KeyCompare = _KeyCompare;
-//	RandomIterator& begin()
-//	{
-//		return _begin;
-//	}
-//	RandomIterator& end()
-//	{
-//		return _end;
-//	}
-//	std::size_t& index(const std::iterator_traits<RandomIterator>::value_type & key)
-//	{
-//		return indexMap[key];
-//	}
-//	Heap(RandomIterator _b, RandomIterator _e):_begin(_b), _end(_e){}
-//private:
-//	RandomIterator _begin, _end;
-//	IndexMap indexMap;
-//};
-
 namespace HeapPrivate {
 
-	template<typename RandomIterator>
-	struct BeforeKeyChange
-	{
-		void operator()(RandomIterator cntIterator, RandomIterator newIterator)
-		{
-
-		}
-	};
-}
-template<typename RandomIterator,
-		 typename BeforeKeyChange = HeapPrivate::BeforeKeyChange<RandomIterator>,
-		 typename Less = std::less<typename std::iterator_traits<RandomIterator>::value_type> >
-class HeapImplement
+template<typename RandomIterator>
+struct BeforeKeyChange
 {
-	using IndexType = typename std::iterator_traits<RandomIterator>::difference_type; // [0, n)
-	using KeyType = typename std::iterator_traits<RandomIterator>::value_type;
-	inline static IndexType p(IndexType x) { return ((x + 1) >> 1) - 1; }
-	inline static IndexType ls(IndexType x) { return ((x + 1) << 1) - 1; }
-	inline static IndexType rs(IndexType x) { return ls(x) + 1; }
+    using KeyType = typename std::iterator_traits<RandomIterator>::value_type;
+    void operator()(RandomIterator cntIterator, const KeyType& newKey) const
+    {
 
-public:
-	static void make(RandomIterator begin, RandomIterator end)
-	{
-		for(RandomIterator it = begin; it != end; ++ it)
-		{
-			up(begin, end, it);
-		}
-	}
-	static void push(RandomIterator begin, RandomIterator end)
-	{
-		up(begin, end, end - 1);
-	}
-	static void pop(RandomIterator begin, RandomIterator end)
-	{
-		BeforeKeyChange()(begin, end - 1);
-		*begin = *(end - 1);
-		down(begin, end - 1, begin);
-	}
-	static const KeyType& top(RandomIterator begin, RandomIterator end)
-	{
-		return *begin;
-	}
-	static void increase(RandomIterator begin, RandomIterator end, RandomIterator it)
-	{
-		up(begin, end, it);
-	}
-
-	static void decrease(RandomIterator begin, RandomIterator end, RandomIterator it)
-	{
-		down(begin, end, it);
-	}
-	static void update(RandomIterator begin, RandomIterator end, RandomIterator it)
-	{
-		IndexType u = it - begin;
-		if(Less() (*(begin + p(u)), *it) )
-		{
-			up(begin, end, it);
-		}
-		else
-		{
-			down(begin, end, it);
-		}
-	}
-
-	static void erase(RandomIterator begin, RandomIterator end, RandomIterator it)
-	{
-		IndexType u = it - begin;
-		while(u != 0)
-		{
-			swapWithParent(begin, end, begin + u);
-			u = p(u);
-		}
-		pop(begin, end);
-	}
-
-protected:
-	static void swapWithParent(RandomIterator begin, RandomIterator end, RandomIterator it)
-	{
-		RandomIterator a = begin;
-		IndexType u = it - begin;
-		BeforeKeyChange()(a + u, a + p(u));
-		BeforeKeyChange()(a + p(u), a + u);
-		std::swap(a[u], a[p(u)] );
-	}
-	static void up(RandomIterator begin, RandomIterator end, RandomIterator it)
-	{
-		RandomIterator a = begin;
-		IndexType n = end - begin, u = it - begin;
-		while(u != 0)
-		{
-			if(Less()(a[u], a[p(u)]))
-			{
-				break;
-			}
-			swapWithParent(begin, end, a + u);
-			u = p(u);
-		}
-	}
-	static void down(RandomIterator begin, RandomIterator end, RandomIterator it)
-	{
-		RandomIterator a = begin;
-		IndexType n = end - a, u = it - begin;
-		while(ls(u) < n)
-		{
-			IndexType son = ls(u);
-			if(Less()(a[son], a[rs(u)])) son = rs(u);
-			if(Less()(a[u], a[son]))
-			{
-				swapWithParent(begin, end, a + son);
-				u = son;
-			}
-			else break;
-		}
-	}
+    }
 };
 
+} // namespace HeapPrivate
+
+template<typename RandomIterator, typename Less = std::less<
+        typename std::iterator_traits<RandomIterator>::value_type>,
+        typename BeforeKeyChange = HeapPrivate::BeforeKeyChange<RandomIterator> >
+class HeapImplement
+{
+    using IndexType = typename std::iterator_traits<RandomIterator>::difference_type; // [0, n)
+    inline static IndexType p(IndexType x)
+    {
+        return ((x + 1) >> 1) - 1;
+    }
+    inline static IndexType ls(IndexType x)
+    {
+        return ((x + 1) << 1) - 1;
+    }
+    inline static IndexType rs(IndexType x)
+    {
+        return ls(x) + 1;
+    }
+
+public:
+    static void make(RandomIterator begin, RandomIterator end, const Less &less = Less(),
+            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        for (RandomIterator it = begin; it != end; ++it)
+        {
+            up(begin, end, it, less, beforeKeyChange);
+        }
+    }
+    static void push(RandomIterator begin, RandomIterator end, const Less &less = Less(),
+            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        up(begin, end, end - 1, less, beforeKeyChange);
+    }
+    static void pop(RandomIterator begin, RandomIterator end, const Less &less = Less(),
+            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        beforeKeyChange(begin, *(end - 1));
+        *begin = *(end - 1);
+        down(begin, end - 1, begin, less, beforeKeyChange);
+    }
+    static void increase(RandomIterator begin, RandomIterator end, RandomIterator it,
+            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        up(begin, end, it, less, beforeKeyChange);
+    }
+
+    static void decrease(RandomIterator begin, RandomIterator end, RandomIterator it,
+            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        down(begin, end, it, less, beforeKeyChange);
+    }
+    static void update(RandomIterator begin, RandomIterator end, RandomIterator it,
+            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        IndexType u = it - begin;
+        if (Less()(*(begin + p(u)), *it))
+        {
+            up(begin, end, it, less, beforeKeyChange);
+        }
+        else
+        {
+            down(begin, end, it, less, beforeKeyChange);
+        }
+    }
+
+    static void erase(RandomIterator begin, RandomIterator end, RandomIterator it,
+            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        IndexType u = it - begin;
+        while (u != 0)
+        {
+            swapWithParent(begin, end, begin + u, less, beforeKeyChange);
+            u = p(u);
+        }
+        pop(begin, end, less, beforeKeyChange);
+    }
+
+protected:
+    static void swapWithParent(RandomIterator begin, RandomIterator end, RandomIterator it,
+            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        RandomIterator a = begin;
+        IndexType u = it - begin;
+        beforeKeyChange(a + u, a[p(u)]);
+        beforeKeyChange(a + p(u), a[u]);
+        std::swap(a[u], a[p(u)]);
+    }
+    static void up(RandomIterator begin, RandomIterator end, RandomIterator it, const Less &less =
+            Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        RandomIterator a = begin;
+        IndexType n = end - begin, u = it - begin;
+        while (u != 0)
+        {
+            if (Less()(a[u], a[p(u)]))
+            {
+                break;
+            }
+            swapWithParent(begin, end, a + u, less, beforeKeyChange);
+            u = p(u);
+        }
+    }
+    static void down(RandomIterator begin, RandomIterator end, RandomIterator it, const Less &less =
+            Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+    {
+        RandomIterator a = begin;
+        IndexType n = end - a, u = it - begin;
+        while (ls(u) < n)
+        {
+            IndexType son = ls(u);
+            if (Less()(a[son], a[rs(u)])) son = rs(u);
+            if (Less()(a[u], a[son]))
+            {
+                swapWithParent(begin, end, a + son, less, beforeKeyChange);
+                u = son;
+            }
+            else break;
+        }
+    }
+};
+
+template<typename T, typename Less = std::less<T>, typename Container = std::vector<T> >
+class Heap
+{
+    using RandomIterator = typename Container::iterator;
+protected:
+    Container c;
+    Less less;
+public:
+    using KeyType = T;
+    using KeyCompare = Less;
+
+    Heap(const Less &less, const Container& c) :
+            less(less), c(c)
+    {
+    }
+    Heap(const Less &less = Less(), Container&& c = Container()) :
+            less(less), c(std::move(c))
+    {
+    }
+
+    void push(const KeyType &key)
+    {
+        c.push_back(key);
+        HeapImplement<RandomIterator, Less>::push(c.begin(), c.end());
+    }
+    void pop()
+    {
+        HeapImplement<RandomIterator, Less>::pop(c.begin(), c.end());
+        c.pop_back();
+    }
+    const KeyType& top() const
+    {
+        return *c.begin();
+    }
+    size_t size() const
+    {
+        return c.size();
+    }
+    bool isEmpty() const
+    {
+        return c.empty();
+    }
+
+};
+
+template<typename T, typename IndexMap, typename Less = std::less<T>,
+        typename Container = std::vector<T>>
+class IndexableHeap
+{
+    IndexMap indexMap;
+    Less less;
+    Container c;
+
+    using RandomIterator = typename Container::iterator;
+    struct BeforeKeyChange
+    {
+        Container& c;
+        IndexMap& indexMap;
+        void operator()(RandomIterator cnt, const T &key) const
+        {
+            indexMap[key] = cnt - c.begin();
+        }
+    };
+
+    using HeapImpl = HeapImplement<RandomIterator, Less, BeforeKeyChange>;
+public:
+    using KeyType = T;
+    using KeyCompare = Less;
+    using SizeType = typename Container::size_type;
+    IndexableHeap(IndexMap indexMap, const Less& less = Less(), const Container &c = Container()) :
+            indexMap(indexMap), less(less), c(c)
+    {
+    }
+
+    IndexableHeap(IndexMap indexMap, const Less& less, Container &&c = Container()) :
+            indexMap(indexMap), less(less), c(std::move(c))
+    {
+    }
+
+    void push(const KeyType &key)
+    {
+        indexMap[key] = c.size();
+        c.push_back(key);
+
+        HeapImpl::push(c.begin(), c.end(), less, BeforeKeyChange { c, indexMap });
+    }
+
+    void pop()
+    {
+//        indexMap[c[0]] = -1;
+        HeapImpl::pop(c.begin(), c.end(), less, BeforeKeyChange { c, indexMap });
+        c.pop_back();
+    }
+
+    const KeyType& top() const
+    {
+        return *c.begin();
+    }
+
+    SizeType size() const
+    {
+        return c.size();
+    }
+
+    bool isEmpty() const
+    {
+        return c.empty();
+    }
+
+    void decrease(const KeyType& indexKey, const KeyType& newKey)
+    {
+        SizeType index = indexMap[indexKey];
+        c[index] = newKey;
+        indexMap[newKey] = index;
+        HeapImpl::decrease(c.begin(), c.end(), c.begin() + index, less, BeforeKeyChange { c,
+                indexMap });
+    }
+
+    void increase(const KeyType& indexKey, const KeyType& newKey)
+    {
+        SizeType index = indexMap[indexKey];
+        c[index] = newKey;
+        indexMap[newKey] = index;
+        HeapImpl::increase(c.begin(), c.end(), c.begin() + index, less, BeforeKeyChange { c,
+                indexMap });
+    }
+    void update(const KeyType& indexKey, const KeyType& newKey)
+    {
+        SizeType index = indexMap[indexKey];
+        c[index] = newKey;
+        indexMap[newKey] = index;
+        HeapImpl::update(c.begin(), c.end(), c.begin() + index, less,
+                BeforeKeyChange { c, indexMap });
+    }
+
+};
 
 //template<typename T, typename Container = std::vector<T>, typename Compare = std::less<T> >
 //class Heap
@@ -248,11 +377,6 @@ protected:
 //	}
 //};
 
-
-
-
-
-
 //template<typename _RandomIterator, typename _KeyCompare, typename IndexMap>
 //class IndexedHeap: public Heap<_RandomIterator, _KeyCompare>
 //{
@@ -281,10 +405,6 @@ protected:
 //	}
 //
 //};
-
-
-
-
 
 //using std::vector;
 //using std::swap;
@@ -385,8 +505,5 @@ protected:
 //
 //};
 
-
-
-
-} // namespace lz
+}// namespace lz
 #endif // HEAP_H

@@ -1,7 +1,7 @@
 /*
  * map.h
  *
- *  Created on: 2015Äê8ÔÂ5ÈÕ
+ *  Created on: 2015ï¿½ï¿½8ï¿½ï¿½5ï¿½ï¿½
  *      Author: LZ
  */
 
@@ -24,119 +24,129 @@ namespace lz {
 template<typename Map>
 struct MapTraits
 {
-	using KeyType = typename Map::KeyType;
-	using ValueType = typename Map::ValueType;
+    using KeyType = typename Map::KeyType;
+    using ValueType = typename Map::ValueType;
 };
 
 template<typename Key, typename Value>
 struct MapFacade
 {
-	using KeyType = Key;
-	using ValueType = Value;
+    using KeyType = Key;
+    using ValueType = Value;
 };
-
-
-
-
 
 template<typename _ValueType>
 struct SharedArrayMap: public MapFacade<std::ptrdiff_t, _ValueType>
 {
 private:
-	std::shared_ptr<_ValueType> sp;
+    std::shared_ptr<_ValueType> sp;
 public:
-	SharedArrayMap(std::shared_ptr<_ValueType> sp):sp(sp){}
-	SharedArrayMap() :sp(nullptr) {}
+    SharedArrayMap(std::shared_ptr<_ValueType> sp) :
+            sp(sp)
+    {
+    }
+    SharedArrayMap() :
+            sp(nullptr)
+    {
+    }
 
-	SharedArrayMap(size_t n)
-	:sp(new _ValueType[n], std::default_delete<_ValueType[]>())  { }
+    SharedArrayMap(size_t n) :
+            sp(new _ValueType[n], std::default_delete<_ValueType[]>())
+    {
+    }
 
-	auto operator[](ptrdiff_t d) const ->decltype(sp.get()[d])
-	{
-		return	sp.get()[d];
-	}
+    auto operator[](ptrdiff_t d) const ->decltype(sp.get()[d])
+    {
+        return sp.get()[d];
+    }
 };
 
-
-
-
-
 template<typename Key>
-struct IdentityMap:public MapFacade<Key, Key>
+struct IdentityMap: public MapFacade<Key, Key>
 {
-	const Key& operator[](const Key &key) const
-	{
-		return key;
-	}
+    const Key& operator[](const Key &key) const
+    {
+        return key;
+    }
 };
 
 template<typename I>
-class IteratorMap:public MapFacade<
+class IteratorMap: public MapFacade<
 //Key
-typename std::iterator_traits<I>::difference_type
-,
-typename std::iterator_traits<I>::value_type
+        typename std::iterator_traits<I>::difference_type,
+        typename std::iterator_traits<I>::value_type
 //Value
 
 >
 {
-	I i;
+    I i;
 public:
-	IteratorMap() = default;
-	IteratorMap(I i):i(i){}
+    IteratorMap() = default;
+    IteratorMap(I i) :
+            i(i)
+    {
+    }
 
-	using Iterator = I;
-	Iterator iterator() const { return i;}
+    using Iterator = I;
+    Iterator iterator() const
+    {
+        return i;
+    }
 
-	auto operator[](typename std::iterator_traits<I>::difference_type key) const ->decltype(i[key])
-	{
+    auto operator[](
+            typename std::iterator_traits<I>::difference_type key) const ->decltype(i[key])
+    {
 
-		return i[key];
-	}
+        return i[key];
+    }
 };
 template<typename I>
 IteratorMap<I> makeIteratorMap(I i)
 {
-	return IteratorMap<I>(i);
+    return IteratorMap<I>(i);
 }
 
-
 template<typename FM, typename SM>
-class ComposeMap:public MapFacade<typename MapTraits<FM>::KeyType, typename MapTraits<SM>::ValueType >
+class ComposeMap: public MapFacade<typename MapTraits<FM>::KeyType,
+        typename MapTraits<SM>::ValueType>
 {
-	FM fm;
-	SM sm;
-	using Base = MapFacade<typename MapTraits<FM>::KeyType, typename MapTraits<SM>::ValueType>;
+    FM fm;
+    SM sm;
+    using Base = MapFacade<typename MapTraits<FM>::KeyType, typename MapTraits<SM>::ValueType>;
 public:
-	using FirstMap = FM;
-	using SecondMap = SM;
+    using FirstMap = FM;
+    using SecondMap = SM;
 
-	explicit ComposeMap() = default;
-	explicit ComposeMap(const FM &fm,  const SM &sm):fm(fm), sm(sm) {}
+    explicit ComposeMap() = default;
+    explicit ComposeMap(const FM &fm, const SM &sm) :
+            fm(fm), sm(sm)
+    {
+    }
 
+    FirstMap firstMap() const
+    {
+        return fm;
+    }
+    SecondMap secondMap() const
+    {
+        return sm;
+    }
 
-	FirstMap firstMap() const { return fm; }
-	SecondMap secondMap() const { return sm; }
-
-	template<typename Key>
-	auto operator[](Key && key) const ->decltype(sm[fm[key]])
-	{
-		return sm[fm[key]];
-	}
+    template<typename Key>
+    auto operator[](Key && key) const ->decltype(sm[fm[key]])
+    {
+        return sm[fm[key]];
+    }
 };
 
 template<typename FM, typename SM>
-ComposeMap<FM, SM>
-makeComposeMap(const FM &fm, const SM &sm)
+ComposeMap<FM, SM> makeComposeMap(const FM &fm, const SM &sm)
 
 {
-	return ComposeMap<FM, SM>(fm, sm);
+    return ComposeMap<FM, SM>(fm, sm);
 }
 
-}// namespace lz
-
-
-
+} // namespace lz
 
 #endif /* LZ_MAP_H_ */
 
