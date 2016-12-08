@@ -18,14 +18,15 @@ vector<int> a(n, 0);
 vector<int> id(n, 0);
 struct BeforeKeyChange
 {
-	void operator()(vector<int>::iterator cnt, const int & newKey)
+	void operator()(vector<int>::iterator cnt, const int & newKey) const
 	{
 		id[newKey] = cnt - a.begin();
 	}
-};
+}beforeKeyChange;
 int main()
 {
 	cout << "FF" << endl;
+	std::less<int> _less;
 
 	using HeapImpl = HeapImplement<vector<int>::iterator, std::less<int>, BeforeKeyChange>;
 
@@ -33,46 +34,17 @@ int main()
 	random_shuffle(a.begin(), a.end());
 	for(int i = 0; i < n; ++ i) id[a[i]] = i;
 
+
 	for(int i = 0; i < n; ++ i)
 	{
 		cout << a[i] << " : " << i << " " << id[a[i]] << endl;
 	}
-//	return 0;
-	HeapImpl::make(a.begin(), a.end());
+	HeapImpl::make(a.begin(), a.end(), _less, beforeKeyChange);
 	cout << string(100, '-') << endl;
 	for(int i = 0; i < n; ++ i)
 	{
 		cout << a[i] << " : " << i << " " << id[a[i]] << endl;
 	}
-
-	return 0;
-
-
-//	for(int )
-
-//	for(int i = 0; i < 100; ++ i)
-//	{
-//		HeapImpl::push(a.begin(), a.begin() + i + 1);
-//	}
-//	for(int i = 0; i < 100; ++ i)
-//	{
-//		a.push_back(i*10);
-//	}
-//	cout << a.size
-//	random_shuffle(a.begin(), a.end());
-
-//	HeapImpl::make(a.begin(), a.end());
-
-	for(int i = a.size(); i > 0; --i)
-	{
-		cout << a[0] << endl;
-		HeapImpl::pop(a.begin(), a.begin() + i);
-	}
-
-
-
-
-
 
 
 	return 0;
