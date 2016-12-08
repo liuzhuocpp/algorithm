@@ -191,8 +191,8 @@ public:
 	using VertexDescriptor = AdjacencyListPrivate::VertexDescriptor ;
 	using EdgeDescriptor = AdjacencyListPrivate::EdgeDescriptor ;
 	using SizeType = AdjacencyListPrivate::SizeType;
-	using VertexSizeType = AdjacencyListPrivate::SizeType;
-	using EdgeSizeType = AdjacencyListPrivate::SizeType;
+	using VerticesNumberType = AdjacencyListPrivate::SizeType;
+	using EdgesNumberType = AdjacencyListPrivate::SizeType;
 
 	using VertexIterator = IntegerIterator<VertexDescriptor>;
 	using EdgeIterator = IntegerIterator<EdgeDescriptor>;
@@ -216,10 +216,12 @@ public:
 		this->v.push_back(VertexData(-1, vp));
 		return this->v.size() - 1;
 	}
-	SizeType vertexNumber() const { return this->v.size(); }
-	SizeType edgeNumber() const { return this->R2V(this->e.size() - 1) + 1; }
+	SizeType verticesNumber() const { return this->v.size(); }
+	SizeType edgesNumber() const { return this->R2V(this->e.size() - 1) + 1; }
+
 	const GP& graphProperties() const { return this->properties; }
 	GP& graphProperties() { return this->properties; }
+
 	VertexDescriptor source(EdgeDescriptor e) const { return this->e[this->V2R(e)].source; }
 	VertexDescriptor target(EdgeDescriptor e) const { return this->e[this->V2R(e)].target; }
 
@@ -268,22 +270,22 @@ public:
 		return makeEdgePropertyMap<G, Tag>(*this, tag);
 	}
 
-
 	pair<VertexIterator, VertexIterator> vertices() const
 	{
 		return make_pair(VertexIterator(0),
-						 VertexIterator(this->vertexNumber()));
+						 VertexIterator(this->verticesNumber()));
 	}
+
 	pair<EdgeIterator, EdgeIterator> edges() const
 	{
-		return make_pair(EdgeIterator(0), EdgeIterator(this->edgeNumber()));
+		return make_pair(EdgeIterator(0), EdgeIterator(this->edgesNumber()));
 	}
+
 	pair<OutEdgeIterator, OutEdgeIterator> outEdges(VertexDescriptor u) const
 	{
 		return make_pair(OutEdgeIterator(this->v[u].head, this),
 						 OutEdgeIterator(-1, this)) ;
 	}
-
 };
 
 

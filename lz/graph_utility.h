@@ -15,6 +15,48 @@ namespace lz {
 	}
 
 /*
+ * Graph concept classification:
+ *
+ * Graph :
+ *   GraphTraits<G>::VertexDescriptor
+ *   GraphTraits<G>::Edgedescriptor
+ *   GraphTraits<G>::DirectedCategory
+ *
+ * IncidenceGraph refines Graph:
+ *   GraphTraits<G>::outEdgeIterator
+ *   g.outEdges(u)
+ *   g.source(e)
+ *   g.target(e)
+ *
+ * VertexListGraph refines Graph
+ *   GraphTraits<G>::VertexIterator
+ *   GraphTraits<G>::VerticesNumberType
+ *   g.vertices() :pair<VertexIterator, VertexIterator>
+ *   g.verticesNumber()
+ *
+ * EdgeListGraph refines Graph
+ *   GraphTraits<G>::EdgeIterator
+ *   GraphTraits<G>::EdgesNumberType
+ *   g.edges() :pair<EdgeIterator, EdgeIterator>
+ *   g.edgesNumber() :EdgesNumberType
+ *   g.source(e) :VertexDescriptor
+ *   g.target(e) :VertexDescriptor
+ *
+ * AdjacencyMatrix refines Graph:
+ *   g.edge(u, v) :EdgeDescriptor
+ *
+ * PropertyGraph refines Graph:
+ *   GraphTraits<G>::VertexPropertyMap
+ *   GraphTraits<G>::EdgePropertyMap
+ *   g.vertexPropertyMap(tag)
+ *   g.edgePropertyMap(tag)
+ *
+ *
+ */
+
+
+
+/*
  * Indicate if a graph is directed
  */
 struct DirectedGraphTag {};
@@ -27,12 +69,11 @@ struct UndirectedGraphTag {};
 //using ForestTag = UndirectedAcyclicGraphTag;
 
 /*
- * Some common graph`s vertex or edge property tag
+ * Some common graph's vertex or edge property tag
  */
-struct VertexIndexTag {};
-struct EdgeIndexTag {};
-
-struct EdgeWeightTag {};
+struct VertexIndexTag { } vertexIndexTag;
+struct EdgeIndexTag { } edgeIndexTag;
+struct EdgeWeightTag { } edgeWeightTag;
 
 
 
@@ -61,17 +102,19 @@ struct GraphTraits
 
 	using OutEdgeIterator = typename G::OutEdgeIterator;
 
-	using VertexProperties = typename G::VertexProperties;
-	using EdgeProperties = typename G::EdgeProperties;
-
-	using VertexSizeType = typename G::VertexSizeType;
-	using EdgeSizeType = typename G::EdgeSizeType;
+	using VerticesNumberType = typename G::VerticesNumberType;
+	using EdgesNumberType = typename G::EdgesNumberType;
 
 	template<typename Tag>
 	using VertexPropertyMap = typename G::template VertexPropertyMap<Tag>;
 
 	template<typename Tag>
 	using EdgePropertyMap = typename G::template EdgePropertyMap<Tag>;
+
+
+    using VertexProperties = typename G::VertexProperties; // deprected
+    using EdgeProperties = typename G::EdgeProperties;// deprected
+
 
 };
 
