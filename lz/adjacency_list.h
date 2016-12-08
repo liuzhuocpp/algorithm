@@ -35,34 +35,41 @@ class AdjacencyList;
 
 
 
+
+    template<typename P>
+    struct HasPropertiesBase
+    {
+        P properties;
+        HasPropertiesBase(const P &p = P()):properties(p) {}
+    };
+    template<> struct HasPropertiesBase<NoProperty>
+    {
+        HasPropertiesBase(const NoProperty &p = NoProperty()) {}
+    };
+
     // vertex data
     template<typename VP>
-    struct VertexData: public ChooseDefineProperties<VP>
+    struct VertexData: public HasPropertiesBase<VP>
 	{
     	EdgeDescriptor head;
-    	VertexData(EdgeDescriptor _head, const VP &vp):head(_head)
-    	{
-    		ChooseDefineProperties<VP>::set(vp);
-    	}
+    	VertexData(EdgeDescriptor _head, const VP &vp):
+    	    head(_head), HasPropertiesBase<VP>(vp){}
 	};
 
     // edge data
 	template<typename EP>
-	struct EdgeData:ChooseDefineProperties<EP>
+	struct EdgeData:HasPropertiesBase<EP>
 	{
 		VertexDescriptor source, target;
 		EdgeDescriptor next;
 
 		EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const EP & ep)
-		:source(source), target(target), next(next)
-		{
-			ChooseDefineProperties<EP>::set(ep);
-		}
+		:source(source), target(target), next(next), HasPropertiesBase<EP>(ep){}
 	};
 
     // graph data
     template<typename VP, typename EP, typename GP>
-    struct GraphData:public ChooseDefineProperties<GP>
+    struct GraphData:public HasPropertiesBase<GP>
     {
         vector<VertexData<VP> > v;
         vector<EdgeData<EP> > e;
@@ -84,10 +91,8 @@ class AdjacencyList;
 		typename GraphTraits<G>::EdgeDescriptor*,
 		typename GraphTraits<G>::EdgeDescriptor >
 	{
-    	template<typename D, typename VP, typename EP, typename GP>
-    	friend class lz::AdjacencyList;
+    	friend G;
 
-//    	friend G;
     	EdgeDescriptor i; // realED
     	const G *g;
     	OutEdgeIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
@@ -152,7 +157,7 @@ public:
 	VertexPropertyMap() = default;
 	VertexPropertyMap(const AdjacencyList<D, VP, EP, GP> &_g){}
 
-	using Type = VertexPropertyMap< AdjacencyList<D, VP, EP, GP>, VertexIndexTag>;
+	using Type = VertexPropertyMap;
 	using ConstType = Type;
 };
 
@@ -183,26 +188,30 @@ class AdjacencyList: private AdjacencyListPrivate::DistinguishDirectionGraph<
 	using Base = AdjacencyListPrivate::DistinguishDirectionGraph<
 				 Direction, VP, EP, GP>;
 public:
+	using VertexDescriptor = AdjacencyListPrivate::VertexDescriptor ;
+    using EdgeDescriptor = AdjacencyListPrivate::EdgeDescriptor ;
 	using DirectedCategory = Direction;
+
+    using VerticesNumberType = AdjacencyListPrivate::SizeType;
+    using EdgesNumberType = AdjacencyListPrivate::SizeType;
+
+    using VertexIterator = IntegerIterator<VertexDescriptor>;
+    using EdgeIterator = IntegerIterator<EdgeDescriptor>;
+    using OutEdgeIterator = AdjacencyListPrivate::OutEdgeIterator<G>;
+
+    template<typename Tag>
+    using VertexPropertyMap = lz::VertexPropertyMap<G, Tag>;
+    template<typename Tag>
+    using EdgePropertyMap = lz::EdgePropertyMap<G, Tag>;
+
 	using VertexProperties = VP;
 	using EdgeProperties = EP;
 	using GraphProperties = GP;
 
-	using VertexDescriptor = AdjacencyListPrivate::VertexDescriptor ;
-	using EdgeDescriptor = AdjacencyListPrivate::EdgeDescriptor ;
-	using SizeType = AdjacencyListPrivate::SizeType;
-	using VerticesNumberType = AdjacencyListPrivate::SizeType;
-	using EdgesNumberType = AdjacencyListPrivate::SizeType;
 
-	using VertexIterator = IntegerIterator<VertexDescriptor>;
-	using EdgeIterator = IntegerIterator<EdgeDescriptor>;
-	using OutEdgeIterator = AdjacencyListPrivate::OutEdgeIterator<G>;
-	template<typename Tag>
-	using VertexPropertyMap = lz::VertexPropertyMap<G, Tag>;
-	template<typename Tag>
-	using EdgePropertyMap = lz::EdgePropertyMap<G, Tag>;
 
-	explicit AdjacencyList(SizeType n = 0, const VP & vp = VP())
+
+	explicit AdjacencyList(VerticesNumberType n = 0, const VP & vp = VP())
 	{
 		this->v.assign(n, VertexData(-1, vp));
 	}
@@ -216,8 +225,8 @@ public:
 		this->v.push_back(VertexData(-1, vp));
 		return this->v.size() - 1;
 	}
-	SizeType verticesNumber() const { return this->v.size(); }
-	SizeType edgesNumber() const { return this->R2V(this->e.size() - 1) + 1; }
+	VerticesNumberType verticesNumber() const { return this->v.size(); }
+	EdgesNumberType edgesNumber() const { return this->R2V(this->e.size() - 1) + 1; }
 
 	const GP& graphProperties() const { return this->properties; }
 	GP& graphProperties() { return this->properties; }
@@ -260,7 +269,6 @@ public:
 	template<typename Tag>
 	typename EdgePropertyMap<Tag>::Type
 	edgePropertyMap(Tag tag)
-
 	{ return makeEdgePropertyMap<G, Tag>(*this, tag); }
 
 	template<typename Tag>

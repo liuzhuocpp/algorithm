@@ -128,7 +128,7 @@ public:
 	Property( const std::tuple<Args...> &tp):
 		Property(tp, std::integral_constant<size_t, 0>())
 	{
-    	cout << "SBSB" << endl;
+//    	cout << "SBSB" << endl;
 	}
 
 

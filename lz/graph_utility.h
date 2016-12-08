@@ -94,12 +94,10 @@ struct GraphTraits
 {
 	using VertexDescriptor = typename G::VertexDescriptor;
 	using EdgeDescriptor = typename G::EdgeDescriptor;
+	using DirectedCategory = typename G::DirectedCategory;
 
 	using VertexIterator = typename G::VertexIterator;
 	using EdgeIterator = typename G::EdgeIterator;
-
-	using DirectedCategory = typename G::DirectedCategory;
-
 	using OutEdgeIterator = typename G::OutEdgeIterator;
 
 	using VerticesNumberType = typename G::VerticesNumberType;
@@ -107,7 +105,6 @@ struct GraphTraits
 
 	template<typename Tag>
 	using VertexPropertyMap = typename G::template VertexPropertyMap<Tag>;
-
 	template<typename Tag>
 	using EdgePropertyMap = typename G::template EdgePropertyMap<Tag>;
 
@@ -115,10 +112,75 @@ struct GraphTraits
     using VertexProperties = typename G::VertexProperties; // deprected
     using EdgeProperties = typename G::EdgeProperties;// deprected
 
+};
+
+template<typename G, typename Tag, typename Descriptor, typename GetProperties, GetProperties getProperties>
+class VertexOrEdgePropertyMap
+{
+    using _ValueType = std::decay_t<decltype((G().*getProperties)[Tag()])>;
+protected:
+    G *g = nullptr;
+public:
+    using KeyType = Descriptor;
+    using ValueType = _ValueType;
+
+    VertexOrEdgePropertyMap() = default;
+    VertexOrEdgePropertyMap(G &_g):g(&_g) { }
+    auto operator[](KeyType u) const->decltype((g->*getProperties)(u)[Tag()])
+    {
+        return (g->*getProperties)(u)[Tag()];
+    }
+//    using Type = VertexOrEdgePropertyMap;
+//    struct ConstType
+//    {
+//        using KeyType = Descriptor;
+//        using ValueType = _ValueType;
+//        const G *g;
+//        ConstType():g(nullptr){}
+//        ConstType(const G &g):g(&g){}
+//        const ValueType& operator[](KeyType u) const
+//        {
+//            return (g->*getProperties)(u)[Tag()];
+//        }
+//    };
 
 };
 
+//template<typename G, typename Tag>
+//struct VertexPropertyMap
+////public
+////    VertexOrEdgePropertyMap<G, Tag, typename G::VertexDescriptor, decltype(&G::vertexProperties), &G::vertexProperties>
+//{
+////    static constexpr auto getProperties()
+////    {
+////        return (typename G::VertexProperties& (G::*) (typename G::VertexDescriptor) ) &G::vertexProperties;
+////    }
+//    using VertexProperties = typename G::VertexProperties;
+//    using VertexDescriptor = typename G::VertexDescriptor;
+//
+//    using Type = VertexOrEdgePropertyMap<G, Tag, typename G::VertexDescriptor,
+//            decltype(
+//            (VertexProperties& (G::*) (VertexDescriptor)   ) &G::vertexProperties   )
+//            ,
+//            (VertexProperties& (G::*) (VertexDescriptor)   ) &G::vertexProperties
+//            >;
+//
+//    using ConstType = Type;
+//
+//
+////    using ConstType = VertexOrEdgePropertyMap<G, Tag, typename G::VertexDescriptor,
+////                decltype( (typename G::VertexProperties (G::*)(typename G::VertexDescriptor) )&G::vertexProperties   )
+////                ,
+////                (typename G::VertexProperties (G::*)(typename G::VertexDescriptor) )&G::vertexProperties
+////                >;
+//};
 
+//template<typename G, typename Tag>
+//struct EdgePropertyMap: public VertexOrEdgePropertyMap<G, Tag,
+//    typename G::EdgeDescriptor, decltype(&G::edgeProperties), &G::edgeProperties>
+//{
+//
+//};
 
 
 
@@ -162,7 +224,6 @@ public:
 template<typename G, typename Tag>
 class EdgePropertyMap
 {
-//	using _ValueType = typename std::decay<decltype(typename GraphTraits<G>::EdgeProperties()[Tag()])>::type;
 	using _ValueType = typename std::decay<decltype(typename GraphTraits<G>::EdgeProperties()[Tag()])>::type;
 	G *g = nullptr;
 public:
@@ -171,7 +232,7 @@ public:
 
 	EdgePropertyMap() = default;
 	EdgePropertyMap(G &_g):g(&_g) { }
-	ValueType operator[](KeyType u) const
+	ValueType& operator[](KeyType u) const
 	{
 		return g->edgeProperties(u)[Tag()];
 	}
@@ -184,7 +245,7 @@ public:
 		const G *g;
 	public:
 		using KeyType = typename GraphTraits<G>::EdgeDescriptor;
-		using ValueType = const _ValueType &;
+		using ValueType = _ValueType;
 
 		ConstType():g(nullptr){}
 		ConstType(const G &g):g(&g){}
@@ -195,24 +256,6 @@ public:
 	};
 };
 
-
-//template<typename G, typename Tag>
-//class EdgePropertyMap: public MapFacade<typename GraphTraits<G>::EdgeDescriptor,
-//										decltype(typename GraphTraits<G>::EdgeProperties()[Tag()])>
-//{
-//	G *g = nullptr;
-//public :
-//	EdgePropertyMap() = default;
-//	EdgePropertyMap(G &_g):g(&_g) { }
-//
-//	using Type = EdgePropertyMap<G, Tag>;
-//	using ConstType = EdgePropertyMap<const G, Tag>;
-//
-//	auto operator[](typename GraphTraits<G>::EdgeDescriptor e) const
-//	{
-//		return g->edgeProperties(e)[Tag()];
-//	}
-//};
 
 
 
@@ -248,30 +291,6 @@ auto makeEdgePropertyMap(const G &g, Tag tag)
 
 
 
-
-
-
-//
-//auto lazyDiscoverTimeMap = [&]() {
-//		auto d_array = std::unique_ptr<std::size_t[]>(new std::size_t[g.vertexNumber()]);
-//
-//		return makeComposeMap(_vertexIndexMap,
-//							  std::move(makeUniqueArrayMap( d_array )    ) );
-//	};
-
-//template<typename ValueType, typename VertexIndexMap, typename VertexNumberType>
-//auto
-//makeVertexIndexComposeMap(VertexIndexMap indexMap, VertexNumberType n)
-//->decltype(makeComposeMap(indexMap,
-//		  std::move(makeUniqueArrayMap(std::unique_ptr<ValueType[]>(new ValueType[n])))	))
-//
-//{
-////	auto value_array = ;
-//	return makeComposeMap(indexMap,
-//						  std::move(makeUniqueArrayMap(std::unique_ptr<ValueType[]>(new ValueType[n])))	);
-//}
-
-
 template<typename ValueType, typename VertexIndexMap, typename VertexNumberType>
 auto
 makeVertexIndexComposeMap(VertexIndexMap indexMap, VertexNumberType n)
@@ -283,48 +302,6 @@ makeVertexIndexComposeMap(VertexIndexMap indexMap, VertexNumberType n)
 }
 
 
-
-
-//// for graph param
-//template<typename G, typename VertexIndexMapName>
-//using ChooseVertexIndexMap = ChooseParamReturnType<MemberFunctionReturnType<VertexIndexMapName>,
-//		                                           typename GraphTraits<G>::template VertexPropertyMap<VertexIndexTag>::ConstType
-//												   >;
-//
-//
-//template<typename GeneralParamName, typename VertexIndexMap, typename ValueType>
-//using ChooseVertexIndexComposeMap = ChooseParamReturnType<
-//		MemberFunctionReturnType<GeneralParamName>,
-//		ComposeMap<VertexIndexMap, IteratorMap<ValueType*> >
-//>;
-//
-//
-//template<typename DefaultValueType, typename ParamReturnType, typename VertexIndexMap, typename VertexNumberType>
-//auto
-//chooseVertexIndexComposeMap(ParamReturnType paramMap, VertexIndexMap indexMap, VertexNumberType n)
-////->decltype(paramMap)
-//{
-//	return paramMap;
-//}
-//
-//template<typename DefaultValueType, typename VertexIndexMap, typename VertexNumberType>
-//auto
-//chooseVertexIndexComposeMap( ParamNotFound, VertexIndexMap indexMap, VertexNumberType n)
-////->decltype(makeComposeMap(indexMap, makeIteratorMap(new DefaultValueType[n])))
-//{
-//	return makeComposeMap(indexMap, makeIteratorMap(
-//									new DefaultValueType[n]
-//								 ));
-//}
-//
-//template<typename Map, typename ParamRetrunType>
-//void deleteVertexIndexComposeMap(Map map, ParamRetrunType ) { }
-//
-//template<typename Map>
-//void deleteVertexIndexComposeMap(Map map, ParamNotFound )
-//{
-//	delete[] map.secondMap().iterator();
-//}
 
 
 } // namespace lz

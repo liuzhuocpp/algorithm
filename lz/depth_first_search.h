@@ -288,7 +288,7 @@ namespace DepthFirstSearchKeywords {
 		auto _white = p[white | ColorTraits<>::white];
 		auto _black = p[black | ColorTraits<>::black];
 //		auto _vertexIndexMap = p[vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
-		auto n = g.vertexNumber();
+		auto n = g.verticesNumber();
 		auto indexMap = p[vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
 		auto _colorMap = p[colorMap ||
 						   std::bind(makeVertexIndexComposeMap<decltype(_white()), decltype(indexMap), decltype(n) >,
