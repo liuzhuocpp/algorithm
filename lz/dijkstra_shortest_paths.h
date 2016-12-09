@@ -17,17 +17,18 @@ using namespace std;
 namespace DijkstraShortestPathsKeywords {
 
 /*
- * weightMap: readable , the key type should be EdgeDescriptor.
- * vertexIndexMap: readable, the key type should be VertexDescriptor, the value type should be integer type
- * distanceMap: readable and writable, the key type should be VertexDescriptor
- * distanceCombine: the binary function that combines the vertex distance and edge weight
- * distanceCompare: the binary function that compare the two the vertex distance
- * distanceInf: the infinite number of the distance type
- * distanceZero: the number of the distance type representing zero
- * heap: IndexableHeap concept
- * edgeRelaxed: event visitor function containing two paramaters
- *
- *
+
+weightMap: readable , the key type should be EdgeDescriptor.
+vertexIndexMap: readable, the key type should be VertexDescriptor, the value type should be integer type
+distanceMap: readable and writable, the key type should be VertexDescriptor
+distanceCombine: the binary function that combines the vertex distance and edge weight
+distanceCompare: the binary function that compare the two the vertex distance
+distanceInf: the infinite number of the distance type
+distanceZero: the number of the distance type representing zero
+heap: IndexableHeap concept
+edgeRelaxed: event visitor function containing two paramaters
+
+
  */
 
     LZ_PARAMETER_KEYWORD(tag, weightMap)

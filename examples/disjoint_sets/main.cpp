@@ -1,7 +1,7 @@
 /*
  * disjoint_sets.cpp
  *
- *  Created on: 2015Äê11ÔÂ29ÈÕ
+ *  Created on: 2015ï¿½ï¿½11ï¿½ï¿½29ï¿½ï¿½
  *      Author: LZ
  */
 
@@ -23,11 +23,27 @@
 using namespace std;
 using namespace lz;
 
+int n = 10;
 int main()
 {
-	vector<int> ls(10);
+	vector<int> ls(n);
 	auto pa = makeIteratorMap(ls.begin());
 	DisjointSets<decltype(pa)> ds(pa);
+	for(int i = 0; i < n; ++ i)
+	ds.makeSet(i);
+
+	ds.link(0, 1);
+
+	ds.link(3, 6);
+	ds.link(4, 6);
+	ds.link(5, 6);
+	ds.link(6, 6);
+
+	for(int i = 0; i < n; ++ i)
+	{
+	    cout << i << ": " << ds.findSet(i) << endl;
+	}
+
 
 
 	return 0;
