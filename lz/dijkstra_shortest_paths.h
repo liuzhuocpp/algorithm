@@ -8,24 +8,29 @@
 #include "lz/heap.h"
 #include "lz/parameter.h"
 #include "lz/graph_utility.h"
+#include "lz/std_utility.h"
+
 namespace lz {
 
+using namespace std;
 namespace DijkstraShortestPathsKeywords {
 
+    LZ_PARAMETER_KEYWORD(tag, weightMap)
 	LZ_PARAMETER_KEYWORD(tag, heap)
+    LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
 
-	LZ_PARAMETER_KEYWORD(tag, weightMap)
 	LZ_PARAMETER_KEYWORD(tag, distanceMap)
 	LZ_PARAMETER_KEYWORD(tag, distanceCombine)
 	LZ_PARAMETER_KEYWORD(tag, distanceCompare)
 	LZ_PARAMETER_KEYWORD(tag, distanceInf)
 	LZ_PARAMETER_KEYWORD(tag, distanceZero)
 
-	LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
-	LZ_PARAMETER_KEYWORD(tag, startVertex)
-	LZ_PARAMETER_KEYWORD(tag, colorMap)
-	LZ_PARAMETER_KEYWORD(tag, black)
-	LZ_PARAMETER_KEYWORD(tag, white)
+	LZ_PARAMETER_KEYWORD(tag, edgeRelaxed)
+
+
+//	LZ_PARAMETER_KEYWORD(tag, colorMap)
+//	LZ_PARAMETER_KEYWORD(tag, black)
+//	LZ_PARAMETER_KEYWORD(tag, white)
 
 }
 
@@ -33,8 +38,8 @@ namespace DijkstraShortestPathsKeywords {
  *
  * G must be a VertexListGraph and IncidenceGraph
  */
-template<typename G, typename Params>
-void dijkstraShortestPaths(const G &g, const Params &params)
+template<typename G, typename Params = EmptyParamPack >
+void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex, const Params &params = EmptyParamPack())
 {
 	namespace Keys = DijkstraShortestPathsKeywords;
 
@@ -43,59 +48,74 @@ void dijkstraShortestPaths(const G &g, const Params &params)
 	using VertexIterator = typename GraphTraits<G>::VertexIterator;
 	using OutEdgeIterator = typename GraphTraits<G>::OutEdgeIterator;
 
-	auto vertexIndexMap = params[Keys::vertexIndexMap];
+	auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(vertexIndexTag)];
+	auto weightMap = params[Keys::weightMap | g.edgePropertyMap(edgeWeightTag)];
+	using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
+	typename G::VerticesNumberType n = g.verticesNumber();
+
+    auto distanceMap = params[Keys::distanceMap || calculateVertexIndexComposeMap<WeightType>(indexMap, n)];
+    using DistanceType = typename MapTraits<decltype(distanceMap)>::ValueType;
+
+    auto distanceCombine = params[Keys::distanceCombine | std::plus<DistanceType>()];
+    auto distanceLess = params[Keys::distanceCompare | std::less<DistanceType>()];
+    auto distanceInf = params[Keys::distanceInf | std::numeric_limits<DistanceType>::max()];
+    auto distanceZero = params[Keys::distanceZero | DistanceType()];
+
+    std::pair<VertexIterator, VertexIterator> vertices = g.vertices();
+
+    auto calculateDefaultHeap = [&]() {
+        auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, -1));
+
+//        auto heapIndexMap = makeComposeMap(indexMap, UniqueArrayMap<std::size_t>(n, -1));
 
 
-//	auto heap = params[Keys::heap];
-//	auto colorMap = params[Keys::colorMap];
-//	auto black = params[Keys::black];
-//	auto white = params[Keys::white];
-//	auto weightMap = params[Keys::weightMap];
-//	auto startVertex = params[Keys::startVertex];
-//
-//
-//
-//	auto distanceMap = params[Keys::distanceMap];
-//	auto distanceCombine = params[Keys::distanceCombine];
-//	auto distanceLess = params[Keys::distanceCompare];
-//	auto distanceInf = params[Keys::distanceInf];
-//	auto distanceZero = params[Keys::distanceZero];
-//
-//	std::pair<VertexIterator, VertexIterator> vi = g.vertices();
-//
-//	for(;vi.first != vi.second; vi.first ++)
-//	{
-//		colorMap[*vi.first] = white();
-//		distanceMap[*vi.first] = distanceInf;
-//	}
-//	distanceMap[startVertex] = distanceZero;
-//	colorMap[startVertex] = black();
-//	heap.push(startVetex);
-//	while(!heap.empty())
-//	{
-//		VertexDescriptor u = heap.top();
-//		heap.pop();
-//		std::pair<OutEdgeIterator, OutEdgeIterator> oei = g.outEdges(u);
-//		for(OutEdgeIterator ei = oei.first; ei != oei.second; ++ei)
-//		{
-//			EdgeDescriptor e = *ei;
-//			VertexDescriptor source = u, target = lz::opposite(g, e, u);
-//
-//			auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
-//			if(distanceLess(distanceTmp, distanceMap[target]))
-//			{
-//				if(colorMap[target] == white())
-//				{
-//					colorMap[target] = black();
-//					heap.push(target);
-//				}
-//				else
-//				{
-//					heap.decrease(target, distanceTmp);
-//				}
-//			}
-//		}
-//	}
+        auto heapLess = [&](const VertexDescriptor &x, const VertexDescriptor &y) {
+            return distanceLess(distanceMap[y], distanceMap[x]);
+        };
+        using DefaultHeap = lz::IndexableHeap<VertexDescriptor, decltype(heapIndexMap),  std::size_t(-1), decltype(heapLess)>;
+        DefaultHeap heap(heapIndexMap, heapLess);
+        return std::move(heap);
+    };
+
+    auto heap = params[Keys::heap || calculateDefaultHeap];
+    auto edgeRelexed = params[Keys::edgeRelaxed | [&](auto ...){
+
+
+    }];
+
+//    std::for_each(vertices.first, vertices.second, [&](const VertexDescriptor& u){
+
+    for(auto u: vertices)
+    distanceMap[u] = distanceInf;
+//    });
+
+	distanceMap[startVertex] = distanceZero;
+	heap.push(startVertex);
+
+	while(!heap.isEmpty())
+	{
+		VertexDescriptor u = heap.top();
+		heap.pop();
+
+		for(auto e: g.outEdges(u))
+		{
+		    VertexDescriptor source = u, target = lz::opposite(g, e, u);
+            auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
+            if(distanceLess(distanceTmp, distanceMap[target]))
+            {
+                distanceMap[target] = distanceTmp;
+                edgeRelexed(e, u);
+                if(!heap.contains(target))
+                {
+                    heap.push(target);
+                }
+                else
+                {
+                    heap.decrease(target);
+                }
+            }
+		}
+	}
 
 
 

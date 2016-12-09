@@ -26,14 +26,6 @@ struct ColorTraits
 	static ColorType red() { return ColorType::Red; }
 };
 
-//template<typename ColorType = int>
-//struct ColorTraits
-//{
-//	using Type = ColorType;
-//	static ColorType white() { return 0; }
-//	static ColorType black() { return 1; }
-//};
-
 
 template<typename Derived>
 struct FacadeBase
@@ -77,65 +69,6 @@ struct LessThanComparableFacade
 
 
 
-
-/*
- *  A params is param list, and every param is a member function in params.
- *  Every param have a default value.
- */
-
-//struct ParamNotFound{};
-
-//	namespace UtilityPrivate{
-//
-//		template<typename UserParam, typename DefaultParam>
-//		struct ChooseParam
-//		{
-//			static UserParam& get(UserParam &up, DefaultParam &dp)
-//			{
-//				return up;
-//			}
-//		};
-//		template<typename DefaultParam>
-//		struct ChooseParam<ParamNotFound, DefaultParam>
-//		{
-//			static DefaultParam& get(ParamNotFound &up, DefaultParam &dp)
-//			{
-//				return dp;
-//			}
-//		};
-//
-//	} // UtilityPrivate
-
-//template<typename ParamRetrunType, typename Default>
-//auto chooseParamReturnValue(ParamRetrunType && p, Default && d) ->
-//decltype(UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
-//									 typename std::remove_reference<Default>::type >::get(p, d))
-//{
-//	return UtilityPrivate::ChooseParam<typename std::remove_reference<ParamRetrunType>::type,
-//									   typename std::remove_reference<Default>::type>::get(p, d);
-//}
-//
-//
-//
-//// Choose the param return type we hoped according to the ParamType, DefaultType
-//template<typename ParamReturnType, typename DefaultType>
-//using ChooseParamReturnType =  typename std::conditional<std::is_same<ParamReturnType, ParamNotFound>::value,
-//														 DefaultType,
-//														 ParamReturnType>::type;
-//
-//template<typename ParamName>
-//using MemberFunctionReturnType =
-//		typename decltype(std::mem_fn(ParamName()))::result_type;
-//
-//
-//
-
-//
-//template<typename... Args>
-//void emptyFunction(Args... args)
-//{
-//
-//}
 
 
 

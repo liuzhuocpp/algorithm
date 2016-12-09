@@ -294,12 +294,21 @@ auto makeEdgePropertyMap(const G &g, Tag tag)
 template<typename ValueType, typename VertexIndexMap, typename VertexNumberType>
 auto
 makeVertexIndexComposeMap(VertexIndexMap indexMap, VertexNumberType n)
-->decltype(makeComposeMap(indexMap, SharedArrayMap<ValueType>(n)) )
+    ->decltype(makeComposeMap(indexMap, SharedArrayMap<ValueType>(n)) )
 
 {
-
 	return makeComposeMap(indexMap, SharedArrayMap<ValueType>(n) );
 }
+
+
+template<typename ValueType, typename VertexIndexMap, typename VertexNumberType>
+auto
+calculateVertexIndexComposeMap(VertexIndexMap indexMap, VertexNumberType n)
+    ->decltype(std::bind(makeVertexIndexComposeMap<ValueType, VertexIndexMap, VertexNumberType>, indexMap, n))
+{
+    return std::bind(makeVertexIndexComposeMap<ValueType, VertexIndexMap, VertexNumberType>, indexMap, n);
+}
+
 
 
 

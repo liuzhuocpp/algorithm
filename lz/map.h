@@ -55,11 +55,50 @@ public:
     {
     }
 
+    SharedArrayMap(size_t n, const _ValueType &val) :
+                sp(new _ValueType[n], std::default_delete<_ValueType[]>())
+    {
+
+        std::fill(sp.get(), sp.get(), val);
+    }
+
     auto operator[](ptrdiff_t d) const ->decltype(sp.get()[d])
     {
         return sp.get()[d];
     }
 };
+
+
+
+template<typename _ValueType>
+struct UniqueArrayMap: public MapFacade<std::ptrdiff_t, _ValueType>
+{
+private:
+    std::unique_ptr<_ValueType, std::default_delete<_ValueType[]> > sp;
+public:
+
+    UniqueArrayMap(): sp(nullptr) {}
+
+    UniqueArrayMap(size_t n) :
+            sp(new _ValueType[n])
+    {
+    }
+
+    UniqueArrayMap(size_t n, const _ValueType &val) :
+                sp(new _ValueType[n])
+    {
+
+        std::fill(sp.get(), sp.get(), val);
+    }
+
+    auto operator[](ptrdiff_t d) const ->decltype(sp.get()[d])
+    {
+        return sp.get()[d];
+    }
+};
+
+
+
 
 template<typename Key>
 struct IdentityMap: public MapFacade<Key, Key>

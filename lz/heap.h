@@ -8,6 +8,10 @@
 #include "lz/map.h"
 namespace lz {
 
+
+
+using namespace std;
+
 namespace HeapPrivate {
 
 template<typename RandomIterator>
@@ -58,6 +62,7 @@ public:
     static void pop(RandomIterator begin, RandomIterator end, const Less &less = Less(),
             const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
     {
+        if(end - begin <= 1) return ;
         beforeKeyChange(begin, *(end - 1));
         *begin = *(end - 1);
         down(begin, end - 1, begin, less, beforeKeyChange);
@@ -77,7 +82,7 @@ public:
             const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
     {
         IndexType u = it - begin;
-        if (Less()(*(begin + p(u)), *it))
+        if (less(*(begin + p(u)), *it))
         {
             up(begin, end, it, less, beforeKeyChange);
         }
@@ -116,7 +121,7 @@ protected:
         IndexType n = end - begin, u = it - begin;
         while (u != 0)
         {
-            if (Less()(a[u], a[p(u)]))
+            if (less(a[u], a[p(u)]))
             {
                 break;
             }
@@ -132,8 +137,8 @@ protected:
         while (ls(u) < n)
         {
             IndexType son = ls(u);
-            if (Less()(a[son], a[rs(u)])) son = rs(u);
-            if (Less()(a[u], a[son]))
+            if (less(a[son], a[rs(u)])) son = rs(u);
+            if (less(a[u], a[son]))
             {
                 swapWithParent(begin, end, a + son, less, beforeKeyChange);
                 u = son;
@@ -188,10 +193,11 @@ public:
 
 };
 
-template<typename T, typename IndexMap, typename Less = std::less<T>,
-        typename Container = std::vector<T>>
+template<typename T, typename IndexMap, typename MapTraits<IndexMap>::ValueType nullIndex= (typename MapTraits<IndexMap>::ValueType)-1,
+        typename Less = std::less<T>, typename Container = std::vector<T>>
 class IndexableHeap
 {
+public:
     IndexMap indexMap;
     Less less;
     Container c;
@@ -203,6 +209,7 @@ class IndexableHeap
         IndexMap& indexMap;
         void operator()(RandomIterator cnt, const T &key) const
         {
+            indexMap[*cnt] = nullIndex;
             indexMap[key] = cnt - c.begin();
         }
     };
@@ -212,12 +219,12 @@ public:
     using KeyType = T;
     using KeyCompare = Less;
     using SizeType = typename Container::size_type;
-    IndexableHeap(IndexMap indexMap, const Less& less = Less(), const Container &c = Container()) :
+    IndexableHeap(IndexMap indexMap, const Less& less , const Container &c) :
             indexMap(indexMap), less(less), c(c)
     {
     }
 
-    IndexableHeap(IndexMap indexMap, const Less& less, Container &&c = Container()) :
+    IndexableHeap(IndexMap indexMap, const Less& less= Less(), Container &&c = Container()) :
             indexMap(indexMap), less(less), c(std::move(c))
     {
     }
@@ -226,13 +233,13 @@ public:
     {
         indexMap[key] = c.size();
         c.push_back(key);
-
         HeapImpl::push(c.begin(), c.end(), less, BeforeKeyChange { c, indexMap });
     }
 
     void pop()
     {
-//        indexMap[c[0]] = -1;
+        indexMap[c[0]] = nullIndex;
+//        return ;
         HeapImpl::pop(c.begin(), c.end(), less, BeforeKeyChange { c, indexMap });
         c.pop_back();
     }
@@ -252,30 +259,67 @@ public:
         return c.empty();
     }
 
+    bool contains(const KeyType& indexKey) const
+    {
+        return indexMap[indexKey] != nullIndex;
+    }
+
+    void decrease(const KeyType& indexKey)
+    {
+        HeapImpl::decrease(c.begin(), c.end(), c.begin() + indexMap[indexKey], less,
+                BeforeKeyChange {c, indexMap });
+    }
+
+    void increase(const KeyType& indexKey)
+    {
+        HeapImpl::increase(c.begin(), c.end(), c.begin() + indexMap[indexKey], less,
+                BeforeKeyChange { c, indexMap });
+    }
+
+    void update(const KeyType& indexKey)
+    {
+        HeapImpl::update(c.begin(), c.end(), c.begin() + indexMap[indexKey], less,
+                        BeforeKeyChange { c, indexMap });
+    }
+
+
     void decrease(const KeyType& indexKey, const KeyType& newKey)
     {
-        SizeType index = indexMap[indexKey];
-        c[index] = newKey;
-        indexMap[newKey] = index;
-        HeapImpl::decrease(c.begin(), c.end(), c.begin() + index, less, BeforeKeyChange { c,
-                indexMap });
+        set(indexKey, newKey);
+        HeapImpl::decrease(c.begin(), c.end(), c.begin() + indexMap[newKey], less,
+                        BeforeKeyChange {c, indexMap });
     }
 
     void increase(const KeyType& indexKey, const KeyType& newKey)
     {
-        SizeType index = indexMap[indexKey];
-        c[index] = newKey;
-        indexMap[newKey] = index;
-        HeapImpl::increase(c.begin(), c.end(), c.begin() + index, less, BeforeKeyChange { c,
-                indexMap });
+        set(indexKey, newKey);
+        HeapImpl::increase(c.begin(), c.end(), c.begin() + indexMap[newKey], less,
+                BeforeKeyChange {c, indexMap });
     }
     void update(const KeyType& indexKey, const KeyType& newKey)
     {
+        set(indexKey, newKey);
+        HeapImpl::update(c.begin(), c.end(), c.begin() + indexMap[newKey], less,
+                BeforeKeyChange {c, indexMap });
+    }
+    void out() const
+    {
+        cout << "[";
+        for(int i = 0; i < c.size(); ++ i)
+        {
+            cout << c[i] << " (" <<  indexMap[c[i]] << "), ";
+        }
+        cout << "]" << endl;
+
+    }
+
+private:
+    void set(const KeyType& indexKey, const KeyType& newKey)
+    {
         SizeType index = indexMap[indexKey];
+        indexMap[indexKey] = nullIndex;
         c[index] = newKey;
         indexMap[newKey] = index;
-        HeapImpl::update(c.begin(), c.end(), c.begin() + index, less,
-                BeforeKeyChange { c, indexMap });
     }
 
 };
