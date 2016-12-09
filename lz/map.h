@@ -59,7 +59,7 @@ public:
                 sp(new _ValueType[n], std::default_delete<_ValueType[]>())
     {
 
-        std::fill(sp.get(), sp.get(), val);
+        std::fill(sp.get(), sp.get() + n, val);
     }
 
     auto operator[](ptrdiff_t d) const ->decltype(sp.get()[d])

@@ -59,7 +59,7 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     std::pair<VertexIterator, VertexIterator> vertices = g.vertices();
 
     auto calculateDefaultHeap = [&]() {
-        auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, -1));
+        auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, (std::size_t)-1));
 
         auto heapLess = [&](const VertexDescriptor &x, const VertexDescriptor &y) {
             return distanceLess(distanceMap[y], distanceMap[x]);
@@ -84,20 +84,30 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
 		VertexDescriptor u = heap.top();
 		heap.pop();
 
+//		cout << "U : " << u << endl;
 		for(auto e: g.outEdges(u))
 		{
 		    VertexDescriptor source = u, target = lz::opposite(g, e, u);
             auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
+//            cout << "distance: " << target << " " <<  distanceTmp << " " << distanceMap[target] << endl;
             if(distanceLess(distanceTmp, distanceMap[target]))
             {
+//                cout << "ENTER--" << endl;
                 distanceMap[target] = distanceTmp;
                 edgeRelexed(e, u);
+//                cout << "ENTER--&&" << endl;
+//                for(int i = 0; i < 10; ++ i)
+//                {
+//                    cout << "heapIndexMap: " << i << " " << heap.indexMap[i] <<   endl;
+//                }
                 if(!heap.contains(target))
                 {
+//                    cout << "in" << endl;
                     heap.push(target);
                 }
                 else
                 {
+                    cout << "sb" << endl;
                     heap.decrease(target);
                 }
             }
