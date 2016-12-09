@@ -16,7 +16,6 @@ using namespace std;
 namespace DijkstraShortestPathsKeywords {
 
     LZ_PARAMETER_KEYWORD(tag, weightMap)
-	LZ_PARAMETER_KEYWORD(tag, heap)
     LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
 
 	LZ_PARAMETER_KEYWORD(tag, distanceMap)
@@ -25,13 +24,8 @@ namespace DijkstraShortestPathsKeywords {
 	LZ_PARAMETER_KEYWORD(tag, distanceInf)
 	LZ_PARAMETER_KEYWORD(tag, distanceZero)
 
-	LZ_PARAMETER_KEYWORD(tag, edgeRelaxed)
-
-
-//	LZ_PARAMETER_KEYWORD(tag, colorMap)
-//	LZ_PARAMETER_KEYWORD(tag, black)
-//	LZ_PARAMETER_KEYWORD(tag, white)
-
+    LZ_PARAMETER_KEYWORD(tag, heap)
+    LZ_PARAMETER_KEYWORD(tag, edgeRelaxed)
 }
 
 /*
@@ -50,6 +44,7 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
 
 	auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(vertexIndexTag)];
 	auto weightMap = params[Keys::weightMap | g.edgePropertyMap(edgeWeightTag)];
+
 	using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
 	typename G::VerticesNumberType n = g.verticesNumber();
 
@@ -66,9 +61,6 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     auto calculateDefaultHeap = [&]() {
         auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, -1));
 
-//        auto heapIndexMap = makeComposeMap(indexMap, UniqueArrayMap<std::size_t>(n, -1));
-
-
         auto heapLess = [&](const VertexDescriptor &x, const VertexDescriptor &y) {
             return distanceLess(distanceMap[y], distanceMap[x]);
         };
@@ -79,15 +71,10 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
 
     auto heap = params[Keys::heap || calculateDefaultHeap];
     auto edgeRelexed = params[Keys::edgeRelaxed | [&](auto ...){
-
-
     }];
 
-//    std::for_each(vertices.first, vertices.second, [&](const VertexDescriptor& u){
 
-    for(auto u: vertices)
-    distanceMap[u] = distanceInf;
-//    });
+    for(auto u: vertices) distanceMap[u] = distanceInf;
 
 	distanceMap[startVertex] = distanceZero;
 	heap.push(startVertex);

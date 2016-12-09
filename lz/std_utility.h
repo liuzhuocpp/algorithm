@@ -11,7 +11,7 @@
 
 /*
  *
- * Some extend utility function for std library
+ * Some utility functions for std library
  */
 
 namespace std {
