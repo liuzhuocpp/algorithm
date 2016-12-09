@@ -8,12 +8,27 @@
 #include "lz/heap.h"
 #include "lz/parameter.h"
 #include "lz/graph_utility.h"
-#include "lz/std_utility.h"
+
+#include "lz/std_utility.h" // for begin(std::pair<Iterator, Iterator>), end(std::pair<Iterator, Iterator>),
 
 namespace lz {
 
 using namespace std;
 namespace DijkstraShortestPathsKeywords {
+
+/*
+ * weightMap: readable , the key type should be EdgeDescriptor.
+ * vertexIndexMap: readable, the key type should be VertexDescriptor, the value type should be integer type
+ * distanceMap: readable and writable, the key type should be VertexDescriptor
+ * distanceCombine: the binary function that combines the vertex distance and edge weight
+ * distanceCompare: the binary function that compare the two the vertex distance
+ * distanceInf: the infinite number of the distance type
+ * distanceZero: the number of the distance type representing zero
+ * heap: IndexableHeap concept
+ * edgeRelaxed: event visitor function containing two paramaters
+ *
+ *
+ */
 
     LZ_PARAMETER_KEYWORD(tag, weightMap)
     LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
@@ -73,53 +88,42 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     auto edgeRelexed = params[Keys::edgeRelaxed | [&](auto ...){
     }];
 
-
     for(auto u: vertices) distanceMap[u] = distanceInf;
 
 	distanceMap[startVertex] = distanceZero;
 	heap.push(startVertex);
 
-	while(!heap.isEmpty())
+	while(!heap.empty())
 	{
 		VertexDescriptor u = heap.top();
 		heap.pop();
-
-//		cout << "U : " << u << endl;
 		for(auto e: g.outEdges(u))
 		{
 		    VertexDescriptor source = u, target = lz::opposite(g, e, u);
             auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
-//            cout << "distance: " << target << " " <<  distanceTmp << " " << distanceMap[target] << endl;
+
             if(distanceLess(distanceTmp, distanceMap[target]))
             {
-//                cout << "ENTER--" << endl;
                 distanceMap[target] = distanceTmp;
                 edgeRelexed(e, u);
-//                cout << "ENTER--&&" << endl;
-//                for(int i = 0; i < 10; ++ i)
-//                {
-//                    cout << "heapIndexMap: " << i << " " << heap.indexMap[i] <<   endl;
-//                }
                 if(!heap.contains(target))
                 {
-//                    cout << "in" << endl;
                     heap.push(target);
                 }
                 else
                 {
-                    cout << "sb" << endl;
                     heap.decrease(target);
                 }
             }
 		}
 	}
 
-
-
-
-
-
 }
+
+
+
+
+
 
 
 

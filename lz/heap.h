@@ -193,6 +193,43 @@ public:
 
 };
 
+
+/**
+
+Heap concept:
+    void empty(const KeyType& key);
+    void size(const KeyType& key);
+    void push(const KeyType& key);
+    void pop(const KeyType& key);
+    const KeyType& top();
+
+
+IndexableHeap concept:
+    Heap concept
+    void decrease(const KeyType& key);
+    void increase(const KeyType& key);
+    void update(const KeyType& key);
+    void contains(const KeyType& key);
+
+ */
+
+
+
+
+/**
+ * IndexableHeap concept:
+ * void push(const KeyType& key);
+ * void pop(const KeyType& key);
+ * const KeyType& top();
+ * void decrease(const KeyType& key);
+ * void increase(const KeyType& key);
+ * void update(const KeyType& key);
+ * void contains(const KeyType& key);
+ * void empty(const KeyType& key);
+ * void size(const KeyType& key);
+ */
+
+
 template<typename T, typename IndexMap, typename MapTraits<IndexMap>::ValueType nullIndex= (typename MapTraits<IndexMap>::ValueType)-1,
         typename Less = std::less<T>, typename Container = std::vector<T>>
 class IndexableHeap
@@ -239,7 +276,6 @@ public:
     void pop()
     {
         indexMap[c[0]] = nullIndex;
-//        return ;
         HeapImpl::pop(c.begin(), c.end(), less, BeforeKeyChange { c, indexMap });
         c.pop_back();
     }
@@ -254,7 +290,7 @@ public:
         return c.size();
     }
 
-    bool isEmpty() const
+    bool empty() const
     {
         return c.empty();
     }

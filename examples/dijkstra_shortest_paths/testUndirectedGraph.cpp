@@ -22,6 +22,8 @@ int main()
     using EP = Property<EdgeWeightTag, int>;
 
     using G = AdjacencyList<UndirectedGraphTag, NoProperty, EP>;
+//    using G = AdjacencyList<DirectedGraphTag, NoProperty, EP>;
+
     G g(n);
     using namespace DijkstraShortestPathsKeywords;
 
