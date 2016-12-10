@@ -6,6 +6,42 @@
 
 namespace lz {
 
+
+
+/**
+
+Buffer concept:
+    A Buffer is something in which items can be put and removed.
+    It does not require any particular ordering of how the items are stored or in what order they will appear when removed.
+
+    using SizeType
+    using KeyType
+    SizeType size();
+    bool empty();
+    void pop();
+    const KeyType& top();
+    void push(const KeyType& key);
+
+
+IndexableBuffer:
+    model a Buffer
+    bool contains(const KeyType &);
+    void update(const KeyType&);
+    void decrease(const KeyType&);
+    void increase(const KeyType&);
+
+ */
+
+
+
+void emptyFunction(auto ...)
+{
+
+}
+
+
+
+
 enum class DefaultColorType: unsigned char
 {
     White,
