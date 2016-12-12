@@ -8,12 +8,33 @@
 #include "lz/heap.h"
 #include "lz/parameter.h"
 #include "lz/graph_utility.h"
+#include "lz/breadth_first_search.h"
 
 #include "lz/std_utility.h" // for begin(std::pair<Iterator, Iterator>), end(std::pair<Iterator, Iterator>),
 
 namespace lz {
 
 using namespace std;
+
+namespace DijkstraShortestPathsPrivate {
+
+    template<typename Heap>
+    struct Marker
+    {
+        using Vertex = typename Heap::KeyType;
+        Heap &heap;
+        bool isMark(Vertex u)
+        {
+            return heap.contains(u);
+        }
+        void mark(Vertex u)
+        {
+            // do nothing
+        }
+    };
+
+} // DijkstraShortestPathsPrivate
+
 namespace DijkstraShortestPathsKeywords {
 
 /*
@@ -26,8 +47,7 @@ distanceCompare: the binary function that compare the two the vertex distance
 distanceInf: the infinite number of the distance type
 distanceZero: the number of the distance type representing zero
 heap: IndexableHeap concept
-edgeRelaxed: event visitor function containing two paramaters
-
+edgeRelaxed: event visitor function containing three paramaters
 
  */
 
@@ -51,32 +71,26 @@ edgeRelaxed: event visitor function containing two paramaters
 template<typename G, typename Params = EmptyParamPack >
 void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex, const Params &params = EmptyParamPack())
 {
-	namespace Keys = DijkstraShortestPathsKeywords;
+    namespace Keys = DijkstraShortestPathsKeywords;
+    using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
+    using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
 
-	using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
-	using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
-	using VertexIterator = typename GraphTraits<G>::VertexIterator;
-	using OutEdgeIterator = typename GraphTraits<G>::OutEdgeIterator;
+    auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(vertexIndexTag)];
 
-	auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(vertexIndexTag)];
-	auto weightMap = params[Keys::weightMap | g.edgePropertyMap(edgeWeightTag)];
-
-	using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
-	typename G::VerticesNumberType n = g.verticesNumber();
-
+    auto weightMap = params[Keys::weightMap | g.edgePropertyMap(edgeWeightTag)];
+    auto n = g.verticesNumber();
+    using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
     auto distanceMap = params[Keys::distanceMap || calculateVertexIndexComposeMap<WeightType>(indexMap, n)];
     using DistanceType = typename MapTraits<decltype(distanceMap)>::ValueType;
-
     auto distanceCombine = params[Keys::distanceCombine | std::plus<DistanceType>()];
     auto distanceLess = params[Keys::distanceCompare | std::less<DistanceType>()];
     auto distanceInf = params[Keys::distanceInf | std::numeric_limits<DistanceType>::max()];
     auto distanceZero = params[Keys::distanceZero | DistanceType()];
 
-    std::pair<VertexIterator, VertexIterator> vertices = g.vertices();
+    auto vertices = g.vertices();
 
     auto calculateDefaultHeap = [&]() {
         auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, (std::size_t)-1));
-
         auto heapLess = [&](const VertexDescriptor &x, const VertexDescriptor &y) {
             return distanceLess(distanceMap[y], distanceMap[x]);
         };
@@ -86,40 +100,150 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     };
 
     auto heap = params[Keys::heap || calculateDefaultHeap];
-    auto edgeRelexed = params[Keys::edgeRelaxed | [&](auto ...){
-    }];
+    auto edgeRelaxed = params[Keys::edgeRelaxed | emptyFunction];
+
+    struct Marker
+    {
+        using Heap = decltype(heap);
+        using Vertex = typename Heap::KeyType;
+        Heap &heap;
+        bool isMark(Vertex u)
+        {
+            return heap.contains(u);
+        }
+        void mark(Vertex u)
+        {
+            // do nothing
+        }
+    };
+
+//    auto marker = DijkstraShortestPathsPrivate::Marker<decltype(heap)>{heap};
+    auto marker = Marker{heap};
+
 
     for(auto u: vertices) distanceMap[u] = distanceInf;
+    distanceMap[startVertex] = distanceZero;
 
-	distanceMap[startVertex] = distanceZero;
-	heap.push(startVertex);
+    breadthFirstSearch(g, startVertex, (
+            BreadthFirstSearchKeywords::buffer = heap,
+            BreadthFirstSearchKeywords::marker = marker,
+            BreadthFirstSearchKeywords::treeEdge =
+                [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
 
-	while(!heap.empty())
-	{
-		VertexDescriptor u = heap.top();
-		heap.pop();
-		for(auto e: g.outEdges(u))
-		{
-		    VertexDescriptor source = u, target = lz::opposite(g, e, u);
-            auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
+                    auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
+                    if(distanceLess(distanceTmp, distanceMap[target]))
+                    {
+                        distanceMap[target] = distanceTmp;
+                        edgeRelaxed(e, source, target);
+                    }
 
-            if(distanceLess(distanceTmp, distanceMap[target]))
-            {
-                distanceMap[target] = distanceTmp;
-                edgeRelexed(e, u);
-                if(!heap.contains(target))
-                {
-                    heap.push(target);
+                },
+            BreadthFirstSearchKeywords::notTreeEdge =
+                [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
+
+                    auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
+                    if(distanceLess(distanceTmp, distanceMap[target]))
+                    {
+                        distanceMap[target] = distanceTmp;
+                        heap.decrease(target);
+                        edgeRelaxed(e, source, target);
+                    }
                 }
-                else
-                {
-                    heap.decrease(target);
-                }
-            }
-		}
-	}
+            ));
 
 }
+
+
+
+/*
+ *
+ * G must be a VertexListGraph and IncidenceGraph
+ */
+//template<typename G, typename Params = EmptyParamPack >
+//void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex, const Params &params = EmptyParamPack())
+//{
+//	namespace Keys = DijkstraShortestPathsKeywords;
+//
+//	using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
+//	using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
+//	using VertexIterator = typename GraphTraits<G>::VertexIterator;
+//	using OutEdgeIterator = typename GraphTraits<G>::OutEdgeIterator;
+//
+//	auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(vertexIndexTag)];
+//	auto weightMap = params[Keys::weightMap | g.edgePropertyMap(edgeWeightTag)];
+//
+//	using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
+//	typename G::VerticesNumberType n = g.verticesNumber();
+//
+//    auto distanceMap = params[Keys::distanceMap || calculateVertexIndexComposeMap<WeightType>(indexMap, n)];
+//    using DistanceType = typename MapTraits<decltype(distanceMap)>::ValueType;
+//
+//    auto distanceCombine = params[Keys::distanceCombine | std::plus<DistanceType>()];
+//    auto distanceLess = params[Keys::distanceCompare | std::less<DistanceType>()];
+//    auto distanceInf = params[Keys::distanceInf | std::numeric_limits<DistanceType>::max()];
+//    auto distanceZero = params[Keys::distanceZero | DistanceType()];
+//
+//    std::pair<VertexIterator, VertexIterator> vertices = g.vertices();
+//
+//    auto calculateDefaultHeap = [&]() {
+//        auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, (std::size_t)-1));
+//
+//        auto heapLess = [&](const VertexDescriptor &x, const VertexDescriptor &y) {
+//            return distanceLess(distanceMap[y], distanceMap[x]);
+//        };
+//        using DefaultHeap = lz::IndexableHeap<VertexDescriptor, decltype(heapIndexMap),  std::size_t(-1), decltype(heapLess)>;
+//        DefaultHeap heap(heapIndexMap, heapLess);
+//        return std::move(heap);
+//    };
+//
+//    auto heap = params[Keys::heap || calculateDefaultHeap];
+//    auto edgeRelexed = params[Keys::edgeRelaxed | [&](auto ...){
+//    }];
+//
+//    for(auto u: vertices) distanceMap[u] = distanceInf;
+//
+//	distanceMap[startVertex] = distanceZero;
+//	heap.push(startVertex);
+//
+//	while(!heap.empty())
+//	{
+//		VertexDescriptor u = heap.top();
+//		heap.pop();
+//		for(auto e: g.outEdges(u))
+//		{
+//		    VertexDescriptor source = u, target = lz::opposite(g, e, u);
+//            auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
+//
+//            if(distanceLess(distanceTmp, distanceMap[target]))
+//            {
+//                distanceMap[target] = distanceTmp;
+//                edgeRelexed(e, u);
+//                if(!heap.contains(target))
+//                {
+//                    heap.push(target);
+//                }
+//                else
+//                {
+//                    heap.decrease(target);
+//                }
+//            }
+//		}
+//	}
+//
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

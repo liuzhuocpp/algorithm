@@ -197,6 +197,7 @@ public:
 /**
 
 Heap concept:
+    using KeyType
     void empty(const KeyType& key);
     void size(const KeyType& key);
     void push(const KeyType& key);

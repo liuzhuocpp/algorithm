@@ -22,6 +22,8 @@ int main()
     using EP = Property<EdgeWeightTag, int>;
 
     using G = AdjacencyList<DirectedGraphTag, NoProperty, EP>;
+    using Edge = G::EdgeDescriptor;
+    using Vertex = G::VertexDescriptor;
     G g(n);
     using namespace DijkstraShortestPathsKeywords;
 
@@ -42,11 +44,9 @@ int main()
 
     dijkstraShortestPaths(g, 0, (
 
-            DijkstraShortestPathsKeywords::edgeRelaxed = [&](G::EdgeDescriptor e, G::VertexDescriptor u)
+            DijkstraShortestPathsKeywords::edgeRelaxed = [&](Edge e, Vertex u, Vertex to)
             {
-//                cout << "relaxed" << endl;
-                G::VertexDescriptor other = opposite(g, e, u);
-                p[other] = u;
+                p[to] = u;
 //                cout << "relaxed:::" << endl;
             }
           ));
@@ -55,6 +55,21 @@ int main()
     {
         cout << "tree edge: " << i << " " << p[i] << endl;
     }
+
+
+    assert(p[0] == -1);
+    assert(p[1] ==  0);
+    assert(p[2] ==  0);
+    assert(p[3] ==  0);
+    assert(p[4] ==  2);
+    assert(p[5] ==  3);
+    assert(p[6] ==  5);
+    assert(p[7] ==  6);
+    assert(p[8] ==  0);
+    assert(p[9] ==  -1);
+
+
+
 
 
 
