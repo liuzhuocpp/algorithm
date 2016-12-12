@@ -2,6 +2,8 @@
 #define UTILITY_H
 
 #include <functional>
+#include <vector>
+#include "lz/map.h"
 // some little and mess functions
 
 namespace lz {
@@ -22,7 +24,7 @@ Buffer concept:
     const KeyType& top();
     void push(const KeyType& key);
 
-
+boost::queue
 IndexableBuffer:
     model a Buffer
     bool contains(const KeyType &);
@@ -34,10 +36,62 @@ IndexableBuffer:
 
 
 
-void emptyFunction(auto ...)
+template<typename T, typename Container = std::deque<T>>
+class Queue: public std::queue<T>
 {
 
-}
+    using Base = std::queue<T>;
+
+public:
+    // using std::queue<T> constructors
+    using Base::Base;
+    const typename Base::value_type& top() const
+    {
+        return this->front();
+    }
+};
+
+
+
+
+
+
+
+/*
+
+Marker concept:
+    Mark some element. When a Marker constructed, all elements in this marker are not marked.
+
+
+    using Element
+    bool isMark(Element i) const;
+    void mark(Element i);
+
+ */
+template<typename IndexMap>
+class IndexMarker
+{
+    IndexMap indexMap;
+    std::vector<bool> v;
+public:
+    using Element = typename MapTraits<IndexMap>::KeyType;
+    IndexMarker(IndexMap indexMap, std::size_t n):indexMap(indexMap), v(n, 0) {}
+    bool isMark(const Element &i) const
+    {
+        return v[indexMap[i]];
+    }
+    void mark(Element i)
+    {
+        v[indexMap[i]] = true;
+    }
+};
+
+
+
+
+auto emptyFunction = [](auto...) {};
+
+
 
 
 

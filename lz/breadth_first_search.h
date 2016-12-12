@@ -20,19 +20,16 @@ namespace lz {
 
 namespace BreadthFirstSearchKeywords {
 
-    LZ_PARAMETER_KEYWORD(tag, initializeVertex)
-    LZ_PARAMETER_KEYWORD(tag, startVertex)
+
     LZ_PARAMETER_KEYWORD(tag, discoverVertex)
+    LZ_PARAMETER_KEYWORD(tag, examineVertex)
     LZ_PARAMETER_KEYWORD(tag, examineEdge)
     LZ_PARAMETER_KEYWORD(tag, treeEdge)
-    LZ_PARAMETER_KEYWORD(tag, treeEdgeReturn)
     LZ_PARAMETER_KEYWORD(tag, notTreeEdge)
     LZ_PARAMETER_KEYWORD(tag, finishEdge)
     LZ_PARAMETER_KEYWORD(tag, finishVertex)
 
-    LZ_PARAMETER_KEYWORD(tag, colorMap)
-    LZ_PARAMETER_KEYWORD(tag, white)
-    LZ_PARAMETER_KEYWORD(tag, black)
+    LZ_PARAMETER_KEYWORD(tag, marker)
     LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
     LZ_PARAMETER_KEYWORD(tag, buffer)
 
@@ -40,41 +37,63 @@ namespace BreadthFirstSearchKeywords {
 } // namespace BreadthFirstSearchKeywords
 
 /*
+
 G must model a IncidenceGraph, VertexListGraph
 
  */
 template<typename G, typename Params>
-void breadthFirstSearch(const G &g, typename G::VertexDescriptor startVertex,  const Params& params)
+void breadthFirstSearch(const G &g, typename G::VertexDescriptor s,  const Params& params)
 {
     using VertexDescriptor = typename G::VertexDescriptor;
     using EdgeDescriptor = typename G::EdgeDescriptor;
+
     namespace Keys = BreadthFirstSearchKeywords;
-    auto black = params[Keys::black];
-    auto white = params[Keys::black];
-    auto colorMap = params[Keys::black];
-    auto buffer = params[Keys::buffer];
 
-    using ColorType = typename MapTraits<decltype(colorMap)>::ValueType;
-    for(auto u: g.vertices())
-    {
-        colorMap[u] = white();
-    }
+    auto n = g.verticesNumber();
 
-    colorMap[startVertex] = black();
-    buffer.push(startVertex);
+    auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(vertexIndexTag)];
+    auto marker = params[Keys::marker || [&](){
+        return std::move(lz::IndexMarker<decltype(indexMap) >(indexMap, n) );
+    }];
+    auto buffer = params[Keys::buffer || [](){
+        return Queue<VertexDescriptor>();
+    }];
+
+    auto discoverVertex = params[Keys::discoverVertex | emptyFunction];
+    auto examineVertex = params[Keys::examineVertex | emptyFunction];
+    auto examineEdge = params[Keys::examineEdge | emptyFunction];
+    auto treeEdge = params[Keys::treeEdge | emptyFunction];
+    auto notTreeEdge = params[Keys::notTreeEdge | emptyFunction];
+    auto finishEdge = params[Keys::finishEdge | emptyFunction];
+    auto finishVertex = params[Keys::finishVertex | emptyFunction];
+
+    marker.mark(s);
+    buffer.push(s);
+    discoverVertex(s);
+
     while(!buffer.empty())
     {
         VertexDescriptor u = buffer.top();
         buffer.pop();
+        examineVertex(u);
         for(auto e: g.outEdges(u))
         {
-            VertexDescriptor target = opposit(g, e, u);
-            if(colorMap[target] == white())
+            examineEdge(e, u);
+            VertexDescriptor target = opposite(g, e, u);
+            if(!marker.isMark(target))
             {
-                colorMap[target] = black();
+                treeEdge(e, u, target);
+                marker.mark(target);
                 buffer.push(target);
+                discoverVertex(target);
             }
+            else
+            {
+                notTreeEdge(e, u, target);
+            }
+            finishEdge(e, u, target);
         }
+        finishVertex(u);
     }
 }
 
