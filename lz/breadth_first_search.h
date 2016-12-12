@@ -76,12 +76,17 @@ void breadthFirstSearch(const G &g, typename G::VertexDescriptor s,  const Param
         VertexDescriptor u = buffer.top();
         buffer.pop();
         examineVertex(u);
+        std::cout << "U  " << u << std::endl;
         for(auto e: g.outEdges(u))
         {
+
+//            std::cout << "E  " << e << std::endl;
             examineEdge(e, u);
+
             VertexDescriptor target = opposite(g, e, u);
             if(!marker.isMark(target))
             {
+
                 treeEdge(e, u, target);
                 marker.mark(target);
                 buffer.push(target);
@@ -89,8 +94,12 @@ void breadthFirstSearch(const G &g, typename G::VertexDescriptor s,  const Param
             }
             else
             {
+//                std::cout << "E@@  " << e << std::endl;
                 notTreeEdge(e, u, target);
+//                std::cout << "Eee  " << e << std::endl;
             }
+
+//            std::cout << "E end:  " << e << std::endl;
             finishEdge(e, u, target);
         }
         finishVertex(u);

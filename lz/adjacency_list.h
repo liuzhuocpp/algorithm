@@ -208,6 +208,15 @@ public:
 	using EdgeProperties = EP;
 	using GraphProperties = GP;
 
+	static VertexDescriptor nullVertex()
+	{
+	    return -1;
+	}
+	static EdgeDescriptor nullEdge()
+    {
+        return -1;
+    }
+
 
 
 

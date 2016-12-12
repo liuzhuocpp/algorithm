@@ -45,7 +45,9 @@ class Queue: public std::queue<T>
 public:
     // using std::queue<T> constructors
     using Base::Base;
-    const typename Base::value_type& top() const
+    using KeyType = typename Base::value_type;
+    using SizeType =typename  Base::size_type;
+    const KeyType& top() const
     {
         return this->front();
     }
@@ -85,6 +87,24 @@ public:
         v[indexMap[i]] = true;
     }
 };
+
+template<typename IndexableHeap>
+class IndexableHeapAsMarkerForBFS
+{
+    IndexableHeap &heap;
+public:
+    using Element = typename IndexableHeap::KeyType;
+    IndexableHeapAsMarkerForBFS(IndexableHeap &heap):heap(heap){}
+    bool isMark(const Element &i) const
+    {
+        return heap.contains(i);
+    }
+    void mark(Element i)
+    {
+        // do nothing, because in BFS, heap.push will do this
+    }
+};
+
 
 
 

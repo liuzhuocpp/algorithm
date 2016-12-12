@@ -10,7 +10,12 @@
 
 #include "lz/std_utility.h"
 #include "lz/graph_utility.h"
+#include "lz/utility.h"
+#include "lz/map.h"
+
 #include "lz/parameter.h"
+#include "lz/breadth_first_search.h"
+#include "lz/heap.h"
 
 namespace lz {
 
@@ -23,7 +28,7 @@ namespace PrimMininumSpanningTreeKeywords {
 
     LZ_PARAMETER_KEYWORD(tag, weightMap)
     LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
-    LZ_PARAMETER_KEYWORD(tag, lightEdgeMap)
+    LZ_PARAMETER_KEYWORD(tag, treeEdgeMap)
 
 
     LZ_PARAMETER_KEYWORD(tag, weightCompare)
@@ -31,7 +36,7 @@ namespace PrimMininumSpanningTreeKeywords {
     LZ_PARAMETER_KEYWORD(tag, weightZero)
 
     LZ_PARAMETER_KEYWORD(tag, heap)
-    LZ_PARAMETER_KEYWORD(tag, discoverTreeEdge)
+    LZ_PARAMETER_KEYWORD(tag, rootVertex)
 
 
 } // namesapce PrimMininumSpanningTreeKeywords
@@ -44,58 +49,120 @@ void primMininumSpanningTree(const G &g, const Params &params)
 
     using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
     using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
-    using VertexIterator = typename GraphTraits<G>::VertexIterator;
-    using OutEdgeIterator = typename GraphTraits<G>::OutEdgeIterator;
+
+    auto weightMap = params[Keys::weightMap | g.edgePropertyMap(lz::edgeWeightTag)];
+    auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(lz::vertexIndexTag)];
+
+    using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
+
+    auto n = g.verticesNumber();
+    auto weightLess = params[Keys::weightCompare | std::less<WeightType>() ];
+//    auto treeEdgeMap = params[Keys::treeEdgeMap | calculateVertexIndexComposeMap<EdgeDescriptor>(indexMap, n)];
+    auto treeEdgeMap = params[Keys::treeEdgeMap  ];
+
+    auto getTreeEdgeWeight = [&](VertexDescriptor u) {
+        if(treeEdgeMap[u] == G::nullEdge())
+        {
+            return WeightType();
+        }
+        else
+        {
+            return weightMap[treeEdgeMap[u]];
+        }
+    };
+    auto treeEdgeWeightLess = [&](VertexDescriptor x, VertexDescriptor y) {
+        return weightLess(getTreeEdgeWeight(y), getTreeEdgeWeight(x));
+    };
+
+    auto calculateDefaultHeap = [&]() {
+//        auto heapIndexMap = makeVertexIndexComposeMap<size_t>(indexMap, n, (std::size_t)-1);
+        auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, (std::size_t)-1));
+        using DefaultHeap = lz::IndexableHeap<VertexDescriptor, decltype(heapIndexMap),  std::size_t(-1), decltype(treeEdgeWeightLess)>;
+        return DefaultHeap(heapIndexMap, treeEdgeWeightLess);
+    };
+
+    auto heap = params[Keys::heap || calculateDefaultHeap];
 
 
-    auto weightMap = Params[Keys::weightMap];
-    auto vertexIndexMap = Params[Keys::vertexIndexMap];
-    auto weightLess = Params[Keys::weightCompare];
-    auto weightInf = Params[Keys::weightInf];
-    auto weightZero = Params[Keys::weightZero];
-    auto heap = Params[Keys::heap];
-    auto discoverTreeEdge = Params[Keys::discoverTreeEdge];
-    auto lightEdgeMap = Params[Keys::lightEdgeMap];
-
-
-
-    std::pair<VertexIterator, VertexIterator> vertices = g.vertices();
-    auto startVertex = *vertices.first;
+    auto vertices = g.vertices();
+    auto rootVertex = params[ Keys::rootVertex | *vertices.first];
 
     for(auto u : vertices)
     {
-        lightEdgeMap[u] = nullEdge;
-    }
-
-    for(auto e: g.outEdges(startVertex))
-    {
-        VertexDescriptor source = startVertex, target = opposite(g, e, source);
-        lightEdgeMap[target] = e;
-        heap.push(target);
+        treeEdgeMap[u] = G::nullEdge();
+        cout << treeEdgeMap[u] << "|" << endl;
     }
 
 
-
-
-    while(!heap.empty())
+    cout << "rootVertex: " << rootVertex << endl;
+    struct Marker
     {
-        VertexDescriptor u = heap.top();
-        heap.pop();
-        for(auto e: g.outEdges(u))
+
+//        using Vertex = typename Heap::KeyType;
+        decltype(treeEdgeMap) &treeEdgeMap;
+        VertexDescriptor rootVertex;
+        bool isMark(VertexDescriptor u) const
         {
-            VertexDescriptor source = startVertex, target = opposite(g, e, source);
-            if(lightEdgeMap[target] == nullEdge)
-            {
-                lightEdgeMap[target] = e;
-                heap.push(target);
-            }
-            else if(weightLess(weightMap[e], weightMap[lightEdgeMap[target]]) && heap.contains(target))
-            {
-                lightEdgeMap[target] = e;
-                heap.decrease(target);
-            }
+            return (u == rootVertex) || (treeEdgeMap[u] != G::nullEdge());
+//            return heap.contains(u);
         }
-    }
+        void mark(VertexDescriptor u)
+        {
+            // do nothing
+        }
+    }marker{treeEdgeMap, rootVertex};
+
+
+
+
+//    for(auto e: g.outEdges(startVertex))
+//    {
+//        VertexDescriptor source = startVertex, target = opposite(g, e, source);
+//        treeEdgeMap[target] = e;
+//        heap.push(target);
+//    }
+
+
+    cout << "enter==" << endl;
+
+
+    breadthFirstSearch(g, rootVertex, (
+            BreadthFirstSearchKeywords::buffer = heap,
+            BreadthFirstSearchKeywords::marker = marker,
+            BreadthFirstSearchKeywords::treeEdge =
+                [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
+
+                    cout << "treewww: " << target<< endl;
+                    for(int i = 0; i < n; ++ i)
+                    {
+                        cout << "I " << i << " " << treeEdgeMap[i] << endl;
+                    }
+                    treeEdgeMap[target] = e;
+
+//                    if(weightLess(weightMap[e], weightMap[treeEdgeMap[target]]))
+//                    {
+//                        treeEdgeMap[target] = e;
+//                    }
+
+                },
+            BreadthFirstSearchKeywords::notTreeEdge =
+                [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
+
+                    cout << "notTreeEdge: " << source << " " << target << " " << e << " " << treeEdgeMap[target] << endl;
+                    if(target != rootVertex && weightLess(weightMap[e], weightMap[treeEdgeMap[target]]))
+                    {
+                        cout << "In notTreewww: " << target<< endl;
+                        for(int i = 0; i < n; ++ i)
+                        {
+                            cout << "I " << i << " " << treeEdgeMap[i] << endl;
+                        }
+                        treeEdgeMap[target] = e;
+                        heap.decrease(target);
+                    }
+                }
+            ));
+
+
 
 
 
