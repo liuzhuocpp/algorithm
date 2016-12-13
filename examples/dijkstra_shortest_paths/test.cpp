@@ -47,7 +47,6 @@ int main()
             DijkstraShortestPathsKeywords::edgeRelaxed = [&](Edge e, Vertex u, Vertex to)
             {
                 p[to] = u;
-//                cout << "relaxed:::" << endl;
             }
           ));
 

@@ -16,24 +16,6 @@ namespace lz {
 
 using namespace std;
 
-namespace DijkstraShortestPathsPrivate {
-
-    template<typename Heap>
-    struct Marker
-    {
-        using Vertex = typename Heap::KeyType;
-        Heap &heap;
-        bool isMark(Vertex u)
-        {
-            return heap.contains(u);
-        }
-        void mark(Vertex u)
-        {
-            // do nothing
-        }
-    };
-
-} // DijkstraShortestPathsPrivate
 
 namespace DijkstraShortestPathsKeywords {
 
@@ -90,13 +72,12 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     auto vertices = g.vertices();
 
     auto calculateDefaultHeap = [&]() {
-        auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, (std::size_t)-1));
+        auto heapIndexMap =  makeVertexIndexComposeMap(indexMap, n, (std::size_t)-1 );
         auto heapLess = [&](const VertexDescriptor &x, const VertexDescriptor &y) {
             return distanceLess(distanceMap[y], distanceMap[x]);
         };
         using DefaultHeap = lz::IndexableHeap<VertexDescriptor, decltype(heapIndexMap),  std::size_t(-1), decltype(heapLess)>;
-        DefaultHeap heap(heapIndexMap, heapLess);
-        return std::move(heap);
+        return DefaultHeap(heapIndexMap, heapLess);
     };
 
     auto heap = params[Keys::heap || calculateDefaultHeap];
@@ -104,22 +85,17 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
 
     struct Marker
     {
-        using Heap = decltype(heap);
-        using Vertex = typename Heap::KeyType;
-        Heap &heap;
-        bool isMark(Vertex u)
+        decltype(distanceMap) &distanceMap;
+        decltype(distanceInf) distanceInf;
+        bool isMark(VertexDescriptor u)
         {
-            return heap.contains(u);
+            return distanceMap[u] != distanceInf;
         }
-        void mark(Vertex u)
+        void mark(VertexDescriptor u)
         {
             // do nothing
         }
-    };
-
-//    auto marker = DijkstraShortestPathsPrivate::Marker<decltype(heap)>{heap};
-    auto marker = Marker{heap};
-
+    }marker{distanceMap, distanceInf};
 
     for(auto u: vertices) distanceMap[u] = distanceInf;
     distanceMap[startVertex] = distanceZero;
@@ -136,7 +112,6 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
                         distanceMap[target] = distanceTmp;
                         edgeRelaxed(e, source, target);
                     }
-
                 },
             BreadthFirstSearchKeywords::notTreeEdge =
                 [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
@@ -150,7 +125,6 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
                     }
                 }
             ));
-
 }
 
 
