@@ -32,8 +32,8 @@ namespace PrimMininumSpanningTreeKeywords {
 
 
     LZ_PARAMETER_KEYWORD(tag, weightCompare)
-    LZ_PARAMETER_KEYWORD(tag, weightInf)
-    LZ_PARAMETER_KEYWORD(tag, weightZero)
+//    LZ_PARAMETER_KEYWORD(tag, weightInf)
+//    LZ_PARAMETER_KEYWORD(tag, weightZero)
 
     LZ_PARAMETER_KEYWORD(tag, heap)
     LZ_PARAMETER_KEYWORD(tag, rootVertex)
