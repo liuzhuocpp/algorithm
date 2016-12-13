@@ -2,7 +2,7 @@ cd D:\code\github\algorithm\examples && D:
 
 clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\github\algorithm   -o main.exe    test.cpp  && main.exe
 
-clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\github\algorithm        -o main.exe   main.cpp  && main.exe
+clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\lib\boost_1_58_0\        -o main.exe   test.cpp  && main.exe
 
 
 g++  -std=c++14 -ID:\code\github\algorithm      main.cpp     -o main.exe && main.exe
