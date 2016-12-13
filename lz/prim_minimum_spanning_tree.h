@@ -57,31 +57,24 @@ void primMininumSpanningTree(const G &g, const Params &params)
 
     auto n = g.verticesNumber();
     auto weightLess = params[Keys::weightCompare | std::less<WeightType>() ];
-//    auto treeEdgeMap = params[Keys::treeEdgeMap | calculateVertexIndexComposeMap<EdgeDescriptor>(indexMap, n)];
-    auto treeEdgeMap = params[Keys::treeEdgeMap  ];
+    auto treeEdgeMap = params[Keys::treeEdgeMap | calculateVertexIndexComposeMap<EdgeDescriptor>(indexMap, n)];
 
     auto getTreeEdgeWeight = [&](VertexDescriptor u) {
         if(treeEdgeMap[u] == G::nullEdge())
-        {
-            return WeightType();
-        }
-        else
-        {
-            return weightMap[treeEdgeMap[u]];
-        }
-    };
+             return WeightType();
+         else
+             return weightMap[treeEdgeMap[u]];
+     };
     auto treeEdgeWeightLess = [&](VertexDescriptor x, VertexDescriptor y) {
         return weightLess(getTreeEdgeWeight(y), getTreeEdgeWeight(x));
     };
 
-    auto calculateDefaultHeap = [&]() {
-//        auto heapIndexMap = makeVertexIndexComposeMap<size_t>(indexMap, n, (std::size_t)-1);
-        auto heapIndexMap = makeComposeMap(indexMap, SharedArrayMap<std::size_t>(n, (std::size_t)-1));
+
+    auto heap = params[Keys::heap || [&]() {
+        auto heapIndexMap = makeVertexIndexComposeMap<size_t>(indexMap, n, (std::size_t)-1);
         using DefaultHeap = lz::IndexableHeap<VertexDescriptor, decltype(heapIndexMap),  std::size_t(-1), decltype(treeEdgeWeightLess)>;
         return DefaultHeap(heapIndexMap, treeEdgeWeightLess);
-    };
-
-    auto heap = params[Keys::heap || calculateDefaultHeap];
+    }];
 
 
     auto vertices = g.vertices();
@@ -90,21 +83,15 @@ void primMininumSpanningTree(const G &g, const Params &params)
     for(auto u : vertices)
     {
         treeEdgeMap[u] = G::nullEdge();
-        cout << treeEdgeMap[u] << "|" << endl;
     }
 
-
-    cout << "rootVertex: " << rootVertex << endl;
     struct Marker
     {
-
-//        using Vertex = typename Heap::KeyType;
-        decltype(treeEdgeMap) &treeEdgeMap;
+        decltype(treeEdgeMap) treeEdgeMap;
         VertexDescriptor rootVertex;
         bool isMark(VertexDescriptor u) const
         {
             return (u == rootVertex) || (treeEdgeMap[u] != G::nullEdge());
-//            return heap.contains(u);
         }
         void mark(VertexDescriptor u)
         {
@@ -113,49 +100,17 @@ void primMininumSpanningTree(const G &g, const Params &params)
     }marker{treeEdgeMap, rootVertex};
 
 
-
-
-//    for(auto e: g.outEdges(startVertex))
-//    {
-//        VertexDescriptor source = startVertex, target = opposite(g, e, source);
-//        treeEdgeMap[target] = e;
-//        heap.push(target);
-//    }
-
-
-    cout << "enter==" << endl;
-
-
     breadthFirstSearch(g, rootVertex, (
             BreadthFirstSearchKeywords::buffer = heap,
             BreadthFirstSearchKeywords::marker = marker,
             BreadthFirstSearchKeywords::treeEdge =
                 [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
-
-                    cout << "treewww: " << target<< endl;
-                    for(int i = 0; i < n; ++ i)
-                    {
-                        cout << "I " << i << " " << treeEdgeMap[i] << endl;
-                    }
                     treeEdgeMap[target] = e;
-
-//                    if(weightLess(weightMap[e], weightMap[treeEdgeMap[target]]))
-//                    {
-//                        treeEdgeMap[target] = e;
-//                    }
-
                 },
             BreadthFirstSearchKeywords::notTreeEdge =
                 [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
-
-                    cout << "notTreeEdge: " << source << " " << target << " " << e << " " << treeEdgeMap[target] << endl;
                     if(target != rootVertex && weightLess(weightMap[e], weightMap[treeEdgeMap[target]]))
                     {
-                        cout << "In notTreewww: " << target<< endl;
-                        for(int i = 0; i < n; ++ i)
-                        {
-                            cout << "I " << i << " " << treeEdgeMap[i] << endl;
-                        }
                         treeEdgeMap[target] = e;
                         heap.decrease(target);
                     }

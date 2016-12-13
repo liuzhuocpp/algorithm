@@ -21,24 +21,25 @@ int main()
 
     g.addEdge(0, 1, EP(10)  );
     g.addEdge(1, 2, EP(20)  );
-    g.addEdge(2, 0, EP(320)  );
+    g.addEdge(0, 2, EP(3)  );
+    g.addEdge(0, 2, EP(320)  );
+
 
     vector<int> treeEdgeMap(n, -2);
 
 
-    cout << "ENTER" << endl;
-    primMininumSpanningTree(g, (
+     primMininumSpanningTree(g, (
             Keys::treeEdgeMap = makeIteratorMap(treeEdgeMap.begin())
 
     ));
 
-    cout << string(100, '-') << endl;
 
     for(int i = 0; i < n; ++ i)
     {
-        cout << treeEdgeMap[i] << endl;
         if(treeEdgeMap[i] != -1)
-        cout << "treeEdge" << g.source(treeEdgeMap[i]) << " " <<g.target(treeEdgeMap[i]) << endl;
+        {
+            cout << "treeEdge " << g.source(treeEdgeMap[i]) << " " <<g.target(treeEdgeMap[i]) << endl;
+        }
     }
 
 
