@@ -15,43 +15,52 @@ namespace lz {
 	}
 
 /*
- * Graph concept classification:
- *
- * Graph :
- *   GraphTraits<G>::VertexDescriptor
- *   GraphTraits<G>::Edgedescriptor
- *   GraphTraits<G>::DirectedCategory
- *
- * IncidenceGraph refines Graph:
- *   GraphTraits<G>::outEdgeIterator
- *   g.outEdges(u)
- *   g.source(e)
- *   g.target(e)
- *
- * VertexListGraph refines Graph
- *   GraphTraits<G>::VertexIterator
- *   GraphTraits<G>::VerticesNumberType
- *   g.vertices() :pair<VertexIterator, VertexIterator>
- *   g.verticesNumber()
- *
- * EdgeListGraph refines Graph
- *   GraphTraits<G>::EdgeIterator
- *   GraphTraits<G>::EdgesNumberType
- *   g.edges() :pair<EdgeIterator, EdgeIterator>
- *   g.edgesNumber() :EdgesNumberType
- *   g.source(e) :VertexDescriptor
- *   g.target(e) :VertexDescriptor
- *
- * AdjacencyMatrix refines Graph:
- *   g.edge(u, v) :EdgeDescriptor
- *
- * PropertyGraph refines Graph:
- *   GraphTraits<G>::VertexPropertyMap
- *   GraphTraits<G>::EdgePropertyMap
- *   g.vertexPropertyMap(tag)
- *   g.edgePropertyMap(tag)
- *
- *
+
+ Graph concept classification:
+
+  Graph :
+    GraphTraits<G>::VertexDescriptor
+    GraphTraits<G>::Edgedescriptor
+    GraphTraits<G>::DirectedCategory
+    GraphTraits<G>::nullVertex(): VertexDescriptor
+    GraphTraits<G>::nullEdge(): Edgedescriptor
+
+
+  IncidenceGraph refines Graph:
+    GraphTraits<G>::outEdgeIterator
+    g.outEdges(u): pair<outEdgeIterator,outEdgeIterator>    outEdges(g, u)
+    g.source(e):VertexDescriptor  source(g, e)
+    g.target(e):VertexDescriptor  target(g, e)
+
+  VertexListGraph refines Graph
+    GraphTraits<G>::VertexIterator
+    GraphTraits<G>::VerticesNumberType
+    g.vertices(): pair<VertexIterator, VertexIterator>  vertices(g)
+    g.verticesNumber():VerticesNumberType   vertiecsNumber(g)
+
+  EdgeListGraph refines Graph
+    GraphTraits<G>::EdgeIterator
+    GraphTraits<G>::EdgesNumberType
+    g.edges():pair<EdgeIterator, EdgeIterator>  edges(g)
+    g.edgesNumber(): EdgesNumberType    edgesNumber(g)
+    g.source(e) :VertexDescriptor   source(g, e)
+    g.target(e) :VertexDescriptor   target(g, e)
+
+  AdjacencyMatrix refines Graph:
+    g.edge(u, v) :EdgeDescriptor    edge(g, u, v)
+
+  PropertyGraph refines Graph:
+    template<Tag> GraphTraits<G>::VertexPropertyMap
+    template<Tag> GraphTraits<G>::ConstVertexPropertyMap
+    template<Tag> GraphTraits<G>::EdgePropertyMap
+    template<Tag> GraphTraits<G>::ConstEdgePropertyMap
+    g.vertexPropertyMap(tag): VertexPropertyMap<Tag> or ConstVertexPropertyMap<Tag>
+    g.edgePropertyMap(tag): EdgePropertyMap<Tag> or ConstEdgePropertyMap<Tag>
+
+
+
+
+
  */
 
 
@@ -107,6 +116,18 @@ struct GraphTraits
 	using VertexPropertyMap = typename G::template VertexPropertyMap<Tag>;
 	template<typename Tag>
 	using EdgePropertyMap = typename G::template EdgePropertyMap<Tag>;
+
+	static VertexDescriptor nullVertex() { return G::nullVertex(); }
+	static VertexDescriptor nullEdge() { return G::nullEdge(); }
+
+
+
+
+//	template<typename Tag>
+//	using ConstVertexPropertyMap;
+
+//	template<typename Tag>
+//    using ConstEdgePropertyMap;
 
 
     using VertexProperties = typename G::VertexProperties; // deprected
