@@ -29,8 +29,8 @@ namespace lz {
   IncidenceGraph refines Graph:
     GraphTraits<G>::outEdgeIterator
     g.outEdges(u): pair<outEdgeIterator,outEdgeIterator>    outEdges(g, u)
-    g.source(e):VertexDescriptor  source(g, e)
-    g.target(e):VertexDescriptor  target(g, e)
+    g.source(e): VertexDescriptor  source(g, e)
+    g.target(e): VertexDescriptor  target(g, e)
 
   VertexListGraph refines Graph
     GraphTraits<G>::VertexIterator
@@ -41,13 +41,13 @@ namespace lz {
   EdgeListGraph refines Graph
     GraphTraits<G>::EdgeIterator
     GraphTraits<G>::EdgesNumberType
-    g.edges():pair<EdgeIterator, EdgeIterator>  edges(g)
+    g.edges(): pair<EdgeIterator, EdgeIterator>  edges(g)
     g.edgesNumber(): EdgesNumberType    edgesNumber(g)
-    g.source(e) :VertexDescriptor   source(g, e)
-    g.target(e) :VertexDescriptor   target(g, e)
+    g.source(e): VertexDescriptor   source(g, e)
+    g.target(e): VertexDescriptor   target(g, e)
 
   AdjacencyMatrix refines Graph:
-    g.edge(u, v) :EdgeDescriptor    edge(g, u, v)
+    g.edge(u, v): EdgeDescriptor    edge(g, u, v)
 
   PropertyGraph refines Graph:
     template<Tag> GraphTraits<G>::VertexPropertyMap
