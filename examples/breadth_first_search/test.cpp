@@ -31,11 +31,16 @@ int main()
     g.addEdge(0, 2, EP(make_tuple(22, 'J')));
 
     using namespace BreadthFirstSearchKeywords;
-    breadthFirstSearch(g, 0, (treeEdge = [](Edge e, Vertex source, Vertex target) {
-        cout << "tree edge: " << source << " " << target << endl;
+    breadthFirstSearch(g,
+
+            (treeEdge = [](Edge e, Vertex source, Vertex target) {
+                cout << "tree edge: " << source << " " << target << endl;}
+    ,startVertex = 0
+
+            )
 
 
-    }));
+    );
 
 
 

@@ -3,12 +3,9 @@
 /*
  * this header file define some base classes and functions for graph
  */
-//#include "lz/property.h"
 
-//#include "lz/utility.h"
 #include "lz/map.h"
 #include <memory>
-//#include "lz/adjacency_list.h"
 
 namespace lz {
 	namespace GraphUtilityPrivate {

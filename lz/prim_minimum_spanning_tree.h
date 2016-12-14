@@ -32,8 +32,6 @@ namespace PrimMininumSpanningTreeKeywords {
 
 
     LZ_PARAMETER_KEYWORD(tag, weightCompare)
-//    LZ_PARAMETER_KEYWORD(tag, weightInf)
-//    LZ_PARAMETER_KEYWORD(tag, weightZero)
 
     LZ_PARAMETER_KEYWORD(tag, heap)
     LZ_PARAMETER_KEYWORD(tag, rootVertex)
@@ -60,9 +58,6 @@ void primMininumSpanningTree(const G &g, const Params &params)
     auto treeEdgeMap = params[Keys::treeEdgeMap | calculateVertexIndexComposeMap<EdgeDescriptor>(indexMap, n)];
 
     auto getTreeEdgeWeight = [&](VertexDescriptor u) {
-        if(treeEdgeMap[u] == G::nullEdge())
-             return WeightType();
-         else
              return weightMap[treeEdgeMap[u]];
      };
     auto treeEdgeWeightLess = [&](VertexDescriptor x, VertexDescriptor y) {
@@ -88,19 +83,27 @@ void primMininumSpanningTree(const G &g, const Params &params)
     struct Marker
     {
         decltype(treeEdgeMap) treeEdgeMap;
-        VertexDescriptor rootVertex;
         bool isMark(VertexDescriptor u) const
         {
-            return (u == rootVertex) || (treeEdgeMap[u] != G::nullEdge());
+            return (treeEdgeMap[u] != G::nullEdge());
         }
         void mark(VertexDescriptor u)
         {
             // do nothing
         }
-    }marker{treeEdgeMap, rootVertex};
+    }marker{treeEdgeMap};
+
+    for(auto e: g.outEdges(rootVertex))
+    {
+        VertexDescriptor target = opposite(g, e, rootVertex);
+        treeEdgeMap[target] = e;
+        marker.mark(rootVertex);
+        heap.push(rootVertex);
+    }
 
 
-    breadthFirstSearch(g, rootVertex, (
+
+    breadthFirstSearch(g, (
             BreadthFirstSearchKeywords::buffer = heap,
             BreadthFirstSearchKeywords::marker = marker,
             BreadthFirstSearchKeywords::treeEdge =
@@ -109,7 +112,7 @@ void primMininumSpanningTree(const G &g, const Params &params)
                 },
             BreadthFirstSearchKeywords::notTreeEdge =
                 [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
-                    if(target != rootVertex && weightLess(weightMap[e], weightMap[treeEdgeMap[target]]))
+                    if(weightLess(weightMap[e], weightMap[treeEdgeMap[target]]))
                     {
                         treeEdgeMap[target] = e;
                         heap.decrease(target);

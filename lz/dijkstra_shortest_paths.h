@@ -28,7 +28,7 @@ distanceCombine: the binary function that combines the vertex distance and edge 
 distanceCompare: the binary function that compare the two the vertex distance
 distanceInf: the infinite number of the distance type
 distanceZero: the number of the distance type representing zero
-heap: IndexableHeap concept
+heap: must be a IndexableHeap concept
 edgeRelaxed: event visitor function containing three paramaters
 
  */
@@ -100,7 +100,8 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     for(auto u: vertices) distanceMap[u] = distanceInf;
     distanceMap[startVertex] = distanceZero;
 
-    breadthFirstSearch(g, startVertex, (
+    breadthFirstSearch(g, (
+            BreadthFirstSearchKeywords::startVertex = startVertex,
             BreadthFirstSearchKeywords::buffer = heap,
             BreadthFirstSearchKeywords::marker = marker,
             BreadthFirstSearchKeywords::treeEdge =

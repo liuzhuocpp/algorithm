@@ -29,6 +29,8 @@ namespace BreadthFirstSearchKeywords {
     LZ_PARAMETER_KEYWORD(tag, finishEdge)
     LZ_PARAMETER_KEYWORD(tag, finishVertex)
 
+
+    LZ_PARAMETER_KEYWORD(tag, startVertex)
     LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
     LZ_PARAMETER_KEYWORD(tag, marker)
     LZ_PARAMETER_KEYWORD(tag, buffer)
@@ -42,7 +44,7 @@ G must model a IncidenceGraph, VertexListGraph
 
  */
 template<typename G, typename Params>
-void breadthFirstSearch(const G &g, typename G::VertexDescriptor s,  const Params& params)
+void breadthFirstSearch(const G &g, const Params& params)
 {
     using VertexDescriptor = typename G::VertexDescriptor;
     using EdgeDescriptor = typename G::EdgeDescriptor;
@@ -67,9 +69,14 @@ void breadthFirstSearch(const G &g, typename G::VertexDescriptor s,  const Param
     auto finishEdge = params[Keys::finishEdge | emptyFunction];
     auto finishVertex = params[Keys::finishVertex | emptyFunction];
 
-    marker.mark(s);
-    buffer.push(s);
-    discoverVertex(s);
+    // Can be more efficient
+    auto startVertex = params[Keys::startVertex | GraphTraits<G>::nullVertex()];
+    if(startVertex != GraphTraits<G>::nullVertex())
+    {
+        marker.mark(startVertex);
+        buffer.push(startVertex);
+        discoverVertex(startVertex);
+    }
 
     while(!buffer.empty())
     {
