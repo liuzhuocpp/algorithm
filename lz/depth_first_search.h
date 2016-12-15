@@ -36,19 +36,23 @@ namespace DepthFirstSearchKeywords {
     LZ_PARAMETER_KEYWORD(tag, finishEdge)
     LZ_PARAMETER_KEYWORD(tag, finishVertex)
 
+    LZ_PARAMETER_KEYWORD(tag, enterVertex)
+
+    // only for graph DFS
     LZ_PARAMETER_KEYWORD(tag, marker)
     LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
-    LZ_PARAMETER_KEYWORD(tag, enterVertex)
+
 }
 
 namespace DepthFirstSearchPrivate {
 
     using namespace DepthFirstSearchKeywords;
+
     template<typename G, typename ParamPack, typename Marker>
     void dfs(const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
     {
         p[startVertex | emptyFunction](u);
-        for(auto e: g.outEdges(u))
+        for(auto e: outEdges(g, u))
         {
             typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
             p[examineEdge | emptyFunction](e, u, to);
@@ -67,6 +71,32 @@ namespace DepthFirstSearchPrivate {
         }
         p[finishVertex | emptyFunction](u);
     }
+
+    template<typename G, typename ParamPack>
+    void treeDFS(const G &g, const ParamPack &p,
+            typename GraphTraits<G>::VertexDescriptor u,
+            typename GraphTraits<G>::VertexDescriptor fa)
+    {
+        p[startVertex | emptyFunction](u);
+        for(auto e: outEdges(g, u))
+        {
+            typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
+            p[examineEdge | emptyFunction](e, u, to);
+            if(to != fa)
+            {
+                p[treeEdge | emptyFunction](e, u, to);
+                treeDFS(g, p, to, u);
+                p[treeEdgeReturn | emptyFunction](e, u, to);
+            }
+            else
+            {
+                p[notTreeEdge | emptyFunction](e, u, to);
+            }
+            p[finishEdge | emptyFunction](e, u, to);
+        }
+        p[finishVertex | emptyFunction](u);
+    }
+
 }
 
 
@@ -75,8 +105,9 @@ void depthFirstSearch(const G &g, const ParamPack &p)
 {
     namespace Keys = DepthFirstSearchKeywords;
 
-    auto indexMap = p[Keys::vertexIndexMap | g.vertexPropertyMap(lz::vertexIndexTag)];
-    auto n = g.verticesNumber();
+    auto indexMap = p[Keys::vertexIndexMap | vertexPropertyMap(g, vertexIndexTag)];
+    auto n = verticesNumber(g);
+
     decltype(auto) marker = p[Keys::marker || [&]() {
         return IndexMarker<decltype(indexMap)>(indexMap, n);
     }];
@@ -90,16 +121,26 @@ void depthFirstSearch(const G &g, const ParamPack &p)
     }
     else
     {
-        for(auto u: g.vertices())
+        for(auto u: vertices(g))
         {
             if(!marker.isMark(u))
             {
-                marker.mark(u);
                 p[Keys::startVertex | emptyFunction];
+                marker.mark(u);
                 DepthFirstSearchPrivate::dfs(g, p, marker, u);
             }
         }
     }
+}
+
+template<typename G, typename ParamPack>
+void treeDFS(const G &g, const ParamPack &params)
+{
+    namespace Keys = DepthFirstSearchKeywords;
+    auto enterVertex = params[Keys::enterVertex | *vertices(g).first];
+
+    params[Keys::startVertex | emptyFunction];
+    DepthFirstSearchPrivate::treeDFS(g, params, enterVertex, enterVertex);
 }
 
 

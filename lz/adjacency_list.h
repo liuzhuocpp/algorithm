@@ -370,6 +370,14 @@ public:
     {
         return g.edgePropertyMap(tag);
     }
+
+
+    // MutableGraph
+
+    friend EdgeDescriptor addEdge(G &g, VertexDescriptor a, VertexDescriptor b)
+    {
+        return g.addEdge(a, b);
+    }
 };
 
 
