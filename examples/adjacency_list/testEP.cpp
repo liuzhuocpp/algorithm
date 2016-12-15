@@ -1,7 +1,7 @@
 /*
  * testEP.cpp
  *
- *  Created on: 2015Äê11ÔÂ10ÈÕ
+ *  Created on: 2015ï¿½ï¿½11ï¿½ï¿½10ï¿½ï¿½
  *      Author: LZ
  */
 
@@ -16,6 +16,7 @@
 #include "lz/adjacency_list.h"
 #include "lz/map.h"
 #include "lz/property.h"
+#include "lz/std_utility.h"
 
 // property graph test
 using namespace std;
@@ -48,22 +49,20 @@ int main()
 	g.addEdge(3, 5, EP(5412, '$'));
 
 
-	G::EdgeIterator ei, end_ei;
-	for(tie(ei, end_ei) = g.edges(); ei != end_ei; ++ ei)
+//	G::EdgeIterator ei, end_ei;
+	for(auto e: edges(g))
 	{
-		cout << g.source(*ei) << " " << g.target(*ei) << endl;
+		cout << g.source(e) << " " << g.target(e) << endl;
 	}
 	cout << string(100, '-') << "\n";
 
 
 	const G ng = g;
 	auto mp = ng.edgePropertyMap(int_tag());
-	G::OutEdgeIterator oi, end_oi;
-	tie(oi, end_oi) = ng.outEdges(0);
-	for(; oi != end_oi; ++ oi)
+
+	for(auto e: outEdges(g, 0))
 	{
-//		mp[*oi] = 66666;
-		cout << ng.source(*oi) << " " << ng.target(*oi) << " " << mp[*oi] << endl;
+		cout << ng.source(e) << " " << ng.target(e) << " " << mp[e] << endl;
 	}
 
 

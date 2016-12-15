@@ -200,9 +200,14 @@ public:
     using OutEdgeIterator = AdjacencyListPrivate::OutEdgeIterator<G>;
 
     template<typename Tag>
-    using VertexPropertyMap = lz::VertexPropertyMap<G, Tag>;
+    using VertexPropertyMap = typename lz::VertexPropertyMap<G, Tag>::Type;
     template<typename Tag>
-    using EdgePropertyMap = lz::EdgePropertyMap<G, Tag>;
+    using EdgePropertyMap = typename lz::EdgePropertyMap<G, Tag>::Type;
+
+    template<typename Tag>
+    using ConstVertexPropertyMap = typename lz::VertexPropertyMap<G, Tag>::ConstType;
+    template<typename Tag>
+    using ConstEdgePropertyMap = typename lz::EdgePropertyMap<G, Tag>::ConstType;
 
 	using VertexProperties = VP;
 	using EdgeProperties = EP;
@@ -303,6 +308,68 @@ public:
 		return make_pair(OutEdgeIterator(this->v[u].head, this),
 						 OutEdgeIterator(-1, this)) ;
 	}
+
+
+	// Friend free function
+	// IncidenceGraph
+	friend std::pair<OutEdgeIterator, OutEdgeIterator> outEdges(const G &g, VertexDescriptor u)
+    {
+	    return g.outEdges(u);
+    }
+	friend VertexDescriptor source(const G &g, EdgeDescriptor e)
+    {
+        return g.source(e);
+    }
+	friend VertexDescriptor target(const G &g, EdgeDescriptor e)
+    {
+        return g.target(e);
+    }
+
+	// VertexListGraph
+	friend std::pair<VertexIterator, VertexIterator> vertices(const G &g)
+    {
+	    return g.vertices();
+    }
+	friend VerticesNumberType verticesNumber(const G &g)
+    {
+        return g.verticesNumber();
+    }
+
+	// EdgeListGraph
+    friend std::pair<EdgeIterator, EdgeIterator> edges(const G &g)
+    {
+        return g.edges();
+    }
+    friend EdgesNumberType edgesNumber(const G &g)
+    {
+        return g.edgesNumber();
+    }
+
+    // PropertyGraph
+    template<typename Tag>
+    friend VertexPropertyMap<Tag> vertexPropertyMap(G &g, Tag tag)
+    {
+        return g.vertexPropertyMap(tag);
+    }
+
+    template<typename Tag>
+    friend ConstVertexPropertyMap<Tag> vertexPropertyMap(const G &g, Tag tag)
+    {
+        return g.vertexPropertyMap(tag);
+
+    }
+
+    template<typename Tag>
+    friend EdgePropertyMap<Tag> edgePropertyMap(G &g, Tag tag)
+    {
+        return g.edgePropertyMap(tag);
+    }
+
+    template<typename Tag>
+    friend EdgePropertyMap<Tag> edgePropertyMap(const G &g, Tag tag)
+    {
+        return g.edgePropertyMap(tag);
+    }
 };
 
 

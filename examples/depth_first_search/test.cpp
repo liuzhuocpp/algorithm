@@ -9,6 +9,7 @@
 
 
 #include "lz/adjacency_list.h"
+#include "lz/utility.h"
 
 
 
@@ -16,7 +17,8 @@ using namespace std;
 
 
 using namespace lz;
-using G = AdjacencyList<DirectedGraphTag>;
+//using G = AdjacencyList<DirectedGraphTag>;
+using G = AdjacencyList<UndirectedGraphTag>;
 
 int main()
 {
@@ -36,7 +38,7 @@ int main()
 	g.addEdge(0, 1);
 	g.addEdge(1, 4);
 
-
+	auto indexMap = g.vertexPropertyMap(vertexIndexTag);
 
 
 
@@ -46,39 +48,26 @@ int main()
 	using V = GraphTraits<G>::VertexDescriptor;
 	using E = typename GraphTraits<G>::EdgeDescriptor;
 
-	auto _treeEdge = [&](E e, V u)
-	{
-		V other = opposite(g, e, u);
-		cout << "Tree Edge!!: " //<< e << " "
-				<< u << " " << other << endl;
-	};
-	auto _notTreeEdge = [&](E e, V u)
-	{
-		V other = opposite(g, e, u);
-		cout <<"not Tree Edge: "  //<< e << " "
-				<< u << " " << other << endl;
-	};
-
-
-
-//	cout << "OOO" << endl;
 	depthFirstSearch(g,
 			(
-			isInit = std::true_type(),
-			treeEdge = _treeEdge,
-			notTreeEdge = _notTreeEdge,
 
-			treeEdgeReturn = [&](E e, V u)
+			treeEdge = [&](E e, V u, V to)
+		    {
+		        V other = opposite(g, e, u);
+		        cout << "Tree Edge!!: " << u << " " << other << endl;
+		    },
+			notTreeEdge = [&](E e, V u, V to)
+		    {
+		        V other = opposite(g, e, u);
+		        cout <<"not Tree Edge: "  << u << " " << other << endl;
+		    },
+			treeEdgeReturn = [&](E e, V u, V to)
 			{
 				V other = opposite(g, e, u);
-				cout <<"Tree Ruturn Edge: "  //<< e << " "
-						<< u << " " << other << endl;
-			},
-			enterVertex = 0
-
-
-//			,
-//			isTree = std::true_type()
+				cout <<"Tree Ruturn Edge: " << u << " " << other << endl;
+			}
+		    ,enterVertex = 0
+		    ,marker = IndexMarker<decltype(indexMap)>(indexMap, n)
 
 			)   );
 

@@ -54,11 +54,8 @@ namespace lz {
     g.vertexPropertyMap(tag): VertexPropertyMap<Tag> or ConstVertexPropertyMap<Tag>
     g.edgePropertyMap(tag): EdgePropertyMap<Tag> or ConstEdgePropertyMap<Tag>
 
-
-
-
-
  */
+
 
 
 
@@ -91,8 +88,8 @@ opposite(const Graph &g,
          typename Graph::EdgeDescriptor e,
          typename Graph::VertexDescriptor u)
 {
-    if(g.source(e) != u) return g.source(e);
-    return g.target(e);
+    if(source(g, e) != u) return source(g, e);
+    return target(g, e);
 }
 
 template<typename G>
@@ -101,6 +98,9 @@ struct GraphTraits
 	using VertexDescriptor = typename G::VertexDescriptor;
 	using EdgeDescriptor = typename G::EdgeDescriptor;
 	using DirectedCategory = typename G::DirectedCategory;
+    static VertexDescriptor nullVertex() { return G::nullVertex(); }
+    static VertexDescriptor nullEdge() { return G::nullEdge(); }
+
 
 	using VertexIterator = typename G::VertexIterator;
 	using EdgeIterator = typename G::EdgeIterator;
@@ -114,94 +114,15 @@ struct GraphTraits
 	template<typename Tag>
 	using EdgePropertyMap = typename G::template EdgePropertyMap<Tag>;
 
-	static VertexDescriptor nullVertex() { return G::nullVertex(); }
-	static VertexDescriptor nullEdge() { return G::nullEdge(); }
-
-
-
-
-//	template<typename Tag>
-//	using ConstVertexPropertyMap;
-
-//	template<typename Tag>
-//    using ConstEdgePropertyMap;
-
+    template<typename Tag>
+    using ConstVertexPropertyMap = typename G::template ConstVertexPropertyMap<Tag>;
+    template<typename Tag>
+    using ConstEdgePropertyMap = typename G::template ConstEdgePropertyMap<Tag>;
 
     using VertexProperties = typename G::VertexProperties; // deprected
     using EdgeProperties = typename G::EdgeProperties;// deprected
 
 };
-
-template<typename G, typename Tag, typename Descriptor, typename GetProperties, GetProperties getProperties>
-class VertexOrEdgePropertyMap
-{
-    using _ValueType = std::decay_t<decltype((G().*getProperties)[Tag()])>;
-protected:
-    G *g = nullptr;
-public:
-    using KeyType = Descriptor;
-    using ValueType = _ValueType;
-
-    VertexOrEdgePropertyMap() = default;
-    VertexOrEdgePropertyMap(G &_g):g(&_g) { }
-    auto operator[](KeyType u) const->decltype((g->*getProperties)(u)[Tag()])
-    {
-        return (g->*getProperties)(u)[Tag()];
-    }
-//    using Type = VertexOrEdgePropertyMap;
-//    struct ConstType
-//    {
-//        using KeyType = Descriptor;
-//        using ValueType = _ValueType;
-//        const G *g;
-//        ConstType():g(nullptr){}
-//        ConstType(const G &g):g(&g){}
-//        const ValueType& operator[](KeyType u) const
-//        {
-//            return (g->*getProperties)(u)[Tag()];
-//        }
-//    };
-
-};
-
-//template<typename G, typename Tag>
-//struct VertexPropertyMap
-////public
-////    VertexOrEdgePropertyMap<G, Tag, typename G::VertexDescriptor, decltype(&G::vertexProperties), &G::vertexProperties>
-//{
-////    static constexpr auto getProperties()
-////    {
-////        return (typename G::VertexProperties& (G::*) (typename G::VertexDescriptor) ) &G::vertexProperties;
-////    }
-//    using VertexProperties = typename G::VertexProperties;
-//    using VertexDescriptor = typename G::VertexDescriptor;
-//
-//    using Type = VertexOrEdgePropertyMap<G, Tag, typename G::VertexDescriptor,
-//            decltype(
-//            (VertexProperties& (G::*) (VertexDescriptor)   ) &G::vertexProperties   )
-//            ,
-//            (VertexProperties& (G::*) (VertexDescriptor)   ) &G::vertexProperties
-//            >;
-//
-//    using ConstType = Type;
-//
-//
-////    using ConstType = VertexOrEdgePropertyMap<G, Tag, typename G::VertexDescriptor,
-////                decltype( (typename G::VertexProperties (G::*)(typename G::VertexDescriptor) )&G::vertexProperties   )
-////                ,
-////                (typename G::VertexProperties (G::*)(typename G::VertexDescriptor) )&G::vertexProperties
-////                >;
-//};
-
-//template<typename G, typename Tag>
-//struct EdgePropertyMap: public VertexOrEdgePropertyMap<G, Tag,
-//    typename G::EdgeDescriptor, decltype(&G::edgeProperties), &G::edgeProperties>
-//{
-//
-//};
-
-
-
 
 
 template<typename G, typename Tag>

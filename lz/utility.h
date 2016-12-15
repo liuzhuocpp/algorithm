@@ -3,6 +3,8 @@
 
 #include <functional>
 #include <vector>
+#include <deque>
+#include <queue>
 #include "lz/map.h"
 // some little and mess functions
 
@@ -88,22 +90,22 @@ public:
     }
 };
 
-template<typename IndexableHeap>
-class IndexableHeapAsMarkerForBFS
-{
-    IndexableHeap &heap;
-public:
-    using Element = typename IndexableHeap::KeyType;
-    IndexableHeapAsMarkerForBFS(IndexableHeap &heap):heap(heap){}
-    bool isMark(const Element &i) const
-    {
-        return heap.contains(i);
-    }
-    void mark(Element i)
-    {
-        // do nothing, because in BFS, heap.push will do this
-    }
-};
+//template<typename IndexableHeap>
+//class IndexableHeapAsMarkerForBFS
+//{
+//    IndexableHeap &heap;
+//public:
+//    using Element = typename IndexableHeap::KeyType;
+//    IndexableHeapAsMarkerForBFS(IndexableHeap &heap):heap(heap){}
+//    bool isMark(const Element &i) const
+//    {
+//        return heap.contains(i);
+//    }
+//    void mark(Element i)
+//    {
+//        // do nothing, because in BFS, heap.push will do this
+//    }
+//};
 
 
 
