@@ -220,7 +220,7 @@ auto heavyPathDecomposition(const G &g, const ParamPack &params = EmptyParamPack
 
 
 
-    // 按照点进行返回的，例如：[(3, 3), (6, 10)]
+    // 按照点进行返回的，例如：[(3, 3), (6, 10)]，每个区间内的新节点编号是连续的
     auto getPath = [=, &g](
                 auto a,
                 auto b,

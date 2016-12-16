@@ -72,6 +72,31 @@ namespace DepthFirstSearchPrivate {
         p[finishVertex | emptyFunction](u);
     }
 
+    // for furture use
+    template<typename G, typename ParamPack, typename Marker>
+    void dfsByAdjacentVertices(const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
+    {
+        p[startVertex | emptyFunction](u);
+        for(auto to: adjacentVertices(g, u))
+        {
+            p[examineEdge | emptyFunction](u, to);
+            if(!marker.isMark(to))
+            {
+                p[treeEdge | emptyFunction](u, to);
+                marker.mark(to);
+                dfsByAdjacentVertices(g, p, marker, to);
+                p[treeEdgeReturn | emptyFunction](u, to);
+            }
+            else
+            {
+                p[notTreeEdge | emptyFunction](u, to);
+            }
+            p[finishEdge | emptyFunction](u, to);
+        }
+        p[finishVertex | emptyFunction](u);
+    }
+
+
     template<typename G, typename ParamPack>
     void treeDFS(const G &g, const ParamPack &p,
             typename GraphTraits<G>::VertexDescriptor u,
