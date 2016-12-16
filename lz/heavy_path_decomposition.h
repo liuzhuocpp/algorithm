@@ -114,35 +114,35 @@ namespace HeavyPathDecompositionPrivate {
 
 //    template<typename G, typename ParentMap, typename DepthMap, typename TopmostMap, typename OutputIterator>
 //    typename GraphTraits<G>::VertexDescriptor
-    auto getPath = [](const auto &g, auto parentMap, auto depthMap, auto topmostMap,
-                auto a,
-                auto b,
-                auto outputIterator)
-    {
-        auto n = 6;
-        for(int i = 0; i < n; ++ i)
-        {
-            std::cout << "i=" << i << ": " << topmostMap[i] << " " << " " << depthMap[i] << " " << parentMap[i] <<  std::endl;
-        }
-
-
-        while(topmostMap[a] != topmostMap[b])
-        {
-            if(depthMap[topmostMap[a]] < depthMap[topmostMap[b]]) std::swap(a, b);
-            *outputIterator++ = std::make_pair(topmostMap[a], a);
-            a = parentMap[topmostMap[a]];
-
-            std::cout << "ab " << a << " " << b << "\n";
-        }
-
-        if(depthMap[a] < depthMap[b]) std::swap(a, b);
-        if(depthMap[a] != depthMap[b])
-        {
-            *outputIterator++ = std::make_pair(b, a);
-        }
-
-        return std::make_pair(outputIterator, b);
-    };
+//    auto getPath = [](const auto &g, auto parentMap, auto depthMap, auto topmostMap,
+//                auto a,
+//                auto b,
+//                auto outputIterator)
+//    {
+//        auto n = 6;
+//        for(int i = 0; i < n; ++ i)
+//        {
+//            std::cout << "i=" << i << ": " << topmostMap[i] << " " << " " << depthMap[i] << " " << parentMap[i] <<  std::endl;
+//        }
+//
+//
+//        while(topmostMap[a] != topmostMap[b])
+//        {
+//            if(depthMap[topmostMap[a]] < depthMap[topmostMap[b]]) std::swap(a, b);
+//            *outputIterator++ = std::make_pair(topmostMap[a], a);
+//            a = parentMap[topmostMap[a]];
+//
+//            std::cout << "ab " << a << " " << b << "\n";
+//        }
+//
+//        if(depthMap[a] < depthMap[b]) std::swap(a, b);
+//        if(depthMap[a] != depthMap[b])
+//        {
+//            *outputIterator++ = std::make_pair(b, a);
+//        }
+//
+//        return std::make_pair(outputIterator, b);
+//    };
 
 
 } // namespace HeavyPathDecompositionPrivate
@@ -219,10 +219,35 @@ auto heavyPathDecomposition(const G &g, const ParamPack &params = EmptyParamPack
 
 
 
-    using namespace std::placeholders;
-    return std::bind(HeavyPathDecompositionPrivate::getPath,
-            std::cref(g),/* using std::cref in case copy the graph */
-            parentMap, depthMap, topmostMap, _1, _2, _3);
+
+    // 按照点进行返回的，例如：[(3, 3), (6, 10)]
+    auto getPath = [=, &g](
+                auto a,
+                auto b,
+                auto outputIterator)
+    {
+        while(topmostMap[a] != topmostMap[b])
+        {
+            if(depthMap[topmostMap[a]] < depthMap[topmostMap[b]]) std::swap(a, b);
+            *outputIterator++ = std::make_pair(topmostMap[a], a);
+            a = parentMap[topmostMap[a]];
+        }
+
+        if(depthMap[a] < depthMap[b]) std::swap(a, b);
+        if(depthMap[a] != depthMap[b])
+        {
+            *outputIterator++ = std::make_pair(b, a);
+        }
+
+        return std::make_pair(outputIterator, b);
+    };
+
+    return getPath;
+
+//    using namespace std::placeholders;
+//    return std::bind(HeavyPathDecompositionPrivate::getPath,
+//            std::cref(g),/* using std::cref in case copy the graph */
+//            parentMap, depthMap, topmostMap, _1, _2, _3);
 
 }
 
