@@ -56,18 +56,38 @@ namespace HeavyPathDecompositionPrivate {
     }
 
 
+// I want to reuse the depthFirstSearch instead of dfs2, but failed!!!
+//    template<typename G, typename HeavySonMap>
+//    struct NewOrderGraph: public G
+//    {
+//        HeavySonMap &heavySonMap;
+//        const G &g;
+//        using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
+//        using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
+//
+//        friend VertexDescriptor source(const NewOrderGraph&g, EdgeDescriptor e)
+//        {
+//            VertexDescriptor u = source(g, e);
+//            VertexDescriptor to = target(g, e);
+////            outEdges(g, )
+//        }
+//        friend VertexDescriptor opposite(const NewOrderGraph &g, EdgeDescriptor e, VertexDescriptor u)
+//        {
+//            VertexDescriptor to = opposite(g.g, e, u);
+//            if( *outEdges(g.g, u).first == e) return g.heavySonMap[u];
+//            else
+//            {
+//                if(to == heavySonMap[u])
+//                {
+//                    return opposite(g.g, *outEdges(g.g, u).first, u);
+//                }
+//                else return to;
+//
+//            }
+//        }
+//    };
 
-    template<typename G, typename HeavySonMap>
-    struct newOrderGraph
-    {
-        const G &g;
-        HeavySonMap heavySonMap;
 
-        struct OutEdgeIterator
-        {
-
-        };
-    };
 
     template<typename G, typename HeavySonMap, typename TopmostMap, typename NewIndexMap, typename SizeType>
     void dfs2(const G &g, HeavySonMap heavySonMap, TopmostMap topmostMap, NewIndexMap newIndexMap,
