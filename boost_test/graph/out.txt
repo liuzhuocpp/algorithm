@@ -1,0 +1,321 @@
+Regular polygon layout with 5 points.
+           E       
+                   
+                   
+                   
+D                  
+                   
+                   
+                   
+                   
+                  A
+                   
+                   
+                   
+                   
+C                  
+                   
+                   
+                   
+           B       
+Cube layout (Kamada-Kawai).
+                       G              
+                                      
+                                      
+                                      
+                                      
+                                      
+      F                               
+                                      
+                                      
+                                      
+                                      
+                                      
+                                     C
+                                      
+                                      
+                                      
+                                      
+                                      
+               H                      
+                      B               
+                                      
+                                      
+                                      
+E                                     
+                                      
+                                      
+                                      
+                                      
+                                      
+                                      
+                               D      
+                                      
+                                      
+                                      
+                                      
+                                      
+               A                      
+Cube layout (Fruchterman-Reingold).
+                                 D         
+                                           
+                                           
+                                           
+         A                                 
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                        H                  
+                                           
+                                           
+                                           
+                                           
+                                           
+E                                         C
+                                           
+                                           
+                                           
+                                           
+                  B                        
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                           
+                                G          
+                                           
+                                           
+                                           
+         F                                 
+Triangular layout (Kamada-Kawai).
+                                  I                J
+                 H                                  
+G                                                   
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                           F        
+                          E                         
+         D                                          
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                   B               C                
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                           A                        
+Triangular layout (Fruchterman-Reingold).
+          A                                                   
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                        B                                     
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+         C                                                    
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                           D                  
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                       E                                      
+                                                              
+                                                              
+                                                              
+                                                              
+                                                             G
+                                                              
+                                                              
+                                                              
+     F                                                        
+                                                              
+                                         H                    
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                   I                                          
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+                                                              
+J                                                             
+Disconnected layout (Fruchterman-Reingold).
+                                                                                      A             C
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                    B
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+           D                                                                                         
+                                                                                                     
+                                                                                                     
+                                                                                                     
+F                                                                                                    
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                   H                                                                                 
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+                                                                                                     
+E                                                                                                    
+                                                                                                     
+                                                                                                     
+                                                                                                     
+            G                                                                                        
+
+**** no errors detected
