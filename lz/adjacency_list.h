@@ -92,9 +92,9 @@ class AdjacencyList;
 		typename GraphTraits<G>::EdgeDescriptor >
 	{
     	friend G;
-
     	EdgeDescriptor i; // realED
     	const G *g;
+	protected:
     	OutEdgeIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
 
 	public:
@@ -114,6 +114,41 @@ class AdjacencyList;
     		return G::R2V(i) == G::R2V(o.i) && g == o.g;
 		}
 	};
+
+
+    template<typename G>
+    class AdjacencyVertexIterator: public IteratorFacade<
+        AdjacencyVertexIterator<G>,
+        std::forward_iterator_tag,
+        VertexDescriptor,
+        std::ptrdiff_t,
+        VertexDescriptor*,
+        VertexDescriptor >
+    {
+        friend G;
+        EdgeDescriptor i; // realED
+        const G *g;
+    protected:
+        AdjacencyVertexIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
+
+    public:
+        AdjacencyVertexIterator():i(-1), g(nullptr) {}
+
+        AdjacencyVertexIterator& operator++()
+        {
+            i = g->e[i].next;
+            return *this;
+        }
+        typename AdjacencyVertexIterator::reference operator*() const
+        {
+            return g->e[i].target;
+        }
+        bool operator==(AdjacencyVertexIterator const& o) const
+        {
+            return G::R2V(i) == G::R2V(o.i) && g == o.g;
+        }
+    };
+
 
     // realED: in memory
     // virtualED: for user
@@ -181,6 +216,7 @@ class AdjacencyList: private AdjacencyListPrivate::DistinguishDirectionGraph<
 					 Direction, VP, EP, GP>
 {
 	template<typename G> friend class AdjacencyListPrivate::OutEdgeIterator;
+	template<typename G> friend class AdjacencyListPrivate::AdjacencyVertexIterator;
 
 	using VertexData = AdjacencyListPrivate::VertexData<VP> ;
 	using EdgeData = AdjacencyListPrivate::EdgeData<EP> ;
@@ -324,6 +360,16 @@ public:
     {
         return g.target(e);
     }
+
+	// AdjacencyGraph
+	using AdjacencyVertexIterator = AdjacencyListPrivate::AdjacencyVertexIterator<G>;
+	friend std::pair<AdjacencyVertexIterator, AdjacencyVertexIterator> adjacencyVertices(const G &g, VertexDescriptor u)
+	{
+	    return std::make_pair(AdjacencyVertexIterator(g.v[u].head, &g),
+	                          AdjacencyVertexIterator(-1, &g) ) ;
+
+	}
+
 
 	// VertexListGraph
 	friend std::pair<VertexIterator, VertexIterator> vertices(const G &g)
