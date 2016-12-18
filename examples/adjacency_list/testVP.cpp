@@ -37,9 +37,9 @@ int main()
     int n = 5;
     for(int i = 0; i < n; ++ i)
     {
-        g.addVertex( VP(make_tuple(i, '#')) );
+        addVertex(g, VP(make_tuple(i, '#')) );
     }
-    auto intMap = g.vertexPropertyMap(int_tag());
+    auto intMap = vertexPropertyMap(g, int_tag());
 
     for(int i = 0; i < n; ++ i)
     cout << intMap[i] << endl;
