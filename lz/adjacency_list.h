@@ -452,6 +452,46 @@ public:
 
 
 
+// // IncidenceGraph
+//template<typename D, typename V, typename E, typename G>
+//std::pair<AdjacencyList<D, V, E, G>::OutEdgeIterator, AdjacencyList<D, V, E, G>::OutEdgeIterator>
+//outEdges(const AdjacencyList<D, V, E, G> &g, AdjacencyList<D, V, E, G>::VertexDescriptor u);
+//
+//VertexDescriptor source(const G &g, EdgeDescriptor e);
+//VertexDescriptor target(const G &g, EdgeDescriptor e);
+//
+//// AdjacencyGraph
+//std::pair<AdjacencyVertexIterator, AdjacencyVertexIterator> adjacencyVertices(const G &g, VertexDescriptor u);
+//
+//// VertexListGraph
+//VerticesNumberType verticesNumber(const G &g);
+//
+//std::pair<VertexIterator, VertexIterator> vertices(const G &g);
+//
+//// EdgeListGraph
+//std::pair<EdgeIterator, EdgeIterator> edges(const G &g);
+//
+//EdgesNumberType edgesNumber(const G &g);
+//
+//// PropertyGraph
+//template<typename Tag>
+//VertexPropertyMap<Tag> vertexPropertyMap(G &g, Tag tag);
+//
+//template<typename Tag>
+//ConstVertexPropertyMap<Tag> vertexPropertyMap(const G &g, Tag tag);
+//
+//template<typename Tag>
+//EdgePropertyMap<Tag> edgePropertyMap(G &g, Tag tag);
+//
+//template<typename Tag>
+//ConstEdgePropertyMap<Tag> edgePropertyMap(const G &g, Tag tag);
+//
+//// MutableGraph
+//VertexDescriptor addVertex(G &g, const VP &vp = VP());
+//EdgeDescriptor addEdge(G &g, VertexDescriptor a, VertexDescriptor b,  const EP &ep = EP());
+
+
+
 
 
 
