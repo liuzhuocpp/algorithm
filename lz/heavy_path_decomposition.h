@@ -83,7 +83,7 @@ namespace HeavyPathDecompositionPrivate {
 
 
     template<typename G, typename HeavySonMap>
-    struct NewOrderGraph
+    struct NewGraph
     {
         using V = typename GraphTraits<G>::VertexDescriptor;
         struct AdjacencyVertexIterator:
@@ -124,20 +124,20 @@ namespace HeavyPathDecompositionPrivate {
 
 
 template<typename G, typename HeavySonMap>
-struct GraphTraits<HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap>>: public GraphTraits<G>
+struct GraphTraits<HeavyPathDecompositionPrivate::NewGraph<G, HeavySonMap>>: public GraphTraits<G>
 {
     using AdjacencyVertexIterator = typename GraphTraits<G>::AdjacencyVertexIterator;
 };
 
 template<typename G, typename HeavySonMap>
 std::pair<
-typename HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap>::AdjacencyVertexIterator,
-typename HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap>::AdjacencyVertexIterator>
+typename HeavyPathDecompositionPrivate::NewGraph<G, HeavySonMap>::AdjacencyVertexIterator,
+typename HeavyPathDecompositionPrivate::NewGraph<G, HeavySonMap>::AdjacencyVertexIterator>
 
-adjacencyVertices(const HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap> &g,
+adjacencyVertices(const HeavyPathDecompositionPrivate::NewGraph<G, HeavySonMap> &g,
                   typename GraphTraits<G>::VertexDescriptor u)
 {
-    using Self = HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap>;
+    using Self = HeavyPathDecompositionPrivate::NewGraph<G, HeavySonMap>;
     using AdjacencyVertexIterator = typename Self::AdjacencyVertexIterator;
     auto cnt = adjacencyVertices(g.g, u);
     AdjacencyVertexIterator beg(cnt.first, *cnt.first, g.heavySonMap[u]), end(cnt.second);
@@ -206,7 +206,7 @@ auto heavyPathDecomposition(const G &g, const ParamPack &params = EmptyParamPack
 
 //    HeavyPathDecompositionPrivate::dfs2(g, heavySonMap, topmostMap, newIndexMap,timestamp, rootVertex, rootVertex);
 
-    HeavyPathDecompositionPrivate::NewOrderGraph<G, decltype(heavySonMap)> ng{g, heavySonMap};
+    HeavyPathDecompositionPrivate::NewGraph<G, decltype(heavySonMap)> ng{g, heavySonMap};
     adjacencyTreeDFS(ng, (
             DepthFirstSearchKeywords::enterVertex = rootVertex
            ,DepthFirstSearchKeywords::treeEdge =
