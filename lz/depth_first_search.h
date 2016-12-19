@@ -167,7 +167,7 @@ namespace DepthFirstSearchPrivate {
             typename GraphTraits<G>::VertexDescriptor fa)
     {
         cout << "U33eeee:: " << u << " " << fa << endl;
-        params[startVertex | emptyFunction](u);
+        params[discoverVertex | emptyFunction](u);
         for(auto to: adjacencyVertices(g, u))
         {
             params[examineEdge | emptyFunction](u, to);
@@ -187,12 +187,24 @@ namespace DepthFirstSearchPrivate {
     }
 
 
+    template<typename G, typename EnterVertex>
+    typename GraphTraits<G>::VertexDescriptor chooseEnterVertex(const G& g, EnterVertex u)
+    {
+        return u;
+    }
+
+    template<typename G>
+    typename GraphTraits<G>::VertexDescriptor chooseEnterVertex(const G& g, ParamNotFound)
+    {
+        return *vertices(g).first;
+    }
+
 
     template<typename Bool, typename G, typename ParamPack>
     void dispatchTreeDFS(Bool usingIncidence, const G &g, const ParamPack& params)
     {
         cout << "----" << endl;
-        auto _enterVertex = params[enterVertex | *vertices(g).first];
+        auto _enterVertex = chooseEnterVertex(g, params[enterVertex]);
         cout << "----" << endl;
         params[startVertex | emptyFunction](_enterVertex);
         cout << "----" << endl;

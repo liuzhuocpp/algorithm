@@ -12,10 +12,6 @@
 #include "lz/graph_utility.h"
 #include "lz/depth_first_search.h"
 
-/*
-    need to perfect
-*/
-    
 namespace lz {
 
 namespace HeavyPathDecompositionKeywords {
@@ -34,131 +30,130 @@ namespace HeavyPathDecompositionKeywords {
 
 namespace HeavyPathDecompositionPrivate {
 
-    template<typename G, typename ParentMap, typename HeavySonMap, typename SizeMap, typename DepthMap>
-    void dfs1(const G &g, ParentMap parentMap, HeavySonMap heavySonMap, SizeMap sizeMap, DepthMap depthMap,
-               typename GraphTraits<G>::VertexDescriptor u,
-               typename GraphTraits<G>::VertexDescriptor fa)
-    {
-        using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
-        for(auto e: outEdges(g, u))
-        {
-            VertexDescriptor to = opposite(g, e, u);
-            if(to == fa) continue;
-            depthMap[to] = depthMap[u] + 1;
-            parentMap[to] = u;
-            dfs1(g, parentMap, heavySonMap, sizeMap, depthMap, to, u);
-            sizeMap[u] += sizeMap[to];
-            if(heavySonMap[u] == GraphTraits<G>::nullVertex() || sizeMap[heavySonMap[u]] < sizeMap[to])
-            {
-                heavySonMap[u] = to;
-            }
-        }
-    }
+//    template<typename G, typename ParentMap, typename HeavySonMap, typename SizeMap, typename DepthMap>
+//    void dfs1(const G &g, ParentMap parentMap, HeavySonMap heavySonMap, SizeMap sizeMap, DepthMap depthMap,
+//               typename GraphTraits<G>::VertexDescriptor u,
+//               typename GraphTraits<G>::VertexDescriptor fa)
+//    {
+//        using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
+//        for(auto e: outEdges(g, u))
+//        {
+//            VertexDescriptor to = opposite(g, e, u);
+//            if(to == fa) continue;
+//            depthMap[to] = depthMap[u] + 1;
+//            parentMap[to] = u;
+//            dfs1(g, parentMap, heavySonMap, sizeMap, depthMap, to, u);
+//            sizeMap[u] += sizeMap[to];
+//            if(heavySonMap[u] == GraphTraits<G>::nullVertex() || sizeMap[heavySonMap[u]] < sizeMap[to])
+//            {
+//                heavySonMap[u] = to;
+//            }
+//        }
+//    }
+//
+//    template<typename G, typename HeavySonMap, typename TopmostMap, typename NewIndexMap, typename SizeType>
+//    void dfs2(const G &g, HeavySonMap heavySonMap, TopmostMap topmostMap, NewIndexMap newIndexMap,
+//               SizeType &timestamp,
+//               typename GraphTraits<G>::VertexDescriptor u,
+//               typename GraphTraits<G>::VertexDescriptor fa)
+//    {
+//        newIndexMap[u] = timestamp ++;
+//        using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
+//        if(heavySonMap[u] != GraphTraits<G>::nullVertex())
+//        {
+//            VertexDescriptor to = heavySonMap[u];
+//            topmostMap[to] = topmostMap[u];
+//            dfs2(g, heavySonMap, topmostMap, newIndexMap, timestamp, to, u);
+//        }
+//
+//        for(auto e: outEdges(g, u))
+//        {
+//            VertexDescriptor to = opposite(g, e, u);
+//            if(to == fa || to == heavySonMap[u]) continue;
+//            dfs2(g, heavySonMap, topmostMap, newIndexMap,timestamp, to, u);
+//        }
+//    }
+
 
 
 // I want to reuse the depthFirstSearch instead of dfs2, but failed!!!
-//    template<typename G, typename HeavySonMap>
-//    struct NewOrderGraph: public G
-//    {
-//        HeavySonMap &heavySonMap;
-//        const G &g;
-//        using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
-//        using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
-//
-//        friend VertexDescriptor source(const NewOrderGraph&g, EdgeDescriptor e)
-//        {
-//            VertexDescriptor u = source(g, e);
-//            VertexDescriptor to = target(g, e);
-////            outEdges(g, )
-//        }
-//        friend VertexDescriptor opposite(const NewOrderGraph &g, EdgeDescriptor e, VertexDescriptor u)
-//        {
-//            VertexDescriptor to = opposite(g.g, e, u);
-//            if( *outEdges(g.g, u).first == e) return g.heavySonMap[u];
-//            else
-//            {
-//                if(to == heavySonMap[u])
-//                {
-//                    return opposite(g.g, *outEdges(g.g, u).first, u);
-//                }
-//                else return to;
-//
-//            }
-//        }
-//    };
+// Now, it is successful !
 
 
 
-    template<typename G, typename HeavySonMap, typename TopmostMap, typename NewIndexMap, typename SizeType>
-    void dfs2(const G &g, HeavySonMap heavySonMap, TopmostMap topmostMap, NewIndexMap newIndexMap,
-               SizeType &timestamp,
-               typename GraphTraits<G>::VertexDescriptor u,
-               typename GraphTraits<G>::VertexDescriptor fa)
+    template<typename G, typename HeavySonMap>
+    struct NewOrderGraph
     {
-        newIndexMap[u] = timestamp ++;
-        using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
-        if(heavySonMap[u] != GraphTraits<G>::nullVertex())
+        using V = typename GraphTraits<G>::VertexDescriptor;
+        struct AdjacencyVertexIterator: public GraphTraits<G>::AdjacencyVertexIterator
         {
-            VertexDescriptor to = heavySonMap[u];
-            topmostMap[to] = topmostMap[u];
-            dfs2(g, heavySonMap, topmostMap, newIndexMap, timestamp, to, u);
-        }
+            using Base = typename GraphTraits<G>::AdjacencyVertexIterator;
+            V firstSon;
+            V heavySon;
 
-        for(auto e: outEdges(g, u))
-        {
-            VertexDescriptor to = opposite(g, e, u);
-            if(to == fa || to == heavySonMap[u]) continue;
-            dfs2(g, heavySonMap, topmostMap, newIndexMap,timestamp, to, u);
-        }
-    }
+            AdjacencyVertexIterator() = default;
+            AdjacencyVertexIterator(const Base& base,
+                    V _firstSon = GraphTraits<G>::nullVertex(),
+                    V _heavySon = GraphTraits<G>::nullVertex()):
+                Base(base), firstSon(_firstSon), heavySon(_heavySon)
+            {
 
-//    template<typename G, typename ParentMap, typename DepthMap, typename TopmostMap, typename OutputIterator>
-//    typename GraphTraits<G>::VertexDescriptor
-//    auto getPath = [](const auto &g, auto parentMap, auto depthMap, auto topmostMap,
-//                auto a,
-//                auto b,
-//                auto outputIterator)
-//    {
-//        auto n = 6;
-//        for(int i = 0; i < n; ++ i)
-//        {
-//            std::cout << "i=" << i << ": " << topmostMap[i] << " " << " " << depthMap[i] << " " << parentMap[i] <<  std::endl;
-//        }
-//
-//
-//        while(topmostMap[a] != topmostMap[b])
-//        {
-//            if(depthMap[topmostMap[a]] < depthMap[topmostMap[b]]) std::swap(a, b);
-//            *outputIterator++ = std::make_pair(topmostMap[a], a);
-//            a = parentMap[topmostMap[a]];
-//
-//            std::cout << "ab " << a << " " << b << "\n";
-//        }
-//
-//        if(depthMap[a] < depthMap[b]) std::swap(a, b);
-//        if(depthMap[a] != depthMap[b])
-//        {
-//            *outputIterator++ = std::make_pair(b, a);
-//        }
-//
-//        return std::make_pair(outputIterator, b);
-//    };
+            }
+            AdjacencyVertexIterator& operator++()
+            {
+                ((Base*)this)->operator++();
+                return *this;
+            }
+            V operator*() const
+            {
+                V cnt = ((Base*)this)->operator*();
+                if(heavySon == GraphTraits<G>::nullVertex()) return cnt;
+                if(cnt == firstSon) return heavySon;
+                else if(cnt == heavySon) return firstSon;
+                else return cnt;
+            }
+        };
+
+        const G &g;
+        HeavySonMap &heavySonMap;
+    };
+
+
+
+
+
 
 
 } // namespace HeavyPathDecompositionPrivate
 
 
-//LZ_PARAMETER_KEYWORD(tag, parentMap)
-//LZ_PARAMETER_KEYWORD(tag, heavySonMap)
-//LZ_PARAMETER_KEYWORD(tag, sizeMap)
-//LZ_PARAMETER_KEYWORD(tag, depthMap)
-//
-//LZ_PARAMETER_KEYWORD(tag, topmostMap)
-//LZ_PARAMETER_KEYWORD(tag, rootVertex)
-//LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
-//LZ_PARAMETER_KEYWORD(tag, newIndexMap)
+template<typename G, typename HeavySonMap>
+struct GraphTraits<HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap>>: public GraphTraits<G>
+{
+    using AdjacencyVertexIterator = typename GraphTraits<G>::AdjacencyVertexIterator;
+};
+
+template<typename G, typename HeavySonMap>
+std::pair<
+typename HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap>::AdjacencyVertexIterator,
+typename HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap>::AdjacencyVertexIterator>
+
+adjacencyVertices(const HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap> &g,
+                  typename GraphTraits<G>::VertexDescriptor u)
+{
+    using Self = HeavyPathDecompositionPrivate::NewOrderGraph<G, HeavySonMap>;
+    using AdjacencyVertexIterator = typename Self::AdjacencyVertexIterator;
+    auto cnt = adjacencyVertices(g.g, u);
+    AdjacencyVertexIterator beg(cnt.first, *cnt.first, g.heavySonMap[u]), end(cnt.second);
+    return std::make_pair(beg, end);
+}
 
 
+/*
+
+G must modal AdjacencyGraph, and must a Tree
+
+ */
 template<typename G, typename ParamPack = EmptyParamPack>
 auto heavyPathDecomposition(const G &g, const ParamPack &params = EmptyParamPack())
 {
@@ -193,15 +188,15 @@ auto heavyPathDecomposition(const G &g, const ParamPack &params = EmptyParamPack
 
 //    HeavyPathDecompositionPrivate::dfs1(g, parentMap, heavySonMap, sizeMap,depthMap, rootVertex, rootVertex);
 
-    treeDFS(g, (
+    adjacencyTreeDFS(g, (
             DepthFirstSearchKeywords::enterVertex = rootVertex
            ,DepthFirstSearchKeywords::treeEdge =
-               [&](EdgeDescriptor e, VertexDescriptor u, VertexDescriptor to) {
+               [&](VertexDescriptor u, VertexDescriptor to) {
                    depthMap[to] = depthMap[u] + 1;
                    parentMap[to] = u;
                }
             ,DepthFirstSearchKeywords::treeEdgeReturn =
-                [&](EdgeDescriptor e, VertexDescriptor u, VertexDescriptor to) {
+                [&](VertexDescriptor u, VertexDescriptor to) {
                     sizeMap[u] += sizeMap[to];
                     if(heavySonMap[u] == GraphTraits<G>::nullVertex() || sizeMap[heavySonMap[u]] < sizeMap[to])
                     {
@@ -213,18 +208,29 @@ auto heavyPathDecomposition(const G &g, const ParamPack &params = EmptyParamPack
 
 
 
-    HeavyPathDecompositionPrivate::dfs2(g, heavySonMap, topmostMap, newIndexMap,timestamp, rootVertex, rootVertex);
+//    HeavyPathDecompositionPrivate::dfs2(g, heavySonMap, topmostMap, newIndexMap,timestamp, rootVertex, rootVertex);
 
-
+    HeavyPathDecompositionPrivate::NewOrderGraph<G, decltype(heavySonMap)> ng{g, heavySonMap};
+    adjacencyTreeDFS(ng, (
+            DepthFirstSearchKeywords::enterVertex = rootVertex
+           ,DepthFirstSearchKeywords::treeEdge =
+               [&](VertexDescriptor u, VertexDescriptor to) {
+                   if(to == heavySonMap[u])
+                   {
+                       topmostMap[to] = topmostMap[u];
+                   }
+               }
+            ,DepthFirstSearchKeywords::discoverVertex =
+                [&](VertexDescriptor u) {
+                    newIndexMap[u] = timestamp ++;
+                }
+            ));
 
 
 
 
     // 按照点进行返回的，例如：[(3, 3), (6, 10)]，每个区间内的新节点编号是连续的
-    auto getPath = [=, &g](
-                auto a,
-                auto b,
-                auto outputIterator)
+    auto getPath = [=, &g](auto a, auto b, auto outputIterator)
     {
         while(topmostMap[a] != topmostMap[b])
         {
@@ -243,12 +249,6 @@ auto heavyPathDecomposition(const G &g, const ParamPack &params = EmptyParamPack
     };
 
     return getPath;
-
-//    using namespace std::placeholders;
-//    return std::bind(HeavyPathDecompositionPrivate::getPath,
-//            std::cref(g),/* using std::cref in case copy the graph */
-//            parentMap, depthMap, topmostMap, _1, _2, _3);
-
 }
 
 

@@ -19,7 +19,9 @@ void outputOutEdges(const G &g,  V u)
 }
 int main()
 {
-    AdjacencyList<UndirectedGraphTag> g(n);
+    using G = AdjacencyList<UndirectedGraphTag>;
+    using V = typename GraphTraits<G>::VertexDescriptor;
+    G g(n);
     addEdge(g, 0, 1);
     addEdge(g, 1, 2);
     addEdge(g, 1, 3);
@@ -30,13 +32,16 @@ int main()
     outputOutEdges(g, 1);
 
 
-//    int rootVertex = 0;
 
     auto getAns = heavyPathDecomposition(g);
 
     vector<pair<int, int>> a(5, make_pair(-2, -2));
-//    getAns(3, 5, a.begin());
-    getAns(3, 5, a.begin());
+    vector<pair<int, int>>::iterator ans_end;
+    V lca;
+    std::tie(ans_end, lca) = getAns(3, 5, a.begin());
+
+    assert(ans_end - a.begin() == 3);
+    assert(lca == 0);
 
 
     for(int i = 0; i < a.size(); ++ i)

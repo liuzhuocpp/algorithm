@@ -17,6 +17,7 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
 add_subdirectory(adjacency_list)
 add_subdirectory(depth_first_search)
+add_subdirectory(heavy_path_decomposition)
 
 
 

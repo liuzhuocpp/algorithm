@@ -105,6 +105,7 @@ struct GraphTraits
 	using VertexIterator = typename G::VertexIterator;
 	using EdgeIterator = typename G::EdgeIterator;
 	using OutEdgeIterator = typename G::OutEdgeIterator;
+	using AdjacencyVertexIterator = typename G::AdjacencyVertexIterator;
 
 	using VerticesNumberType = typename G::VerticesNumberType;
 	using EdgesNumberType = typename G::EdgesNumberType;
