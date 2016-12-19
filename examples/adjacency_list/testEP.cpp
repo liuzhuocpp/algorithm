@@ -1,9 +1,3 @@
-/*
- * testEP.cpp
- *
- *  Created on: 2015��11��10��
- *      Author: LZ
- */
 
 
 #include <iostream>
@@ -48,8 +42,6 @@ int main()
 	addEdge(g, 2, 4, EP(1234, 'A'));
 	addEdge(g, 3, 5, EP(5412, '$'));
 
-
-//	G::EdgeIterator ei, end_ei;
 	for(auto e: edges(g))
 	{
 		cout << source(g, e) << " " << target(g, e) << endl;
@@ -64,15 +56,6 @@ int main()
 	{
 		cout << source(ng, e) << " " << target(ng, e) << " " << mp[e] << endl;
 	}
-
-
-
-
-
-
-
-
-
 
 
 

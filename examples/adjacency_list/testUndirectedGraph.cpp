@@ -1,12 +1,3 @@
-/*
- * testUndirectedGraph.cpp
- *
- *  Created on: 2015��11��10��
- *      Author: LZ
- */
-
-
-
 
 /*
  * AdjacencyList test

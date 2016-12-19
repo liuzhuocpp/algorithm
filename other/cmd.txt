@@ -5,9 +5,16 @@ clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\github\algorithm   -
 clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\lib\boost_1_58_0\        -o main.exe   test.cpp  && main.exe
 
 
+
+
 g++  -std=c++14 -ID:\code\github\algorithm      main.cpp     -o main.exe && main.exe
 
-clang++ -std=c++14 -ID:\code\lib\boost_1_58_0\   main.cpp     -o main.exe && main.exe
+
+
+
+
+
+
 
 
 

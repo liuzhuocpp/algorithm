@@ -49,7 +49,7 @@ namespace DepthFirstSearchPrivate {
     using namespace DepthFirstSearchKeywords;
 
     template<typename G, typename ParamPack, typename Marker>
-    void dfs(const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
+    void dfs(std::true_type, const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
     {
         p[startVertex | emptyFunction](u);
         for(auto e: outEdges(g, u))
@@ -60,7 +60,7 @@ namespace DepthFirstSearchPrivate {
             {
                 p[treeEdge | emptyFunction](e, u, to);
                 marker.mark(to);
-                dfs(g, p, marker, to);
+                dfs(std::true_type(), g, p, marker, to);
                 p[treeEdgeReturn | emptyFunction](e, u, to);
             }
             else
@@ -72,19 +72,18 @@ namespace DepthFirstSearchPrivate {
         p[finishVertex | emptyFunction](u);
     }
 
-    // for furture use
     template<typename G, typename ParamPack, typename Marker>
-    void AdjacencyVertexDFS(const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
+    void dfs(std::false_type, const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
     {
         p[startVertex | emptyFunction](u);
-        for(auto to: adjacentVertices(g, u))
+        for(auto to: adjacencyVertices(g, u))
         {
             p[examineEdge | emptyFunction](u, to);
             if(!marker.isMark(to))
             {
                 p[treeEdge | emptyFunction](u, to);
                 marker.mark(to);
-                AdjacencyVertexDFS(g, p, marker, to);
+                dfs(std::false_type(), g, p, marker, to);
                 p[treeEdgeReturn | emptyFunction](u, to);
             }
             else
@@ -97,20 +96,59 @@ namespace DepthFirstSearchPrivate {
     }
 
 
+    template<typename Bool, typename G, typename ParamPack>
+    void dispatchDFS(Bool usingIncidence, const G &g, const ParamPack& params)
+    {
+        auto indexMap = params[vertexIndexMap | vertexPropertyMap(g, vertexIndexTag)];
+        auto n = verticesNumber(g);
+
+        decltype(auto) _marker = params[marker || [&]() {
+            return IndexMarker<decltype(indexMap)>(indexMap, n);
+        }];
+
+        auto _enterVertex = params[enterVertex | GraphTraits<G>::nullVertex()];
+        if(_enterVertex != GraphTraits<G>::nullVertex())
+        {
+            params[startVertex | emptyFunction];
+            _marker.mark(_enterVertex);
+            dfs(usingIncidence, g, params, _marker, _enterVertex);
+        }
+        else
+        {
+            for(auto u: vertices(g))
+            {
+                if(!_marker.isMark(u))
+                {
+                    params[startVertex | emptyFunction](u);
+                    _marker.mark(u);
+                    DepthFirstSearchPrivate::dfs(usingIncidence, g, params, _marker, u);
+                }
+            }
+        }
+
+    }
+
+
+
+
+
+
     template<typename G, typename ParamPack>
-    void treeDFS(const G &g, const ParamPack &p,
+    void treeDFS(std::true_type, const G &g, const ParamPack &p,
             typename GraphTraits<G>::VertexDescriptor u,
             typename GraphTraits<G>::VertexDescriptor fa)
     {
+        cout << "U:: " << u << " " << fa << endl;
         p[startVertex | emptyFunction](u);
         for(auto e: outEdges(g, u))
         {
             typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
+
             p[examineEdge | emptyFunction](e, u, to);
             if(to != fa)
             {
                 p[treeEdge | emptyFunction](e, u, to);
-                treeDFS(g, p, to, u);
+                treeDFS(std::true_type(), g, p, to, u);
                 p[treeEdgeReturn | emptyFunction](e, u, to);
             }
             else
@@ -122,52 +160,80 @@ namespace DepthFirstSearchPrivate {
         p[finishVertex | emptyFunction](u);
     }
 
+
+    template<typename G, typename ParamPack>
+    void treeDFS(std::false_type, const G &g, const ParamPack &params,
+            typename GraphTraits<G>::VertexDescriptor u,
+            typename GraphTraits<G>::VertexDescriptor fa)
+    {
+        cout << "U33eeee:: " << u << " " << fa << endl;
+        params[startVertex | emptyFunction](u);
+        for(auto to: adjacencyVertices(g, u))
+        {
+            params[examineEdge | emptyFunction](u, to);
+            if(to != fa)
+            {
+                params[treeEdge | emptyFunction](u, to);
+                treeDFS(std::false_type(), g, params, to, u);
+                params[treeEdgeReturn | emptyFunction](u, to);
+            }
+            else
+            {
+                params[notTreeEdge | emptyFunction](u, to);
+            }
+            params[finishEdge | emptyFunction](u, to);
+        }
+        params[finishVertex | emptyFunction](u);
+    }
+
+
+
+    template<typename Bool, typename G, typename ParamPack>
+    void dispatchTreeDFS(Bool usingIncidence, const G &g, const ParamPack& params)
+    {
+        cout << "----" << endl;
+        auto _enterVertex = params[enterVertex | *vertices(g).first];
+        cout << "----" << endl;
+        params[startVertex | emptyFunction](_enterVertex);
+        cout << "----" << endl;
+        DepthFirstSearchPrivate::treeDFS(usingIncidence, g, params, _enterVertex, _enterVertex);
+        cout << "----" << endl;
+    }
+
+
 }
 
-
+// IncidenceGraph
 template<typename G, typename ParamPack>
 void depthFirstSearch(const G &g, const ParamPack &p)
 {
-    namespace Keys = DepthFirstSearchKeywords;
-
-    auto indexMap = p[Keys::vertexIndexMap | vertexPropertyMap(g, vertexIndexTag)];
-    auto n = verticesNumber(g);
-
-    decltype(auto) marker = p[Keys::marker || [&]() {
-        return IndexMarker<decltype(indexMap)>(indexMap, n);
-    }];
-
-    auto enterVertex = p[Keys::enterVertex | GraphTraits<G>::nullVertex()];
-    if(enterVertex != GraphTraits<G>::nullVertex())
-    {
-        p[Keys::startVertex | emptyFunction];
-        marker.mark(enterVertex);
-        DepthFirstSearchPrivate::dfs(g, p, marker, enterVertex);
-    }
-    else
-    {
-        for(auto u: vertices(g))
-        {
-            if(!marker.isMark(u))
-            {
-                p[Keys::startVertex | emptyFunction];
-                marker.mark(u);
-                DepthFirstSearchPrivate::dfs(g, p, marker, u);
-            }
-        }
-    }
+    DepthFirstSearchPrivate::dispatchDFS(std::true_type(), g, p);
 }
 
+// AdjacencyGraph
+template<typename G, typename ParamPack>
+void adjacencyDFS(const G &g, const ParamPack &p)
+{
+    DepthFirstSearchPrivate::dispatchDFS(std::false_type(), g, p);
+}
+
+
+// IncidenceTree
 template<typename G, typename ParamPack>
 void treeDFS(const G &g, const ParamPack &params)
 {
-    namespace Keys = DepthFirstSearchKeywords;
-    auto enterVertex = params[Keys::enterVertex | *vertices(g).first];
-
-    params[Keys::startVertex | emptyFunction];
-    DepthFirstSearchPrivate::treeDFS(g, params, enterVertex, enterVertex);
+    cout << "ENTER" << endl;
+    DepthFirstSearchPrivate::dispatchTreeDFS(std::true_type(), g, params);
 }
 
+// AdjacencyTree
+template<typename G, typename ParamPack>
+void adjacencyTreeDFS(const G &g, const ParamPack &params)
+{
+    cout << "ENTER3333221" << endl;
+    cout << "ENTER3333qqqqq" << endl;
+    DepthFirstSearchPrivate::dispatchTreeDFS(std::false_type(), g, params);
+}
 
 
 
