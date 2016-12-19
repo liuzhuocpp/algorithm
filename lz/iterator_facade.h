@@ -1,7 +1,7 @@
 /*
  * iterator.h
  *
- *  Created on: 2015Äê11ÔÂ4ÈÕ
+ *  Created on: 2015ï¿½ï¿½11ï¿½ï¿½4ï¿½ï¿½
  *      Author: LZ
  */
 
@@ -233,6 +233,109 @@ public:
 
 
 };
+
+/*
+
+You should implement the below method:
+forward iterator requires:
+    Derived& operator++() ;
+    typename Derived::reference operator*() const;
+    bool operator==(Derived const& o) const;
+
+bidirectional_iterator requires:
+    Derived& operator--();
+
+random_access_iterator requires:
+    Derived& operator+=(typename Derived::difference_type n);
+    typename Derived::difference_type operator-(Derived const& o) const;
+    bool operator<(Derived const& o) const;
+ */
+
+
+// Derived must extend the IteratorAdapter, Base must be an iterator
+
+//template <
+//    class Derived,
+//    class Base,
+//    class Category,
+//    class T,
+//    class Distance = std::ptrdiff_t,
+//    class Pointer = T*,
+//    class Reference = T&
+//>
+//class IteratorAdapter;
+
+
+// Should write IteratorAdapter By Different iterator Category
+template <
+    class Derived,
+    class Base,
+    class Category = typename std::iterator_traits<Base>::iterator_category,
+    class T = typename std::iterator_traits<Base>::value_type,
+    class Distance = typename std::iterator_traits<Base>::difference_type,
+    class Pointer = typename std::iterator_traits<Base>::pointer,
+    class Reference = typename std::iterator_traits<Base>::reference
+>
+class IteratorAdapter
+        :public IteratorFacade<Derived, Category, T, Distance, Pointer, Reference>
+
+{
+public:
+    IteratorAdapter() = default;
+    IteratorAdapter(const Base& base):m_base(base) {}
+
+    using BaseType = Base;
+    const Base& base() const
+    {
+        return m_base;
+    }
+    Base& base()
+    {
+        return m_base;
+    }
+    Derived& operator++()
+    {
+        ++m_base;
+        return this->derived();
+    }
+    Reference operator*() const
+    {
+        return *m_base;
+    }
+    bool operator==(Derived const& o) const
+    {
+        return m_base == o.m_base;
+    }
+
+
+    Derived& operator--()
+    {
+        --m_base;
+        return this->derived();
+    }
+
+
+    Derived& operator+=(Distance n)
+    {
+        m_base += n;
+        return this->derived();
+    }
+    Distance operator-(Derived const& o) const
+    {
+        return m_base - o.m_base;
+    }
+    bool operator<(Derived const& o) const
+    {
+        return m_base < o.m_base;
+    }
+
+
+private:
+    Base m_base;
+};
+
+
+
 
 
 

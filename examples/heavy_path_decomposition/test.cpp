@@ -19,6 +19,7 @@ void outputOutEdges(const G &g,  V u)
 }
 int main()
 {
+//    dd
     using G = AdjacencyList<UndirectedGraphTag>;
     using V = typename GraphTraits<G>::VertexDescriptor;
     G g(n);

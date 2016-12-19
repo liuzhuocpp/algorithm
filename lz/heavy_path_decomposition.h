@@ -11,6 +11,7 @@
 #include "lz/std_utility.h"
 #include "lz/graph_utility.h"
 #include "lz/depth_first_search.h"
+#include "lz/iterator_facade.h"
 
 namespace lz {
 
@@ -85,9 +86,12 @@ namespace HeavyPathDecompositionPrivate {
     struct NewOrderGraph
     {
         using V = typename GraphTraits<G>::VertexDescriptor;
-        struct AdjacencyVertexIterator: public GraphTraits<G>::AdjacencyVertexIterator
+        struct AdjacencyVertexIterator:
+                IteratorAdapter<AdjacencyVertexIterator,
+                                typename GraphTraits<G>::AdjacencyVertexIterator>
         {
-            using Base = typename GraphTraits<G>::AdjacencyVertexIterator;
+            using Base = IteratorAdapter<AdjacencyVertexIterator,
+                    typename GraphTraits<G>::AdjacencyVertexIterator>;
             V firstSon;
             V heavySon;
 
@@ -95,18 +99,10 @@ namespace HeavyPathDecompositionPrivate {
             AdjacencyVertexIterator(const Base& base,
                     V _firstSon = GraphTraits<G>::nullVertex(),
                     V _heavySon = GraphTraits<G>::nullVertex()):
-                Base(base), firstSon(_firstSon), heavySon(_heavySon)
-            {
-
-            }
-            AdjacencyVertexIterator& operator++()
-            {
-                ((Base*)this)->operator++();
-                return *this;
-            }
+                Base(base), firstSon(_firstSon), heavySon(_heavySon) {}
             V operator*() const
             {
-                V cnt = ((Base*)this)->operator*();
+                V cnt = this->base().operator*();
                 if(heavySon == GraphTraits<G>::nullVertex()) return cnt;
                 if(cnt == firstSon) return heavySon;
                 else if(cnt == heavySon) return firstSon;
