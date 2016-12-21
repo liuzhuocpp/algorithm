@@ -40,7 +40,7 @@ edgeRelaxed: event visitor function containing three paramaters
 	LZ_PARAMETER_KEYWORD(tag, distanceMap)
 	LZ_PARAMETER_KEYWORD(tag, distanceCombine)
 	LZ_PARAMETER_KEYWORD(tag, distanceCompare)
-	LZ_PARAMETER_KEYWORD(tag, distanceInf)
+//	LZ_PARAMETER_KEYWORD(tag, distanceInf)
 	LZ_PARAMETER_KEYWORD(tag, distanceZero)
 
 	LZ_PARAMETER_KEYWORD(tag, marker)
@@ -68,7 +68,7 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     using DistanceType = typename MapTraits<decltype(distanceMap)>::ValueType;
     auto distanceCombine = params[Keys::distanceCombine | std::plus<DistanceType>()];
     auto distanceLess = params[Keys::distanceCompare | std::less<DistanceType>()];
-    auto distanceInf = params[Keys::distanceInf | std::numeric_limits<DistanceType>::max()];
+//    auto distanceInf = params[Keys::distanceInf | std::numeric_limits<DistanceType>::max()];
     auto distanceZero = params[Keys::distanceZero | DistanceType()];
 
     auto _vertices = vertices(g);
