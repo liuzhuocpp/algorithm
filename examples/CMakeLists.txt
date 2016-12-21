@@ -18,7 +18,7 @@ include_directories("D:\\code\\github\\algorithm")
 add_subdirectory(adjacency_list)
 add_subdirectory(depth_first_search)
 add_subdirectory(heavy_path_decomposition)
-
+add_subdirectory(prim_minimum_spanning_tree)
 
 
 #add_executable(hello main.cpp)

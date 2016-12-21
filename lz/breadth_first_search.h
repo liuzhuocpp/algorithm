@@ -51,14 +51,15 @@ void breadthFirstSearch(const G &g, const Params& params)
 
     namespace Keys = BreadthFirstSearchKeywords;
 
-    auto n = g.verticesNumber();
+    auto n = verticesNumber(g);
 
-    auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(vertexIndexTag)];
-    auto marker = params[Keys::marker || [&](){
+    auto indexMap = params[Keys::vertexIndexMap | vertexPropertyMap(g, vertexIndexTag)];
+    decltype(auto) marker = params[Keys::marker || [&]() {
         return std::move(lz::IndexMarker<decltype(indexMap) >(indexMap, n) );
     }];
-    auto buffer = params[Keys::buffer || [](){
-        return Queue<VertexDescriptor>();
+
+    decltype(auto) buffer = params[Keys::buffer || [](){
+        return std::move(Queue<VertexDescriptor>());
     }];
 
     auto discoverVertex = params[Keys::discoverVertex | emptyFunction];
@@ -71,6 +72,7 @@ void breadthFirstSearch(const G &g, const Params& params)
 
     // Can be more efficient
     auto startVertex = params[Keys::startVertex | GraphTraits<G>::nullVertex()];
+
     if(startVertex != GraphTraits<G>::nullVertex())
     {
         marker.mark(startVertex);
@@ -83,7 +85,7 @@ void breadthFirstSearch(const G &g, const Params& params)
         VertexDescriptor u = buffer.top();
         buffer.pop();
         examineVertex(u);
-        for(auto e: g.outEdges(u))
+        for(auto e: outEdges(g, u))
         {
             examineEdge(e, u);
             VertexDescriptor target = opposite(g, e, u);

@@ -34,6 +34,7 @@ namespace PrimMininumSpanningTreeKeywords {
     LZ_PARAMETER_KEYWORD(tag, weightCompare)
 
     LZ_PARAMETER_KEYWORD(tag, heap)
+    LZ_PARAMETER_KEYWORD(tag, marker)
     LZ_PARAMETER_KEYWORD(tag, rootVertex)
 
 
@@ -48,77 +49,56 @@ void primMininumSpanningTree(const G &g, const Params &params)
     using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
     using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
 
-    auto weightMap = params[Keys::weightMap | g.edgePropertyMap(lz::edgeWeightTag)];
-    auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(lz::vertexIndexTag)];
+    auto weightMap = params[Keys::weightMap | edgePropertyMap(g, lz::edgeWeightTag)];
+    auto indexMap = params[Keys::vertexIndexMap | vertexPropertyMap(g, lz::vertexIndexTag)];
 
     using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
 
-    auto n = g.verticesNumber();
+    auto n = verticesNumber(g);
     auto weightLess = params[Keys::weightCompare | std::less<WeightType>() ];
     auto treeEdgeMap = params[Keys::treeEdgeMap | calculateVertexIndexComposeMap<EdgeDescriptor>(indexMap, n)];
 
     auto getTreeEdgeWeight = [&](VertexDescriptor u) {
              return weightMap[treeEdgeMap[u]];
-     };
+    };
+
     auto treeEdgeWeightLess = [&](VertexDescriptor x, VertexDescriptor y) {
         return weightLess(getTreeEdgeWeight(y), getTreeEdgeWeight(x));
     };
 
-
-    auto heap = params[Keys::heap || [&]() {
+    decltype(auto) heap = params[Keys::heap || [&]() {
         auto heapIndexMap = makeVertexIndexComposeMap<size_t>(indexMap, n, (std::size_t)-1);
-        using DefaultHeap = lz::IndexableHeap<VertexDescriptor, decltype(heapIndexMap),  std::size_t(-1), decltype(treeEdgeWeightLess)>;
+        using DefaultHeap = IndexableHeap<VertexDescriptor, decltype(heapIndexMap),  std::size_t(-1), decltype(treeEdgeWeightLess)>;
         return DefaultHeap(heapIndexMap, treeEdgeWeightLess);
     }];
 
+    decltype(auto) _marker = params[Keys::marker || [&]() {
+        return IndexMarker<decltype(indexMap)>(indexMap, n);
+    }];
 
-    auto vertices = g.vertices();
-    auto rootVertex = params[ Keys::rootVertex | *vertices.first];
-
-    for(auto u : vertices)
-    {
-        treeEdgeMap[u] = G::nullEdge();
-    }
-
-    struct Marker
-    {
-        decltype(treeEdgeMap) treeEdgeMap;
-        bool isMark(VertexDescriptor u) const
-        {
-            return (treeEdgeMap[u] != G::nullEdge());
-        }
-        void mark(VertexDescriptor u)
-        {
-            // do nothing
-        }
-    }marker{treeEdgeMap};
-
-    for(auto e: g.outEdges(rootVertex))
-    {
-        VertexDescriptor target = opposite(g, e, rootVertex);
-        treeEdgeMap[target] = e;
-        marker.mark(rootVertex);
-        heap.push(rootVertex);
-    }
-
-
+    auto _vertices = vertices(g);
+    auto rootVertex = params[ Keys::rootVertex | *_vertices.first];
 
     breadthFirstSearch(g, (
-            BreadthFirstSearchKeywords::buffer = heap,
-            BreadthFirstSearchKeywords::marker = marker,
-            BreadthFirstSearchKeywords::treeEdge =
-                [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
+
+        BreadthFirstSearchKeywords::startVertex = rootVertex,
+        BreadthFirstSearchKeywords::buffer = heap,
+        BreadthFirstSearchKeywords::marker = _marker,
+        BreadthFirstSearchKeywords::treeEdge =
+            [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
+                treeEdgeMap[target] = e;
+            },
+        BreadthFirstSearchKeywords::notTreeEdge =
+            [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
+
+                if(target == rootVertex) return ;
+                if(weightLess(weightMap[e], weightMap[treeEdgeMap[target]]))
+                {
                     treeEdgeMap[target] = e;
-                },
-            BreadthFirstSearchKeywords::notTreeEdge =
-                [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
-                    if(weightLess(weightMap[e], weightMap[treeEdgeMap[target]]))
-                    {
-                        treeEdgeMap[target] = e;
-                        heap.decrease(target);
-                    }
+                    heap.decrease(target);
                 }
-            ));
+            }
+        ));
 
 
 
