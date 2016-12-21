@@ -21,6 +21,10 @@ add_subdirectory(heavy_path_decomposition)
 add_subdirectory(prim_minimum_spanning_tree)
 add_subdirectory(dijkstra_shortest_paths)
 add_subdirectory(strongly_connected_components)
+add_subdirectory(connected_components)
+
+
+
 
 include(CTest)
 enable_testing ()

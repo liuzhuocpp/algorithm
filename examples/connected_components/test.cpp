@@ -1,22 +1,12 @@
-/*
- * main.cpp
- *
- *  Created on: 2015Äê12ÔÂ16ÈÕ
- *      Author: LZ
- */
-
-
-
-
 
 #include <iostream>
 #include <cstdio>
 #include <cstring>
 #include <tuple>
 #include <ctime>
+#include <cassert>
 
 #include "lz/adjacency_list.h"
-
 #include "lz/connected_components.h"
 #include "lz/parameter.h"
 
@@ -48,19 +38,28 @@ int main()
 
 	G g;
 
-	int n = 5;
+	int n = 6;
 	for(int i = 0; i < n; ++ i)
-		g.addVertex();
-	g.addEdge(1, 2);
-	g.addEdge(2, 3);
-	g.addEdge(3, 4);
-	g.addEdge(3, 4);
-	g.addEdge(3, 4);
-	g.addEdge(3, 4);
+		addVertex(g);
+
+	addEdge(g, 1, 2);
+	addEdge(g, 2, 3);
+	addEdge(g, 3, 4);
+
+
 
 	vector<int> a(n);
 
 	auto num = connectedComponents(g, makeIteratorMap(a.begin()));
+
+	assert(num == 3);
+
+	assert(a[0] == 0);
+	assert(a[1] == 1);
+	assert(a[2] == 1);
+	assert(a[3] == 1);
+	assert(a[4] == 1);
+	assert(a[5] == 2);
 
 	cout << "NUM " << num << endl;
 
