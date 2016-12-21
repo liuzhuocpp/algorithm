@@ -22,33 +22,35 @@ int main()
     using EP = Property<EdgeWeightTag, int>;
 
     using G = AdjacencyList<UndirectedGraphTag, NoProperty, EP>;
-//    using G = AdjacencyList<DirectedGraphTag, NoProperty, EP>;
 
+    using E = typename GraphTraits<G>::EdgeDescriptor;
+    using V = typename GraphTraits<G>::VertexDescriptor;
     G g(n);
     using namespace DijkstraShortestPathsKeywords;
 
-    vector<int> p(10, -1);
+    vector<int> p(n, -1);
 
-    g.addEdge(1, 0, EP(2));
-    g.addEdge(2, 1, EP(2));
-    g.addEdge(2, 0, EP(1));
-//    g.addEdge(2, 4, EP(98));
-//    g.addEdge(0, 3, EP(10));
-//    g.addEdge(3, 5, EP(33));
-//    g.addEdge(5, 6, EP(440));
-//    g.addEdge(6, 7, EP(110));
-//    g.addEdge(7, 8, EP(1340));
-//    g.addEdge(4, 8, EP(1055));
-//    g.addEdge(0, 8, EP(33));
+    addEdge(g, 1, 0, EP(2));
+    addEdge(g, 2, 1, EP(2));
+    addEdge(g, 2, 0, EP(1));
 
     dijkstraShortestPaths(g, 0, (
 
-            DijkstraShortestPathsKeywords::edgeRelaxed = [&](G::EdgeDescriptor e, G::VertexDescriptor u)
+            DijkstraShortestPathsKeywords::edgeRelaxed = [&](E e, V u, V to)
             {
-                G::VertexDescriptor other = opposite(g, e, u);
-                p[other] = u;
+                p[to] = u;
             }
           ));
+    assert(p[0] == -1);
+    assert(p[1] == 0);
+    assert(p[2] == 0);
+    assert(p[3] == -1);
+    assert(p[4] == -1);
+    assert(p[5] == -1);
+    assert(p[6] == -1);
+    assert(p[7] == -1);
+    assert(p[8] == -1);
+    assert(p[9] == -1);
 
     for(int i = 0; i < n; ++ i)
     {
