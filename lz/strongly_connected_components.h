@@ -35,109 +35,101 @@ namespace StronglyConnectedComponentsKeywords {
 
 
 
+/*
+
+G must be AdjacencyGraph
+ */
 
 
+template<typename G, typename ComponentMap, typename ParamPack =  EmptyParamPack>
 
-    template<typename G, typename ComponentMap, typename ParamPack = lz::EmptyParamPack>
+typename MapTraits<ComponentMap>::ValueType
+stronglyConnectedComponents(const G &g, ComponentMap compMap, const ParamPack &params = EmptyParamPack() )
+{
+//		static_assert(std::is_same<typename GraphTraits<G>::DirectedCategory, DirectedGraphTag>::value, "this graph is not directed");
 
-    typename MapTraits<ComponentMap>::ValueType
-	stronglyConnectedComponents(const G &g, ComponentMap compMap, const ParamPack &p = lz::EmptyParamPack() )
+    using Vertex = typename GraphTraits<G>::VertexDescriptor;
+    using Edge = typename GraphTraits<G>::EdgeDescriptor;
+    namespace Keys = StronglyConnectedComponentsKeywords;
+    auto indexMap = params[Keys::vertexIndexMap | vertexPropertyMap(g, vertexIndexTag)];
+    auto n = verticesNumber(g);
+    auto discoverTimeMap = params[Keys::discoverTimeMap || calculateVertexIndexComposeMap<size_t>(indexMap, n, 0)];
+    auto rootMap = params[Keys::rootMap || calculateVertexIndexComposeMap<Vertex>(indexMap, n)];
+
+    using ComponentType = typename MapTraits<ComponentMap>::ValueType;
+    using TimeType = typename MapTraits<decltype(discoverTimeMap)>::ValueType;
+
+
+    ComponentType compNumber = 0;
+    TimeType dfsTime = 0;
+
+    std::vector<Vertex> stack;
+    std::vector<bool>inStack(n, 0);
+    struct Marker
     {
-		static_assert(std::is_same<typename GraphTraits<G>::DirectedCategory, DirectedGraphTag>::value, "this graph is not directed");
+        decltype(discoverTimeMap)& discoverTimeMap;
+        TimeType& dfsTime;
+        bool isMark(Vertex u) const
+        {
+            return discoverTimeMap[u] != 0;
+        }
 
-		namespace k = StronglyConnectedComponentsKeywords;
+        void mark(Vertex u)
+        {
+            discoverTimeMap[u] = ++ dfsTime;
+        }
 
-		auto indexMap = p[k::vertexIndexMap | g.vertexPropertyMap(VertexIndexTag())];
-
-		using Vertex = typename GraphTraits<G>::VertexDescriptor;
-		using Edge = typename GraphTraits<G>::EdgeDescriptor;
-
-
-		auto n = g.vertexNumber();
-
-		auto discoverTimeMap =
-				p[k::discoverTimeMap ||
-				 std::bind(makeVertexIndexComposeMap<size_t, decltype(indexMap), decltype(n) >,
-						   indexMap, n) ];
-
-		auto rootMap =  p[k::rootMap ||
-						  std::bind(makeVertexIndexComposeMap<Vertex, decltype(indexMap), decltype(n) >,
-						  		    indexMap, n)];
-
-		using ComponentType = typename MapTraits<ComponentMap>::ValueType;
-		using TimeType = typename MapTraits<decltype(discoverTimeMap)>::ValueType;
-
-		using namespace DepthFirstSearchKeywords;
-
-		ComponentType compNumber = 0;
-		TimeType dfsTime = 0;
-
-		std::vector<Vertex> stack;
-		std::vector<bool>inStack(n, 0);
+    }marker{discoverTimeMap, dfsTime};
 
 
-		auto minRoot = [&](Vertex u, Vertex v) ->Vertex
-		{
-			auto ans =  discoverTimeMap[u] < discoverTimeMap[v] ? u : v;
-			return ans;
-		};
+    auto minRoot = [&](Vertex u, Vertex v) ->Vertex
+    {
+        auto ans =  discoverTimeMap[u] < discoverTimeMap[v] ? u : v;
+        return ans;
+    };
+    adjacencyDFS(g, (
+            DepthFirstSearchKeywords::marker = marker,
+            DepthFirstSearchKeywords::discoverVertex = [&](Vertex u)
+            {
+                rootMap[u] = u;
+                stack.push_back(u);
+                inStack[u] = 1;
+            },
+
+            DepthFirstSearchKeywords::treeEdgeReturn = [&](Vertex u, Vertex to)
+            {
+                rootMap[u] = minRoot(rootMap[u], rootMap[to]);
+            },
+
+            DepthFirstSearchKeywords::notTreeEdge = [&](Vertex u, Vertex to)
+            {
+                if(inStack[to])
+                {
+                    rootMap[u] = minRoot(rootMap[u], to);
+                }
+            },
+
+            DepthFirstSearchKeywords::finishVertex = [&](Vertex u)
+            {
+                if(u == rootMap[u])
+                {
+                    Vertex tmp;
+                    do
+                    {
+                        tmp = stack.back();
+                        stack.pop_back();
+                        compMap[tmp] = compNumber;
+                        inStack[tmp] = 0;
+                    }
+                    while(tmp != u);
+                    ++compNumber;
+                }
+            }
+    ));
+    return compNumber;
 
 
-		depthFirstSearch(g, (
-
-				colorMap = discoverTimeMap,
-				white = []()->TimeType { return 0; },
-				black = [&]()->TimeType { return ++dfsTime; }
-				,
-
-				discoverVertex = [&](Vertex u)
-				{
-					rootMap[u] = u;
-					stack.push_back(u);
-					inStack[u] = 1;
-				},
-
-				treeEdgeReturn = [&](Edge e, Vertex u)
-				{
-					Vertex to = opposite(g, e, u);
-					rootMap[u] = minRoot(rootMap[u], rootMap[to]);
-				},
-
-				notTreeEdge = [&](Edge e, Vertex u)
-				{
-					Vertex to = opposite(g, e, u);
-					if(inStack[to])
-					{
-						rootMap[u] = minRoot(rootMap[u], to);
-					}
-				},
-
-				finishVertex = [&](Vertex u)
-				{
-					if(u == rootMap[u])
-					{
-						Vertex tmp;
-						do
-						{
-							tmp = stack.back();
-							stack.pop_back();
-							compMap[tmp] = compNumber;
-							inStack[tmp] = 0;
-						}
-						while(tmp != u);
-						++compNumber;
-					}
-				}
-		));
-
-
-
-
-
-		return compNumber;
-
-
-    }
+}
 
 
 

@@ -51,13 +51,14 @@ namespace DepthFirstSearchPrivate {
     template<typename G, typename ParamPack, typename Marker>
     void dfs(std::true_type, const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
     {
-        p[startVertex | emptyFunction](u);
+        p[discoverVertex | emptyFunction](u);
         for(auto e: outEdges(g, u))
         {
             typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
             p[examineEdge | emptyFunction](e, u, to);
             if(!marker.isMark(to))
             {
+
                 p[treeEdge | emptyFunction](e, u, to);
                 marker.mark(to);
                 dfs(std::true_type(), g, p, marker, to);
@@ -69,13 +70,14 @@ namespace DepthFirstSearchPrivate {
             }
             p[finishEdge | emptyFunction](e, u, to);
         }
+
         p[finishVertex | emptyFunction](u);
     }
 
     template<typename G, typename ParamPack, typename Marker>
     void dfs(std::false_type, const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
     {
-        p[startVertex | emptyFunction](u);
+        p[discoverVertex | emptyFunction](u);
         for(auto to: adjacencyVertices(g, u))
         {
             p[examineEdge | emptyFunction](u, to);
@@ -138,7 +140,7 @@ namespace DepthFirstSearchPrivate {
             typename GraphTraits<G>::VertexDescriptor u,
             typename GraphTraits<G>::VertexDescriptor fa)
     {
-        p[startVertex | emptyFunction](u);
+        p[discoverVertex | emptyFunction](u);
         for(auto e: outEdges(g, u))
         {
             typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);

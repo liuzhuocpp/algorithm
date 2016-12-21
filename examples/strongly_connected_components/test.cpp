@@ -1,7 +1,7 @@
 /*
  * main.cpp
  *
- *  Created on: 2015Äê11ÔÂ20ÈÕ
+ *  Created on: 2015ï¿½ï¿½11ï¿½ï¿½20ï¿½ï¿½
  *      Author: LZ
  */
 
@@ -46,10 +46,17 @@ int main()
 
 	int n = 5;
 	for(int i = 0; i < n; ++ i)
-		g.addVertex();
-	g.addEdge(1, 2);
-	g.addEdge(2, 3);
-	g.addEdge(3, 4);
+		addVertex(g);
+	addEdge(g, 1, 2);
+	addEdge(g, 2, 3);
+	addEdge(g, 3, 4);
+	addEdge(g, 4, 1);
+
+	cout << "OOO" << endl;
+	for(auto e: outEdges(g, 0))
+	{
+	    cout << "outEdges: " << source(g, e) << " " << target(g, e) << endl;
+	}
 //	g.addEdge(4, 1);
 
 	vector<int> a(n);
