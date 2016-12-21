@@ -51,8 +51,8 @@ stronglyConnectedComponents(const G &g, ComponentMap compMap, const ParamPack &p
     using Vertex = typename GraphTraits<G>::VertexDescriptor;
     using Edge = typename GraphTraits<G>::EdgeDescriptor;
     namespace Keys = StronglyConnectedComponentsKeywords;
-    auto indexMap = params[Keys::vertexIndexMap | vertexPropertyMap(g, vertexIndexTag)];
     auto n = verticesNumber(g);
+    auto indexMap = params[Keys::vertexIndexMap | vertexPropertyMap(g, vertexIndexTag)];
     auto discoverTimeMap = params[Keys::discoverTimeMap || calculateVertexIndexComposeMap<size_t>(indexMap, n, 0)];
     auto rootMap = params[Keys::rootMap || calculateVertexIndexComposeMap<Vertex>(indexMap, n)];
 
