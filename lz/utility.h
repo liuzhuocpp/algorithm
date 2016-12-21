@@ -78,13 +78,14 @@ class IndexMarker
     IndexMap indexMap;
     std::vector<bool> v;
 public:
-    using Element = typename MapTraits<IndexMap>::KeyType;
+//    using Element = typename MapTraits<IndexMap>::KeyType;
+    using KeyType = typename MapTraits<IndexMap>::KeyType;
     IndexMarker(IndexMap indexMap, std::size_t n):indexMap(indexMap), v(n, 0) {}
-    bool isMark(const Element &i) const
+    bool isMark(const KeyType &i) const
     {
         return v[indexMap[i]];
     }
-    void mark(Element i)
+    void mark(const KeyType& i)
     {
         v[indexMap[i]] = true;
     }

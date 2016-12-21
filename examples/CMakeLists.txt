@@ -19,15 +19,9 @@ add_subdirectory(adjacency_list)
 add_subdirectory(depth_first_search)
 add_subdirectory(heavy_path_decomposition)
 add_subdirectory(prim_minimum_spanning_tree)
-
-
-#add_executable(hello main.cpp)
-#add_executable(hello2 main2.cpp)
-
-
+add_subdirectory(dijkstra_shortest_paths)
 
 include(CTest)
 enable_testing ()
 
-#add_test (MyTest ${EXECUTABLE_OUTPUT_PATH}/hello)
-#add_test (MyTest2 ${EXECUTABLE_OUTPUT_PATH}/hello2)
+

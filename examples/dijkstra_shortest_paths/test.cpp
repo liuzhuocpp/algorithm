@@ -18,34 +18,48 @@ int n = 10;
 
 int main()
 {
-
     using EP = Property<EdgeWeightTag, int>;
-
     using G = AdjacencyList<DirectedGraphTag, NoProperty, EP>;
     using Edge = G::EdgeDescriptor;
     using Vertex = G::VertexDescriptor;
     G g(n);
     using namespace DijkstraShortestPathsKeywords;
 
-    vector<int> p(10, -1);
+    vector<int> p(n, -1);
 
-    g.addEdge(0, 1, EP(2));
-    g.addEdge(1, 2, EP(2));
-    g.addEdge(0, 2, EP(1));
-    g.addEdge(2, 4, EP(98));
+    addEdge(g, 0, 1, EP(2));
+    addEdge(g, 1, 2, EP(2));
+    addEdge(g, 0, 2, EP(1));
+    addEdge(g, 2, 4, EP(98));
 
-    g.addEdge(0, 3, EP(10));
-    g.addEdge(3, 5, EP(33));
-    g.addEdge(5, 6, EP(440));
-    g.addEdge(6, 7, EP(110));
-    g.addEdge(7, 8, EP(1340));
-    g.addEdge(4, 8, EP(1055));
-    g.addEdge(0, 8, EP(33));
+    addEdge(g, 0, 3, EP(10));
+    addEdge(g, 3, 5, EP(33));
+    addEdge(g, 5, 6, EP(440));
+    addEdge(g, 6, 7, EP(110));
+    addEdge(g, 7, 8, EP(1340));
+    addEdge(g, 4, 8, EP(1055));
+    addEdge(g, 0, 8, EP(33));
 
+    const auto inf = std::numeric_limits<int>::max();
+    vector<int> distanceVec(n, inf);
+
+    struct Marker
+    {
+        vector<int>::iterator mp;
+        bool isMark(int i) const
+        {
+            return mp[i] != inf;
+        }
+        void mark(int i) {}
+    }marker{distanceVec.begin()};
+    auto distanceMap = makeIteratorMap(distanceVec.begin());
     dijkstraShortestPaths(g, 0, (
 
+            DijkstraShortestPathsKeywords::marker = marker,
+            DijkstraShortestPathsKeywords::distanceMap = distanceMap,
             DijkstraShortestPathsKeywords::edgeRelaxed = [&](Edge e, Vertex u, Vertex to)
             {
+                cout << "ENTER" << endl;
                 p[to] = u;
             }
           ));

@@ -9,6 +9,7 @@
 #include "lz/parameter.h"
 #include "lz/graph_utility.h"
 #include "lz/breadth_first_search.h"
+#include "lz/utility.h"
 
 #include "lz/std_utility.h" // for begin(std::pair<Iterator, Iterator>), end(std::pair<Iterator, Iterator>),
 
@@ -42,6 +43,7 @@ edgeRelaxed: event visitor function containing three paramaters
 	LZ_PARAMETER_KEYWORD(tag, distanceInf)
 	LZ_PARAMETER_KEYWORD(tag, distanceZero)
 
+	LZ_PARAMETER_KEYWORD(tag, marker)
     LZ_PARAMETER_KEYWORD(tag, heap)
     LZ_PARAMETER_KEYWORD(tag, edgeRelaxed)
 }
@@ -57,10 +59,10 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     using VertexDescriptor = typename GraphTraits<G>::VertexDescriptor;
     using EdgeDescriptor = typename GraphTraits<G>::EdgeDescriptor;
 
-    auto indexMap = params[Keys::vertexIndexMap | g.vertexPropertyMap(vertexIndexTag)];
+    auto indexMap = params[Keys::vertexIndexMap | vertexPropertyMap(g, vertexIndexTag)];
 
-    auto weightMap = params[Keys::weightMap | g.edgePropertyMap(edgeWeightTag)];
-    auto n = g.verticesNumber();
+    auto weightMap = params[Keys::weightMap | edgePropertyMap(g, edgeWeightTag)];
+    auto n = verticesNumber(g);
     using WeightType = typename MapTraits<decltype(weightMap)>::ValueType;
     auto distanceMap = params[Keys::distanceMap || calculateVertexIndexComposeMap<WeightType>(indexMap, n)];
     using DistanceType = typename MapTraits<decltype(distanceMap)>::ValueType;
@@ -69,7 +71,7 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
     auto distanceInf = params[Keys::distanceInf | std::numeric_limits<DistanceType>::max()];
     auto distanceZero = params[Keys::distanceZero | DistanceType()];
 
-    auto vertices = g.vertices();
+    auto _vertices = vertices(g);
 
     auto calculateDefaultHeap = [&]() {
         auto heapIndexMap =  makeVertexIndexComposeMap(indexMap, n, (std::size_t)-1 );
@@ -80,26 +82,17 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
         return DefaultHeap(heapIndexMap, heapLess);
     };
 
-    auto heap = params[Keys::heap || calculateDefaultHeap];
+    decltype(auto) heap = params[Keys::heap || calculateDefaultHeap];
+    decltype(auto) marker = params[Keys::marker || [&](){
+        return std::move(IndexMarker<decltype(indexMap)>(indexMap, n));
+    }];
+
+
+
     auto edgeRelaxed = params[Keys::edgeRelaxed | emptyFunction];
 
-    struct Marker
-    {
-        decltype(distanceMap) &distanceMap;
-        decltype(distanceInf) distanceInf;
-        bool isMark(VertexDescriptor u)
-        {
-            return distanceMap[u] != distanceInf;
-        }
-        void mark(VertexDescriptor u)
-        {
-            // do nothing
-        }
-    }marker{distanceMap, distanceInf};
 
-    for(auto u: vertices) distanceMap[u] = distanceInf;
     distanceMap[startVertex] = distanceZero;
-
     breadthFirstSearch(g, (
             BreadthFirstSearchKeywords::startVertex = startVertex,
             BreadthFirstSearchKeywords::buffer = heap,
@@ -108,11 +101,11 @@ void dijkstraShortestPaths(const G &g, typename G::VertexDescriptor startVertex,
                 [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
 
                     auto distanceTmp = distanceCombine(distanceMap[source], weightMap[e]);
-                    if(distanceLess(distanceTmp, distanceMap[target]))
-                    {
+//                    if(distanceLess(distanceTmp, distanceMap[target]))
+//                    {
                         distanceMap[target] = distanceTmp;
                         edgeRelaxed(e, source, target);
-                    }
+//                    }
                 },
             BreadthFirstSearchKeywords::notTreeEdge =
                 [&](EdgeDescriptor e, VertexDescriptor source, VertexDescriptor target) {
