@@ -20,29 +20,27 @@ using std::less;
 namespace StronglyConnectedComponentsKeywords {
 
 	LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
-	LZ_PARAMETER_KEYWORD(tag, discoverTimeMap)
+	LZ_PARAMETER_KEYWORD(tag, discoverTimeMap) // all values must be zero
 	LZ_PARAMETER_KEYWORD(tag, rootMap)
 }
 
 
-    namespace StronglyConnectedComponentsPrivate {
+namespace StronglyConnectedComponentsPrivate {
 
 
 
 
-    }// namespace StronglyConnectedComponentsPrivate
-
+}// namespace StronglyConnectedComponentsPrivate
 
 
 
 /*
 
 G must be AdjacencyGraph
+
  */
 
-
 template<typename G, typename ComponentMap, typename ParamPack =  EmptyParamPack>
-
 typename MapTraits<ComponentMap>::ValueType
 stronglyConnectedComponents(const G &g, ComponentMap compMap, const ParamPack &params = EmptyParamPack() )
 {
@@ -59,12 +57,15 @@ stronglyConnectedComponents(const G &g, ComponentMap compMap, const ParamPack &p
     using ComponentType = typename MapTraits<ComponentMap>::ValueType;
     using TimeType = typename MapTraits<decltype(discoverTimeMap)>::ValueType;
 
-
     ComponentType compNumber = 0;
     TimeType dfsTime = 0;
 
     std::vector<Vertex> stack;
-    std::vector<bool>inStack(n, 0);
+
+    // If use marker, will be better
+    std::vector<bool> _inStack(n, 0);
+    auto inStack = makeComposeMap(indexMap, makeIteratorMap(_inStack.begin()) ) ;
+
     struct Marker
     {
         decltype(discoverTimeMap)& discoverTimeMap;
