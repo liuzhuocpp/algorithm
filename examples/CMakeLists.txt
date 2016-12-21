@@ -12,7 +12,7 @@ MESSAGE(STATUS "This is  binary dir " ${PROJECT_BINARY_DIR})
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-
+include_directories("D:\\code\\github\\algorithm")
 
 
 add_subdirectory(adjacency_list)
