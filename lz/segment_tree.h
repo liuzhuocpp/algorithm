@@ -8,6 +8,70 @@
 #include <vector>
 namespace lz {
 
+
+//template<typename Point>
+//sturct
+
+
+struct SegmentTreeData
+{
+    vector<int> a;
+
+    using NodeDescriptor = int;
+    using EndpointType = int;
+    NodeDescriptor leftChild(NodeDescriptor);
+    NodeDescriptor rightChild(NodeDescriptor);
+
+//    EndpointType leftEndpoint(NodeDescriptor);
+//    EndpointType rightEndpoint(NodeDescriptor);
+    std::pair<EndpointType, EndpointType> segment(NodeDescriptor);
+
+
+//    static std::pair<std::pair<EndpointType, EndpointType>,
+//                      std::pair<EndpointType, EndpointType> >
+//     divideSegment(std::pair<EndpointType, EndpointType> >);
+//    {
+//        return make
+//    }
+};
+
+
+void travel(SegmentTreeData &tree, SegmentTreeData::NodeDescriptor u,
+            std::pair<SegmentTreeData::EndpointType, SegmentTreeData::EndpointType> query)
+{
+    if(tree.segment(u) == query)
+    {
+        p[discoverConsistentNode | emptyFunction](u, query);
+        return ;
+    }
+    p[discoverCoverNode | emptyFunction](u, query);
+
+    if(query.second <= tree.segement(tree.leftChild(u)).second)
+    {
+        travel(tree, tree.leftChild(u), query);
+    }
+    else if(query.first <= tree.segement(tree.rightChild(u)).first)
+    {
+        travel(tree, tree.rightChild(u), query);
+    }
+    else
+    {
+        travel(tree, tree.leftChild(u), std::make_pair(query.first, tree.segement(tree.leftChild(u)).second));
+        travel(tree, tree.rightChild(u), std::make_pair(tree.segement(tree.rightChild(u)).first, query.second));
+    }
+    p[finishCoverNode | emptyFunction](u, query);
+}
+
+struct SegmentTreeImplement
+{
+
+};
+
+
+
+
+
+
 #define ls (p << 1)
 #define rs (ls | 1)
 #define mid ((L + R) >> 1)

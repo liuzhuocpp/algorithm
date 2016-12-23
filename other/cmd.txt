@@ -17,6 +17,74 @@ g++  -std=c++14 -ID:\code\github\algorithm      main.cpp     -o main.exe && main
 
 
 
+还没实现的算法：
+Euler Path / Tour 圈套圈算法
+混合图的 Euler Path / Tour
+拓扑排序
+bellman-ford
+floyd
+十字链表
+块状链表块状数组
+最大流
+费用流
+二分图最大匹配，匈牙利，KM
+gcd
+扩展gcd
+树状数组
+B树
+红黑树
+循环队列
+astar 搜索
+dag 最短路径
+树的直径
+RMQ LCA
+tarjan LCA
+level common ancestor 
+splay tree
+笛卡尔树
+二分图最优匹配：KM算法， 匈牙利算法
+同余方程组 
+高斯消元法 
+最小表示法
+后缀树/后缀数组 
+堆排序 
+归并排序 
+kmp,exkmp,ac自动机,后缀数组,manacher,字符串hash
+ 替罪羊树
+线段树套线段树，线段树套平衡树,平衡树套线段树
+可持久化线段树,可持久化平衡树,可持久化块状数组
+spfa
+树的分治算法（点分治，边分治，*动态？树分治 树的重心 中心边）
+快速幂：矩阵快速幂
+费马小定理,欧拉定理，欧拉函数
+lucas定理
+ 乘法逆元
+莫队算法
+模拟退火
+二分，三分法
+fibonacci堆
+有限状态自动机
+哈密顿回路
+大整数，大浮点数
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #pragma GCC diagnostic error "-std=c++14"
