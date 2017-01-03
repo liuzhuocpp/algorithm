@@ -61,13 +61,13 @@ public:
 
 
 
-/*
+/**
 
 Marker concept:
     Mark some element. When a Marker constructed, all elements in this marker are not marked.
 
 
-    using Element
+    using KeyType
     bool isMark(Element i) const;
     void mark(Element i);
 
