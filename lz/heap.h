@@ -265,9 +265,11 @@ IndexableHeap concept:
  */
 
 
-template<typename T, typename IndexMap,
+template<typename T,
+         typename IndexMap,
          typename MapTraits<IndexMap>::ValueType nullIndex = (typename MapTraits<IndexMap>::ValueType)-1,
-         typename Less = std::less<T>, typename Container = std::vector<T>>
+         typename Less = std::less<T>,
+         typename Container = std::vector<T>>
 class IndexableHeap
 {
 private:
