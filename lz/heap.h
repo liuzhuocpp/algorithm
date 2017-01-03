@@ -179,127 +179,6 @@ void eraseHeap(RandomIterator begin, RandomIterator end, RandomIterator it,
 
 
 
-//template<typename RandomIterator, typename Less = std::less<
-//        typename std::iterator_traits<RandomIterator>::value_type>,
-//        typename BeforeKeyChange = HeapPrivate::BeforeKeyChange<RandomIterator> >
-//class HeapImplement
-//{
-//    using IndexType = typename std::iterator_traits<RandomIterator>::difference_type; // [0, n)
-//    inline static IndexType p(IndexType x)
-//    {
-//        return ((x + 1) >> 1) - 1;
-//    }
-//    inline static IndexType ls(IndexType x)
-//    {
-//        return ((x + 1) << 1) - 1;
-//    }
-//    inline static IndexType rs(IndexType x)
-//    {
-//        return ls(x) + 1;
-//    }
-//
-//public:
-//    static void make(RandomIterator begin, RandomIterator end, const Less &less = Less(),
-//            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        for (RandomIterator it = begin; it != end; ++it)
-//        {
-//            up(begin, end, it, less, beforeKeyChange);
-//        }
-//    }
-//    static void push(RandomIterator begin, RandomIterator end, const Less &less = Less(),
-//            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        up(begin, end, end - 1, less, beforeKeyChange);
-//    }
-//    static void pop(RandomIterator begin, RandomIterator end, const Less &less = Less(),
-//            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        if(end - begin <= 1) return ;
-//        beforeKeyChange(begin, *(end - 1));
-//        *begin = *(end - 1);
-//        down(begin, end - 1, begin, less, beforeKeyChange);
-//    }
-//    static void increase(RandomIterator begin, RandomIterator end, RandomIterator it,
-//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        up(begin, end, it, less, beforeKeyChange);
-//    }
-//
-//    static void decrease(RandomIterator begin, RandomIterator end, RandomIterator it,
-//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        down(begin, end, it, less, beforeKeyChange);
-//    }
-//    static void update(RandomIterator begin, RandomIterator end, RandomIterator it,
-//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        IndexType u = it - begin;
-//        if (less(*(begin + p(u)), *it))
-//        {
-//            up(begin, end, it, less, beforeKeyChange);
-//        }
-//        else
-//        {
-//            down(begin, end, it, less, beforeKeyChange);
-//        }
-//    }
-//
-//    static void erase(RandomIterator begin, RandomIterator end, RandomIterator it,
-//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        IndexType u = it - begin;
-//        while (u != 0)
-//        {
-//            swapWithParent(begin, end, begin + u, less, beforeKeyChange);
-//            u = p(u);
-//        }
-//        pop(begin, end, less, beforeKeyChange);
-//    }
-//
-//protected:
-//    static void swapWithParent(RandomIterator begin, RandomIterator end, RandomIterator it,
-//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        RandomIterator a = begin;
-//        IndexType u = it - begin;
-//        beforeKeyChange(a + u, a[p(u)]);
-//        beforeKeyChange(a + p(u), a[u]);
-//        std::swap(a[u], a[p(u)]);
-//    }
-//    static void up(RandomIterator begin, RandomIterator end, RandomIterator it, const Less &less =
-//            Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        RandomIterator a = begin;
-//        IndexType n = end - begin, u = it - begin;
-//        while (u != 0)
-//        {
-//            if (less(a[u], a[p(u)]))
-//            {
-//                break;
-//            }
-//            swapWithParent(begin, end, a + u, less, beforeKeyChange);
-//            u = p(u);
-//        }
-//    }
-//    static void down(RandomIterator begin, RandomIterator end, RandomIterator it, const Less &less =
-//            Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
-//    {
-//        RandomIterator a = begin;
-//        IndexType n = end - a, u = it - begin;
-//        while (ls(u) < n)
-//        {
-//            IndexType son = ls(u);
-//            if (less(a[son], a[rs(u)])) son = rs(u);
-//            if (less(a[u], a[son]))
-//            {
-//                swapWithParent(begin, end, a + son, less, beforeKeyChange);
-//                u = son;
-//            }
-//            else break;
-//        }
-//    }
-//};
 
 template<typename T, typename Less = std::less<T>, typename Container = std::vector<T> >
 class Heap
@@ -514,6 +393,130 @@ private:
     }
 
 };
+
+
+//template<typename RandomIterator, typename Less = std::less<
+//        typename std::iterator_traits<RandomIterator>::value_type>,
+//        typename BeforeKeyChange = HeapPrivate::BeforeKeyChange<RandomIterator> >
+//class HeapImplement
+//{
+//    using IndexType = typename std::iterator_traits<RandomIterator>::difference_type; // [0, n)
+//    inline static IndexType p(IndexType x)
+//    {
+//        return ((x + 1) >> 1) - 1;
+//    }
+//    inline static IndexType ls(IndexType x)
+//    {
+//        return ((x + 1) << 1) - 1;
+//    }
+//    inline static IndexType rs(IndexType x)
+//    {
+//        return ls(x) + 1;
+//    }
+//
+//public:
+//    static void make(RandomIterator begin, RandomIterator end, const Less &less = Less(),
+//            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        for (RandomIterator it = begin; it != end; ++it)
+//        {
+//            up(begin, end, it, less, beforeKeyChange);
+//        }
+//    }
+//    static void push(RandomIterator begin, RandomIterator end, const Less &less = Less(),
+//            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        up(begin, end, end - 1, less, beforeKeyChange);
+//    }
+//    static void pop(RandomIterator begin, RandomIterator end, const Less &less = Less(),
+//            const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        if(end - begin <= 1) return ;
+//        beforeKeyChange(begin, *(end - 1));
+//        *begin = *(end - 1);
+//        down(begin, end - 1, begin, less, beforeKeyChange);
+//    }
+//    static void increase(RandomIterator begin, RandomIterator end, RandomIterator it,
+//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        up(begin, end, it, less, beforeKeyChange);
+//    }
+//
+//    static void decrease(RandomIterator begin, RandomIterator end, RandomIterator it,
+//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        down(begin, end, it, less, beforeKeyChange);
+//    }
+//    static void update(RandomIterator begin, RandomIterator end, RandomIterator it,
+//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        IndexType u = it - begin;
+//        if (less(*(begin + p(u)), *it))
+//        {
+//            up(begin, end, it, less, beforeKeyChange);
+//        }
+//        else
+//        {
+//            down(begin, end, it, less, beforeKeyChange);
+//        }
+//    }
+//
+//    static void erase(RandomIterator begin, RandomIterator end, RandomIterator it,
+//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        IndexType u = it - begin;
+//        while (u != 0)
+//        {
+//            swapWithParent(begin, end, begin + u, less, beforeKeyChange);
+//            u = p(u);
+//        }
+//        pop(begin, end, less, beforeKeyChange);
+//    }
+//
+//protected:
+//    static void swapWithParent(RandomIterator begin, RandomIterator end, RandomIterator it,
+//            const Less &less = Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        RandomIterator a = begin;
+//        IndexType u = it - begin;
+//        beforeKeyChange(a + u, a[p(u)]);
+//        beforeKeyChange(a + p(u), a[u]);
+//        std::swap(a[u], a[p(u)]);
+//    }
+//    static void up(RandomIterator begin, RandomIterator end, RandomIterator it, const Less &less =
+//            Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        RandomIterator a = begin;
+//        IndexType n = end - begin, u = it - begin;
+//        while (u != 0)
+//        {
+//            if (less(a[u], a[p(u)]))
+//            {
+//                break;
+//            }
+//            swapWithParent(begin, end, a + u, less, beforeKeyChange);
+//            u = p(u);
+//        }
+//    }
+//    static void down(RandomIterator begin, RandomIterator end, RandomIterator it, const Less &less =
+//            Less(), const BeforeKeyChange &beforeKeyChange = BeforeKeyChange())
+//    {
+//        RandomIterator a = begin;
+//        IndexType n = end - a, u = it - begin;
+//        while (ls(u) < n)
+//        {
+//            IndexType son = ls(u);
+//            if (less(a[son], a[rs(u)])) son = rs(u);
+//            if (less(a[u], a[son]))
+//            {
+//                swapWithParent(begin, end, a + son, less, beforeKeyChange);
+//                u = son;
+//            }
+//            else break;
+//        }
+//    }
+//};
+
 
 //template<typename T, typename Container = std::vector<T>, typename Compare = std::less<T> >
 //class Heap
