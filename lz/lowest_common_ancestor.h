@@ -24,6 +24,7 @@ namespace lz {
     LZ_PARAMETER_KEYWORD(tag, marker)
     LZ_PARAMETER_KEYWORD(tag, vertexIndexMap)
     LZ_PARAMETER_KEYWORD(tag, disjointSets)
+    LZ_PARAMETER_KEYWORD(tag, rootVertex)
 //    LZ_PARAMETER_KEYWORD(tag, lcaMap)
 
 
@@ -40,23 +41,21 @@ void lowestCommonAncestor(const Tree& tree, const QueryGraph &queryGraph, const 
     auto n = verticesNumber(tree);
     auto indexMap = params[Keys::vertexIndexMap | vertexPropertyMap(tree, vertexIndexTag)];
 
+    auto rootVertex = params[Keys::rootVertex | *vertices(tree).first];
+
     decltype(auto) marker = params[Keys::marker || [&]() {
         return IndexMarker<decltype(indexMap)>(indexMap, n);
     }];
 
     decltype(auto) disjointSets = params[Keys::disjointSets || [&]() {
         auto parentMap = lz::makeVertexIndexComposeMap<VertexDescriptor>(indexMap, n);
-        return DisjointSets<decltype(parentMap)>(parentMap);
+        auto _vertices = vertices(tree);
+        return DisjointSets<decltype(parentMap)>(parentMap, _vertices.first, _vertices.second);
     }];
-
-    for(VertexDescriptor u: vertices(tree))
-    {
-        disjointSets.makeSet(u);
-    }
-
 
     adjacencyDFS(tree, (
 
+        DepthFirstSearchKeywords::enterVertex = rootVertex,
         DepthFirstSearchKeywords::treeEdgeReturn = [&](VertexDescriptor u, VertexDescriptor to) {
             disjointSets.link(to, u);
         },

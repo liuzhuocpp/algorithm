@@ -9,7 +9,7 @@
 
 
 #include "lz/map.h"
-
+#include <algorithm>
 namespace lz {
 
 
@@ -82,8 +82,15 @@ template<typename ParentMap>
 struct DisjointSets
 {
     using VertexDescriptor = typename MapTraits<ParentMap>::KeyType;
-    DisjointSets(){}
+    DisjointSets() = default;
     DisjointSets(const ParentMap &parentMap):parentMap(parentMap){}
+
+    template<typename ForwordIterator>
+    DisjointSets(const ParentMap &parentMap, ForwordIterator begin, ForwordIterator end):
+        parentMap(parentMap)
+    {
+        std::for_each(begin, end, [this](auto u){ makeSet(u); });
+    }
     void makeSet(VertexDescriptor u)
     {
         Impl::makeSet(parentMap, u);
@@ -99,12 +106,9 @@ struct DisjointSets
     {
         Impl::link(parentMap, x, y);
     }
-
-
 private:
     ParentMap parentMap;
     using Impl = DisjointSetsImplement<ParentMap>;
-
 };
 
 
