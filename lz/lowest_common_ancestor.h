@@ -50,7 +50,7 @@ void lowestCommonAncestor(const Tree& tree, const QueryGraph &queryGraph, const 
         return makeDisjointSets(parentMap, _vertices.first, _vertices.second);
     }];
 
-    adjacencyDFS(tree, (
+    adjacencyTreeDFS(tree, (
 
         DepthFirstSearchKeywords::enterVertex = rootVertex,
         DepthFirstSearchKeywords::treeEdgeReturn = [&](VertexDescriptor u, VertexDescriptor to) {

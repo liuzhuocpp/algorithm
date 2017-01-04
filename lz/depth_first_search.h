@@ -235,7 +235,6 @@ void adjacencyDFS(const G &g, const ParamPack &p)
 template<typename G, typename ParamPack>
 void treeDFS(const G &g, const ParamPack &params)
 {
-    cout << "ENTER" << endl;
     DepthFirstSearchPrivate::dispatchTreeDFS(std::true_type(), g, params);
 }
 
@@ -243,8 +242,6 @@ void treeDFS(const G &g, const ParamPack &params)
 template<typename G, typename ParamPack>
 void adjacencyTreeDFS(const G &g, const ParamPack &params)
 {
-    cout << "ENTER3333221" << endl;
-    cout << "ENTER3333qqqqq" << endl;
     DepthFirstSearchPrivate::dispatchTreeDFS(std::false_type(), g, params);
 }
 
