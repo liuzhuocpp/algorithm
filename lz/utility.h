@@ -80,7 +80,7 @@ class IndexMarker
 public:
 //    using Element = typename MapTraits<IndexMap>::KeyType;
     using KeyType = typename MapTraits<IndexMap>::KeyType;
-    IndexMarker(IndexMap indexMap, std::size_t n):indexMap(indexMap), v(n, 0) {}
+    IndexMarker(const IndexMap& indexMap, std::size_t n):indexMap(indexMap), v(n, 0) {}
     bool isMark(const KeyType &i) const
     {
         return v[indexMap[i]];
@@ -90,6 +90,20 @@ public:
         v[indexMap[i]] = true;
     }
 };
+
+template<typename IndexMap>
+IndexMarker<IndexMap> makeIndexMarker(const IndexMap& indexMap, std::size_t n)
+{
+    return IndexMarker<IndexMap>(indexMap, n);
+}
+
+template<typename IndexMap>
+auto calculateIndexMarker(const IndexMap& indexMap, std::size_t n)
+{
+    return std::bind(makeIndexMarker<IndexMap>, indexMap, n);
+}
+
+
 
 //template<typename IndexableHeap>
 //class IndexableHeapAsMarkerForBFS

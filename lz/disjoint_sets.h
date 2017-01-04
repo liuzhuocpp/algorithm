@@ -10,6 +10,7 @@
 
 #include "lz/map.h"
 #include <algorithm>
+#include <functional>
 namespace lz {
 
 
@@ -112,8 +113,18 @@ private:
 };
 
 
+template<typename ParentMap, typename ForwordIterator>
+DisjointSets<ParentMap> makeDisjointSets(const ParentMap& parentMap, ForwordIterator begin, ForwordIterator end )
+{
+    return DisjointSets<ParentMap>(parentMap, begin, end);
+}
 
-
+//template<typename ParentMap, typename ForwordIterator>
+//auto calculateDisjointSets(const ParentMap& parentMap, ForwordIterator begin, ForwordIterator end )
+//{
+//
+//    return std::bind(parentMap, begin, end);
+//}
 
 
 
