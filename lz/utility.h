@@ -99,6 +99,7 @@ IndexMarker<IndexMap> makeIndexMarker(const IndexMap& indexMap, std::size_t n)
 
 template<typename IndexMap>
 auto calculateIndexMarker(const IndexMap& indexMap, std::size_t n)
+    ->decltype(std::bind(makeIndexMarker<IndexMap>, indexMap, n))
 {
     return std::bind(makeIndexMarker<IndexMap>, indexMap, n);
 }
