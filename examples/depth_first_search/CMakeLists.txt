@@ -10,8 +10,6 @@ MESSAGE(STATUS "after set dfs:  " ${EXECUTABLE_OUTPUT_PATH})
 add_executable(testUndirectedDFS testUndirectedDFS.cpp)
 
 
-include(CTest)
-enable_testing ()
 
 add_test (testUndirectedDFS ${EXECUTABLE_OUTPUT_PATH}/testUndirectedDFS)
 

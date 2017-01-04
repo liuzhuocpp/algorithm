@@ -13,8 +13,6 @@ add_executable(testAdjacencyVertex testAdjacencyVertex.cpp)
 add_executable(testUndirectedGraph testUndirectedGraph.cpp)
 
 
-include(CTest)
-enable_testing ()
 
 add_test (testEP ${EXECUTABLE_OUTPUT_PATH}/testEP)
 add_test (testVP ${EXECUTABLE_OUTPUT_PATH}/testVP)

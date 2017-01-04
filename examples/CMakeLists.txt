@@ -15,6 +15,9 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 include_directories("D:\\code\\github\\algorithm")
 
 
+include(CTest)
+enable_testing ()
+
 add_subdirectory(adjacency_list)
 add_subdirectory(depth_first_search)
 add_subdirectory(heavy_path_decomposition)
@@ -24,10 +27,5 @@ add_subdirectory(strongly_connected_components)
 add_subdirectory(connected_components)
 add_subdirectory(lowest_common_ancestor)
 
-
-
-
-include(CTest)
-enable_testing ()
 
 
