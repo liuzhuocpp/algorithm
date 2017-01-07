@@ -14,7 +14,7 @@
 
 namespace lz {
 
-    namespace SparseTableRangeMinimumQueryKeywords {
+    namespace sparseTableRangeMinimumQueryKeywords {
 
     LZ_PARAMETER_KEYWORD(tag, ceilLog2)
     LZ_PARAMETER_KEYWORD(tag, floorLog2)
@@ -33,10 +33,10 @@ auto sparseTableRangeMinimumQuery(RandomIterator begin, RandomIterator end,
 {
     using IndexType = typename std::iterator_traits<RandomIterator>::difference_type;
     using ValueType = typename std::iterator_traits<RandomIterator>::value_type;
-    auto ceilLog2 = params[SparseTableRangeMinimumQueryKeywords::ceilLog2 |
+    auto ceilLog2 = params[sparseTableRangeMinimumQueryKeywords::ceilLog2 |
                            [](IndexType x) { return  (IndexType)std::ceil(std::log2(x)); } ];
 
-    auto floorLog2 = params[SparseTableRangeMinimumQueryKeywords::floorLog2 |
+    auto floorLog2 = params[sparseTableRangeMinimumQueryKeywords::floorLog2 |
                                [](IndexType x) { return  (IndexType)std::log2(x); } ];
 
     IndexType n = end - begin;
