@@ -26,6 +26,7 @@ add_subdirectory(dijkstra_shortest_paths)
 add_subdirectory(strongly_connected_components)
 add_subdirectory(connected_components)
 add_subdirectory(lowest_common_ancestor)
+add_subdirectory(sparse_table_range_minimum_query)
 
 
 

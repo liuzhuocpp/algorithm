@@ -252,16 +252,13 @@ IndexableHeap concept:
 
 
 /**
- * IndexableHeap concept:
- * void push(const KeyType& key);
- * void pop(const KeyType& key);
- * const KeyType& top();
- * void decrease(const KeyType& key);
- * void increase(const KeyType& key);
- * void update(const KeyType& key);
- * void contains(const KeyType& key);
- * void empty(const KeyType& key);
- * void size(const KeyType& key);
+
+IndexableHeap concept:
+    Heap concept
+    void decrease(const KeyType& key);
+    void increase(const KeyType& key);
+    void update(const KeyType& key);
+    void contains(const KeyType& key);
  */
 
 

@@ -4,6 +4,10 @@ clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\github\algorithm   -
 
 clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\lib\boost_1_58_0\        -o main.exe   test.cpp  && main.exe
 
+
+
+
+cd D:\code\workspace\algorithm && D:
 cmake.exe ..\..\github\algorithm\examples  -G "MinGW Makefiles" && mingw32-make.exe &&  mingw32-make.exe test
 
 
