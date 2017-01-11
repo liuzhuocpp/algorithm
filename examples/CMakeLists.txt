@@ -28,6 +28,7 @@ add_subdirectory(connected_components)
 add_subdirectory(lowest_common_ancestor)
 add_subdirectory(sparse_table_range_minimum_query)
 add_subdirectory(rmq_lowest_common_ancestor)
+add_subdirectory(biconnected_components_of_vertex)
 
 
 
