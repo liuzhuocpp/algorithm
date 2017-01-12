@@ -49,19 +49,21 @@ namespace DepthFirstSearchPrivate {
     using namespace DepthFirstSearchKeywords;
 
     template<typename G, typename ParamPack, typename Marker>
-    void dfs(std::true_type, const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
+    void dfs(std::true_type, const G &g, const ParamPack &p, Marker &marker,
+            typename GraphTraits<G>::VertexDescriptor u,
+            typename GraphTraits<G>::EdgeDescriptor pe)
     {
         p[discoverVertex | emptyFunction](u);
         for(auto e: outEdges(g, u))
         {
+            if(pe == e) continue;
             typename GraphTraits<G>::VertexDescriptor to = opposite(g, e, u);
             p[examineEdge | emptyFunction](e, u, to);
             if(!marker.isMark(to))
             {
-
                 p[treeEdge | emptyFunction](e, u, to);
                 marker.mark(to);
-                dfs(std::true_type(), g, p, marker, to);
+                dfs(std::true_type(), g, p, marker, to, e);
                 p[treeEdgeReturn | emptyFunction](e, u, to);
             }
             else
@@ -75,17 +77,25 @@ namespace DepthFirstSearchPrivate {
     }
 
     template<typename G, typename ParamPack, typename Marker>
-    void dfs(std::false_type, const G &g, const ParamPack &p, Marker &marker, typename GraphTraits<G>::VertexDescriptor u)
+    void dfs(std::false_type, const G &g, const ParamPack &p, Marker &marker,
+            typename GraphTraits<G>::VertexDescriptor u,
+            typename GraphTraits<G>::VertexDescriptor fa)
     {
         p[discoverVertex | emptyFunction](u);
+        bool first = 0;
         for(auto to: adjacencyVertices(g, u))
         {
+            if(std::is_same<typename GraphTraits<G>::DirectedCategory, UndirectedGraphTag>::value && to == fa && !first)
+            {
+                first = 1;
+                continue;
+            }
             p[examineEdge | emptyFunction](u, to);
             if(!marker.isMark(to))
             {
                 p[treeEdge | emptyFunction](u, to);
                 marker.mark(to);
-                dfs(std::false_type(), g, p, marker, to);
+                dfs(std::false_type(), g, p, marker, to, u);
                 p[treeEdgeReturn | emptyFunction](u, to);
             }
             else
@@ -96,6 +106,21 @@ namespace DepthFirstSearchPrivate {
         }
         p[finishVertex | emptyFunction](u);
     }
+
+    template<typename G, typename ParamPack, typename Marker>
+    void startDFS(std::true_type, const G &g, const ParamPack &p, Marker &marker,
+            typename GraphTraits<G>::VertexDescriptor u)
+    {
+        dfs(std::true_type(), g, p, marker, u, GraphTraits<G>::nullEdge());
+    }
+
+    template<typename G, typename ParamPack, typename Marker>
+    void startDFS(std::false_type, const G &g, const ParamPack &p, Marker &marker,
+            typename GraphTraits<G>::VertexDescriptor u)
+    {
+        dfs(std::false_type(), g, p, marker, u, u);
+    }
+
 
 
     template<typename Bool, typename G, typename ParamPack>
@@ -113,7 +138,7 @@ namespace DepthFirstSearchPrivate {
         {
             params[startVertex | emptyFunction];
             _marker.mark(_enterVertex);
-            dfs(usingIncidence, g, params, _marker, _enterVertex);
+            startDFS(usingIncidence, g, params, _marker, _enterVertex);
         }
         else
         {
@@ -123,7 +148,7 @@ namespace DepthFirstSearchPrivate {
                 {
                     params[startVertex | emptyFunction](u);
                     _marker.mark(u);
-                    DepthFirstSearchPrivate::dfs(usingIncidence, g, params, _marker, u);
+                    startDFS(usingIncidence, g, params, _marker, u);
                 }
             }
         }
