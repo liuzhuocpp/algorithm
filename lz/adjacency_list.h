@@ -55,7 +55,7 @@ class AdjacencyList;
 
         OutEdgeIterator& operator++()
         {
-            i = g->e[i].next;
+            i = g->next(i);
             return *this;
         }
         typename OutEdgeIterator::reference operator*() const
@@ -79,22 +79,24 @@ class AdjacencyList;
         VertexDescriptor >
     {
         friend G;
+        VertexDescriptor source;
         EdgeDescriptor i; // realED
         const G *g;
     protected:
-        AdjacencyVertexIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
+        AdjacencyVertexIterator(VertexDescriptor source, EdgeDescriptor i, const G *g):
+            source(source), i(i), g(g) {} //AdjacencyList call this function
 
     public:
-        AdjacencyVertexIterator():i(-1), g(nullptr) {}
+        AdjacencyVertexIterator():source(-1), i(-1), g(nullptr) {}
 
         AdjacencyVertexIterator& operator++()
         {
-            i = g->e[i].next;
+            i = g->next(i);
             return *this;
         }
         typename AdjacencyVertexIterator::reference operator*() const
         {
-            return g->e[i].target;
+            return opposite(*g, G::R2V(i), source);
         }
         bool operator==(AdjacencyVertexIterator const& o) const
         {
@@ -122,31 +124,43 @@ class AdjacencyList;
 	{
     	EdgeDescriptor head;
     	VertexData(EdgeDescriptor _head, const VP &vp):
-    	    head(_head), HasPropertiesBase<VP>(vp){}
+    	    head(_head), HasPropertiesBase<VP>(vp) {}
 	};
 
     // edge data
-	template<typename EP>
-	struct EdgeData:HasPropertiesBase<EP>
-	{
-		VertexDescriptor source, target;
-		EdgeDescriptor next;
+    template<typename EP>
+    struct EdgeDataBase: HasPropertiesBase<EP>
+    {
+        VertexDescriptor source, target;
+        EdgeDataBase(VertexDescriptor source, VertexDescriptor target, const EP &ep):
+            source(source), target(target), HasPropertiesBase<EP>(ep) {}
+    };
 
-		EdgeData(VertexDescriptor source, VertexDescriptor target, EdgeDescriptor next, const EP & ep)
-		:source(source), target(target), next(next), HasPropertiesBase<EP>(ep){}
-	};
+    template<typename DirectedCategory, typename EP>
+    struct EdgeData: EdgeDataBase<EP>
+    {
+        EdgeDescriptor next;
+        EdgeData(VertexDescriptor source, VertexDescriptor target, const EP &ep, EdgeDescriptor next):
+            EdgeDataBase<EP>(source, target, ep), next(next) {}
+    };
+
+    template<typename EP>
+    struct EdgeData<UndirectedGraphTag, EP>: EdgeDataBase<EP>
+    {
+        EdgeDescriptor next[2];
+        EdgeData(VertexDescriptor source, VertexDescriptor target, const EP &ep,
+            EdgeDescriptor firstNext, EdgeDescriptor secondNext):
+                EdgeDataBase<EP>(source, target, ep), next{firstNext, secondNext} {}
+
+    };
+
 
     // graph data
-    template<typename VP, typename EP, typename GP>
+    template<typename DirectedCategory, typename VP, typename EP, typename GP>
     struct GraphData:public HasPropertiesBase<GP>
     {
         vector<VertexData<VP> > v;
-        vector<EdgeData<EP> > e;
-        EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
-		{
-			this->e.push_back(EdgeData<EP>(a, b, this->v[a].head, ep));
-			return this->v[a].head = this->e.size() - 1;
-		}
+        vector<EdgeData<DirectedCategory, EP> > e;
     };
 
 
@@ -159,30 +173,51 @@ class AdjacencyList;
     // R2V: realED to virtualED
     // DistinguishDirectionGraph
     template<typename Direction, typename VP, typename EP, typename GP>
-    struct DistinguishDirectionGraph: public GraphData<VP, EP, GP>
+    struct DistinguishDirectionGraph: public GraphData<Direction, VP, EP, GP>
     {
-    	static EdgeDescriptor V2R(EdgeDescriptor e) { return e; }
     	static EdgeDescriptor R2V(EdgeDescriptor e) { return e; }
-    	using GraphData<VP, EP, GP>::addEdge;
-    	SizeType edgesNumber() const { return this->e.size(); }
+
+    	EdgeDescriptor next(EdgeDescriptor e) const
+    	{
+    	    return this->e[e].next;
+    	}
+
+    	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
+    	{
+    	    this->e.push_back(EdgeData<Direction, EP>(a, b, ep, this->v[a].head));
+    	    return this->v[a].head = this->e.size() - 1;
+    	}
     };
 
     template<typename VP,
 			 typename EP,
 			 typename GP>
     struct DistinguishDirectionGraph<UndirectedGraphTag, VP, EP, GP>
-    	:public GraphData<VP, EP, GP>
+    	:public GraphData<UndirectedGraphTag, VP, EP, GP>
     {
-    	static EdgeDescriptor V2R(EdgeDescriptor e) { return e << 1; }
     	static EdgeDescriptor R2V(EdgeDescriptor e) { return e >> 1; }
-    	using Base = GraphData<VP, EP, GP>;
+
+        EdgeDescriptor next(EdgeDescriptor e) const
+        {
+            return this->e[e >> 1].next[e & 1];
+        }
+
     	EdgeDescriptor addEdge(VertexDescriptor a, VertexDescriptor b, const EP &ep = EP())
 		{
-    		Base::addEdge(a, b, ep);
-			return Base::addEdge(b, a, ep) >> 1;
-		}
+    	    EdgeDescriptor first = this->e.size() << 1;
+    	    EdgeDescriptor second = first + 1;
+            this->e.push_back(EdgeData<UndirectedGraphTag, EP>(a, b, ep, this->v[a].head, this->v[b].head));
+            if(a == b)
+            {
+                this->e.back().next[1] = first;
+            }
 
-    	SizeType edgesNumber() const { return this->e.size() >> 1; }
+            this->v[a].head = first;
+            this->v[b].head = second;
+
+            return this->e.size() - 1;
+
+		}
     };
 
     } // AdjacencyListPrivate
@@ -221,7 +256,7 @@ class AdjacencyList: private AdjacencyListPrivate::DistinguishDirectionGraph<
 	template<typename G> friend class AdjacencyListPrivate::AdjacencyVertexIterator;
 
 	using VertexData = AdjacencyListPrivate::VertexData<VP> ;
-	using EdgeData = AdjacencyListPrivate::EdgeData<EP> ;
+	using EdgeData = AdjacencyListPrivate::EdgeData<Direction, EP>;
 	using G = AdjacencyList;
 	using Base = AdjacencyListPrivate::DistinguishDirectionGraph<
 				 Direction, VP, EP, GP>;
@@ -274,9 +309,9 @@ public:
     { return this->v[u].properties; }
 
     EP& edgeProperties(EdgeDescriptor e)
-    { return this->e[this->V2R(e)].properties; }
+    { return this->e[e].properties; }
     const EP& edgeProperties(EdgeDescriptor e) const
-    { return this->e[this->V2R(e)].properties; }
+    { return this->e[e].properties; }
 
     GP& graphProperties() { return this->properties; }
     const GP& graphProperties() const { return this->properties; }
@@ -292,17 +327,17 @@ public:
 
 	friend VertexDescriptor source(const G &g, EdgeDescriptor e)
     {
-	    return g.e[G::V2R(e)].source;
+	    return g.e[e].source;
     }
 	friend VertexDescriptor target(const G &g, EdgeDescriptor e)
     {
-        return g.e[G::V2R(e)].target;
+        return g.e[e].target;
     }
 
 	// AdjacencyGraph
 	friend std::pair<AdjacencyVertexIterator, AdjacencyVertexIterator> adjacencyVertices(const G &g, VertexDescriptor u)
 	{
-	    return std::make_pair(AdjacencyVertexIterator(g.v[u].head, &g), AdjacencyVertexIterator(-1, &g)) ;
+	    return std::make_pair(AdjacencyVertexIterator(u, g.v[u].head, &g), AdjacencyVertexIterator(u, -1, &g)) ;
 	}
 
 
@@ -325,7 +360,7 @@ public:
 
     friend EdgesNumberType edgesNumber(const G &g)
     {
-        return g.edgesNumber();
+        return g.e.size();
     }
 
     // PropertyGraph
