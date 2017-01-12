@@ -35,6 +35,75 @@ class AdjacencyList;
 
 
 
+    template<typename G>
+    class OutEdgeIterator: public IteratorFacade<
+        OutEdgeIterator<G>,
+        std::forward_iterator_tag,
+        typename GraphTraits<G>::EdgeDescriptor,
+        std::ptrdiff_t,
+        typename GraphTraits<G>::EdgeDescriptor*,
+        typename GraphTraits<G>::EdgeDescriptor >
+    {
+        friend G;
+        EdgeDescriptor i; // realED
+        const G *g;
+    protected:
+        OutEdgeIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
+
+    public:
+        OutEdgeIterator():i(-1), g(nullptr) {}
+
+        OutEdgeIterator& operator++()
+        {
+            i = g->e[i].next;
+            return *this;
+        }
+        typename OutEdgeIterator::reference operator*() const
+        {
+            return G::R2V(i);
+        }
+        bool operator==(OutEdgeIterator const& o) const
+        {
+            return i == o.i && g == o.g;
+        }
+    };
+
+
+    template<typename G>
+    class AdjacencyVertexIterator: public IteratorFacade<
+        AdjacencyVertexIterator<G>,
+        std::forward_iterator_tag,
+        VertexDescriptor,
+        std::ptrdiff_t,
+        VertexDescriptor*,
+        VertexDescriptor >
+    {
+        friend G;
+        EdgeDescriptor i; // realED
+        const G *g;
+    protected:
+        AdjacencyVertexIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
+
+    public:
+        AdjacencyVertexIterator():i(-1), g(nullptr) {}
+
+        AdjacencyVertexIterator& operator++()
+        {
+            i = g->e[i].next;
+            return *this;
+        }
+        typename AdjacencyVertexIterator::reference operator*() const
+        {
+            return g->e[i].target;
+        }
+        bool operator==(AdjacencyVertexIterator const& o) const
+        {
+            return i == o.i && g == o.g;
+        }
+    };
+
+
+
 
     template<typename P>
     struct HasPropertiesBase
@@ -82,72 +151,6 @@ class AdjacencyList;
 
 
 
-    template<typename G>
-    class OutEdgeIterator: public IteratorFacade<
-		OutEdgeIterator<G>,
-		std::forward_iterator_tag,
-		typename GraphTraits<G>::EdgeDescriptor,
-		std::ptrdiff_t,
-		typename GraphTraits<G>::EdgeDescriptor*,
-		typename GraphTraits<G>::EdgeDescriptor >
-	{
-    	friend G;
-    	EdgeDescriptor i; // realED
-    	const G *g;
-	protected:
-    	OutEdgeIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
-
-	public:
-    	OutEdgeIterator():i(-1), g(nullptr) {}
-
-    	OutEdgeIterator& operator++()
-		{
-    		i = g->e[i].next;
-    		return *this;
-		}
-    	typename OutEdgeIterator::reference operator*() const
-    	{
-    		return G::R2V(i);
-    	}
-    	bool operator==(OutEdgeIterator const& o) const
-		{
-    		return i == o.i && g == o.g;
-		}
-	};
-
-
-    template<typename G>
-    class AdjacencyVertexIterator: public IteratorFacade<
-        AdjacencyVertexIterator<G>,
-        std::forward_iterator_tag,
-        VertexDescriptor,
-        std::ptrdiff_t,
-        VertexDescriptor*,
-        VertexDescriptor >
-    {
-        friend G;
-        EdgeDescriptor i; // realED
-        const G *g;
-    protected:
-        AdjacencyVertexIterator(EdgeDescriptor i, const G *g): i(i), g(g) {} //AdjacencyList call this function
-
-    public:
-        AdjacencyVertexIterator():i(-1), g(nullptr) {}
-
-        AdjacencyVertexIterator& operator++()
-        {
-            i = g->e[i].next;
-            return *this;
-        }
-        typename AdjacencyVertexIterator::reference operator*() const
-        {
-            return g->e[i].target;
-        }
-        bool operator==(AdjacencyVertexIterator const& o) const
-        {
-            return i == o.i && g == o.g;
-        }
-    };
 
 
     // realED: in memory [0, edgesNumber() * 2 )
