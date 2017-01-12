@@ -35,10 +35,10 @@ int main()
 	addEdge(g, 3, 4);
 	addEdge(g, 4, 1);
 
-//	addEdge(g, 5, 6);
-//	addEdge(g, 6, 7);
-//	addEdge(g, 7, 8);
-//	addEdge(g, 7, 8);
+	addEdge(g, 5, 6);
+	addEdge(g, 6, 7);
+	addEdge(g, 7, 8);
+	addEdge(g, 7, 8);
 
 
 	vector<int> a(n, -1);
@@ -58,16 +58,17 @@ int main()
 	cout << "biconnectedComponent number: " << comp << endl;
 
 
-//	assert(comp == 5);
-//	assert(a[0] == 1);
-//	assert(a[1] == 0);
-//	assert(a[2] == 0);
-//	assert(a[3] == 0);
-//	assert(a[4] == 0);
-//	assert(a[5] == 4);
-//	assert(a[6] == 3);
-//	assert(a[7] == 2);
-//	assert(a[8] == 2);
+	assert(comp == 6);
+	assert(a[0] == 1);
+	assert(a[1] == 0);
+	assert(a[2] == 0);
+	assert(a[3] == 0);
+	assert(a[4] == 0);
+	assert(a[5] == 4);
+	assert(a[6] == 3);
+	assert(a[7] == 2);
+	assert(a[8] == 2);
+	assert(a[9] == 5);
 
 
 

@@ -80,8 +80,8 @@ auto biconnectedComponentsOfEdge(const Graph& g, ComponentMap componentMap, cons
 
             DepthFirstSearchKeywords::treeEdgeReturn = [&](Edge e, Vertex u, Vertex to) {
                 rootMap[u] = minRoot(rootMap[u], rootMap[to]);
-                std::cout << "FF " << u << " " << to << " " << rootMap[u] << " " << rootMap[to] << "\n";
-                std::cout << discoverTimeMap[rootMap[to]] << " " <<  discoverTimeMap[u] << "!!\n";
+//                std::cout << "FF " << u << " " << to << " " << rootMap[u] << " " << rootMap[to] << "\n";
+//                std::cout << discoverTimeMap[rootMap[to]] << " " <<  discoverTimeMap[u] << "!!\n";
                 if(discoverTimeMap[rootMap[to]] > discoverTimeMap[u])
                 {
                     discoverBridge(e);
