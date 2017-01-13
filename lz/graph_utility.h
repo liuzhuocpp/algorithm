@@ -85,16 +85,6 @@ struct EdgeWeightTag { } edgeWeightTag;
 
 
 
-template<typename Graph>
-typename Graph::VertexDescriptor
-opposite(const Graph &g, 
-         typename Graph::EdgeDescriptor e,
-         typename Graph::VertexDescriptor u)
-{
-    if(source(g, e) != u) return source(g, e);
-    return target(g, e);
-}
-
 template<typename G>
 struct GraphTraits
 {
@@ -128,6 +118,23 @@ struct GraphTraits
 
 };
 
+template<typename G>
+typename GraphTraits<G>::VertexDescriptor
+opposite(const G &g,
+         typename GraphTraits<G>::EdgeDescriptor e,
+         typename GraphTraits<G>::VertexDescriptor u)
+{
+    if(source(g, e) != u) return source(g, e);
+    return target(g, e);
+}
+
+template<typename G>
+std::pair<typename GraphTraits<G>::VertexDescriptor,
+          typename GraphTraits<G>::VertexDescriptor>
+incident(const G& g, typename GraphTraits<G>::EdgeDescriptor e)
+{
+    return std::make_pair(source(g, e), target(g, e));
+}
 
 template<typename G, typename Tag>
 class VertexPropertyMap
