@@ -17,10 +17,10 @@ namespace lz {
 
   Graph :
     GraphTraits<G>::VertexDescriptor
-    GraphTraits<G>::Edgedescriptor
+    GraphTraits<G>::EdgeDescriptor
     GraphTraits<G>::DirectedCategory
     GraphTraits<G>::nullVertex(): VertexDescriptor
-    GraphTraits<G>::nullEdge(): Edgedescriptor
+    GraphTraits<G>::nullEdge(): EdgeDescriptor
 
 
   IncidenceGraph refines Graph:
@@ -33,7 +33,7 @@ namespace lz {
     GraphTraits<G>::VertexIterator
     GraphTraits<G>::VerticesNumberType
     g.vertices(): pair<VertexIterator, VertexIterator>  vertices(g)
-    g.verticesNumber():VerticesNumberType   vertiecsNumber(g)
+    g.verticesNumber(): VerticesNumberType   vertiecsNumber(g)
 
   EdgeListGraph refines Graph
     GraphTraits<G>::EdgeIterator
@@ -45,6 +45,9 @@ namespace lz {
 
   AdjacencyMatrix refines Graph:
     g.edge(u, v): EdgeDescriptor    edge(g, u, v)
+    g.source(e): VertexDescriptor  source(g, e)
+    g.target(e): VertexDescriptor  target(g, e)
+
 
   PropertyGraph refines Graph:
     template<Tag> GraphTraits<G>::VertexPropertyMap
