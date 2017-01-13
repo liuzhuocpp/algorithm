@@ -1,6 +1,7 @@
 #ifndef HEAVY_PATH_DECOMPOSITION
 #define HEAVY_PATH_DECOMPOSITION
 
+#include <lz/iterator.h>
 #include <vector>
 #include <functional>
 #include <algorithm>
@@ -11,7 +12,6 @@
 #include "lz/std_utility.h"
 #include "lz/graph_utility.h"
 #include "lz/depth_first_search.h"
-#include "lz/iterator_facade.h"
 
 namespace lz {
 

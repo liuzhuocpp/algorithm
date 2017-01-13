@@ -2,13 +2,13 @@
 #define ADJACENCY_LIST_H
 
 
+#include <lz/iterator.h>
 #include <vector>
 #include <tuple>
 #include <algorithm>
 #include "lz/property.h"
 
 #include "lz/graph_utility.h"
-#include "lz/iterator_facade.h"
 #include "lz/map.h"
 
 

@@ -2,7 +2,7 @@
 /*
  * AdjacencyList test
  */
-#include <lz/iterator_facade.h>
+#include <lz/iterator.h>
 #include <iostream>
 #include <cstdio>
 #include <cstring>

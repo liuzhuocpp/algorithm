@@ -1,10 +1,10 @@
 #ifndef ADJACENCY_MATRIX_H
 #define ADJACENCY_MATRIX_H
 
+#include <lz/iterator.h>
 #include <vector>
 #include "lz/graph_utility.h"
 #include "lz/property.h"
-#include "lz/iterator_facade.h"
 namespace lz {
 
 	namespace AdjacencyMatrixPrivate{

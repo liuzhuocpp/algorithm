@@ -5,8 +5,8 @@
  *      Author: LZ
  */
 
-#ifndef LZ_ITERATOR_FACADE_H_
-#define LZ_ITERATOR_FACADE_H_
+#ifndef LZ_ITERATOR_H_
+#define LZ_ITERATOR_H_
 #include <iterator>
 #include "lz/utility.h"
 namespace lz{
@@ -343,4 +343,4 @@ private:
 
 
 
-#endif /* LZ_ITERATOR_FACADE_H_ */
+#endif /* LZ_ITERATOR_H_ */
