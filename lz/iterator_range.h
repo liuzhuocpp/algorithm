@@ -101,7 +101,7 @@ template<typename Integer>
 struct IntegerIteratorRange: StepIteratorRange<IntegerIterator<Integer> >
 {
     using DifferenceType = typename std::iterator_traits<IntegerIterator<Integer>>::difference_type;
-    IntegerIteratorRange(Integer first, Integer last, DifferenceType step):
+    IntegerIteratorRange(Integer first, Integer last, DifferenceType step = 1):
         StepIteratorRange<IntegerIterator<Integer> >(
                 IntegerIterator<Integer>(first),
                 IntegerIterator<Integer>(last),
