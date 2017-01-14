@@ -8,12 +8,23 @@
 #ifndef LZ_JUMP_POINTERS_LEVEL_ANCESTOR_H_
 #define LZ_JUMP_POINTERS_LEVEL_ANCESTOR_H_
 
+/*
+
+Learn:
+    https://en.wikipedia.org/wiki/Level_ancestor_problem
+
+ */
+
+
+
 #include <lz/parameter.h>
 #include <lz/depth_first_search.h>
 #include <lz/iterator_range.h>
 #include <lz/graph_utility.h>
 #include <cmath>
 #include <vector>
+
+
 
 
 namespace lz {
