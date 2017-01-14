@@ -30,6 +30,18 @@ InputIterator end(std::pair<InputIterator, InputIterator> itPair)
 }
 
 
+template<typename RandomIterator>
+void out(RandomIterator first, RandomIterator last)
+{
+    cout << "[";
+    while(first != last)
+    {
+        cout << *first << ",";
+        first++;
+    }
+    cout << "]";
+}
+
 
 
 
