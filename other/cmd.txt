@@ -72,8 +72,10 @@ fibonacci堆
 大整数，大浮点数
 KD tree
 SB tree
-
-
+johnson_all_pairs_shortest_paths
+maximum_adjacency_search
+hawick_circuits
+is_bipartite
 
 
 

@@ -34,6 +34,7 @@ add_subdirectory(jump_pointers_lowest_common_ancestor)
 add_subdirectory(iterator_range)
 add_subdirectory(adjacency_matrix)
 add_subdirectory(floyd_shortest_paths)
+add_subdirectory(dag_shortest_paths)
 
 
 
