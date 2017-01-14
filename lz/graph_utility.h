@@ -263,6 +263,42 @@ calculateVertexIndexComposeMap(VertexIndexMap indexMap, VertexNumberType n, cons
 
 
 
+
+
+
+
+template<typename WeightMap, typename DistanceMap, typename DistanceLess, typename DistanceCombine,
+    typename Edge, typename Vertex>
+bool relaxEdge(
+    WeightMap weightMap,
+    DistanceMap distanceMap,
+    DistanceLess distanceLess,
+    DistanceCombine distanceCombine,
+    typename MapTraits<DistanceMap>::ValueType distanceInf,
+    typename MapTraits<DistanceMap>::ValueType distanceZero,
+    Edge e,
+    Vertex u,
+    Vertex to)
+{
+    if(distanceMap[u] != distanceInf)
+    {
+        auto distanceTmp = distanceCombine(distanceMap[u], weightMap[e]);
+        if(distanceLess( distanceTmp, distanceMap[to]))
+        {
+            distanceMap[to] = distanceTmp;
+            return true;
+        }
+    }
+    return false;
+
+}
+
+
+
+
+
+
+
 } // namespace lz
 
 
