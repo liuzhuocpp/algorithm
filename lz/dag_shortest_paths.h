@@ -12,6 +12,7 @@
 #include <lz/std_utility.h>
 #include <lz/depth_first_search.h>
 #include <lz/iterator_range.h>
+#include <lz/topological_sort.h>
 
 namespace lz {
 
@@ -101,17 +102,18 @@ void dagShortestPaths(const G &g, const Params& params = Params())
     std::vector<Vertex> topoOrder;
 
 
-    depthFirstSearch(g, (
-            DepthFirstSearchKeywords::enterVertex = startVertex,
-            DepthFirstSearchKeywords::finishVertex = [&](Vertex u) {
-                std::cout << "U " << u << "\n";
-                topoOrder.push_back(u);
-            }));
+    topologicalSort(g, [&](Vertex u) { topoOrder.push_back(u); }, startVertex);
+
+//    depthFirstSearch(g, (
+//            DepthFirstSearchKeywords::enterVertex = startVertex,
+//            DepthFirstSearchKeywords::finishVertex = [&](Vertex u) {
+////                std::cout << "U " << u << "\n";
+//                topoOrder.push_back(u);
+//            }));
 
 
     for(Vertex u: makeIteratorRange(topoOrder.rbegin(), topoOrder.rend()))
     {
-        std::cout << "UU " << u << "\n";
         for(Edge e: outEdges(g, u))
         {
             Vertex to = opposite(g, e, u);
