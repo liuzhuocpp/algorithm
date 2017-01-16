@@ -812,7 +812,7 @@ using std::fill;
         }
     }
 
-    static void divideAndRemainder3n2n(const UintSeq &a, const UintSeq &b, 
+    static void divideAndRemainder3n2n(const UintSeq &a, const UintSeq &b,
                                        UintSeq &quotient, UintSeq &remainder, int deep);
 
     int num = 0;
