@@ -16,10 +16,13 @@ namespace lz { namespace BigIntegerPrivate {
 
 /**
 
-
-
-
-
+Use iterator range represent a unsigned BigInteger.
+数字的进制权重按照iterator range 递增的顺序递增
+即对于iterator range [a, b), 进制为radix，  表示的数字是
+a[0] * radix^0 + a[1] * radix^1 + a[2] * radix ^2 + ... + a[b - a - 1] * radix ^(b - a - 1)
+（其中radix^x 这里表示radix的x次幂）
+同时仅仅当 长度为0的iterator range 表示大整数0
+不能有(b - a == 1 && a[0] == 0) 这种情况
 
  */
 
@@ -30,42 +33,47 @@ namespace lz { namespace BigIntegerPrivate {
 template<typename RandomIterator>
 RandomIterator removeLeadingZeros(RandomIterator first, RandomIterator last)
 {
-    while(last - first > 1 && *(last - 1) == 0)
+    while(last - first > 0 && *(last - 1) == 0)
         last --;
     return last;
 }
 
 
 /**
- * Plus the contents of the WordVector a and b. And put the result into a, namely a += b.
- * a , b should not have leading zeors.
- * If x is the max value of uint, the ull type must can hold x * x + x
- *
+
+Plus the contents of the WordVector a and b. And put the result into a, namely a += b.
+a , b should not have leading zeors.
+If x is the max value of uint, the ull type must can hold x * x + x
+
+不能有前导0， 数字0使用长度为0的range表示
+a += b结果放置在a中
  * @param  a an add value.
  * @param  b value to be added to a.
+ * @return 返回值表示 最终是否进位，其余的相加结果存放在[afirst, afirst + max(aSize, bSize) )
+ *
  */
-template<typename RandomIterator, typename ull>
-RandomIterator plusAssign(RandomIterator afirst, RandomIterator aend, RandomIterator bfirst, RandomIterator bend, ull radix)
+template<typename RandomIterator1, typename RandomIterator2, typename ull>
+bool
+plusAssign(RandomIterator1 aFirst, RandomIterator1 aLast, RandomIterator2 bFirst, RandomIterator2 bLast, ull radix)
 {
-    using uint = typename std::iterator_traits<RandomIterator>::value_type;
-    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
-    diff_t aSize = aend - afirst, bSize = bend - bfirst;
+    using uint = typename std::iterator_traits<RandomIterator1>::value_type;
+    using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
+    diff_t aSize = aLast - aFirst, bSize = bLast - bFirst;
     diff_t minSize = std::min(aSize, bSize);
     ull t = 0;
-    RandomIterator ansEnd = aend;
     for(diff_t i = 0; i < minSize; ++ i)
     {
-        t += afirst[i];
-        t += bfirst[i];
-        afirst[i] = t % radix;
+        t += aFirst[i];
+        t += bFirst[i];
+        aFirst[i] = t % radix;
         t /= radix;
     }
     if(aSize < bSize)
     {
         for(diff_t i = aSize; i < bSize; ++ i)
         {
-            t += bfirst[i];
-            *aend++ = t % radix;
+            t += bFirst[i];
+            *aLast++ = t % radix;
             t /= radix;
         }
     }
@@ -73,13 +81,14 @@ RandomIterator plusAssign(RandomIterator afirst, RandomIterator aend, RandomIter
     {
         for(diff_t i = bSize; t > 0 && i < aSize; ++ i)
         {
-            t += afirst[i];
-            afirst[i] = t % radix;
+            t += aFirst[i];
+            aFirst[i] = t % radix;
             t /= radix;
         }
     }
-    while(t > 0) *aend++ = t % radix, t /= radix;
-    return aend;
+    return t;
+//    while(t > 0) *aend++ = t % radix, t /= radix;
+//    return aend;
 }
 
 
@@ -88,29 +97,30 @@ RandomIterator plusAssign(RandomIterator afirst, RandomIterator aend, RandomIter
  * @param  a value to be minuend by b.
  * @param  b the minus value.
  */
-template<typename RandomIterator, typename ull>
-RandomIterator minusAssign(RandomIterator afirst, RandomIterator aend, RandomIterator bfirst, RandomIterator bend, ull radix)
+template<typename RandomIterator1, typename RandomIterator2, typename ull>
+RandomIterator1 minusAssign(RandomIterator1 aFirst, RandomIterator1 aLast,
+    RandomIterator2 bFirst, RandomIterator2 bLast, ull radix)
 {
-    using uint = typename std::iterator_traits<RandomIterator>::value_type;
-    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
-    diff_t bsize = bend - bfirst, asize = aend - afirst;
+    using uint = typename std::iterator_traits<RandomIterator1>::value_type;
+    using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
+    diff_t bSize = bLast - bFirst, aSize = aLast - aFirst;
     ull t = 0;
-    for(diff_t i = 0; i < bsize; ++ i)
+    for(diff_t i = 0; i < bSize; ++ i)
     {
-        t += bfirst[i];
-        if(afirst[i] < t)
-            afirst[i] = radix + afirst[i] - t, t = 1;
+        t += bFirst[i];
+        if(aFirst[i] < t)
+            aFirst[i] = radix + aFirst[i] - t, t = 1;
         else
-            afirst[i] -= t, t = 0;
+            aFirst[i] -= t, t = 0;
     }
-    for(diff_t i = bsize; t > 0 && i < asize; ++ i)
+    for(diff_t i = bSize; t > 0 && i < aSize; ++ i)
     {
-        if(afirst[i] < t)
-            afirst[i] = radix + afirst[i] - t, t = 1;
+        if(aFirst[i] < t)
+            aFirst[i] = radix + aFirst[i] - t, t = 1;
         else
-            afirst[i] -= t, t = 0;
+            aFirst[i] -= t, t = 0;
     }
-    return removeLeadingZeros(afirst, aend);
+    return removeLeadingZeros(aFirst, aLast);
 }
 
 
@@ -121,32 +131,66 @@ RandomIterator minusAssign(RandomIterator afirst, RandomIterator aend, RandomIte
  * @param  a the multiply value.
  * @param  b value to be multiplied to a.
  * @return  c the result will be stored.
+
+
+a 和b所指向数据不能有重叠
+assert(cSize >= aSize + bSize)
+c的起始值不必全是0
  */
-template<typename RandomIterator, typename ull>
-RandomIterator multiplySchool(RandomIterator afirst, RandomIterator aend, RandomIterator bfirst, RandomIterator bend,
-        RandomIterator cfirst, ull radix)
+template<typename RandomIterator1, typename RandomIterator2, typename RandomIterator3, typename ull>
+RandomIterator3 multiplySchool(RandomIterator1 aFirst, RandomIterator1 aLast,
+        RandomIterator2 bFirst, RandomIterator2 bLast,
+        RandomIterator3 cFirst, ull radix)
 {
-    using uint = typename std::iterator_traits<RandomIterator>::value_type;
-    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
-    diff_t asize = aend - afirst, bsize = bend - bfirst;
+    using uint = typename std::iterator_traits<RandomIterator1>::value_type;
+    using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
+    diff_t aSize = aLast - aFirst, bSize = bLast - bFirst;
+    RandomIterator3 cend = cFirst + aSize + bSize;
 
-    RandomIterator cend = cfirst + asize + bsize;
-
-    for(diff_t i = 0; i < bsize; ++ i)
+    for(diff_t j = 0; j < bSize; ++ j)
     {
         ull t = 0;
-        for(diff_t j = 0; j < asize; ++ j)
+        for(diff_t i = 0; i < aSize; ++ i)
         {
-            t += ull(bfirst[i]) * afirst[j] + cfirst[i + j];
-            cfirst[i + j] = t % radix;
+            t += ull(bFirst[j]) * aFirst[i];
+            if(j > 0 && i < aSize)
+            {
+                t += cFirst[i + j];
+            }
+            cFirst[i + j] = t % radix;
             t /= radix;
         }
-        if(t > 0)
-        {
-            cfirst[i + asize] = t;
-        }
+        cFirst[j + aSize] = t;
     }
-    return removeLeadingZeros(cfirst, cend);
+
+//    for(diff_t i = 0; i < bSize; ++ i)
+//    {
+//        ull t = 0;
+//        for(diff_t j = 0; j < aSize; ++ j)
+//        {
+//            t += ull(bFirst[i]) * aFirst[j] + cFirst[i + j];
+//            cFirst[i + j] = t % radix;
+//            t /= radix;
+//        }
+//        if(t > 0)
+//        {
+//            cFirst[i + aSize] = t;
+//        }
+//    }
+    return removeLeadingZeros(cFirst, cend);
+}
+
+
+/**
+
+T 是个正数，将T 转化为radix 进制存入out中
+ */
+
+template<typename T, typename OutputIterator, typename RadixType>
+OutputIterator integerRadixTransform(T t, OutputIterator out, RadixType radix)
+{
+    while(t > 0) *out++ = t % radix, t /= radix;
+    return out;
 }
 
 
@@ -155,22 +199,36 @@ RandomIterator multiplySchool(RandomIterator afirst, RandomIterator aend, Random
  * And put the result into a, namely a *= b.
  * @param  a the multiply value.
  * @param  b value to be multiplied to a.
+
+precondition:
+b > 0;
+
+postcondition:
+[aFirst, aLast)内容改变为a*b之后的结果
+
+return:
+向最高位的进位值
+
+
+
+
  */
 template<typename RandomIterator, typename ull>
-RandomIterator multiplyAssignSchool(RandomIterator afirst, RandomIterator alast,
+ull multiplyAssignSchool(RandomIterator aFirst, RandomIterator aLast,
     typename std::iterator_traits<RandomIterator>::value_type b, ull radix)
 {
     using uint = typename std::iterator_traits<RandomIterator>::value_type;
     using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
     ull t = 0;
-    for(diff_t i = 0; i < alast - afirst; ++ i)
+    for(diff_t i = 0; i < aLast - aFirst; ++ i)
     {
-        t += ull(afirst[i]) * b;
-        afirst[i] = t % radix;
+        t += ull(aFirst[i]) * b;
+        aFirst[i] = t % radix;
         t /= radix;
     }
-    while(t > 0) *alast ++ = t % radix, t /= radix;
-    return alast;
+    return t;
+//    while(t > 0) *aLast ++ = t % radix, t /= radix;
+//    return aLast;
 }
 
 
@@ -181,7 +239,7 @@ RandomIterator multiplyAssignSchool(RandomIterator afirst, RandomIterator alast,
  * @param  b value to be added to a.
  */
 template<typename RandomIterator, typename ull>
-RandomIterator plusAssign(RandomIterator afirst, RandomIterator alast,
+ull plusAssign(RandomIterator afirst, RandomIterator alast,
     typename std::iterator_traits<RandomIterator>::value_type b, ull radix)
 {
     ull t = b;
@@ -192,8 +250,9 @@ RandomIterator plusAssign(RandomIterator afirst, RandomIterator alast,
         afirst[i] = t % radix;
         t /= radix;
     }
-    while(t > 0) *alast ++ = t % radix, t /= radix;
-    return alast;
+    return t;
+//    while(t > 0) *alast ++ = t % radix, t /= radix;
+//    return alast;
 }
 
 
@@ -206,41 +265,35 @@ RandomIterator plusAssign(RandomIterator afirst, RandomIterator alast,
  * @return the remainder a % b.
  */
 template<typename RandomIterator, typename buint, typename ull>
-std::pair<RandomIterator, ull> divideAndRemainderSchool(RandomIterator afirst, RandomIterator alast,
+std::pair<RandomIterator, ull> divideAndRemainderSchool(RandomIterator aFirst, RandomIterator aLast,
     buint b, ull radix)
 {
-//    std::cout << "divideAndRemainderSchool "  << radix << " " << b << std::endl;
-    ull t = 0;
     using uint = typename std::iterator_traits<RandomIterator>::value_type;
     using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
-    diff_t asize = alast - afirst;
+    diff_t asize = aLast - aFirst;
+    ull t = 0;
     for(diff_t i = asize - 1; i >= 0; -- i)
     {
-        t = t * radix + afirst[i];
-        afirst[i] = t / b;
+        t = t * radix + aFirst[i];
+        aFirst[i] = t / b;
         t %= b;
     }
-    return std::make_pair(removeLeadingZeros(afirst, alast), t);
+    return std::make_pair(removeLeadingZeros(aFirst, aLast), t);
 }
 
 
-template<typename RandomIteratorA, typename aull, typename RandomIteratorB, typename bull>
-RandomIteratorB radixTransform(RandomIteratorA afirst, RandomIteratorA alast, aull aradix,
-        RandomIteratorB bfirst, bull bradix )
+template<typename RandomIterator, typename ull, typename OutputIterator, typename NewRadix>
+OutputIterator radixTransform(RandomIterator first, RandomIterator last, ull radix,
+        OutputIterator out, NewRadix newRadix )
 {
-    using buint = typename std::iterator_traits<RandomIteratorB>::value_type;
-    while(alast - afirst > 1 || *afirst > 0)
+    using uint = typename std::iterator_traits<RandomIterator>::value_type;
+    while(last - first > 0)
     {
-
-        buint remainder;
-        tie(alast, remainder) = divideAndRemainderSchool(afirst, alast, bradix, aradix);
-//        std::cout << "remainder"  << remainder << std::endl;
-//        out(afirst, alast);
-//        std::cout << std::endl;
-
-        *bfirst++ = remainder;
+        uint remainder;
+        tie(last, remainder) = divideAndRemainderSchool(first, last, newRadix, radix);
+        *out++ = remainder;
     }
-    return bfirst;
+    return out;
 }
 
 /**
