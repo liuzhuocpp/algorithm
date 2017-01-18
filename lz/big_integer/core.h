@@ -305,55 +305,6 @@ int compare(RandomIterator aFirst, RandomIterator aLast,
     return 0;
 }
 
-//
-//
-///**
-// * Transform the string into a UintSeq and the string should be big endian
-// * @param s the first iterator of string
-// * @param end the end iterator of string
-// * @param radix the radix of string
-// * @param a the result of transformed uint sequence
-// */
-//template<uint64_t StoreRadix, typename Iterator>
-//WordVector fromString(Iterator begin, Iterator end, uint inputRadix)
-//{
-//    WordVector a;
-//
-////    a.clear();
-////    int n = end - s;
-////    uint max_radix, l;
-////    getMaxRadix(radix, l, max_radix);
-////
-////    int begin_pos = n % l;
-////    uint x = 0;
-////    for(int i = 0; i < begin_pos; ++ i)
-////    {
-////        x = x * radix + fromChar(s[i]);
-////    }
-////    a.push_back(x);
-////    for(int i = begin_pos; i < n; i += l)
-////    {
-////        uint x = 0;
-////        for(int j = i; j < i + l; ++ j)
-////        {
-////            x = x * radix + fromChar(s[j]);
-////        }
-////        multiplySchool(a, max_radix);
-////        plus(a, x);
-////    }
-////    removeLeadingZeros(a);
-//
-//
-//
-//
-//
-//
-//}
-//
-
-
-
-
 
 
 
