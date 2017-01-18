@@ -12,8 +12,6 @@
 
 namespace lz { namespace BigIntegerPrivate {
 
-
-
 /**
 
 Use iterator range represent a unsigned BigInteger.
@@ -25,8 +23,6 @@ a[0] * radix^0 + a[1] * radix^1 + a[2] * radix ^2 + ... + a[b - a - 1] * radix ^
 不能有(b - a == 1 && a[0] == 0) 这种情况
 
  */
-
-
 
 
 
@@ -112,7 +108,6 @@ ull plusAssign(RandomIterator aFirst, RandomIterator aLast,
 }
 
 
-
 /**
  * Minus the UintSeq b from a, and put the result into a, namely a -= b.
  * @param  a value to be minuend by b.
@@ -145,21 +140,16 @@ RandomIterator1 minusAssign(RandomIterator1 aFirst, RandomIterator1 aLast,
 }
 
 
-
-
 /**
- * Multiply the contents of the UintSeq a and b using school method..
- * c must be all zeros.
- * And put the result into c, namely c = a * b.
- * @param  a the multiply value.
- * @param  b value to be multiplied to a.
- * @return  c the result will be stored.
 
+[cFirst, cLast) = [aFirst, aLast) * [bFirst, bLast)
+[cFirst, cLast), [aFirst, aLast) 不应重叠
+[cFirst, cLast), [bFirst, bLast) 不应重叠
 
-c 和a所指向数据不能有重叠
-c 和b所指向数据不能有重叠
-assert(cSize >= aSize + bSize)
-c的起始值不必全是0
+precondition:
+    cSize >= aSize + bSize;
+    c的起始值不必全是0
+
  */
 template<typename RandomIterator1, typename RandomIterator2, typename RandomIterator3, typename ull>
 RandomIterator3 multiplySchool(RandomIterator1 aFirst, RandomIterator1 aLast,
@@ -191,7 +181,6 @@ RandomIterator3 multiplySchool(RandomIterator1 aFirst, RandomIterator1 aLast,
 
 
 /**
-
 T 是个正整数，将T 转化为radix 进制存入out中
  */
 template<typename T, typename OutputIterator, typename RadixType>
@@ -203,6 +192,8 @@ OutputIterator integerRadixTransform(T t, OutputIterator out, RadixType radix)
 
 
 /**
+
+[aFirst, aLast) *= b
 
 precondition:
 b > 0;
@@ -231,11 +222,7 @@ ull multiplyAssignSchool(RandomIterator aFirst, RandomIterator aLast,
 }
 
 
-
-
-
 /**
-
 
 [aFirst, aLast) /= b
 
@@ -243,10 +230,6 @@ return:
     pair(x, y): [aFirst, x)表示 结果区间，y 表示remainder
 precondition:
 b > 0
-
-
-
-
  */
 template<typename RandomIterator, typename buint, typename ull>
 std::pair<RandomIterator, ull> divideAndRemainderSchool(RandomIterator aFirst, RandomIterator aLast,
@@ -280,13 +263,12 @@ OutputIterator radixTransform(RandomIterator first, RandomIterator last, ull rad
     return out;
 }
 
+
 /**
 
 if [aFirst, aLast) < [bFirst, bLast): return -1
 if [aFirst, aLast) == [bFirst, bLast): return 0
 if [aFirst, aLast) > [bFirst, bLast): return 1
-
-
  */
 template<typename RandomIterator>
 int compare(RandomIterator aFirst, RandomIterator aLast,
