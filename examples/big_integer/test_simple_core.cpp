@@ -1,9 +1,11 @@
 
 
 #include <bits/stdc++.h>
+
+#include <lz/debug.h>
+
 #include <lz/big_integer/core.h>
 #include <lz/std_utility.h>
-#include <lz/debug.h>
 
 using namespace lz;
 using namespace std;
@@ -137,7 +139,7 @@ void testMultiplySchool()
 
 void callMultiplyAssignSchool_multiplyWord(vector<int> &a, int b, int radix)
 {
-    int carry = multiplyAssignSchool(a.begin(), a.end(), b, radix);
+    int carry = multiplySchool(a.begin(), a.end(), b, a.begin(), radix);
     integerRadixTransform(carry, std::back_inserter(a), radix);
 }
 
@@ -265,6 +267,64 @@ void testRadixTransform()
 }
 
 
+template<typename T, typename ull >
+void out(const vector<T>& _a, ull radix, ull newRadix)
+{
+    vector<T> a = _a;
+    vector<T> out;
+    radixTransform(a.begin(), a.end(), radix, std::back_inserter(out), newRadix);
+    cout << out << endl;;
+}
+
+template<typename RandomIterator, typename ull>
+void out(RandomIterator first, RandomIterator last, ull radix, ull newRadix)
+{
+    vector<typename iterator_traits<RandomIterator>::value_type> a(first, last);
+    out(a, radix, newRadix);
+}
+
+void divideAndRemainderKnuthNormalized()
+{
+    vector<unsigned> a, b, q;
+    vector<unsigned>::iterator aLast;
+    vector<unsigned>::reverse_iterator qRlast;
+
+    a = {0, 0, 0, 9, 9, 5, 1};
+    b = {9, 9, 5};
+    q.assign(calculateQuotientLength(a.begin(), a.end(), b.begin(), b.end()), -2);
+    tie(qRlast, aLast) = divideAndRemainderKnuthNormalized(a.begin(), a.end(), b.begin(), b.end(), q.rbegin(), 10);
+    cout << "q: " << q << endl;
+    cout << "remainder: " << makeIteratorRange(a.begin(), aLast) << endl;
+    assert((q == vector<unsigned>{9, 6, 6, 2}));
+    assert(isEqual(a.begin(), aLast, {9, 6, 2})) ;
+
+
+
+
+    cout << string(100, '-') << endl;
+    a = {123u, 234u, 234u, 12313u, 427567u, 112313u, };
+    b = {4234u, 123u, 234u, 0xFFF678FFu};
+    cout << "A: " << a << endl;
+    cout << "B: " << b << endl;
+    out(a, (1ULL << 32), 10ULL);
+    out(b, (1ULL << 32), 10ULL);
+    q.assign(calculateQuotientLength(a.begin(), a.end(), b.begin(), b.end()), -2);
+    tie(qRlast, aLast) = divideAndRemainderKnuthNormalized(a.begin(), a.end(), b.begin(), b.end(), q.rbegin(), (1ULL << 32) );
+    cout << "q: " << q << endl;
+    cout << "remainder: " << makeIteratorRange(a.begin(), aLast) << endl;
+    out(q, (1ULL << 32), 10ULL);
+    out(a.begin(), aLast, (1ULL << 32), 10ULL);
+    assert((q == vector<unsigned>{1417699595U,112329U}  ));
+    assert(isEqual(a.begin(), aLast, {1824194701U,1241006801U,3251927584U,1870613020U})) ;
+
+
+
+
+
+}
+
+
+
 int main()
 {
     testPlusAssign();
@@ -276,6 +336,8 @@ int main()
     testPlusAssign_plusWord();
     testDivideAndRemainderSchool();
     testRadixTransform();
+
+    divideAndRemainderKnuthNormalized();
 
 
 	return 0;

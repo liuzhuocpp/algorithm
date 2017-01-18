@@ -197,17 +197,17 @@ OutputIterator integerRadixTransform(T t, OutputIterator out, RadixType radix)
 
 precondition:
 b > 0;
+aFirst与 out或者不指向同一块数据，或者aFirst 与out都指向相同的数据的相同的起始地址
 
 postcondition:
 [aFirst, aLast)内容改变为a*b之后的结果
 
 return:
 向最高位的进位值
-
  */
-template<typename RandomIterator, typename ull>
-ull multiplyAssignSchool(RandomIterator aFirst, RandomIterator aLast,
-    typename std::iterator_traits<RandomIterator>::value_type b, ull radix)
+template<typename RandomIterator, typename OuputIterator, typename ull>
+ull multiplySchool(RandomIterator aFirst, RandomIterator aLast,
+    typename std::iterator_traits<RandomIterator>::value_type b, OuputIterator out, ull radix)
 {
     using uint = typename std::iterator_traits<RandomIterator>::value_type;
     using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
@@ -215,7 +215,8 @@ ull multiplyAssignSchool(RandomIterator aFirst, RandomIterator aLast,
     for(diff_t i = 0; i < aLast - aFirst; ++ i)
     {
         t += ull(aFirst[i]) * b;
-        aFirst[i] = t % radix;
+        *out ++ = t % radix;
+//        aFirst[i] = t % radix;
         t /= radix;
     }
     return t;
@@ -249,6 +250,10 @@ std::pair<RandomIterator, ull> divideAndRemainderSchool(RandomIterator aFirst, R
 }
 
 
+/*
+
+[first, last) content will change
+ */
 template<typename RandomIterator, typename ull, typename OutputIterator, typename NewRadix>
 OutputIterator radixTransform(RandomIterator first, RandomIterator last, ull radix,
         OutputIterator out, NewRadix newRadix )
@@ -270,11 +275,11 @@ if [aFirst, aLast) < [bFirst, bLast): return -1
 if [aFirst, aLast) == [bFirst, bLast): return 0
 if [aFirst, aLast) > [bFirst, bLast): return 1
  */
-template<typename RandomIterator>
-int compare(RandomIterator aFirst, RandomIterator aLast,
-    RandomIterator bFirst, RandomIterator bLast)
+template<typename RandomIterator1, typename RandomIterator2>
+int compare(RandomIterator1 aFirst, RandomIterator1 aLast,
+        RandomIterator2 bFirst, RandomIterator2 bLast)
 {
-    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
+    using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
     diff_t asize = aLast - aFirst, bsize = bLast - bFirst;
 
     if(asize < bsize) return -1;
@@ -290,6 +295,86 @@ int compare(RandomIterator aFirst, RandomIterator aLast,
 
 
 
+template<typename RandomIterator1, typename RandomIterator2>
+typename std::iterator_traits<RandomIterator1>::difference_type
+calculateQuotientLength(RandomIterator1 a, RandomIterator1 aLast, RandomIterator2 b, RandomIterator2 bLast)
+{
+    using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
+    diff_t n = aLast - a, m = bLast - b;
+    if(n < m) return 0;
+    diff_t res = n - m;
+    if(compare(a + n - m, a + n, b, bLast) >= 0) ++ res;
+    return res;
+
+}
+
+//template<typename RandomIterator, typename ull>
+//void normalize(RandomIterator first, RandomIterator last, ull radix)
+//{
+//
+//}
+
+/**
+ *
+ *
+
+[out, outLast) = [aFirst, aLast) / [bFirst, bLast)
+
+precondition:
+[bFirst, bLast) > 0
+*(bLast - 1) >= radix/2
+
+
+postcondition:
+
+余数将存储在[aFirst, aLast)
+[bFirst, bLast) not change
+ *
+ */
+template<typename RandomIterator1, typename RandomIterator2, typename OutputIterator, typename ull>
+std::pair<OutputIterator, RandomIterator1>
+divideAndRemainderKnuthNormalized(RandomIterator1 a, RandomIterator1 aLast,
+    RandomIterator2 b, RandomIterator2 bLast, OutputIterator qout, ull radix)
+{
+    using uint = typename std::iterator_traits<RandomIterator1>::value_type;
+    using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
+    diff_t n = aLast - a, m = bLast - b;
+    if(n < m)
+    {
+        return make_pair(qout, aLast);
+    }
+
+    uint* buffer = new uint[m + 1];
+    for(diff_t i = n - m; i >= 0; -- i)
+    {
+        ull q_ = a[i + m - 1];
+        if(i + m < n) q_ += a[i + m] * radix;
+        q_ /= b[m - 1];
+        q_ = std::min(q_, radix - 1);
+
+        ull carry = multiplySchool(b, bLast, q_, buffer, radix);
+        buffer[m] = carry;
+        uint* bufferLast = removeLeadingZeros(buffer, buffer + m + 1);
+        RandomIterator1 cntALast = a + i + m + 1;
+        if(i + m == n) --cntALast;
+        else
+        {
+            cntALast = removeLeadingZeros(a + i, cntALast);
+        }
+
+        while(compare(buffer, bufferLast, a + i, cntALast) > 0)
+        {
+            minusAssign(buffer, bufferLast, b, bLast, radix);
+            --q_;
+        }
+        minusAssign(a + i, cntALast, buffer, bufferLast, radix);
+        if(i == n - m && q_ == 0) continue;
+        *qout ++ = q_;
+    }
+
+    delete[] buffer;
+    return std::make_pair(qout, removeLeadingZeros(a, a + m));
+}
 
 
 
@@ -298,6 +383,18 @@ int compare(RandomIterator aFirst, RandomIterator aLast,
 
 
 
+
+
+
+
+//    uint bTopWord = *(bLast - 1);
+//    uint d = radix / (bTopWord + 1) * bTopWord;
+//
+//    if(d > 1)
+//    {
+//        multiplyAssignSchool(aFirst, aLast, d, radix);
+//        multiplyAssignSchool(bFirst, bLast, d, radix);
+//    }
 
 
 
