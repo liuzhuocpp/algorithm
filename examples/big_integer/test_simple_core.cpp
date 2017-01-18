@@ -267,21 +267,21 @@ void testRadixTransform()
 }
 
 
-template<typename T, typename ull >
-void out(const vector<T>& _a, ull radix, ull newRadix)
-{
-    vector<T> a = _a;
-    vector<T> out;
-    radixTransform(a.begin(), a.end(), radix, std::back_inserter(out), newRadix);
-    cout << out << endl;;
-}
-
-template<typename RandomIterator, typename ull>
-void out(RandomIterator first, RandomIterator last, ull radix, ull newRadix)
-{
-    vector<typename iterator_traits<RandomIterator>::value_type> a(first, last);
-    out(a, radix, newRadix);
-}
+//template<typename T, typename ull >
+//void out(const vector<T>& _a, ull radix, ull newRadix)
+//{
+//    vector<T> a = _a;
+//    vector<T> out;
+//    radixTransform(a.begin(), a.end(), radix, std::back_inserter(out), newRadix);
+//    cout << out << endl;;
+//}
+//
+//template<typename RandomIterator, typename ull>
+//void out(RandomIterator first, RandomIterator last, ull radix, ull newRadix)
+//{
+//    vector<typename iterator_traits<RandomIterator>::value_type> a(first, last);
+//    out(a, radix, newRadix);
+//}
 
 void divideAndRemainderKnuthNormalized()
 {
@@ -306,14 +306,20 @@ void divideAndRemainderKnuthNormalized()
     b = {4234u, 123u, 234u, 0xFFF678FFu};
     cout << "A: " << a << endl;
     cout << "B: " << b << endl;
-    out(a, (1ULL << 32), 10ULL);
-    out(b, (1ULL << 32), 10ULL);
+    cout << RadixTransformForOuput<unsigned>(a, (1ULL << 32), 10ULL) << endl;
+    cout << RadixTransformForOuput<unsigned>(b, (1ULL << 32), 10ULL) << endl;
+//    out(a, (1ULL << 32), 10ULL);
+//    out(b, (1ULL << 32), 10ULL);
     q.assign(calculateQuotientLength(a.begin(), a.end(), b.begin(), b.end()), -2);
     tie(qRlast, aLast) = divideAndRemainderKnuthNormalized(a.begin(), a.end(), b.begin(), b.end(), q.rbegin(), (1ULL << 32) );
     cout << "q: " << q << endl;
     cout << "remainder: " << makeIteratorRange(a.begin(), aLast) << endl;
-    out(q, (1ULL << 32), 10ULL);
-    out(a.begin(), aLast, (1ULL << 32), 10ULL);
+
+    cout << RadixTransformForOuput<unsigned>(q, (1ULL << 32), 10ULL) << endl;
+    cout << RadixTransformForOuput<unsigned>(a.begin(), aLast, (1ULL << 32), 10ULL) << endl;
+
+//    out(q, (1ULL << 32), 10ULL);
+//    out(a.begin(), aLast, (1ULL << 32), 10ULL);
     assert((q == vector<unsigned>{1417699595U,112329U}  ));
     assert(isEqual(a.begin(), aLast, {1824194701U,1241006801U,3251927584U,1870613020U})) ;
 

@@ -38,7 +38,7 @@ RandomIterator removeLeadingZeros(RandomIterator first, RandomIterator last)
 /**
 
 precondition:
-aSize >= bSize;
+a所指向的空间大小要>=bSize,注意a所指向的空间大小 不是指aSize, 而是其可用的空间大小
 [aFirst, aLast), [bFirst, bLast) 不能有前导0， 数字0使用长度为0的range表示
 
 postcondition:
@@ -56,34 +56,45 @@ plusAssign(RandomIterator1 aFirst, RandomIterator1 aLast, RandomIterator2 bFirst
     using uint = typename std::iterator_traits<RandomIterator1>::value_type;
     using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
     diff_t aSize = aLast - aFirst, bSize = bLast - bFirst;
-    diff_t minSize = std::min(aSize, bSize);
+    diff_t maxSize = std::max(aSize, bSize);
     ull t = 0;
-    for(diff_t i = 0; i < minSize; ++ i)
+
+    for(diff_t i = 0; i < maxSize; ++ i)
     {
-        t += aFirst[i];
-        t += bFirst[i];
+        if(i < aSize) t += aFirst[i];
+        if(i < bSize) t += bFirst[i];
         aFirst[i] = t % radix;
         t /= radix;
     }
-    if(aSize < bSize)
-    {
-        for(diff_t i = aSize; i < bSize; ++ i)
-        {
-            t += bFirst[i];
-            *aLast++ = t % radix;
-            t /= radix;
-        }
-    }
-    else
-    {
-        for(diff_t i = bSize; t > 0 && i < aSize; ++ i)
-        {
-            t += aFirst[i];
-            aFirst[i] = t % radix;
-            t /= radix;
-        }
-    }
     return t;
+
+
+//    for(diff_t i = 0; i < minSize; ++ i)
+//    {
+//        t += aFirst[i];
+//        t += bFirst[i];
+//        aFirst[i] = t % radix;
+//        t /= radix;
+//    }
+//    if(aSize < bSize)
+//    {
+//        for(diff_t i = aSize; i < bSize; ++ i)
+//        {
+//            t += bFirst[i];
+//            *aLast++ = t % radix;
+//            t /= radix;
+//        }
+//    }
+//    else
+//    {
+//        for(diff_t i = bSize; t > 0 && i < aSize; ++ i)
+//        {
+//            t += aFirst[i];
+//            aFirst[i] = t % radix;
+//            t /= radix;
+//        }
+//    }
+//    return t;
 }
 
 
@@ -294,6 +305,13 @@ int compare(RandomIterator1 aFirst, RandomIterator1 aLast,
 
 
 
+template<typename RandomIterator, typename ull>
+typename std::iterator_traits<RandomIterator>::value_type
+calculateNormalizedFactor(RandomIterator first, RandomIterator last, ull radix)
+{
+    -- last;
+    return radix / (*last + 1);
+}
 
 template<typename RandomIterator1, typename RandomIterator2>
 typename std::iterator_traits<RandomIterator1>::difference_type
@@ -374,9 +392,6 @@ divideAndRemainderKnuthNormalized(RandomIterator1 a, RandomIterator1 aLast,
 
 
 
-
-
-
 //    uint bTopWord = *(bLast - 1);
 //    uint d = radix / (bTopWord + 1) * bTopWord;
 //
@@ -389,7 +404,54 @@ divideAndRemainderKnuthNormalized(RandomIterator1 a, RandomIterator1 aLast,
 
 
 
+//template<typename T, typename ull >
+//void out(const std::vector<T>& _a, ull radix, ull newRadix)
+//{
+//    std::vector<T> a = _a;
+//    std::vector<T> out;
+//    radixTransform(a.begin(), a.end(), radix, std::back_inserter(out), newRadix);
+//    std::cout << out << std::endl;
+//}
+//
+//template<typename RandomIterator, typename ull>
+//void out(RandomIterator first, RandomIterator last, ull radix, ull newRadix)
+//{
+//    std::vector<typename std::iterator_traits<RandomIterator>::value_type> a(first, last);
+//    out(a, radix, newRadix);
+//}
 
+template<typename T>
+struct RadixTransformForOuput
+{
+    std::vector<T> out;
+    template<typename ull>
+    RadixTransformForOuput(const std::vector<T>& _a, ull radix, ull newRadix)
+    {
+        std::vector<T> a = _a;
+        radixTransform(a.begin(), a.end(), radix, std::back_inserter(out), newRadix);
+    }
+
+    template<typename RandomIterator, typename ull>
+    RadixTransformForOuput(RandomIterator first, RandomIterator last, ull radix, ull newRadix)
+    {
+        std::vector<typename std::iterator_traits<RandomIterator>::value_type> a(first, last);
+        radixTransform(a.begin(), a.end(), radix, std::back_inserter(out), newRadix);
+    }
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os,
+               const RadixTransformForOuput&  r)
+    {
+        return os << r.out;
+    }
+
+
+
+
+
+
+};
 
 
 

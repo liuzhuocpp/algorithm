@@ -10,11 +10,22 @@
 
 #include <lz/big_integer/core.h>
 #include <algorithm>
-
+#include <vector>
 namespace lz {
 
 
     namespace BigIntegerPrivate {
+
+
+
+
+
+
+
+
+
+
+
 
     }
 
