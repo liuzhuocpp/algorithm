@@ -308,28 +308,18 @@ calculateQuotientLength(RandomIterator1 a, RandomIterator1 aLast, RandomIterator
 
 }
 
-//template<typename RandomIterator, typename ull>
-//void normalize(RandomIterator first, RandomIterator last, ull radix)
-//{
-//
-//}
 
 /**
- *
- *
-
 [out, outLast) = [aFirst, aLast) / [bFirst, bLast)
 
 precondition:
 [bFirst, bLast) > 0
 *(bLast - 1) >= radix/2
 
-
 postcondition:
-
 余数将存储在[aFirst, aLast)
 [bFirst, bLast) not change
- *
+
  */
 template<typename RandomIterator1, typename RandomIterator2, typename OutputIterator, typename ull>
 std::pair<OutputIterator, RandomIterator1>
