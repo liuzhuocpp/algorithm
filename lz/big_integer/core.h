@@ -41,16 +41,17 @@ RandomIterator removeLeadingZeros(RandomIterator first, RandomIterator last)
 
 /**
 
-Plus the contents of the WordVector a and b. And put the result into a, namely a += b.
-a , b should not have leading zeors.
-If x is the max value of uint, the ull type must can hold x * x + x
+precondition:
+aSize >= bSize;
+[aFirst, aLast), [bFirst, bLast) 不能有前导0， 数字0使用长度为0的range表示
 
-不能有前导0， 数字0使用长度为0的range表示
-a += b结果放置在a中
- * @param  a an add value.
- * @param  b value to be added to a.
- * @return 返回值表示 最终是否进位，其余的相加结果存放在[afirst, afirst + max(aSize, bSize) )
- *
+postcondition:
+[aFirst, aLast) += [bFirst, bLast)
+结果放置在[aFirst, aLast)中
+
+return:
+最终是否进位
+
  */
 template<typename RandomIterator1, typename RandomIterator2, typename ull>
 bool
@@ -87,9 +88,29 @@ plusAssign(RandomIterator1 aFirst, RandomIterator1 aLast, RandomIterator2 bFirst
         }
     }
     return t;
-//    while(t > 0) *aend++ = t % radix, t /= radix;
-//    return aend;
 }
+
+
+/**
+
+[aFirst, aLast) += b
+结果放置在[aFirst, aLast)， 返回值为最高位进位的值
+ */
+template<typename RandomIterator, typename ull>
+ull plusAssign(RandomIterator aFirst, RandomIterator aLast,
+    typename std::iterator_traits<RandomIterator>::value_type b, ull radix)
+{
+    ull t = b;
+    for(int i = 0; i < aLast - aFirst; ++ i)
+    {
+        if(t == 0) break;
+        t += aFirst[i];
+        aFirst[i] = t % radix;
+        t /= radix;
+    }
+    return t;
+}
+
 
 
 /**
@@ -122,6 +143,8 @@ RandomIterator1 minusAssign(RandomIterator1 aFirst, RandomIterator1 aLast,
     }
     return removeLeadingZeros(aFirst, aLast);
 }
+
+
 
 
 /**
@@ -163,30 +186,14 @@ RandomIterator3 multiplySchool(RandomIterator1 aFirst, RandomIterator1 aLast,
         }
         cFirst[j + aSize] = t;
     }
-
-//    for(diff_t i = 0; i < bSize; ++ i)
-//    {
-//        ull t = 0;
-//        for(diff_t j = 0; j < aSize; ++ j)
-//        {
-//            t += ull(bFirst[i]) * aFirst[j] + cFirst[i + j];
-//            cFirst[i + j] = t % radix;
-//            t /= radix;
-//        }
-//        if(t > 0)
-//        {
-//            cFirst[i + aSize] = t;
-//        }
-//    }
     return removeLeadingZeros(cFirst, cend);
 }
 
 
 /**
 
-T 是个正数，将T 转化为radix 进制存入out中
+T 是个正整数，将T 转化为radix 进制存入out中
  */
-
 template<typename T, typename OutputIterator, typename RadixType>
 OutputIterator integerRadixTransform(T t, OutputIterator out, RadixType radix)
 {
@@ -196,10 +203,6 @@ OutputIterator integerRadixTransform(T t, OutputIterator out, RadixType radix)
 
 
 /**
- * Multiply the contents of the UintSeq a and uint b using school method.
- * And put the result into a, namely a *= b.
- * @param  a the multiply value.
- * @param  b value to be multiplied to a.
 
 precondition:
 b > 0;
@@ -225,42 +228,25 @@ ull multiplyAssignSchool(RandomIterator aFirst, RandomIterator aLast,
         t /= radix;
     }
     return t;
-//    while(t > 0) *aLast ++ = t % radix, t /= radix;
-//    return aLast;
-}
-
-
-/**
- * Adds the contents of the UintSeq a and uint b.
- * And put the result into a, namely a += b.
- * @param  a add value.
- * @param  b value to be added to a.
- */
-template<typename RandomIterator, typename ull>
-ull plusAssign(RandomIterator afirst, RandomIterator alast,
-    typename std::iterator_traits<RandomIterator>::value_type b, ull radix)
-{
-    ull t = b;
-    for(int i = 0; i < alast - afirst; ++ i)
-    {
-        if(t == 0) break;
-        t += afirst[i];
-        afirst[i] = t % radix;
-        t /= radix;
-    }
-    return t;
-//    while(t > 0) *alast ++ = t % radix, t /= radix;
-//    return alast;
 }
 
 
 
+
+
 /**
- * Divide uint b from UintSeq a using school method.
- * And put the result into a, namely a /= b.
- * @param  a the divided value by b.
- * @param  b the divide value.
- * @return the remainder a % b.
+
+
+[aFirst, aLast) /= b
+
+return:
+    pair(x, y): [aFirst, x)表示 结果区间，y 表示remainder
+precondition:
+b > 0
+
+
+
+
  */
 template<typename RandomIterator, typename buint, typename ull>
 std::pair<RandomIterator, ull> divideAndRemainderSchool(RandomIterator aFirst, RandomIterator aLast,
@@ -295,26 +281,26 @@ OutputIterator radixTransform(RandomIterator first, RandomIterator last, ull rad
 }
 
 /**
- * Compare the UintSeq a to b.
- * @param  a first UintSeq used to compare.
- * @param  b second UintSeq used to compare.
- * @return  if a > b: return 1;
- *          if a == b: return 0;
- *          if a < b: return -1.
+
+if [aFirst, aLast) < [bFirst, bLast): return -1
+if [aFirst, aLast) == [bFirst, bLast): return 0
+if [aFirst, aLast) > [bFirst, bLast): return 1
+
+
  */
 template<typename RandomIterator>
-int compare(RandomIterator afirst, RandomIterator alast,
+int compare(RandomIterator aFirst, RandomIterator aLast,
     RandomIterator bfirst, RandomIterator blast)
 {
     using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
-    diff_t asize = alast - afirst, bsize = blast - bfirst;
+    diff_t asize = aLast - aFirst, bsize = blast - bfirst;
 
     if(asize < bsize) return -1;
     if(asize > bsize) return 1;
-    for(int i = asize - 1; i >= 0; -- i)
+    for(diff_t i = asize - 1; i >= 0; -- i)
     {
-        if(afirst[i] < bfirst[i]) return -1;
-        if(afirst[i] > bfirst[i]) return 1;
+        if(aFirst[i] < bfirst[i]) return -1;
+        if(aFirst[i] > bfirst[i]) return 1;
     }
     return 0;
 }
