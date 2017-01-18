@@ -181,7 +181,7 @@ RandomIterator3 multiplySchool(RandomIterator1 aFirst, RandomIterator1 aLast,
 
 
 /**
-T 是个正整数，将T 转化为radix 进制存入out中
+T 是个正整数，将T 转化为radix 进制存入out中， 从低位开始输出到out中
  */
 template<typename T, typename OutputIterator, typename RadixType>
 OutputIterator integerRadixTransform(T t, OutputIterator out, RadixType radix)
