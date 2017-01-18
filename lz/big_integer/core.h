@@ -133,7 +133,8 @@ RandomIterator1 minusAssign(RandomIterator1 aFirst, RandomIterator1 aLast,
  * @return  c the result will be stored.
 
 
-a 和b所指向数据不能有重叠
+c 和a所指向数据不能有重叠
+c 和b所指向数据不能有重叠
 assert(cSize >= aSize + bSize)
 c的起始值不必全是0
  */
@@ -153,7 +154,7 @@ RandomIterator3 multiplySchool(RandomIterator1 aFirst, RandomIterator1 aLast,
         for(diff_t i = 0; i < aSize; ++ i)
         {
             t += ull(bFirst[j]) * aFirst[i];
-            if(j > 0 && i < aSize)
+            if(j > 0)
             {
                 t += cFirst[i + j];
             }
@@ -208,9 +209,6 @@ postcondition:
 
 return:
 向最高位的进位值
-
-
-
 
  */
 template<typename RandomIterator, typename ull>
