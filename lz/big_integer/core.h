@@ -15,35 +15,16 @@ namespace lz { namespace BigIntegerPrivate {
 
 
 /**
- * UintSeq represent the unsigned BigInteger.
- * The length of a word sequence is at least 1(specially for zero),
- * and no more than INT_MAX.
- * A UintSeq do not contain leading zeros.
- * Use little endian to storage the word sequence.
- * a[0], a[1], a[2]... radix bits increase
- *        -->
+
+
+
+
+
+
  */
 
 
-/**
- * This type is used to hold a word
- */
-using uint32_t = std::uint_fast32_t;
 
-/**
- * This type is used to hold two words
- */
-using uint64_t = std::uint_fast64_t;
-
-/**
- * This type is used to hold word sequence
- */
-using WordVector = std::vector<uint32_t>;
-
-/**
- * For index loop
- */
-using diff_t = WordVector::difference_type;
 
 
 template<typename RandomIterator>
