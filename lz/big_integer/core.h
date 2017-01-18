@@ -272,17 +272,17 @@ if [aFirst, aLast) > [bFirst, bLast): return 1
  */
 template<typename RandomIterator>
 int compare(RandomIterator aFirst, RandomIterator aLast,
-    RandomIterator bfirst, RandomIterator blast)
+    RandomIterator bFirst, RandomIterator bLast)
 {
     using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
-    diff_t asize = aLast - aFirst, bsize = blast - bfirst;
+    diff_t asize = aLast - aFirst, bsize = bLast - bFirst;
 
     if(asize < bsize) return -1;
     if(asize > bsize) return 1;
     for(diff_t i = asize - 1; i >= 0; -- i)
     {
-        if(aFirst[i] < bfirst[i]) return -1;
-        if(aFirst[i] > bfirst[i]) return 1;
+        if(aFirst[i] < bFirst[i]) return -1;
+        if(aFirst[i] > bFirst[i]) return 1;
     }
     return 0;
 }
