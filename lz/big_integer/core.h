@@ -158,7 +158,7 @@ RandomIterator1 minusAssign(RandomIterator1 aFirst, RandomIterator1 aLast,
 [cFirst, cLast), [bFirst, bLast) 不应重叠
 
 precondition:
-    cSize >= aSize + bSize;
+    if(aSize > 0 && bSize > 0) 则：cSize >= aSize + bSize;
     c的起始值不必全是0
 
  */
@@ -170,8 +170,8 @@ RandomIterator3 multiplySchool(RandomIterator1 aFirst, RandomIterator1 aLast,
     using uint = typename std::iterator_traits<RandomIterator1>::value_type;
     using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
     diff_t aSize = aLast - aFirst, bSize = bLast - bFirst;
+    if(aSize == 0 || bSize == 0) return cFirst;
     RandomIterator3 cend = cFirst + aSize + bSize;
-
     for(diff_t j = 0; j < bSize; ++ j)
     {
         ull t = 0;

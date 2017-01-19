@@ -115,21 +115,21 @@ void testMultiplySchool()
 
     a = {9, 9, 9,};
     b = {};
-    c.assign(10, 0);
+    c.assign(10, -2);
     cend = multiplySchool(a.begin(), a.end(), b.begin(), b.end(), c.begin(), 10);
     cout << makeIteratorRange(c.begin(), cend) << endl;
     assert(isEqual(c.begin(), cend, {} )  );
 
     a = {};
     b = {3, 4, 5 };
-    c.assign(10, 0);
+    c.assign(10, -2);
     cend = multiplySchool(a.begin(), a.end(), b.begin(), b.end(), c.begin(), 10);
     cout << makeIteratorRange(c.begin(), cend) << endl;
     assert(isEqual(c.begin(), cend, {} )  );
 
     a = {};
     b = {};
-    c.assign(10, 0);
+    c.assign(10, -2);
     cend = multiplySchool(a.begin(), a.end(), b.begin(), b.end(), c.begin(), 10);
     cout << makeIteratorRange(c.begin(), cend) << endl;
     assert(isEqual(c.begin(), cend, {} )  );
@@ -283,7 +283,7 @@ void testRadixTransform()
 //    out(a, radix, newRadix);
 //}
 
-void divideAndRemainderKnuthNormalized()
+void testDivideAndRemainderKnuthNormalized()
 {
     vector<unsigned> a, b, q;
     vector<unsigned>::iterator aLast;
@@ -343,7 +343,7 @@ int main()
     testDivideAndRemainderSchool();
     testRadixTransform();
 
-    divideAndRemainderKnuthNormalized();
+    testDivideAndRemainderKnuthNormalized();
 
 
 	return 0;

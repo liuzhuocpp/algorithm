@@ -48,17 +48,13 @@ template<typename uint, typename ull>
 std::vector<uint> divideAndRemainderKnuth(std::vector<uint>& a, std::vector<uint> b, ull radix)
 {
     uint factor = calculateNormalizedFactor(b.begin(), b.end(), radix);
-//    std::cout << "FACTOR " << factor << std::endl;
     if(factor > 1)
     {
         multiplySchool(a.begin(), a.end(), factor, a.begin(), radix);
         multiplySchool(b.begin(), b.end(), factor, b.begin(), radix);
-//        std::cout << "ENDTER :: " << std::endl;
     }
 
     std::vector<uint> q(calculateQuotientLength(a.begin(), a.end(), b.begin(), b.end()));
-
-//    std::cout << calculateQuotientLength(a.begin(), a.end(), b.begin(), b.end()) << "Q L : -=\n" ;
     typename std::vector<uint>::iterator aend;
 
     std::tie(std::ignore, aend) = divideAndRemainderKnuthNormalized(
