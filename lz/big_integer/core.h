@@ -107,8 +107,10 @@ template<typename RandomIterator, typename ull>
 ull plusAssign(RandomIterator aFirst, RandomIterator aLast,
     typename std::iterator_traits<RandomIterator>::value_type b, ull radix)
 {
+    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
     ull t = b;
-    for(int i = 0; i < aLast - aFirst; ++ i)
+
+    for(diff_t i = 0; i < aLast - aFirst; ++ i)
     {
         if(t == 0) break;
         t += aFirst[i];

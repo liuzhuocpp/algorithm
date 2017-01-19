@@ -1,6 +1,6 @@
 
 
-
+#include <functional>
 
 
 //inline unsigned long long f(unsigned long long a, unsigned long long b)
@@ -8,16 +8,20 @@
 //    return a % b;
 //}
 
-inline
-unsigned long long lower(unsigned long long a, unsigned long long b)
+template<typename Mod = std::modulus<unsigned long long> >
+//inline
+unsigned long long lower(unsigned long long a, unsigned long long b, Mod mod = std::modulus<unsigned long long>())
 {
-    return a % b;
+//    return mod(a);
+    return mod(a , b);
+//    return a % b;
 }
 
 
 unsigned long long g(unsigned long long a)
 {
-    return lower(a, (1ULL << 32));
+    return lower(a, (1ULL << (sizeof(int) * 8)));
+//    return lower(a, (1ULL << 32));
 }
 
 
