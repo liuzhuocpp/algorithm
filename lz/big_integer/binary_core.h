@@ -139,9 +139,6 @@ RandomIterator shiftHigh(RandomIterator first, RandomIterator last, ull b, ull l
     }
 
     return first + newN;
-
-
-
 }
 
 
@@ -149,6 +146,42 @@ RandomIterator shiftHigh(RandomIterator first, RandomIterator last, ull b, ull l
 
 
 
+/*
+
+[a, aLast) >> b
+
+b表示移动b个bit位
+log2Radix表示此大整数的进制为2**log2Radix
+ */
+template<typename RandomIterator, typename ull>
+RandomIterator shiftLow(RandomIterator first, RandomIterator last, ull b, ull log2Radix)
+{
+    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
+    diff_t n = last - first;
+
+    ull topWordBits = bitLength(first[n - 1]);
+    ull totalBits = topWordBits + log2Radix * (n - 1);
+
+    ull newTotalBits = totalBits - b;
+    diff_t newN = newTotalBits / log2Radix + bool(newTotalBits % log2Radix);
+    ull newTopWordBits = newTotalBits % log2Radix;
+
+
+
+    std::copy(last - newN, last, first);
+    if(newTopWordBits >= topWordBits)
+    {
+        auto diffBits = newTopWordBits - topWordBits;
+        shiftHigh_notModifyLength(first, first + newN, diffBits, log2Radix);
+    }
+    else
+    {
+        auto diffBits = topWordBits - newTopWordBits;
+        shiftLow_notModifyLength(first, first + newN, diffBits, log2Radix);
+    }
+
+    return first + newN;
+}
 
 
 
