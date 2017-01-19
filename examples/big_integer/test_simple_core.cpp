@@ -11,31 +11,6 @@ using namespace lz;
 using namespace std;
 using namespace lz::BigIntegerPrivate;
 
-template<typename InputIterator1, typename InputIterator2>
-bool isEqual(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2)
-{
-    while(first1 != last1)
-    {
-        if(*first1 != *first2) return 0;
-        first1 ++;
-        first2 ++;
-    }
-    if(first2 != last2) return 0;
-    return 1;
-}
-
-template<typename InputIterator>
-bool isEqual(InputIterator first1, InputIterator last1,
-    const vector<typename std::iterator_traits<InputIterator>::value_type>& b)
-{
-    return isEqual(first1, last1, b.begin(), b.end());
-}
-
-template<typename T>
-bool isEqual(const vector<T> &a, const vector<T> &b)
-{
-    return isEqual(a.begin(), a.end(), b.begin(), b.end());
-}
 
 
 template<typename T>

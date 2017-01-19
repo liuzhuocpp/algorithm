@@ -78,6 +78,32 @@ ull bitLength(RandomIterator a, RandomIterator aLast, ull log2Radix)
 }
 
 
+template<typename RandomIterator, typename ull>
+void shiftHigh_notModifyLength(RandomIterator first, RandomIterator last, ull b, ull log2Radix)
+{
+    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
+    auto n = last - first;
+    for(diff_t i = n - 1; i >= 1; -- i)
+    {
+        first[i] = (first[i] << b) | (first[i - 1] >> (log2Radix - b));
+    }
+    first[0] <<= b;
+}
+
+
+template<typename RandomIterator, typename ull>
+void shiftLow_notModifyLength(RandomIterator first, RandomIterator last, ull b, ull log2Radix)
+{
+    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
+    auto n = last - first;
+    for(diff_t i = 0; i < n - 1; ++ i)
+    {
+        first[i] = (first[i] >> b) | (first[i + 1] << (log2Radix - b));
+    }
+    first[n - 1] >>= b;
+}
+
+
 /*
 
 [a, aLast) << b
@@ -86,30 +112,35 @@ b表示移动b个bit位
 log2Radix表示此大整数的进制为2**log2Radix
  */
 template<typename RandomIterator, typename ull>
-void shiftHigh(RandomIterator first, RandomIterator last, ull b, ull log2Radix)
+RandomIterator shiftHigh(RandomIterator first, RandomIterator last, ull b, ull log2Radix)
 {
     using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
     diff_t n = last - first;
-    diff_t totalBits = bitLength(first, last, log2Radix);
-    diff_t newTotalBits = totalBits + b;
+
+    ull topWordBits = bitLength(first[n - 1]);
+    ull totalBits = topWordBits + log2Radix * (n - 1);
+    ull newTotalBits = totalBits + b;
     diff_t newN = newTotalBits / log2Radix + bool(newTotalBits % log2Radix);
-    diff_t leaveBits = b - (newN - n) * log2Radix;
-
-    diff_t topWordBits = bitLength(first[n - 1]);
-
-    if(leaveBits > log2Radix - topWordBits)
-    {
-        diff_t lowBits = (topWordBits - (leaveBits - (log2Radix - topWordBits)));
-        first[n] = first[n - 1] >> lowBits;
-    }
+    ull newTopWordBits = newTotalBits % log2Radix;
 
 
-
-    for(diff_t i = n - 1; i >= 0; -- i)
-    {
-        first[i] = (first[i] << leaveBits) | (first[i - 1] >> (log2Radix - leaveBits));
-    }
     std::copy_backward(first, last, first + newN);
+    std::fill(first, first + newN - n, 0);
+    if(newTopWordBits >= topWordBits)
+    {
+        auto diffBits = newTopWordBits - topWordBits;
+        shiftHigh_notModifyLength(first + newN - n, first + newN, diffBits, log2Radix);
+    }
+    else
+    {
+        auto diffBits = topWordBits - newTopWordBits;
+        first[newN - n - 1] = first[newN - n] << (log2Radix - diffBits);
+        shiftLow_notModifyLength(first + newN - n, first + newN, diffBits, log2Radix);
+    }
+
+    return first + newN;
+
+
 
 }
 
