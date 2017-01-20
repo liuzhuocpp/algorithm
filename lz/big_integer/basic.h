@@ -355,29 +355,35 @@ divideAndRemainderKnuthNormalized(RandomIterator1 a, RandomIterator1 aLast,
     }
 
     uint* buffer = new uint[m + 1];
+    auto cntALast = aLast;
     for(diff_t i = n - m; i >= 0; -- i)
     {
-        ull q_ = a[i + m - 1];
-        if(i + m < n) q_ += a[i + m] * radix;
-        q_ /= b[m - 1];
-        q_ = std::min(q_, radix - 1);
-
-        ull carry = multiplySchool(b, bLast, q_, buffer, radix);
-        buffer[m] = carry;
-        uint* bufferLast = removeLeadingZeros(buffer, buffer + m + 1);
-        RandomIterator1 cntALast = a + i + m + 1;
-        if(i + m == n) --cntALast;
+        ull q_ = 0;
+        if(cntALast - (a + i) >= m) q_ += a[i + m - 1];
+        if(cntALast - (a + i) >= m + 1) q_ += a[i + m] * radix;
+        if(q_ < b[m - 1]) q_ = 0;
         else
         {
-            cntALast = removeLeadingZeros(a + i, cntALast);
+            q_ /= b[m - 1];
+            q_ = std::min(q_, radix - 1);
+
+            ull carry = multiplySchool(b, bLast, q_, buffer, radix);
+            buffer[m] = carry;
+            uint* bufferLast = buffer + m + 1;
+            if(carry == 0)
+            {
+                --bufferLast;
+            }
+
+            while(compare(buffer, bufferLast, a + i, cntALast) > 0)
+            {
+                minusAssign(buffer, bufferLast, b, bLast, radix);
+                --q_;
+            }
+            cntALast = minusAssign(a + i, cntALast, buffer, bufferLast, radix);
         }
 
-        while(compare(buffer, bufferLast, a + i, cntALast) > 0)
-        {
-            minusAssign(buffer, bufferLast, b, bLast, radix);
-            --q_;
-        }
-        minusAssign(a + i, cntALast, buffer, bufferLast, radix);
+
         if(i == n - m && q_ == 0) continue;
         *qout ++ = q_;
     }
