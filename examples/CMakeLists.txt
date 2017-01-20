@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 
 
-set(CMAKE_CXX_FLAGS "  -target x86_64-pc-windows-gnu -std=c++14 -ID:\\code\\github\\algorithm -ID:\\code\\lib\\boost_1_58_0")  
+#set(CMAKE_CXX_FLAGS "  -target x86_64-pc-windows-gnu -std=c++14 -ID:\\code\\github\\algorithm -ID:\\code\\lib\\boost_1_58_0")  
+set(CMAKE_CXX_FLAGS "  -target x86_64-pc-windows-gnu -std=c++14 -I" ${PROJECT_SOURCE_DIR}\\.. )
 set(CMAKE_CXX_COMPILER "clang++") 
 
 project (Exmaple)
@@ -12,7 +13,8 @@ MESSAGE(STATUS "This is  binary dir " ${PROJECT_BINARY_DIR})
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-include_directories("D:\\code\\github\\algorithm")
+#include_directories("D:\\code\\github\\algorithm")
+include_directories(${PROJECT_SOURCE_DIR}\\..)
 
 
 include(CTest)
