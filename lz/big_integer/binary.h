@@ -33,10 +33,14 @@ void bitOperate(RandomIterator1 aFirst, RandomIterator1 aLast,
         OutputIterator out, BitOperator bitOperator)
 {
     using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
+    using uint = typename std::iterator_traits<RandomIterator1>::value_type;
     diff_t aSize = aLast - aFirst, bSize = bLast - bFirst;
     for(diff_t i = 0; i < std::max(aSize, bSize); ++ i)
     {
-        *out++ = bitOperator(aFirst[i], bFirst[i]);
+        uint aValue = 0, bValue = 0;
+        if(i < aSize) aValue = aFirst[i];
+        if(i < bSize) bValue = bFirst[i];
+        *out++ = bitOperator(aValue, bValue);
     }
 }
 
@@ -47,16 +51,20 @@ void bitOperate(RandomIterator1 aFirst, RandomIterator1 aLast,
 可以有out == aFirst相等
 
  */
-template<typename RandomIterator, typename OutputIterator, typename BitOperator>
+template<typename RandomIterator, typename OutputIterator>
 void bitNot(RandomIterator aFirst, RandomIterator aLast,
-        OutputIterator out, BitOperator bitOperator)
+        OutputIterator out)
 {
-    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
-    diff_t aSize = aLast - aFirst;
-    for(diff_t i = 0; i < aSize; ++ i)
+    for(const auto& x: makeIteratorRange(aFirst, aLast))
     {
-        *out++ = ~aFirst[i];
+        *out++ = ~x;
     }
+//    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
+//    diff_t aSize = aLast - aFirst;
+//    for(diff_t i = 0; i < aSize; ++ i)
+//    {
+//        *out++ = ~aFirst[i];
+//    }
 }
 
 
