@@ -67,6 +67,39 @@ public:
         if(x == 0) return ;
         mag.assign(1, x);
     }
+
+    UnsignedBigInteger(int_fast32_t x)
+    {
+        if(x == 0) return;
+        if(x < 0)
+        {
+            assert(0);
+            return ;
+        }
+        mag.assign(1, x);
+    }
+
+    UnsignedBigInteger(ull x)
+    {
+        if(x == 0) return;
+        mag.resize(2);
+        mag[0] = x % Radix;
+        mag[1] = x >> 32;
+    }
+
+    UnsignedBigInteger(int_fast64_t x)
+    {
+        if(x == 0) return;
+        if(x < 0)
+        {
+            assert(0);
+            return ;
+        }
+        mag.resize(2);
+        mag[0] = x % Radix;
+        mag[1] = x >> 32;
+    }
+
     std::string toString() const
     {
         auto mutableMag = mag;
@@ -144,6 +177,13 @@ public:
         BigIntegerPrivate::divideAndRemainderKnuth(mag, b.mag, Radix);
         return *this;
     }
+
+
+
+
+
+
+
 
 
 
