@@ -38,38 +38,11 @@ void testShiftHigh()
     vector<unsigned>::iterator aend;
     unsigned long long radix, an;
 
-//    a = {1, 1, 0, 1, 0, 0, 0, 0};
-//    aend = shiftHigh(a.begin(), a.begin() + 4, 3, 1);
-//    cout << makeIteratorRange(a.begin(), aend) << endl;
-//
-//
-//    a = {234, 4234, 5345, 345, 0, 0, 0, 0};
-//    radix = (1ULL << 20);
-//    an = 8;
-//    cout << "          A: " << RadixTransformForOuput<unsigned>(a.begin(), a.begin() + an, radix, 2ULL) << endl;
-//    aend = shiftHigh(a.begin(), a.begin() + an, 3ULL, 20);
-//    cout << "new A: " << RadixTransformForOuput<unsigned>(a.begin(), aend, radix, 2ULL) << endl;
-
-//    radix = (1ULL << 10);
-//    a = {234, 2, (1U<<10) - 1};
-//    cout << validShiftHigh(a.begin(), a.end(), 100ULL, 10ULL) << endl << endl;;
-//
-//    a = {234, 5, 45,56, 456, 75675, 56};
-//    cout << validShiftHigh(a.begin(), a.end(), 1221ULL, 23ULL) << endl << endl;;
 
     a = {234, 2, 123, 3456, 54635636, 45646};
-    cout << validShiftHigh(a.begin(), a.end(), 8913ULL, 32ULL) << endl << endl;;
-
-
-
-//    cout << "            A: " << RadixTransformForOuput<unsigned>(a.begin(), a.begin() + an, radix, 2ULL) << endl;
-//    aend = shiftHigh(a.begin(), a.begin() + an, 100ULL, 10ULL);
-//    cout << "new A: " << RadixTransformForOuput<unsigned>(a.begin(), aend, radix, 2ULL) << endl;
-
-
-
-
-//    cout << makeIteratorRange(a.begin(), aend) << endl;
+    bool isValid = validShiftHigh(a.begin(), a.end(), 8913ULL, 32ULL);
+    cout << isValid << endl;
+    assert(isValid);
 
 }
 
@@ -103,13 +76,17 @@ bool validShiftLow(RandomIterator first, RandomIterator last, ull b, ull log2Rad
 }
 void testShiftLow()
 {
+    OUT_FUNCTION_NAME
+
     vector<unsigned> a;
     vector<unsigned>::iterator aend;
     unsigned long long radix, an;
 
 
     a = {234, 2, 123, 3456, 54635636, 45646};
-    cout << validShiftLow(a.begin(), a.end(), 23ULL, 32ULL) << endl << endl;;
+    bool isValid = validShiftLow(a.begin(), a.end(), 23ULL, 32ULL);
+    cout << isValid << endl;
+    assert(isValid);
 
 
 
