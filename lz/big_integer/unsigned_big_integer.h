@@ -14,13 +14,17 @@
 namespace lz {
 
 
+
+class UnsignedBigInteger;
+
+
     namespace BigIntegerPrivate {
 
 
 
 
 
-
+    UnsignedBigInteger parseLiteral(const char*);
 
 
 
@@ -140,13 +144,6 @@ public:
         return BigIntegerPrivate::compare(a.mag, b.mag) >= 0;
     }
 
-
-
-
-
-
-
-
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
     operator<<(std::basic_ostream<Char, Traits>& os,
@@ -156,11 +153,84 @@ public:
     }
 
 
-
-
-
-
+    friend UnsignedBigInteger BigIntegerPrivate::parseLiteral(const char*);
 };
+
+
+    namespace BigIntegerPrivate {
+
+    UnsignedBigInteger parseLiteral(const char*literal)
+    {
+        using U = UnsignedBigInteger;
+        using uint = uint_fast32_t;
+        if(literal[0] == '0' && (literal[1] == 'x' || literal[1] == 'X'))
+        {
+            std::vector<uint> a;
+            std::ptrdiff_t i = 2;
+            for(;literal[i] == '0'; ++ i);
+
+            for(;literal[i]; ++ i)
+            {
+                char ch = literal[i];
+                uint x;
+                if(ch >= '0' && ch <= '9') x = ch - '0';
+                else if(ch >= 'a' && ch <= 'f') x = ch - 'a' + 10;
+                else x = ch - 'A' + 10;
+                a.push_back(x);
+            }
+            std::reverse(a.begin(), a.end());
+            BigIntegerPrivate::radixTransform(a, 16ULL, (1ULL << 32));
+            return a;
+
+        }
+        else if(literal[0] == '0')
+        {
+            std::vector<uint> a;
+            std::ptrdiff_t i = 1;
+            for(;literal[i] == '0'; ++ i);
+
+            for(;literal[i]; ++ i)
+            {
+                a.push_back(literal[i] - '0');
+            }
+            std::reverse(a.begin(), a.end());
+            BigIntegerPrivate::radixTransform(a, 8ULL, (1ULL << 32));
+            return a;
+
+        }
+        else
+        {
+            return U(literal);
+        }
+
+    }
+
+    }
+
+
+UnsignedBigInteger operator"" _UB(const char* literal)
+{
+
+    return BigIntegerPrivate::parseLiteral(literal);
+
+}
+
+UnsignedBigInteger operator"" _ub(const char* literal)
+{
+    return operator"" _UB(literal);
+}
+
+UnsignedBigInteger operator"" _Ub(const char* literal)
+{
+    return operator"" _UB(literal);
+}
+
+UnsignedBigInteger operator"" _uB(const char* literal)
+{
+    return operator"" _UB(literal);
+}
+
+
 
 
 
