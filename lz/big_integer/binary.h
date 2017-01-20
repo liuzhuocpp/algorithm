@@ -9,6 +9,9 @@
 #define LZ_BIG_INTEGER_BINARY_H_
 
 
+#include <lz/big_integer/basic.h>
+
+
 /*
  *
 这个头文件主要针对进制为radix = 2**k的大整数的操作，
@@ -27,44 +30,27 @@ out所指向的空间大小必须为max(aSize, bSize)
 
 
  */
-template<typename RandomIterator1, typename RandomIterator2, typename OutputIterator, typename BitOperator>
-void bitOperate(RandomIterator1 aFirst, RandomIterator1 aLast,
+template<typename RandomIterator1, typename RandomIterator2, typename RandomIterator3, typename BitOperator>
+RandomIterator3 bitOperate(RandomIterator1 aFirst, RandomIterator1 aLast,
         RandomIterator2 bFirst, RandomIterator2 bLast,
-        OutputIterator out, BitOperator bitOperator)
+        RandomIterator3 out, BitOperator bitOperator)
 {
     using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
     using uint = typename std::iterator_traits<RandomIterator1>::value_type;
     diff_t aSize = aLast - aFirst, bSize = bLast - bFirst;
+    auto outEnd = out;
     for(diff_t i = 0; i < std::max(aSize, bSize); ++ i)
     {
         uint aValue = 0, bValue = 0;
         if(i < aSize) aValue = aFirst[i];
         if(i < bSize) bValue = bFirst[i];
-        *out++ = bitOperator(aValue, bValue);
+        *outEnd++ = bitOperator(aValue, bValue);
     }
-}
+
+    return removeLeadingZeros(out, outEnd);
 
 
-/*
 
-计算 [aFirst, aLast) 的位运算非
-可以有out == aFirst相等
-
- */
-template<typename RandomIterator, typename OutputIterator>
-void bitNot(RandomIterator aFirst, RandomIterator aLast,
-        OutputIterator out)
-{
-    for(const auto& x: makeIteratorRange(aFirst, aLast))
-    {
-        *out++ = ~x;
-    }
-//    using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
-//    diff_t aSize = aLast - aFirst;
-//    for(diff_t i = 0; i < aSize; ++ i)
-//    {
-//        *out++ = ~aFirst[i];
-//    }
 }
 
 
@@ -84,6 +70,31 @@ ull bitLength(RandomIterator a, RandomIterator aLast, ull log2Radix)
     diff_t n = aLast - a;
     return (n - 1) * log2Radix + bitLength(*--aLast);
 }
+
+
+/*
+
+计算 [aFirst, aLast) 的位运算非
+可以有out == aFirst相等
+
+
+!!!有待于完善
+ */
+//template<typename RandomIterator, typename OutputIterator>
+//void bitNot(RandomIterator aFirst, RandomIterator aLast,
+//        OutputIterator out)
+//{
+//    if(aFirst == aLast) return ;
+//
+//    auto topWordBits = bitLength(*(aLast - 1));
+//    for(const auto& x: makeIteratorRange(aFirst, aLast - 1))
+//    {
+//        *out++ = ~x;
+//    }
+//}
+
+
+
 
 
 template<typename RandomIterator, typename ull>

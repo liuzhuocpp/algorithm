@@ -100,10 +100,10 @@ public:
         mag[1] = x >> 32;
     }
 
-    std::string toString() const
+    std::string toString(ull newRadix = 10ULL) const
     {
         auto mutableMag = mag;
-        BigIntegerPrivate::radixTransform(mutableMag, Radix, 10ULL);
+        BigIntegerPrivate::radixTransform(mutableMag, Radix, newRadix);
 
         std::string ans = std::string(mutableMag.rbegin(), mutableMag.rend());
         for(auto& x: ans)
@@ -179,7 +179,55 @@ public:
     }
 
 
+    U& operator^=(const U& b)
+    {
+        BigIntegerPrivate::bitOperateAssign(mag, b.mag, std::bit_xor<uint>());
+        return *this;
+    }
 
+    U& operator|=(const U& b)
+    {
+        BigIntegerPrivate::bitOperateAssign(mag, b.mag, std::bit_or<uint>());
+        return *this;
+    }
+
+    U& operator&=(const U& b)
+    {
+        BigIntegerPrivate::bitOperateAssign(mag, b.mag, std::bit_and<uint>());
+        return *this;
+    }
+
+
+    friend U operator^(const U& a, const U& b)
+    {
+        U ans = a;
+        ans ^= b;
+        return ans;
+    }
+
+    friend U operator|(const U& a, const U& b)
+    {
+        U ans = a;
+        ans |= b;
+        return ans;
+    }
+
+    friend U operator&(const U& a, const U& b)
+    {
+        U ans = a;
+        ans &= b;
+        return ans;
+    }
+
+    /**
+            有待于完善
+     */
+//    friend U operator~(const U&a)
+//    {
+//        U ans = a;
+//        BigIntegerPrivate::bitNot(ans.mag);
+//        return ans;
+//    }
 
 
 

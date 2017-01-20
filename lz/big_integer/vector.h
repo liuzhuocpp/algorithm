@@ -9,7 +9,7 @@
 #define LZ_BIG_INTEGER_VECTOR_H_
 
 #include <lz/big_integer/basic.h>
-
+#include <lz/big_integer/binary.h>
 
 namespace lz { namespace BigIntegerPrivate {
 
@@ -89,15 +89,20 @@ void bitOperateAssign(std::vector<uint>& a, const std::vector<uint>& b, BitOpera
 {
     auto aOldSize = a.size();
     a.resize(std::max(a.size(), b.size()));
-    bitOperate(a.begin(), a.begin() + aOldSize, b.begin(), b.end(), a.begin(), bitOperator);
+    auto aend = bitOperate(a.begin(), a.begin() + aOldSize, b.begin(), b.end(), a.begin(), bitOperator);
+    a.resize(aend - a.begin());
 }
 
 
-template<typename uint>
-void bitNot(std::vector<uint>& a)
-{
-    bitNot(a.begin(), a.end(), a.begin());
-}
+/**
+有待于完善
+ */
+
+//template<typename uint>
+//void bitNot(std::vector<uint>& a)
+//{
+//    bitNot(a.begin(), a.end(), a.begin());
+//}
 
 template<typename uint, typename ull>
 void shiftHigh(std::vector<uint>& a, ull b, ull log2Radix)
