@@ -2,7 +2,8 @@
 
 #include <lz/debug.h>
 
-#include <lz/big_integer/vector_core.h>
+
+#include <lz/big_integer/vector.h>
 
 
 using namespace lz;

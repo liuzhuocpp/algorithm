@@ -2,11 +2,12 @@
 
 #include <bits/stdc++.h>
 
+
 #include <lz/debug.h>
 
-#include <lz/big_integer/core.h>
 #include <lz/std_utility.h>
 
+#include <lz/big_integer/basic.h>
 using namespace lz;
 using namespace std;
 using namespace lz::BigIntegerPrivate;

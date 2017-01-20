@@ -5,8 +5,8 @@
  *      Author: LZ
  */
 
-#ifndef LZ_BIG_INTEGER_BINARY_CORE_H_
-#define LZ_BIG_INTEGER_BINARY_CORE_H_
+#ifndef LZ_BIG_INTEGER_BINARY_H_
+#define LZ_BIG_INTEGER_BINARY_H_
 
 
 /*
@@ -214,4 +214,4 @@ RandomIterator shiftLow(RandomIterator first, RandomIterator last, ull b, ull lo
 
 
 
-#endif /* LZ_BIG_INTEGER_BINARY_CORE_H_ */
+#endif /* LZ_BIG_INTEGER_BINARY_H_ */

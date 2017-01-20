@@ -8,7 +8,7 @@
 #ifndef LZ_BIG_INTEGER_UNSIGNED_BIG_INTEGER_H_
 #define LZ_BIG_INTEGER_UNSIGNED_BIG_INTEGER_H_
 
-#include <lz/big_integer/core.h>
+#include <lz/big_integer/basic.h>
 #include <algorithm>
 #include <vector>
 namespace lz {

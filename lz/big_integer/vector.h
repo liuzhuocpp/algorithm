@@ -5,10 +5,10 @@
  *      Author: LZ
  */
 
-#ifndef LZ_BIG_INTEGER_VECTOR_CORE_H_
-#define LZ_BIG_INTEGER_VECTOR_CORE_H_
+#ifndef LZ_BIG_INTEGER_VECTOR_H_
+#define LZ_BIG_INTEGER_VECTOR_H_
 
-#include <lz/big_integer/core.h>
+#include <lz/big_integer/basic.h>
 
 
 namespace lz { namespace BigIntegerPrivate {
@@ -77,4 +77,4 @@ std::vector<uint> divideAndRemainderKnuth(std::vector<uint>& a, std::vector<uint
 
 
 
-#endif /* LZ_BIG_INTEGER_VECTOR_CORE_H_ */
+#endif /* LZ_BIG_INTEGER_VECTOR_H_ */

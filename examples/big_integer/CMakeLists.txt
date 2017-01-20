@@ -5,9 +5,9 @@
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin/big_integer)
 
 
-add_executable(test_big_integer_simple_core test_simple_core.cpp)
-add_executable(test_big_integer_vector_core test_vector_core.cpp)
+add_executable(test_big_integer_basic test_basic.cpp)
+add_executable(test_big_integer_vector test_vector.cpp)
 
-add_test (test_big_integer_simple_core ${EXECUTABLE_OUTPUT_PATH}/test_big_integer_simple_core)
-add_test (test_big_integer_vector_core ${EXECUTABLE_OUTPUT_PATH}/test_big_integer_vector_core)
+add_test (test_big_integer_basic ${EXECUTABLE_OUTPUT_PATH}/test_big_integer_basic)
+add_test (test_big_integer_vector ${EXECUTABLE_OUTPUT_PATH}/test_big_integer_vector)
 

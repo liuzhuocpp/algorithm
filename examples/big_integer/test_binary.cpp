@@ -1,10 +1,10 @@
 #include <bits/stdc++.h>
+#include <lz/big_integer/basic.h>
+#include <lz/big_integer/binary.h>
 
 #include <lz/debug.h>
 
 #include <lz/iterator_range.h>
-#include <lz/big_integer/core.h>
-#include <lz/big_integer/binary_core.h>
 
 using namespace lz;
 using namespace std;

@@ -5,8 +5,8 @@
  *      Author: LZ
  */
 
-#ifndef LZ_BIG_INTEGER_CORE_H_
-#define LZ_BIG_INTEGER_CORE_H_
+#ifndef LZ_BIG_INTEGER_BASIC_H_
+#define LZ_BIG_INTEGER_BASIC_H_
 
 
 
@@ -478,4 +478,4 @@ struct RadixTransformForOuput
 
 
 
-#endif /* LZ_BIG_INTEGER_CORE_H_ */
+#endif /* LZ_BIG_INTEGER_BASIC_H_ */
