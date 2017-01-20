@@ -116,6 +116,41 @@ public:
         return mutableA;
     }
 
+    U& operator+=(const U& b)
+    {
+        BigIntegerPrivate::plusAssign(mag, b.mag, Radix);
+        return *this;
+    }
+
+    U& operator-=(const U& b)
+    {
+        BigIntegerPrivate::minusAssign(mag, b.mag, Radix);
+        return *this;
+    }
+
+    U& operator*=(const U& b)
+    {
+        *this = *this * b;
+        return *this;
+    }
+
+    U& operator/=(const U& b)
+    {
+        *this = *this / b;
+        return *this;
+    }
+    U& operator%=(const U& b)
+    {
+        BigIntegerPrivate::divideAndRemainderKnuth(mag, b.mag, Radix);
+        return *this;
+    }
+
+
+
+
+
+
+
     friend bool operator== (const U& a, const U& b)
     {
         return BigIntegerPrivate::compare(a.mag, b.mag) == 0;
@@ -143,6 +178,12 @@ public:
     {
         return BigIntegerPrivate::compare(a.mag, b.mag) >= 0;
     }
+
+
+
+
+
+
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&

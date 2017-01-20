@@ -14,7 +14,25 @@ bool validPlusMinusMultiplyDivideMod(const U& a, const U& b)
 {
     auto q = a / b;
     auto r = a % b;
-    return b * q + r == a && b * q == a - r;
+    bool valid = 1;
+    valid &= (b * q + r == a);
+    valid &= (b * q == a - r);
+
+    auto tmp1 = q;
+    tmp1 *= b;
+    tmp1 += r;
+    tmp1 -= a;
+    valid &= (tmp1 == 0U);
+
+    auto tmp2 = a;
+    tmp2 /= b;
+    valid &= (q == tmp2);
+
+    auto tmp3 = a;
+    tmp3 %= b;
+    valid &= (r == tmp3);
+    return valid;
+
 }
 
 void testOnePair(const U& a, const U & b)
