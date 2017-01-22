@@ -77,21 +77,34 @@ ull bitLength(RandomIterator a, RandomIterator aLast, ull log2Radix)
 计算 [aFirst, aLast) 的位运算非
 可以有out == aFirst相等
 
-
+~0 == 0
 !!!有待于完善
  */
-//template<typename RandomIterator, typename OutputIterator>
-//void bitNot(RandomIterator aFirst, RandomIterator aLast,
-//        OutputIterator out)
-//{
-//    if(aFirst == aLast) return ;
-//
-//    auto topWordBits = bitLength(*(aLast - 1));
-//    for(const auto& x: makeIteratorRange(aFirst, aLast - 1))
-//    {
-//        *out++ = ~x;
-//    }
-//}
+template<typename RandomIterator1, typename RandomIterator2>
+RandomIterator2 bitNot(RandomIterator1 first, RandomIterator1 last,
+		RandomIterator2 out)
+{
+    if(first == last)
+    {
+    	*out ++ = 1;
+    	return out;
+    }
+    using uint = typename std::iterator_traits<RandomIterator1>::value_type;
+    RandomIterator2 outEnd = out;
+    for(const auto& x: makeIteratorRange(first, last - 1))
+    {
+        *outEnd++ = ~x;
+    }
+    uint lastValue = *(last - 1);
+	uint newLastValue = 0;
+	uint lastValueBits = bitLength(lastValue);
+    for(uint i = 0; i < lastValueBits; ++ i)
+    {
+    	if(!((lastValue >> i) & 1)) newLastValue |= uint(1) << i;
+    }
+    *outEnd++ = newLastValue;
+    return removeLeadingZeros(out, outEnd);
+}
 
 
 

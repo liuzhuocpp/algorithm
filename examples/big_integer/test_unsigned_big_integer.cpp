@@ -170,19 +170,27 @@ void testBinaryOperate()
     cout << makeReverseString(c.toString(2)) << endl;
     assert(makeReverseString(c.toString(2)) == "101010100000000011");
 
+    cout << string(100, '~') << endl;
+    a = 0xFF67_UB;
+    cout << (~a).toString(2) << endl;
+    assert((~a).toString(2) == "10011000");
 
-//    cout << string(100, '-') << endl;
-//    cout << makeReverseString(a.toString(2)) << endl;
-//    cout << makeReverseString((~a).toString(2)) << endl;
-//
-//
-//    cout << string(100, '-') << endl;
-//    cout << makeReverseString(b.toString(2)) << endl;
-//    cout << makeReverseString((~b).toString(2)) << endl;
+    cout << string(100, '~') << endl;
+    a = 0;
+    cout << (~a).toString(2) << endl;
+    assert((~a).toString(2) == "1");
 
+    cout << string(100, '~') << endl;
+    a = 0XFFFFFFFFFFFFFFF_UB;
+    cout << (~a).toString(2) << endl;
+    assert((~a).toString(2) == "0");
 
-
-
+    cout << string(100, '~') << endl;
+    a = 0X2FFFFFFFF098376FA_UB;
+    cout << (~a).toString(2) << endl;
+    cout << a.toString(2) << endl;
+    cout << (~~a).toString(2) << endl;
+    assert((~~a).toString(2) == a.toString(2).substr(2));
 }
 
 
@@ -190,8 +198,9 @@ void testBinaryOperate()
 
 int main()
 {
-    testBasicOperate();
+//    testBasicOperate();
     testBinaryOperate();
+
 
 
 

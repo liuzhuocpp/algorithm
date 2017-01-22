@@ -222,12 +222,12 @@ public:
     /**
             有待于完善
      */
-//    friend U operator~(const U&a)
-//    {
-//        U ans = a;
-//        BigIntegerPrivate::bitNot(ans.mag);
-//        return ans;
-//    }
+    U operator~() const
+    {
+        U ans = *this;
+        BigIntegerPrivate::bitNot(ans.mag);
+        return ans;
+    }
 
 
 

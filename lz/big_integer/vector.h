@@ -95,14 +95,21 @@ void bitOperateAssign(std::vector<uint>& a, const std::vector<uint>& b, BitOpera
 
 
 /**
-有待于完善
+
  */
 
-//template<typename uint>
-//void bitNot(std::vector<uint>& a)
-//{
-//    bitNot(a.begin(), a.end(), a.begin());
-//}
+template<typename uint>
+void bitNot(std::vector<uint>& a)
+{
+	if(a.empty())
+	{
+		a.push_back(1);
+		return ;
+	}
+    auto aend = bitNot(a.begin(), a.end(), a.begin());
+    a.resize(aend - a.begin());
+
+}
 
 template<typename uint, typename ull>
 void shiftHigh(std::vector<uint>& a, ull b, ull log2Radix)
