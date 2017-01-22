@@ -130,6 +130,7 @@ void shiftLow_notModifyLength(RandomIterator first, RandomIterator last, ull b, 
     auto n = last - first;
     for(diff_t i = 0; i < n - 1; ++ i)
     {
+//    	first[i] = (first[i] >> b) | (((ull(1) << b) - 1) );
         first[i] = (first[i] >> b) | (first[i + 1] << (log2Radix - b));
     }
     first[n - 1] >>= b;
@@ -148,12 +149,18 @@ RandomIterator shiftHigh(RandomIterator first, RandomIterator last, ull b, ull l
 {
     using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
     diff_t n = last - first;
-
-    ull topWordBits = bitLength(first[n - 1]);
-    ull totalBits = topWordBits + log2Radix * (n - 1);
+    ull topWordBits;
+    ull totalBits;
+    if(n == 0) topWordBits = totalBits = 0;
+    else
+	{
+    	topWordBits = bitLength(first[n - 1]),
+		totalBits = (topWordBits + log2Radix * (n - 1)) ;
+	}
     ull newTotalBits = totalBits + b;
     diff_t newN = newTotalBits / log2Radix + bool(newTotalBits % log2Radix);
     ull newTopWordBits = newTotalBits % log2Radix;
+    if(newTopWordBits == 0) newTopWordBits = log2Radix;
 
 
     std::copy_backward(first, last, first + newN);
@@ -191,27 +198,36 @@ RandomIterator shiftLow(RandomIterator first, RandomIterator last, ull b, ull lo
     using diff_t = typename std::iterator_traits<RandomIterator>::difference_type;
     diff_t n = last - first;
 
-    ull topWordBits = bitLength(first[n - 1]);
-    ull totalBits = topWordBits + log2Radix * (n - 1);
+    ull topWordBits;
+    ull totalBits;
+    if(n == 0) topWordBits = totalBits = 0;
+    else
+	{
+    	topWordBits = bitLength(first[n - 1]),
+		totalBits = (topWordBits + log2Radix * (n - 1)) ;
+	}
 
+
+    if(totalBits <= b)
+    {
+    	return first;
+    }
     ull newTotalBits = totalBits - b;
     diff_t newN = newTotalBits / log2Radix + bool(newTotalBits % log2Radix);
     ull newTopWordBits = newTotalBits % log2Radix;
+    if(newTopWordBits == 0) newTopWordBits = log2Radix;
 
-
-
-    std::copy(last - newN, last, first);
     if(newTopWordBits >= topWordBits)
     {
         auto diffBits = newTopWordBits - topWordBits;
-        shiftHigh_notModifyLength(first, first + newN, diffBits, log2Radix);
+        shiftHigh_notModifyLength(first, last, diffBits, log2Radix);
     }
     else
     {
         auto diffBits = topWordBits - newTopWordBits;
-        shiftLow_notModifyLength(first, first + newN, diffBits, log2Radix);
+        shiftLow_notModifyLength(first, last, diffBits, log2Radix);
     }
-
+    std::copy(last - newN, last, first);
     return first + newN;
 }
 

@@ -38,7 +38,8 @@ class UnsignedBigInteger
 {
     using uint = std::uint_fast32_t;
     using ull = std::uint_fast64_t;
-    static constexpr ull Radix = (1ull << 32);
+    static constexpr ull Log2Radix = 32ULL;
+    static constexpr ull Radix = 1ULL << Log2Radix;
     std::vector<uint> mag;
     using U = UnsignedBigInteger;
     using Mag = std::vector<uint>;
@@ -197,6 +198,12 @@ public:
         return *this;
     }
 
+    U operator~() const
+    {
+        U ans = *this;
+        BigIntegerPrivate::bitNot(ans.mag);
+        return ans;
+    }
 
     friend U operator^(const U& a, const U& b)
     {
@@ -219,18 +226,32 @@ public:
         return ans;
     }
 
-    /**
-            有待于完善
-     */
-    U operator~() const
+
+    friend U operator<<(const U& a, ull b)
     {
-        U ans = *this;
-        BigIntegerPrivate::bitNot(ans.mag);
-        return ans;
+    	Mag mag = a.mag;
+    	BigIntegerPrivate::shiftHigh(mag, b, Log2Radix);
+    	return mag;
     }
 
+    friend U operator>>(const U& a, ull b)
+	{
+		Mag mag = a.mag;
+		BigIntegerPrivate::shiftLow(mag, b, Log2Radix);
+		return mag;
+	}
 
+    U& operator<<=(ull b)
+    {
+    	BigIntegerPrivate::shiftHigh(mag, b, Log2Radix);
+    	return *this;
+    }
 
+    U& operator>>=(ull b)
+	{
+    	BigIntegerPrivate::shiftLow(mag, b, Log2Radix);
+		return *this;
+	}
 
 
 

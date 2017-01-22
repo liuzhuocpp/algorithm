@@ -114,14 +114,18 @@ void bitNot(std::vector<uint>& a)
 template<typename uint, typename ull>
 void shiftHigh(std::vector<uint>& a, ull b, ull log2Radix)
 {
+	uint bits = bitLength(a.begin(), a.end(), log2Radix) + b;
+	a.resize(bits / log2Radix + bool(bits / log2Radix));
     shiftHigh(a.begin(), a.end(), b, log2Radix);
+
 }
 
 
 template<typename uint, typename ull>
 void shiftLow(std::vector<uint>& a, ull b, ull log2Radix)
 {
-    shiftLow(a.begin(), a.end(), b, log2Radix);
+    auto aend = shiftLow(a.begin(), a.end(), b, log2Radix);
+    a.resize(aend - a.begin());
 }
 
 template<typename uint>

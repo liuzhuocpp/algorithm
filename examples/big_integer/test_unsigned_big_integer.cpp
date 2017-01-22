@@ -191,6 +191,28 @@ void testBinaryOperate()
     cout << a.toString(2) << endl;
     cout << (~~a).toString(2) << endl;
     assert((~~a).toString(2) == a.toString(2).substr(2));
+
+
+
+    cout << string(100, '<') << endl << endl;
+	a = 0X2FFFFFFFF098376FA_UB;
+	cout << (a).toString(2) << endl;
+	cout << (a << 20).toString(2) << endl;
+	assert((a << 20).toString(2) == "10111111111111111111111111111111110000100110000011011101101111101000000000000000000000");
+	assert(a << 20 >> 20 == a);
+
+
+
+
+    cout << string(100, '>') << endl << endl;
+	a = 0X2FFFFFFFF098376FA_UB;
+	cout << (a).toString(2) << endl;
+	cout << (a >> 40).toString(2) << endl;
+	assert((a >> 40).toString(2) == "10111111111111111111111111");
+	assert(a << 40 >> 40 == a);
+
+
+
 }
 
 
@@ -198,7 +220,7 @@ void testBinaryOperate()
 
 int main()
 {
-//    testBasicOperate();
+    testBasicOperate();
     testBinaryOperate();
 
 
