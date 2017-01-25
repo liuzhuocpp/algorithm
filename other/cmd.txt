@@ -10,7 +10,7 @@ clang++ -target  x86_64-pc-windows-gnu -std=c++14 -IC:\Users\LZ\code\github\algo
 
 cd D:\code\workspace\algorithm && D:
 cmake.exe ..\..\github\algorithm\examples  -G "MinGW Makefiles" && mingw32-make.exe &&  mingw32-make.exe test
-
+cd C:\Users\LZ\code\github\algorithm\examples && C:
 
 
 g++  -std=c++14 -ID:\code\github\algorithm      main.cpp     -o main.exe && main.exe

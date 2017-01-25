@@ -122,34 +122,53 @@ ull plusAssign(RandomIterator aFirst, RandomIterator aLast,
 
 
 /**
- * Minus the UintSeq b from a, and put the result into a, namely a -= b.
+
+Minus the UintSeq b from a, and put the result into a, namely a -= b.
+precondition:
+a >= b
+
  * @param  a value to be minuend by b.
  * @param  b the minus value.
  */
 template<typename RandomIterator1, typename RandomIterator2, typename ull>
-RandomIterator1 minusAssign(RandomIterator1 aFirst, RandomIterator1 aLast,
-    RandomIterator2 bFirst, RandomIterator2 bLast, ull radix)
+RandomIterator1 minusAssign(RandomIterator1 a, RandomIterator1 aLast,
+    RandomIterator2 b, RandomIterator2 bLast, ull radix)
 {
     using uint = typename std::iterator_traits<RandomIterator1>::value_type;
     using diff_t = typename std::iterator_traits<RandomIterator1>::difference_type;
-    diff_t bSize = bLast - bFirst, aSize = aLast - aFirst;
-    ull t = 0;
-    for(diff_t i = 0; i < bSize; ++ i)
+    diff_t bSize = bLast - b, aSize = aLast - a;
+    bool borrow = 0;
+
+    for(diff_t i = 0; i < aSize; ++ i)
     {
-        t += bFirst[i];
-        if(aFirst[i] < t)
-            aFirst[i] = radix + aFirst[i] - t, t = 1;
-        else
-            aFirst[i] -= t, t = 0;
+    	if(i >= bSize && !borrow) break;
+    	ull bValue = i < bSize ? b[i] : 0;
+    	ull aValue = a[i];
+    	if(borrow) bValue ++, borrow = 0;
+
+    	if(aValue < bValue) aValue += radix, borrow = 1;
+
+    	a[i] = aValue - bValue;
     }
-    for(diff_t i = bSize; t > 0 && i < aSize; ++ i)
-    {
-        if(aFirst[i] < t)
-            aFirst[i] = radix + aFirst[i] - t, t = 1;
-        else
-            aFirst[i] -= t, t = 0;
-    }
-    return removeLeadingZeros(aFirst, aLast);
+    return removeLeadingZeros(a, aLast);
+
+//    ull t = 0;
+//    for(diff_t i = 0; i < bSize; ++ i)
+//    {
+//        t += b[i];
+//        if(a[i] < t)
+//            a[i] = radix + a[i] - t, t = 1;
+//        else
+//            a[i] -= t, t = 0;
+//    }
+//    for(diff_t i = bSize; t > 0 && i < aSize; ++ i)
+//    {
+//        if(a[i] < t)
+//            a[i] = radix + a[i] - t, t = 1;
+//        else
+//            a[i] -= t, t = 0;
+//    }
+//    return removeLeadingZeros(a, aLast);
 }
 
 
