@@ -405,7 +405,7 @@ analyzeRegex(Iterator first, Iterator last)
         {
             if(first != copyFirst && *(first - 1) != '|')
             {
-                std:: cout  << "YES" << "\n";
+//                std:: cout  << "YES" << "\n";
                 pushOperator(valueStack, operatorStack, states, '.');
             }
 
