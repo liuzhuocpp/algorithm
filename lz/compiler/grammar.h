@@ -414,8 +414,13 @@ constructPredictiveParsingTable(const Grammer<T>& g,
 
 
 template<typename T>
-struct RuleBody:std::vector<Symbol<T>>
+struct RuleBody: std::vector<Symbol<T>>
 {
+    friend RuleBody operator>>(RuleBody a, T b)
+    {
+        a.push_back(Symbol<T>(SymbolType::Variable, b));
+        return a;
+    }
 
 };
 

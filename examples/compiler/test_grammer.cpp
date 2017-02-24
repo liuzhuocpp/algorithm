@@ -132,6 +132,35 @@ void testNonterminals()
 
     cout << g << endl;
 
+
+
+
+
+    NonterminalSymbol<char>::reset();
+    NonterminalSymbol<char> E("E"), _E("E'"), T("T"), _T("T'"), F("F");
+
+    E = T >> _E;
+
+    _E = '+' >> T >> _E;
+    _E = EmptyStringSymbol<char>;
+
+    T = F >> _T;
+
+    _T = '*' >> F >> _T ;
+    _T = EmptyStringSymbol<char>;
+
+    F = '(' >> E >> ')';
+    F = 'a';
+
+
+
+
+
+    g = makeGrammer(std::vector<NonterminalSymbol<char>>{E, _E, T, _T, F});
+
+    cout << g << endl;
+
+
 //    cout << "我" << endl;
 
 
