@@ -78,35 +78,12 @@ struct Symbol
         else {}
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Symbol&  s)
-    {
-        if(s.type == SymbolType::EmptyString)
-        {
-            os << "#"  ; // 暂时用#号代替空字符串字符
-        }
-        else if(s.type == SymbolType::Terminal)
-        {
-            os << s.terminal;
-        }
-        else if(s.type == SymbolType::Nonterminal)
-        {
-            os << s.nonterminal;
-        }
-        else if(s.type == SymbolType::EndTag)
-        {
-            os << "$";
-        }
-        else
-        {
-
-        }
-
-
-        return os;
-    }
 
 
 };
+
+
+
 
 
 
@@ -123,12 +100,10 @@ template<typename T>
 struct RuleBody: std::vector<Symbol<T>>
 {
     using std::vector<Symbol<T>>::vector;
-
-
-
-
-
 };
+
+
+
 
 
 
@@ -140,46 +115,130 @@ struct RuleBodyUnion: std::vector< RuleBody<T> >
     using std::vector< RuleBody<T>  >::vector;
 };
 
+
+
+template<typename T>
+struct NonterminalSymbol;
+
 // T 表示终结符号
 template<typename T>
 struct Grammer : std::vector<RuleBodyUnion<T> >
 {
-    template <class Char, class Traits>
-    friend std::basic_ostream<Char, Traits>&
-    operator<<(std::basic_ostream<Char, Traits>& os,
-               const Grammer&  g)
-    {
-        for(int i = 0; i < g.size(); ++ i)
-        {
-            for(int j = 0; j < g[i].size(); ++ j)
-            {
-                if(i < g.names.size() && !g.names[i].empty())
-                {
-                    os << g.names[i];
-                }
-                else
-                    os << i;
-                os << "->";
-                for(int k = 0; k < g[i][j].size(); ++ k)
-                {
-                    if(g[i][j][k].type == SymbolType::Nonterminal &&
-                        g[i][j][k].nonterminal < g.names.size() &&
-                        !g.names[g[i][j][k].nonterminal].empty())
-                    {
-                        os << g.names[g[i][j][k].nonterminal];
-                    }
-                    else
-                        os << g[i][j][k];
-                    os << " " ;
-                }
-                os << "\n";
-            }
-        }
-        return os;
-    }
-    std::vector<std::string> names;
-
+    NonterminalSymbol<T> getNonterminalSymbol(NonterminalType i);
 };
+
+
+// 为了给用户更加方便的编写文法的方式，最终文法将会存储在Grammer里，此类仅仅作为 各类操作符的重定义，使用户可以用接近EBNF的语法书写文法。
+template<typename T>
+struct NonterminalSymbol
+{
+    static int gloldId;
+    static void reset()
+    {
+        gloldId = 0;
+    }
+
+    NonterminalType id;
+//    RuleBodyUnion<T> data;
+    Grammer<T>& g;
+
+
+    NonterminalSymbol(NonterminalType id, Grammer<T>& g ):id(id), g(g) { }
+
+
+    friend RuleBody<T> operator>>(NonterminalSymbol a, NonterminalSymbol b)
+    {
+       RuleBody<T> res;
+       res.push_back(Symbol<T>(SymbolType::Nonterminal, a.id));
+       res.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
+       return res;
+    }
+
+    friend RuleBody<T> operator>>(NonterminalSymbol a, T b)
+    {
+       RuleBody<T> res;
+       res.push_back(Symbol<T>(SymbolType::Nonterminal, a.id));
+       res.push_back(Symbol<T>(SymbolType::Terminal, b));
+       return res;
+    }
+
+    friend RuleBody<T> operator>>(T a, NonterminalSymbol b)
+    {
+       RuleBody<T> res;
+       res.push_back(Symbol<T>(SymbolType::Terminal, a));
+       res.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
+       return res;
+    }
+
+
+    friend RuleBody<T> operator>>(RuleBody<T> a, NonterminalSymbol b)
+    {
+        a.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
+        return a;
+    }
+
+
+    NonterminalSymbol& operator=(RuleBody<T> o)
+    {
+        g[id].push_back(o);
+        return *this;
+    }
+
+    NonterminalSymbol& operator=(NonterminalSymbol o)
+    {
+        g[id].push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Nonterminal, o.id)});
+        return *this;
+    }
+
+    NonterminalSymbol& operator=(Symbol<T> o)
+    {
+        g[id].push_back(std::vector<Symbol<T>> {o});
+        return *this;
+    }
+
+    NonterminalSymbol& operator=(T o)
+    {
+        g[id].push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Terminal, o)});
+        return *this;
+    }
+};
+
+template<typename T>
+int NonterminalSymbol<T>::gloldId = 0;
+
+
+
+template<typename T>
+NonterminalSymbol<T> Grammer<T>::getNonterminalSymbol(NonterminalType i)
+{
+    return NonterminalSymbol<T>(i, *this);
+}
+
+
+
+template<typename T>
+RuleBody<T> operator>>(RuleBody<T> a, T b)
+{
+    a.push_back(Symbol<T>(SymbolType::Terminal, b));
+    return a;
+}
+
+
+//template<typename T>
+//Grammer<T> makeGrammer(const std::vector<NonterminalSymbol<T>>& nonterminals)
+//{
+//    Grammer<T> ans;
+//    auto n = nonterminals.size();
+//    ans.resize(n);
+//    for(NonterminalSymbol<T> nonterminal : nonterminals)
+//    {
+//        ans[nonterminal.id] = nonterminal.data;
+//    }
+//    return ans;
+//
+//}
+
+
 
 
 
@@ -348,8 +407,6 @@ struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
         std::size_t maxLen = 0;
         for(auto i: lz::irange(g.size())) maxLen = std::max(maxLen, g.getName(i).size());
 
-//        os << maxLen;
-
         for(int i = 0; i < g.size(); ++ i)
         {
 
@@ -388,7 +445,6 @@ private:
             for(int j = 0; j < g[i].size(); ++ j)
             {
                 auto ruleBody = g[i][j];
-//                std::cout << ruleBody << "---" << "\n";
                 Symbol<T> s = g[i][j][0];
                 bool addFollow = false;
                 if(s.type == SymbolType::Nonterminal)
@@ -509,11 +565,6 @@ void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_tr
 
             }
         }
-//        else if(x.type == SymbolType::EndTag)
-//        {
-//
-//        }
-
     }
 }
 
@@ -523,186 +574,132 @@ void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_tr
 
 
 
-//
-//template<typename T>
-//std::vector<Map<Symbol<T>, int>>
-//constructPredictiveParsingTable(const Grammer<T>& g,
-//    const std::vector<Set<Symbol<T>>>& firstSet,
-//    const std::vector<Set<Symbol<T>>>& followSet)
-//{
-//
-//    auto n = g.size();
-//    std::vector<Map<Symbol<T>, int> > table(n);
-//
-//    for(int i = 0; i < n; ++ i)
-//    {
-//        for(int j = 0; j < g[i].size(); ++ j)
-//        {
-//            auto ruleBody = g[i][j];
-//            Symbol<T> s = g[i][j][0];
-//            bool addFollow = false;
-//            if(s.type == SymbolType::Nonterminal)
-//            {
-//                for(auto a: firstSet[s.nonterminal])
-//                {
-//                    table[i][a] = j;
-//                }
-//                if(firstSet[s.nonterminal].count(EmptyStringSymbol<T> ))
-//                {
-//                    table[i].erase(EmptyStringSymbol<T>);
-//                    addFollow = true;
-//                }
-//            }
-//            else if(s.type == SymbolType::Terminal)
-//            {
-//                table[i][s] = j;
-//            }
-//            else if(s.type == SymbolType::EmptyString)
-//            {
-//                addFollow = true;
-//            }
-//
-//            if(addFollow)
-//            {
-//                for(auto b: followSet[i])
-//                {
-//                    table[i][b] = j;
-//                }
-//                if(followSet[i].count(EndTagSymbol<T>))
-//                {
-//                    table[i][EndTagSymbol<T>] = j;
-//                }
-//
-//            }
-//        }
-//    }
-//
-//    return table;
-//}
 
 
 
 
-// 为了给用户更加方便的编写文法的方式，最终文法将会存储在Grammer里，此类仅仅作为 各类操作符的重定义，使用户可以用接近EBNF的语法书写文法。
+
+
+
+
+
+
+
+
+
+
+
+// For output
+
+
+
 template<typename T>
-struct NonterminalSymbol
+struct SymbolForOutput
 {
-    static int gloldId;
-    static void reset()
+    const Symbol<T>& symbol;
+    const std::vector<std::string>& names;
+
+
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+        operator<<(std::basic_ostream<Char, Traits>& os, const SymbolForOutput& so)
     {
-        gloldId = 0;
+        const Symbol<T>& s = so.symbol;
+
+        if(s.type == SymbolType::EmptyString)
+        {
+            os << "#"  ; // 暂时用#号代替空字符串字符
+        }
+        else if(s.type == SymbolType::Terminal)
+        {
+            os << s.terminal;
+        }
+        else if(s.type == SymbolType::Nonterminal)
+        {
+            auto i = s.nonterminal;
+            if(i < so.names.size() && !so.names[i].empty())
+                os << so.names[i];
+            else os << std::to_string(i);
+        }
+        else if(s.type == SymbolType::EndTag)
+        {
+            os << "$";
+        }
+        else
+        {
+
+        }
+
+        return os;
     }
 
-    int id;
-    std::string name;
-    NonterminalSymbol(std::string name = std::string()):id(gloldId ++), name(name) { }
-
-
-
-
-    friend RuleBody<T> operator>>(NonterminalSymbol a, NonterminalSymbol b)
-    {
-       RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::Nonterminal, a.id));
-       res.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
-       return res;
-    }
-
-    friend RuleBody<T> operator>>(NonterminalSymbol a, T b)
-    {
-       RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::Nonterminal, a.id));
-       res.push_back(Symbol<T>(SymbolType::Terminal, b));
-       return res;
-    }
-
-    friend RuleBody<T> operator>>(T a, NonterminalSymbol b)
-    {
-       RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::Terminal, a));
-       res.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
-       return res;
-    }
-
-
-    friend RuleBody<T> operator>>(RuleBody<T> a, NonterminalSymbol b)
-    {
-        a.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
-        return a;
-    }
-
-    RuleBodyUnion<T> data;
-
-    NonterminalSymbol& operator=(RuleBody<T> o)
-    {
-        data.push_back(o);
-        return *this;
-    }
-
-    NonterminalSymbol& operator=(NonterminalSymbol o)
-    {
-        data.push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Nonterminal, o.id)});
-        return *this;
-    }
-
-    NonterminalSymbol& operator=(Symbol<T> o)
-    {
-        data.push_back(std::vector<Symbol<T>> {o});
-        return *this;
-    }
-
-
-    NonterminalSymbol& operator=(T o)
-    {
-        data.push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Terminal, o)});
-        return *this;
-    }
 };
 
 template<typename T>
-int NonterminalSymbol<T>::gloldId = 0;
-
-
-template<typename T>
-RuleBody<T> operator>>(RuleBody<T> a, T b)
+struct RuleBodyForOutput
 {
-    a.push_back(Symbol<T>(SymbolType::Terminal, b));
-    return a;
-}
+    const RuleBody<T> &ruleBody;
+    const std::vector<std::string>& names;
 
-
-template<typename T>
-Grammer<T> makeGrammer(const std::vector<NonterminalSymbol<T>>& nonterminals)
-{
-    Grammer<T> ans;
-    auto n = nonterminals.size();
-    ans.resize(n);
-    ans.names.resize(n);
-    for(NonterminalSymbol<T> nonterminal : nonterminals)
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+        operator<<(std::basic_ostream<Char, Traits>& os, const RuleBodyForOutput& r)
     {
-        ans[nonterminal.id] = nonterminal.data;
-        ans.names[nonterminal.id] = nonterminal.name;
+        for(int k = 0; k < r.ruleBody.size(); ++ k)
+        {
+            os << SymbolForOutput<T>{r.ruleBody[k], r.names};
+            os << " " ;
+        }
+        return os;
     }
-    return ans;
 
-}
-
+};
 
 
+template<typename T>
+struct RuleForOutput
+{
+    NonterminalType ruleHead;
+    const RuleBody<T> &ruleBody;
+    const std::vector<std::string>& names;
 
 
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+        operator<<(std::basic_ostream<Char, Traits>& os, const RuleForOutput& r)
+    {
 
+        os << SymbolForOutput<T>{Symbol<T>(SymbolType::Nonterminal, r.ruleHead), r.names}
+            << "->" << RuleBodyForOutput<T>{r.ruleBody, r.names};
 
+        return os;
+    }
 
+};
 
+template<typename T>
+struct GrammerForOutput
+{
+    const Grammer<T>& g;
+    const std::vector<std::string>& names;
 
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os,
+               const GrammerForOutput&  g)
+    {
+        for(NonterminalType i: irange(g.g.size()))
+        {
+            for(auto j: irange(g.g[i].size()))
+            {
+                os << RuleForOutput<T>{i, g.g[i][j], g.names} << "\n";
+            }
+        }
+        return os;
+    }
 
-
-
-
-
-
-
+};
 
 
 

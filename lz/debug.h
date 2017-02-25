@@ -46,7 +46,7 @@ std::basic_ostream<Char, Traits>&
 operator<<(std::basic_ostream<Char, Traits>& os,
            const IteratorRange&  range)
 {
-    auto first = begin(range), last = end(range);
+    auto first = std::begin(range), last = std::end(range);
     os << "[";
     if(first == last)
     {

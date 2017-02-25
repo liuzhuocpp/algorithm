@@ -116,8 +116,16 @@ void output(const Grammer<T> &g, int i, int j)
 void testNonterminals()
 {
     Grammer<char> g;
-    NonterminalSymbol<char>::reset();
-    NonterminalSymbol<char> E("E"), _E("E'"), T("T"), _T("T'"), F("F");
+    g.resize(5);
+    auto E = g.getNonterminalSymbol(0);
+    auto _E = g.getNonterminalSymbol(1);
+    auto T = g.getNonterminalSymbol(2);
+    auto _T = g.getNonterminalSymbol(3);
+    auto F = g.getNonterminalSymbol(4);
+//    NonterminalSymbol<char>::reset();
+//    NonterminalSymbol<char> E, _E, T, _T, F;
+
+
     int n = 5;
 
     E = T >> _E;
@@ -133,34 +141,25 @@ void testNonterminals()
     F = '(' >> E >> ')';
     F = 'a';
 
-    g = makeGrammer(std::vector<NonterminalSymbol<char>>{E, _E, T, _T, F});
+//    g = makeGrammer(std::vector<NonterminalSymbol<char>>{E, _E, T, _T, F});
 
-    cout << g << endl;
-
-    cout << "table -----------------------------" << endl<< endl;
-//    auto firstSet = calculateFirstSet(g);
-//    auto followSet = calculateFollowSet(g, firstSet);
-    PredictiveParsingTable<char> table(g);
-    cout << table << endl;
+    std::vector<std::string> names{"E", "E'", "T", "T'", "F"};
+    cout << GrammerForOutput<char>{g, names} << endl;
 
 
-    string text = "a+a*a";
-    predictivePasringLL1(table, Symbol<char>(SymbolType::Nonterminal, 0),  text.begin(),text.end());
+//    cout << makeGrammerg << endl;
 
-
-
-//    for(int i = 0; i < n; ++ i)
-//    {
-//        for(auto pi: table[i])
-//        {
-//            cout << "(" << i <<  "," << pi.first << ") :";
-//            output(g, i, pi.second);
-//        }
-//    }
+//    cout << "table -----------------------------" << endl<< endl;
+//
+//    PredictiveParsingTable<char> table(g);
+//    cout << table << endl;
+//
+//
+//    string text = "a+a*(a+a)";
+//    predictivePasringLL1(table, Symbol<char>(SymbolType::Nonterminal, 0),  text.begin(),text.end());
 
 
 
-//    cout << "我" << endl;
 
 
 
