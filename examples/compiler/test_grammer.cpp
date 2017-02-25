@@ -66,8 +66,8 @@ void test()
     auto n = 5;
     g.resize(n); // 3个非终结符号
     using S = Symbol<char>;
-    auto V = SymbolType::Variable;
-    auto L = SymbolType::LiteralUnit;
+    auto V = SymbolType::Nonterminal;
+    auto L = SymbolType::Terminal;
 
     g[0].push_back({S(V, 2), S(V, 1),});
 

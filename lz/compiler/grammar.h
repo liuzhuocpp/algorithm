@@ -17,13 +17,10 @@ namespace lz {
 
 
     }
-
-//NonterminalSymbol
-
 enum class SymbolType
 {
-    Variable,
-    LiteralUnit,
+    Nonterminal,
+    Terminal,
     EmptyString,
     EndTag,
 
@@ -39,20 +36,20 @@ enum class SymbolType
 
 
 
-using VariableType = long;
+using NonterminalType = long;
 
 template<typename T>
 struct Symbol
 {
     SymbolType type;
-    VariableType variable;
-    T literalUnit;
+    NonterminalType nonterminal;
+    T terminal;
 
     bool operator<(const Symbol & o) const
     {
         if(type != o.type) return type < o.type;
-        if(type == SymbolType::Variable) return variable < o.variable;
-        if(type == SymbolType::LiteralUnit) return literalUnit < o.literalUnit;
+        if(type == SymbolType::Nonterminal) return nonterminal < o.nonterminal;
+        if(type == SymbolType::Terminal) return terminal < o.terminal;
 //        if(type == SymbolType::EndTag) return
 
         return false;
@@ -66,13 +63,13 @@ struct Symbol
     template<typename Any> // need improve
     Symbol(SymbolType type, Any any):type(type)
     {
-        if(type == SymbolType::Variable)
+        if(type == SymbolType::Nonterminal)
         {
-            variable = any;
+            nonterminal = any;
         }
-        else if(type == SymbolType::LiteralUnit)
+        else if(type == SymbolType::Terminal)
         {
-            literalUnit = any;
+            terminal = any;
         }
         else if(type == SymbolType::EmptyString)
         {
@@ -81,20 +78,19 @@ struct Symbol
         else {}
     }
 
-    friend std::ostream&
-    operator<<(std::ostream& os, const Symbol&  s)
+    friend std::ostream& operator<<(std::ostream& os, const Symbol&  s)
     {
         if(s.type == SymbolType::EmptyString)
         {
             os << "#"  ; // 暂时用#号代替空字符串字符
         }
-        else if(s.type == SymbolType::LiteralUnit)
+        else if(s.type == SymbolType::Terminal)
         {
-            os << s.literalUnit;
+            os << s.terminal;
         }
-        else if(s.type == SymbolType::Variable)
+        else if(s.type == SymbolType::Nonterminal)
         {
-            os << s.variable;
+            os << s.nonterminal;
         }
         else if(s.type == SymbolType::EndTag)
         {
@@ -109,35 +105,6 @@ struct Symbol
         return os;
     }
 
-//    template <class Char, class Traits>
-//    friend std::basic_ostream<Char, Traits>&
-//    operator<<(std::basic_ostream<Char, Traits>& os,
-//               const Symbol&  s)
-//    {
-//        if(s.type == SymbolType::EmptyString)
-//        {
-//            os << "{E} 我\u2500" <<"ф"  ;
-//        }
-//        else if(s.type == SymbolType::LiteralUnit)
-//        {
-//            os << s.literalUnit;
-//        }
-//        else if(s.type == SymbolType::Variable)
-//        {
-//            os << s.variable;
-//        }
-//        else if(s.type == SymbolType::EndTag)
-//        {
-//            os << "$";
-//        }
-//        else
-//        {
-//
-//        }
-//
-//
-//        return os;
-//    }
 
 };
 
@@ -151,13 +118,22 @@ template<typename T>
 Symbol<T> EndTagSymbol(SymbolType::EndTag);
 
 
-//template<typename T>
-//using RuleBody = std::vector<Symbol<T>>;
+
+template<typename T>
+struct RuleBody: std::vector<Symbol<T>>
+{
+    using std::vector<Symbol<T>>::vector;
+
+};
+
+
+
+
 // A->α1 | α2 | α3 | ...
 template<typename T>
-struct RuleBodyUnion: std::vector< std::vector<Symbol<T>>  >
+struct RuleBodyUnion: std::vector< RuleBody<T> >
 {
-    using std::vector< std::vector<Symbol<T>>  >::vector;
+    using std::vector< RuleBody<T>  >::vector;
 };
 
 // T 表示终结符号
@@ -182,11 +158,11 @@ struct Grammer : std::vector<RuleBodyUnion<T> >
                 os << "->";
                 for(int k = 0; k < g[i][j].size(); ++ k)
                 {
-                    if(g[i][j][k].type == SymbolType::Variable &&
-                        g[i][j][k].variable < g.names.size() &&
-                        !g.names[g[i][j][k].variable].empty())
+                    if(g[i][j][k].type == SymbolType::Nonterminal &&
+                        g[i][j][k].nonterminal < g.names.size() &&
+                        !g.names[g[i][j][k].nonterminal].empty())
                     {
-                        os << g.names[g[i][j][k].variable];
+                        os << g.names[g[i][j][k].nonterminal];
                     }
                     else
                         os << g[i][j][k];
@@ -199,11 +175,6 @@ struct Grammer : std::vector<RuleBodyUnion<T> >
     }
     std::vector<std::string> names;
 
-
-//    auto variablesNumber() const
-//    {
-//        return size();
-//    }
 };
 
 
@@ -216,36 +187,35 @@ template<typename T>
 using Set = std::set<T>;
 
 template<typename T>
-void
-calculateVariableFirstSet(const Grammer<T>& g, std::vector<Set<Symbol<T>> >& mem , VariableType u)
+void calculateVariableFirstSet(const Grammer<T>& g, std::vector<Set<Symbol<T>> >& firstSet , NonterminalType u)
 {
-    if(!mem[u].empty()) return;
+    if(!firstSet[u].empty()) return;
 
     for(auto ruleBody: g[u])
     {
         if(ruleBody[0].type == SymbolType::EmptyString)
         {
-            mem[u].insert(ruleBody[0]);
+            firstSet[u].insert(ruleBody[0]);
         }
-        else if(ruleBody[0].type == SymbolType::LiteralUnit)
+        else if(ruleBody[0].type == SymbolType::Terminal)
         {
-            mem[u].insert(ruleBody[0]);
+            firstSet[u].insert(ruleBody[0]);
         }
-        else if(ruleBody[0].type == SymbolType::Variable)
+        else if(ruleBody[0].type == SymbolType::Nonterminal)
         {
             for(auto s: ruleBody)
             {
-                if(s.type == SymbolType::LiteralUnit)
+                if(s.type == SymbolType::Terminal)
                 {
-                    mem[u].insert(s);
+                    firstSet[u].insert(s);
                     break;
                 }
-                else if(s.type == SymbolType::Variable)
+                else if(s.type == SymbolType::Nonterminal)
                 {
-                    auto v = s.variable;
-                    calculateVariableFirstSet(g, mem, v);
-                    mem[u].insert(mem[v].begin(), mem[v].end());
-                    if(!mem[v].count(Symbol<T>(SymbolType::EmptyString)))
+                    auto v = s.nonterminal;
+                    calculateVariableFirstSet(g, firstSet, v);
+                    firstSet[u].insert(firstSet[v].begin(), firstSet[v].end());
+                    if(!firstSet[v].count(Symbol<T>(SymbolType::EmptyString)))
                     {
                         break;
                     }
@@ -261,16 +231,16 @@ template<typename T>
 std::vector< Set<Symbol<T> > > calculateFirstSet(const Grammer<T>& g)
 {
     auto n = g.size();
-    std::vector< Set<Symbol<T> > > mem(n);
+    std::vector< Set<Symbol<T> > > firstSet(n);
     for(auto i = 0; i < n; ++ i)
     {
-        if(mem[i].empty())
+        if(firstSet[i].empty())
         {
-            calculateVariableFirstSet(g, mem, i);
+            calculateVariableFirstSet(g, firstSet, i);
         }
     }
 
-    return mem;
+    return firstSet;
 
 }
 
@@ -292,25 +262,25 @@ std::vector< Set<Symbol<T> > > calculateFollowSet(const Grammer<T>& g, const std
                 for(int i = 0; i < ruleBody.size(); ++ i)
                 {
                     auto B = ruleBody[i];
-                    if(B.type == SymbolType::Variable)
+                    if(B.type == SymbolType::Nonterminal)
                     {
                         bool needRecursive = false;
-                        auto sizeB = followSet[B.variable].size();
+                        auto sizeB = followSet[B.nonterminal].size();
                         if(i + 1 < ruleBody.size())
                         {
                             auto next = ruleBody[i + 1];
-                            if(next.type == SymbolType::Variable)
+                            if(next.type == SymbolType::Nonterminal)
                             {
-                                followSet[B.variable].insert(firstSet[next.variable].begin(), firstSet[next.variable].end());
-                                if(firstSet[next.variable].count(Symbol<T>(SymbolType::EmptyString)))
+                                followSet[B.nonterminal].insert(firstSet[next.nonterminal].begin(), firstSet[next.nonterminal].end());
+                                if(firstSet[next.nonterminal].count(Symbol<T>(SymbolType::EmptyString)))
                                 {
-                                    followSet[B.variable].erase(Symbol<T>(SymbolType::EmptyString));
+                                    followSet[B.nonterminal].erase(Symbol<T>(SymbolType::EmptyString));
                                     needRecursive = true;
                                 }
                             }
-                            else if(next.type == SymbolType::LiteralUnit)
+                            else if(next.type == SymbolType::Terminal)
                             {
-                                followSet[B.variable].insert(next);
+                                followSet[B.nonterminal].insert(next);
                             }
                             else
                             {
@@ -319,28 +289,20 @@ std::vector< Set<Symbol<T> > > calculateFollowSet(const Grammer<T>& g, const std
                         }
                         else needRecursive = true;
 
-
-
                         if(needRecursive)
                         {
-                            followSet[B.variable].insert(followSet[A].begin(), followSet[A].end());
+                            followSet[B.nonterminal].insert(followSet[A].begin(), followSet[A].end());
                         }
 
-                        if(followSet[B.variable].size() > sizeB)
+                        if(followSet[B.nonterminal].size() > sizeB)
                         {
                             hasNew = true;
                         }
                     }
-
-
-
-
                 }
             }
-
         }
         if(!hasNew) break;
-
     }
     return followSet;
 }
@@ -359,29 +321,26 @@ constructPredictiveParsingTable(const Grammer<T>& g,
     auto n = g.size();
     std::vector<Map<Symbol<T>, int> > table(n);
 
-
     for(int i = 0; i < n; ++ i)
     {
         for(int j = 0; j < g[i].size(); ++ j)
-//        for(int j = g[i].size() - 1; j >= 0; --j)
         {
             auto ruleBody = g[i][j];
-//            std::cout << "before : " << "\n";
             Symbol<T> s = g[i][j][0];
             bool addFollow = false;
-            if(s.type == SymbolType::Variable)
+            if(s.type == SymbolType::Nonterminal)
             {
-                for(auto a: firstSet[s.variable])
+                for(auto a: firstSet[s.nonterminal])
                 {
                     table[i][a] = j;
                 }
-                if(firstSet[s.variable].count(EmptyStringSymbol<T> ))
+                if(firstSet[s.nonterminal].count(EmptyStringSymbol<T> ))
                 {
                     table[i].erase(EmptyStringSymbol<T>);
                     addFollow = true;
                 }
             }
-            else if(s.type == SymbolType::LiteralUnit)
+            else if(s.type == SymbolType::Terminal)
             {
                 table[i][s] = j;
             }
@@ -412,19 +371,6 @@ constructPredictiveParsingTable(const Grammer<T>& g,
 
 
 
-
-template<typename T>
-struct RuleBody: std::vector<Symbol<T>>
-{
-    friend RuleBody operator>>(RuleBody a, T b)
-    {
-        a.push_back(Symbol<T>(SymbolType::Variable, b));
-        return a;
-    }
-
-};
-
-
 template<typename T>
 struct NonterminalSymbol
 {
@@ -444,52 +390,36 @@ struct NonterminalSymbol
     friend RuleBody<T> operator>>(NonterminalSymbol a, NonterminalSymbol b)
     {
        RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::Variable, a.id));
-       res.push_back(Symbol<T>(SymbolType::Variable, b.id));
+       res.push_back(Symbol<T>(SymbolType::Nonterminal, a.id));
+       res.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
        return res;
     }
 
     friend RuleBody<T> operator>>(NonterminalSymbol a, T b)
     {
        RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::Variable, a.id));
-       res.push_back(Symbol<T>(SymbolType::LiteralUnit, b));
+       res.push_back(Symbol<T>(SymbolType::Nonterminal, a.id));
+       res.push_back(Symbol<T>(SymbolType::Terminal, b));
        return res;
     }
 
     friend RuleBody<T> operator>>(T a, NonterminalSymbol b)
     {
        RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::LiteralUnit, a));
-       res.push_back(Symbol<T>(SymbolType::Variable, b.id));
+       res.push_back(Symbol<T>(SymbolType::Terminal, a));
+       res.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
        return res;
     }
 
-//    friend RuleBody<T> operator>>(Symbol<T> a, NonterminalSymbol b)
-//    {
-//       RuleBody<T> res;
-//       res.push_back(a);
-//       res.push_back(Symbol<T>(SymbolType::Variable, b));
-//       return res;
-//    }
-//
-//    friend RuleBody<T> operator>>(NonterminalSymbol a, Symbol<T> b)
-//    {
-//       RuleBody<T> res;
-//       res.push_back(Symbol<T>(SymbolType::Variable, a));
-//       res.push_back(b);
-//       return res;
-//    }
 
-
-//
     friend RuleBody<T> operator>>(RuleBody<T> a, NonterminalSymbol b)
     {
-        a.push_back(Symbol<T>(SymbolType::Variable, b.id));
+        a.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
         return a;
     }
 
-    std::vector<std::vector<Symbol<T>>> data;
+    RuleBodyUnion<T> data;
+
     NonterminalSymbol& operator=(RuleBody<T> o)
     {
         data.push_back(o);
@@ -498,7 +428,7 @@ struct NonterminalSymbol
 
     NonterminalSymbol& operator=(NonterminalSymbol o)
     {
-        data.push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Variable, o.id)});
+        data.push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Nonterminal, o.id)});
         return *this;
     }
 
@@ -511,15 +441,21 @@ struct NonterminalSymbol
 
     NonterminalSymbol& operator=(T o)
     {
-        data.push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::LiteralUnit, o)});
+        data.push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Terminal, o)});
         return *this;
     }
-
 };
+
 template<typename T>
 int NonterminalSymbol<T>::gloldId = 0;
 
 
+template<typename T>
+RuleBody<T> operator>>(RuleBody<T> a, T b)
+{
+    a.push_back(Symbol<T>(SymbolType::Terminal, b));
+    return a;
+}
 
 
 template<typename T>
@@ -533,10 +469,7 @@ Grammer<T> makeGrammer(const std::vector<NonterminalSymbol<T>>& nonterminals)
     {
         ans[nonterminal.id] = nonterminal.data;
         ans.names[nonterminal.id] = nonterminal.name;
-//        std::cout << nonterminal.name << "---- " << "\n";
     }
-
-
     return ans;
 
 }
