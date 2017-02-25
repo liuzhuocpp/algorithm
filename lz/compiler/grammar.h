@@ -316,6 +316,8 @@ template<typename K, typename V>
 using Map = std::map<K, V>;
 
 
+
+
 template<typename T>
 struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
 {
@@ -424,11 +426,102 @@ private:
                 }
             }
         }
-
-//        return table;
-
     }
 };
+
+
+
+// need improve
+template<typename T>
+void outRule(NonterminalType i, const RuleBody<T>& ruleBody, const std::vector<std::string>& names)
+{
+    auto getName = [=](NonterminalType i) ->std::string
+    {
+        if(i < names.size() && !names[i].empty())
+        {
+            return names[i];
+        }
+        else return std::to_string(i);
+    };
+
+    std::cout << getName(i) << "->";
+
+    for(auto symbol: ruleBody)
+    {
+        if(symbol.type == SymbolType::Nonterminal)
+        {
+            std::cout << getName(symbol.nonterminal);
+        }
+        else std::cout << symbol;
+        std::cout << " ";
+    }
+
+}
+
+template<typename Iterator>
+void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_traits<Iterator>::value_type> &table,
+    Symbol<typename std::iterator_traits<Iterator>::value_type> startSymbol, Iterator first, Iterator last)
+{
+    using T = typename std::iterator_traits<Iterator>::value_type;
+    std::vector<Symbol<T>> stack;
+    stack.push_back(startSymbol);
+
+    while(!stack.empty() )
+    {
+        Symbol<T> x = stack.back();
+        if(x.type == SymbolType::Terminal)
+        {
+            if(x.terminal == *first)
+            {
+                stack.pop_back();
+                first ++;
+                std::cout << "match :" << *first;
+                std::cout << "\n";
+            }
+            else
+            {
+                std::cout << "error" << "\n";
+            }
+        }
+        else if(x.type == SymbolType::Nonterminal)
+        {
+            Symbol<T> cntFirst(SymbolType::EndTag);
+            if(first != last)
+                cntFirst = Symbol<T>(SymbolType::Terminal, *first);
+
+            if(table[x.nonterminal].count(cntFirst))
+            {
+                stack.pop_back();
+                auto ruleBody = table[x.nonterminal].at(cntFirst);
+                for(int i = ruleBody.size() - 1; i >= 0; -- i)
+                {
+                    if(ruleBody[i].type != SymbolType::EmptyString)
+                    stack.push_back(ruleBody[i]);
+                }
+
+                std::cout << "output:";
+                outRule(x.nonterminal, ruleBody, table.names);
+                std::cout << "\n";
+            }
+            else
+            {
+                std::cout << "error" << "\n";
+
+            }
+        }
+//        else if(x.type == SymbolType::EndTag)
+//        {
+//
+//        }
+
+    }
+}
+
+
+
+
+
+
 
 //
 //template<typename T>

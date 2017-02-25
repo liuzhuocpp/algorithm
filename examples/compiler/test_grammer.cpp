@@ -142,6 +142,13 @@ void testNonterminals()
 //    auto followSet = calculateFollowSet(g, firstSet);
     PredictiveParsingTable<char> table(g);
     cout << table << endl;
+
+
+    string text = "a+a*a";
+    predictivePasringLL1(table, Symbol<char>(SymbolType::Nonterminal, 0),  text.begin(),text.end());
+
+
+
 //    for(int i = 0; i < n; ++ i)
 //    {
 //        for(auto pi: table[i])
