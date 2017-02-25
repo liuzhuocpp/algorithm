@@ -124,6 +124,10 @@ struct RuleBody: std::vector<Symbol<T>>
 {
     using std::vector<Symbol<T>>::vector;
 
+
+
+
+
 };
 
 
@@ -311,66 +315,182 @@ std::vector< Set<Symbol<T> > > calculateFollowSet(const Grammer<T>& g, const std
 template<typename K, typename V>
 using Map = std::map<K, V>;
 
+
 template<typename T>
-std::vector<Map<Symbol<T>, int>>
-constructPredictiveParsingTable(const Grammer<T>& g,
-    const std::vector<Set<Symbol<T>>>& firstSet,
-    const std::vector<Set<Symbol<T>>>& followSet)
+struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
 {
-
-    auto n = g.size();
-    std::vector<Map<Symbol<T>, int> > table(n);
-
-    for(int i = 0; i < n; ++ i)
+    std::vector<std::string> names;
+    PredictiveParsingTable(const Grammer<T>& g)
     {
-        for(int j = 0; j < g[i].size(); ++ j)
-        {
-            auto ruleBody = g[i][j];
-            Symbol<T> s = g[i][j][0];
-            bool addFollow = false;
-            if(s.type == SymbolType::Nonterminal)
-            {
-                for(auto a: firstSet[s.nonterminal])
-                {
-                    table[i][a] = j;
-                }
-                if(firstSet[s.nonterminal].count(EmptyStringSymbol<T> ))
-                {
-                    table[i].erase(EmptyStringSymbol<T>);
-                    addFollow = true;
-                }
-            }
-            else if(s.type == SymbolType::Terminal)
-            {
-                table[i][s] = j;
-            }
-            else if(s.type == SymbolType::EmptyString)
-            {
-                addFollow = true;
-            }
-
-            if(addFollow)
-            {
-                for(auto b: followSet[i])
-                {
-                    table[i][b] = j;
-                }
-                if(followSet[i].count(EndTagSymbol<T>))
-                {
-                    table[i][EndTagSymbol<T>] = j;
-                }
-
-            }
-        }
+        auto firstSet = calculateFirstSet(g);
+        auto followSet = calculateFollowSet(g, firstSet);
+        construct(g, firstSet, followSet);
+        names = g.names;
     }
 
-    return table;
-}
+    std::string getName(NonterminalType i) const
+    {
+        if(i < names.size() && !names[i].empty())
+        {
+            return names[i];
+        }
+        else return std::to_string(i);
+    }
+
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os,
+               const PredictiveParsingTable&  g)
+    {
+        std::size_t maxLen = 0;
+        for(auto i: lz::irange(g.size())) maxLen = std::max(maxLen, g.getName(i).size());
+
+//        os << maxLen;
+
+        for(int i = 0; i < g.size(); ++ i)
+        {
+
+            for(auto pi: g[i])
+            {
+                os << g.getName(i) << std::string(maxLen - g.getName(i).size(), ' ') << ", "
+                    << pi.first << ":   " << g.getName(i) << "->";
+                for(auto symbol: pi.second)
+                {
+                    if(symbol.type == SymbolType::Nonterminal)
+                    {
+                        os << g.getName(symbol.nonterminal);
+                    }
+                    else os << symbol;
+                    os << " ";
+                }
+                os << "\n";
+            }
+        }
+        return os;
+    }
+
+
+
+private:
+    void construct(const Grammer<T>& g,
+        const std::vector<Set<Symbol<T>>>& firstSet,
+        const std::vector<Set<Symbol<T>>>& followSet)
+    {
+        auto n = g.size();
+        this->clear();
+        this->resize(n);
+
+        for(int i = 0; i < n; ++ i)
+        {
+            for(int j = 0; j < g[i].size(); ++ j)
+            {
+                auto ruleBody = g[i][j];
+//                std::cout << ruleBody << "---" << "\n";
+                Symbol<T> s = g[i][j][0];
+                bool addFollow = false;
+                if(s.type == SymbolType::Nonterminal)
+                {
+                    for(auto a: firstSet[s.nonterminal])
+                    {
+                        (*this)[i][a] = ruleBody;
+                    }
+                    if(firstSet[s.nonterminal].count(EmptyStringSymbol<T> ))
+                    {
+                        (*this)[i].erase(EmptyStringSymbol<T>);
+                        addFollow = true;
+                    }
+                }
+                else if(s.type == SymbolType::Terminal)
+                {
+                    (*this)[i][s] = ruleBody;
+                }
+                else if(s.type == SymbolType::EmptyString)
+                {
+                    addFollow = true;
+                }
+
+                if(addFollow)
+                {
+                    for(auto b: followSet[i])
+                    {
+                        (*this)[i][b] = ruleBody;
+                    }
+                    if(followSet[i].count(EndTagSymbol<T>))
+                    {
+                        (*this)[i][EndTagSymbol<T>] = ruleBody;
+                    }
+
+                }
+            }
+        }
+
+//        return table;
+
+    }
+};
+
+//
+//template<typename T>
+//std::vector<Map<Symbol<T>, int>>
+//constructPredictiveParsingTable(const Grammer<T>& g,
+//    const std::vector<Set<Symbol<T>>>& firstSet,
+//    const std::vector<Set<Symbol<T>>>& followSet)
+//{
+//
+//    auto n = g.size();
+//    std::vector<Map<Symbol<T>, int> > table(n);
+//
+//    for(int i = 0; i < n; ++ i)
+//    {
+//        for(int j = 0; j < g[i].size(); ++ j)
+//        {
+//            auto ruleBody = g[i][j];
+//            Symbol<T> s = g[i][j][0];
+//            bool addFollow = false;
+//            if(s.type == SymbolType::Nonterminal)
+//            {
+//                for(auto a: firstSet[s.nonterminal])
+//                {
+//                    table[i][a] = j;
+//                }
+//                if(firstSet[s.nonterminal].count(EmptyStringSymbol<T> ))
+//                {
+//                    table[i].erase(EmptyStringSymbol<T>);
+//                    addFollow = true;
+//                }
+//            }
+//            else if(s.type == SymbolType::Terminal)
+//            {
+//                table[i][s] = j;
+//            }
+//            else if(s.type == SymbolType::EmptyString)
+//            {
+//                addFollow = true;
+//            }
+//
+//            if(addFollow)
+//            {
+//                for(auto b: followSet[i])
+//                {
+//                    table[i][b] = j;
+//                }
+//                if(followSet[i].count(EndTagSymbol<T>))
+//                {
+//                    table[i][EndTagSymbol<T>] = j;
+//                }
+//
+//            }
+//        }
+//    }
+//
+//    return table;
+//}
 
 
 
 
-
+// 为了给用户更加方便的编写文法的方式，最终文法将会存储在Grammer里，此类仅仅作为 各类操作符的重定义，使用户可以用接近EBNF的语法书写文法。
 template<typename T>
 struct NonterminalSymbol
 {
