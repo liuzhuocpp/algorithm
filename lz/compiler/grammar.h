@@ -156,6 +156,9 @@ template<typename T>
 struct Grammer : std::vector<RuleBodyUnion<T> >
 {
     NonterminalProxy<T> getNonterminalProxy(NonterminalType i);
+
+    using std::vector<RuleBodyUnion<T> >::vector;
+
 };
 
 
