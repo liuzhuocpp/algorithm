@@ -16,11 +16,12 @@ void testNonterminals()
     int n = 5;
     g.resize(n);
 
-    auto E = g.getNonterminalProxy(0);
-    auto _E = g.getNonterminalProxy(1);
-    auto T = g.getNonterminalProxy(2);
-    auto _T = g.getNonterminalProxy(3);
-    auto F = g.getNonterminalProxy(4);
+    auto
+    E = g.getNonterminalProxy(0),
+    _E = g.getNonterminalProxy(1),
+    T = g.getNonterminalProxy(2),
+    _T = g.getNonterminalProxy(3),
+    F = g.getNonterminalProxy(4);
 
     E = T >> _E;
 
