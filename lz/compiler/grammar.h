@@ -50,8 +50,6 @@ struct Symbol
         if(type != o.type) return type < o.type;
         if(type == SymbolType::Nonterminal) return nonterminal < o.nonterminal;
         if(type == SymbolType::Terminal) return terminal < o.terminal;
-//        if(type == SymbolType::EndTag) return
-
         return false;
     }
 
@@ -77,16 +75,21 @@ struct Symbol
         }
         else {}
     }
-
-
-
 };
 
 
 
+template<typename T>
+Symbol<T> makeNonterminal(NonterminalType i)
+{
+    return Symbol<T>(SymbolType::Nonterminal, i);
+}
 
-
-
+template<typename T>
+Symbol<T> makeTerminal(T i)
+{
+    return Symbol<T>(SymbolType::Terminal, i);
+}
 
 template<typename T>
 Symbol<T> EmptyStringSymbol(SymbolType::EmptyString);
@@ -102,12 +105,6 @@ struct RuleBody: std::vector<Symbol<T>>
     using std::vector<Symbol<T>>::vector;
 };
 
-
-
-
-
-
-
 // A->α1 | α2 | α3 | ...
 template<typename T>
 struct RuleBodyUnion: std::vector< RuleBody<T> >
@@ -116,105 +113,93 @@ struct RuleBodyUnion: std::vector< RuleBody<T> >
 };
 
 
-
 template<typename T>
-struct NonterminalSymbol;
+struct NonterminalProxy;
 
 // T 表示终结符号
 template<typename T>
 struct Grammer : std::vector<RuleBodyUnion<T> >
 {
-    NonterminalSymbol<T> getNonterminalSymbol(NonterminalType i);
+    NonterminalProxy<T> getNonterminalProxy(NonterminalType i);
 };
 
 
 // 为了给用户更加方便的编写文法的方式，最终文法将会存储在Grammer里，此类仅仅作为 各类操作符的重定义，使用户可以用接近EBNF的语法书写文法。
 template<typename T>
-struct NonterminalSymbol
+struct NonterminalProxy
 {
-    static int gloldId;
-    static void reset()
-    {
-        gloldId = 0;
-    }
-
+private:
+    friend Grammer<T>;
     NonterminalType id;
-//    RuleBodyUnion<T> data;
     Grammer<T>& g;
+    NonterminalProxy(NonterminalType id, Grammer<T>& g ):id(id), g(g) { }
+public:
 
-
-    NonterminalSymbol(NonterminalType id, Grammer<T>& g ):id(id), g(g) { }
-
-
-    friend RuleBody<T> operator>>(NonterminalSymbol a, NonterminalSymbol b)
+    friend RuleBody<T> operator>>(NonterminalProxy a, NonterminalProxy b)
     {
        RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::Nonterminal, a.id));
-       res.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
+       res.push_back(makeNonterminal<T>(a.id));
+       res.push_back(makeNonterminal<T>(b.id));
        return res;
     }
 
-    friend RuleBody<T> operator>>(NonterminalSymbol a, T b)
+    friend RuleBody<T> operator>>(NonterminalProxy a, T b)
     {
        RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::Nonterminal, a.id));
-       res.push_back(Symbol<T>(SymbolType::Terminal, b));
+       res.push_back(makeNonterminal<T>(a.id));
+       res.push_back(makeTerminal<T>(b));
        return res;
     }
 
-    friend RuleBody<T> operator>>(T a, NonterminalSymbol b)
+    friend RuleBody<T> operator>>(T a, NonterminalProxy b)
     {
        RuleBody<T> res;
-       res.push_back(Symbol<T>(SymbolType::Terminal, a));
-       res.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
+       res.push_back(makeTerminal<T>(a));
+       res.push_back(makeNonterminal<T>(b.id));
        return res;
     }
 
 
-    friend RuleBody<T> operator>>(RuleBody<T> a, NonterminalSymbol b)
+    friend RuleBody<T> operator>>(RuleBody<T> a, NonterminalProxy b)
     {
-        a.push_back(Symbol<T>(SymbolType::Nonterminal, b.id));
+        a.push_back(makeNonterminal<T>(b.id));
         return a;
     }
 
 
-    NonterminalSymbol& operator=(RuleBody<T> o)
+    NonterminalProxy& operator=(RuleBody<T> o)
     {
         g[id].push_back(o);
         return *this;
     }
 
-    NonterminalSymbol& operator=(NonterminalSymbol o)
+    NonterminalProxy& operator=(NonterminalProxy o)
     {
-        g[id].push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Nonterminal, o.id)});
+        g[id].push_back({makeNonterminal<T>(o.id)});
         return *this;
     }
 
-    NonterminalSymbol& operator=(Symbol<T> o)
+    NonterminalProxy& operator=(Symbol<T> o)
     {
-        g[id].push_back(std::vector<Symbol<T>> {o});
+        g[id].push_back({o});
         return *this;
     }
 
-    NonterminalSymbol& operator=(T o)
+    NonterminalProxy& operator=(T o)
     {
-        g[id].push_back(std::vector<Symbol<T>> {Symbol<T>(SymbolType::Terminal, o)});
+        g[id].push_back({makeTerminal(o)});
         return *this;
     }
 };
 
-template<typename T>
-int NonterminalSymbol<T>::gloldId = 0;
 
 
 
 template<typename T>
-NonterminalSymbol<T> Grammer<T>::getNonterminalSymbol(NonterminalType i)
+NonterminalProxy<T> Grammer<T>::getNonterminalProxy(NonterminalType i)
 {
-    return NonterminalSymbol<T>(i, *this);
+    return NonterminalProxy<T>(i, *this);
 }
-
-
 
 template<typename T>
 RuleBody<T> operator>>(RuleBody<T> a, T b)
@@ -224,19 +209,7 @@ RuleBody<T> operator>>(RuleBody<T> a, T b)
 }
 
 
-//template<typename T>
-//Grammer<T> makeGrammer(const std::vector<NonterminalSymbol<T>>& nonterminals)
-//{
-//    Grammer<T> ans;
-//    auto n = nonterminals.size();
-//    ans.resize(n);
-//    for(NonterminalSymbol<T> nonterminal : nonterminals)
-//    {
-//        ans[nonterminal.id] = nonterminal.data;
-//    }
-//    return ans;
-//
-//}
+
 
 
 
@@ -371,33 +344,21 @@ std::vector< Set<Symbol<T> > > calculateFollowSet(const Grammer<T>& g, const std
 }
 
 
+
+
+
 template<typename K, typename V>
 using Map = std::map<K, V>;
-
-
-
-
 template<typename T>
 struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
 {
-    std::vector<std::string> names;
     PredictiveParsingTable(const Grammer<T>& g)
     {
         auto firstSet = calculateFirstSet(g);
         auto followSet = calculateFollowSet(g, firstSet);
         construct(g, firstSet, followSet);
-        names = g.names;
-    }
 
-    std::string getName(NonterminalType i) const
-    {
-        if(i < names.size() && !names[i].empty())
-        {
-            return names[i];
-        }
-        else return std::to_string(i);
     }
-
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
@@ -487,119 +448,14 @@ private:
 
 
 
-// need improve
-template<typename T>
-void outRule(NonterminalType i, const RuleBody<T>& ruleBody, const std::vector<std::string>& names)
-{
-    auto getName = [=](NonterminalType i) ->std::string
-    {
-        if(i < names.size() && !names[i].empty())
-        {
-            return names[i];
-        }
-        else return std::to_string(i);
-    };
-
-    std::cout << getName(i) << "->";
-
-    for(auto symbol: ruleBody)
-    {
-        if(symbol.type == SymbolType::Nonterminal)
-        {
-            std::cout << getName(symbol.nonterminal);
-        }
-        else std::cout << symbol;
-        std::cout << " ";
-    }
-
-}
-
-template<typename Iterator>
-void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_traits<Iterator>::value_type> &table,
-    Symbol<typename std::iterator_traits<Iterator>::value_type> startSymbol, Iterator first, Iterator last)
-{
-    using T = typename std::iterator_traits<Iterator>::value_type;
-    std::vector<Symbol<T>> stack;
-    stack.push_back(startSymbol);
-
-    while(!stack.empty() )
-    {
-        Symbol<T> x = stack.back();
-        if(x.type == SymbolType::Terminal)
-        {
-            if(x.terminal == *first)
-            {
-                stack.pop_back();
-                first ++;
-                std::cout << "match :" << *first;
-                std::cout << "\n";
-            }
-            else
-            {
-                std::cout << "error" << "\n";
-            }
-        }
-        else if(x.type == SymbolType::Nonterminal)
-        {
-            Symbol<T> cntFirst(SymbolType::EndTag);
-            if(first != last)
-                cntFirst = Symbol<T>(SymbolType::Terminal, *first);
-
-            if(table[x.nonterminal].count(cntFirst))
-            {
-                stack.pop_back();
-                auto ruleBody = table[x.nonterminal].at(cntFirst);
-                for(int i = ruleBody.size() - 1; i >= 0; -- i)
-                {
-                    if(ruleBody[i].type != SymbolType::EmptyString)
-                    stack.push_back(ruleBody[i]);
-                }
-
-                std::cout << "output:";
-                outRule(x.nonterminal, ruleBody, table.names);
-                std::cout << "\n";
-            }
-            else
-            {
-                std::cout << "error" << "\n";
-
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // For output
-
-
-
 template<typename T>
 struct SymbolForOutput
 {
     const Symbol<T>& symbol;
     const std::vector<std::string>& names;
-
-
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
@@ -656,15 +512,12 @@ struct RuleBodyForOutput
 
 };
 
-
 template<typename T>
 struct RuleForOutput
 {
     NonterminalType ruleHead;
     const RuleBody<T> &ruleBody;
     const std::vector<std::string>& names;
-
-
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
         operator<<(std::basic_ostream<Char, Traits>& os, const RuleForOutput& r)
@@ -700,6 +553,108 @@ struct GrammerForOutput
     }
 
 };
+
+template<typename T>
+struct PredictiveParsingTableForOutput
+{
+    const PredictiveParsingTable<T>& table;
+    const std::vector<std::string>& names;
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os, const PredictiveParsingTableForOutput&  o)
+    {
+
+        for(int i = 0; i < o.table.size(); ++ i)
+        {
+            auto iout = SymbolForOutput<T>{Symbol<T>(SymbolType::Nonterminal, i), o.names};
+            for(auto pi: o.table[i])
+            {
+                os <<std::left << std::setw(3) <<  iout << ", " << SymbolForOutput<T>{pi.first, o.names} << ":   " << iout << "->";
+                for(auto symbol: pi.second)
+                {
+                    os << SymbolForOutput<T>{symbol, o.names};
+                    os << " ";
+                }
+                os << "\n";
+            }
+        }
+        return os;
+    }
+
+};
+
+template<typename Iterator>
+void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_traits<Iterator>::value_type> &table,
+    Iterator first, Iterator last, Symbol<typename std::iterator_traits<Iterator>::value_type> startSymbol,
+    const std::vector<std::string>& names)
+{
+    using T = typename std::iterator_traits<Iterator>::value_type;
+    std::vector<Symbol<T>> stack;
+    stack.push_back(startSymbol);
+
+    while(!stack.empty() )
+    {
+        Symbol<T> x = stack.back();
+        if(x.type == SymbolType::Terminal)
+        {
+            if(x.terminal == *first)
+            {
+                stack.pop_back();
+                first ++;
+                std::cout << "match :" << *first;
+                std::cout << "\n";
+            }
+            else
+            {
+                std::cout << "error" << "\n";
+            }
+        }
+        else if(x.type == SymbolType::Nonterminal)
+        {
+            Symbol<T> cntFirst(SymbolType::EndTag);
+            if(first != last)
+                cntFirst = Symbol<T>(SymbolType::Terminal, *first);
+
+            if(table[x.nonterminal].count(cntFirst))
+            {
+                stack.pop_back();
+                auto ruleBody = table[x.nonterminal].at(cntFirst);
+                for(int i = ruleBody.size() - 1; i >= 0; -- i)
+                {
+                    if(ruleBody[i].type != SymbolType::EmptyString)
+                    stack.push_back(ruleBody[i]);
+                }
+
+                std::cout << "output:";
+
+                std::cout << RuleForOutput<T>{x.nonterminal, ruleBody, names};
+                std::cout << "\n";
+            }
+            else
+            {
+                std::cout << "error" << "\n";
+
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -116,17 +116,14 @@ void output(const Grammer<T> &g, int i, int j)
 void testNonterminals()
 {
     Grammer<char> g;
-    g.resize(5);
-    auto E = g.getNonterminalSymbol(0);
-    auto _E = g.getNonterminalSymbol(1);
-    auto T = g.getNonterminalSymbol(2);
-    auto _T = g.getNonterminalSymbol(3);
-    auto F = g.getNonterminalSymbol(4);
-//    NonterminalSymbol<char>::reset();
-//    NonterminalSymbol<char> E, _E, T, _T, F;
-
-
     int n = 5;
+    g.resize(n);
+
+    auto E = g.getNonterminalProxy(0);
+    auto _E = g.getNonterminalProxy(1);
+    auto T = g.getNonterminalProxy(2);
+    auto _T = g.getNonterminalProxy(3);
+    auto F = g.getNonterminalProxy(4);
 
     E = T >> _E;
 
@@ -141,22 +138,17 @@ void testNonterminals()
     F = '(' >> E >> ')';
     F = 'a';
 
-//    g = makeGrammer(std::vector<NonterminalSymbol<char>>{E, _E, T, _T, F});
-
     std::vector<std::string> names{"E", "E'", "T", "T'", "F"};
     cout << GrammerForOutput<char>{g, names} << endl;
 
 
-//    cout << makeGrammerg << endl;
+    cout << "table -----------------------------" << endl<< endl;
 
-//    cout << "table -----------------------------" << endl<< endl;
-//
-//    PredictiveParsingTable<char> table(g);
-//    cout << table << endl;
-//
-//
-//    string text = "a+a*(a+a)";
-//    predictivePasringLL1(table, Symbol<char>(SymbolType::Nonterminal, 0),  text.begin(),text.end());
+    PredictiveParsingTable<char> table(g);
+    cout << PredictiveParsingTableForOutput<char>{table, names} << endl;
+
+    string text = "a+a*(a+a)";
+    predictivePasringLL1(table, text.begin(),text.end(), Symbol<char>(SymbolType::Nonterminal, 0), names);
 
 
 
