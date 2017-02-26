@@ -42,8 +42,33 @@ template<typename T>
 struct Symbol
 {
     SymbolType type;
-    NonterminalType nonterminal;
-    T terminal;
+    union
+    {
+        NonterminalType nonterminal;
+        T terminal;
+    };
+
+
+    bool isNonterminal() const
+    {
+        return type == SymbolType::Nonterminal;
+    }
+
+    bool isTerminal() const
+    {
+        return type == SymbolType::Terminal;
+    }
+
+    bool isEmptyString() const
+    {
+        return type == SymbolType::EmptyString;
+    }
+
+    bool isEndTag() const
+    {
+        return type == SymbolType::EndTag;
+    }
+
 
     bool operator<(const Symbol & o) const
     {
@@ -92,10 +117,10 @@ Symbol<T> makeTerminal(T i)
 }
 
 template<typename T>
-Symbol<T> EmptyStringSymbol(SymbolType::EmptyString);
+const Symbol<T> EmptyStringSymbol(SymbolType::EmptyString);
 
 template<typename T>
-Symbol<T> EndTagSymbol(SymbolType::EndTag);
+const Symbol<T> EndTagSymbol(SymbolType::EndTag);
 
 
 
@@ -229,15 +254,16 @@ void calculateVariableFirstSet(const Grammer<T>& g, std::vector<Set<Symbol<T>> >
 
     for(auto ruleBody: g[u])
     {
-        if(ruleBody[0].type == SymbolType::EmptyString)
+        Symbol<T> r0 = ruleBody[0];
+        if(r0.isEmptyString())
         {
-            firstSet[u].insert(ruleBody[0]);
+            firstSet[u].insert(r0);
         }
-        else if(ruleBody[0].type == SymbolType::Terminal)
+        else if(r0.isTerminal())
         {
-            firstSet[u].insert(ruleBody[0]);
+            firstSet[u].insert(r0);
         }
-        else if(ruleBody[0].type == SymbolType::Nonterminal)
+        else if(r0.isNonterminal())
         {
             for(auto s: ruleBody)
             {
@@ -251,7 +277,7 @@ void calculateVariableFirstSet(const Grammer<T>& g, std::vector<Set<Symbol<T>> >
                     auto v = s.nonterminal;
                     calculateVariableFirstSet(g, firstSet, v);
                     firstSet[u].insert(firstSet[v].begin(), firstSet[v].end());
-                    if(!firstSet[v].count(Symbol<T>(SymbolType::EmptyString)))
+                    if(!firstSet[v].count(EmptyStringSymbol<T>))
                     {
                         break;
                     }
@@ -275,9 +301,7 @@ std::vector< Set<Symbol<T> > > calculateFirstSet(const Grammer<T>& g)
             calculateVariableFirstSet(g, firstSet, i);
         }
     }
-
     return firstSet;
-
 }
 
 
@@ -286,35 +310,35 @@ std::vector< Set<Symbol<T> > > calculateFollowSet(const Grammer<T>& g, const std
 {
     auto n = g.size();
     std::vector< Set<Symbol<T> > > followSet(n);
-    followSet[0].insert(Symbol<T>(SymbolType::EndTag));
+    followSet[0].insert(EndTagSymbol<T>);
 
     while(true)
     {
         bool hasNew = false;
-        for(int A = 0; A < n; ++ A)
+        for(auto A: irange(n))
         {
             for(auto ruleBody: g[A])
             {
-                for(int i = 0; i < ruleBody.size(); ++ i)
+                for(auto i: irange(ruleBody.size()))
                 {
-                    auto B = ruleBody[i];
-                    if(B.type == SymbolType::Nonterminal)
+                    Symbol<T> B = ruleBody[i];
+                    if(B.isNonterminal())
                     {
                         bool needRecursive = false;
                         auto sizeB = followSet[B.nonterminal].size();
                         if(i + 1 < ruleBody.size())
                         {
-                            auto next = ruleBody[i + 1];
-                            if(next.type == SymbolType::Nonterminal)
+                            Symbol<T> next = ruleBody[i + 1];
+                            if(next.isNonterminal())
                             {
                                 followSet[B.nonterminal].insert(firstSet[next.nonterminal].begin(), firstSet[next.nonterminal].end());
-                                if(firstSet[next.nonterminal].count(Symbol<T>(SymbolType::EmptyString)))
+                                if(firstSet[next.nonterminal].count(EmptyStringSymbol<T>))
                                 {
-                                    followSet[B.nonterminal].erase(Symbol<T>(SymbolType::EmptyString));
+                                    followSet[B.nonterminal].erase(EmptyStringSymbol<T>);
                                     needRecursive = true;
                                 }
                             }
-                            else if(next.type == SymbolType::Terminal)
+                            else if(next.isTerminal())
                             {
                                 followSet[B.nonterminal].insert(next);
                             }
@@ -343,12 +367,9 @@ std::vector< Set<Symbol<T> > > calculateFollowSet(const Grammer<T>& g, const std
     return followSet;
 }
 
-
-
-
-
 template<typename K, typename V>
 using Map = std::map<K, V>;
+
 template<typename T>
 struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
 {
@@ -359,37 +380,6 @@ struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
         construct(g, firstSet, followSet);
 
     }
-
-    template <class Char, class Traits>
-    friend std::basic_ostream<Char, Traits>&
-    operator<<(std::basic_ostream<Char, Traits>& os,
-               const PredictiveParsingTable&  g)
-    {
-        std::size_t maxLen = 0;
-        for(auto i: lz::irange(g.size())) maxLen = std::max(maxLen, g.getName(i).size());
-
-        for(int i = 0; i < g.size(); ++ i)
-        {
-
-            for(auto pi: g[i])
-            {
-                os << g.getName(i) << std::string(maxLen - g.getName(i).size(), ' ') << ", "
-                    << pi.first << ":   " << g.getName(i) << "->";
-                for(auto symbol: pi.second)
-                {
-                    if(symbol.type == SymbolType::Nonterminal)
-                    {
-                        os << g.getName(symbol.nonterminal);
-                    }
-                    else os << symbol;
-                    os << " ";
-                }
-                os << "\n";
-            }
-        }
-        return os;
-    }
-
 
 
 private:
@@ -408,7 +398,7 @@ private:
                 auto ruleBody = g[i][j];
                 Symbol<T> s = g[i][j][0];
                 bool addFollow = false;
-                if(s.type == SymbolType::Nonterminal)
+                if(s.isNonterminal())
                 {
                     for(auto a: firstSet[s.nonterminal])
                     {
@@ -420,11 +410,11 @@ private:
                         addFollow = true;
                     }
                 }
-                else if(s.type == SymbolType::Terminal)
+                else if(s.isTerminal())
                 {
                     (*this)[i][s] = ruleBody;
                 }
-                else if(s.type == SymbolType::EmptyString)
+                else if(s.isEmptyString())
                 {
                     addFollow = true;
                 }
@@ -463,22 +453,22 @@ struct SymbolForOutput
     {
         const Symbol<T>& s = so.symbol;
 
-        if(s.type == SymbolType::EmptyString)
+        if(s.isEmptyString())
         {
             os << "#"  ; // 暂时用#号代替空字符串字符
         }
-        else if(s.type == SymbolType::Terminal)
+        else if(s.isTerminal())
         {
             os << s.terminal;
         }
-        else if(s.type == SymbolType::Nonterminal)
+        else if(s.isNonterminal())
         {
             auto i = s.nonterminal;
             if(i < so.names.size() && !so.names[i].empty())
                 os << so.names[i];
             else os << std::to_string(i);
         }
-        else if(s.type == SymbolType::EndTag)
+        else if(s.isEndTag())
         {
             os << "$";
         }
@@ -502,9 +492,9 @@ struct RuleBodyForOutput
     friend std::basic_ostream<Char, Traits>&
         operator<<(std::basic_ostream<Char, Traits>& os, const RuleBodyForOutput& r)
     {
-        for(int k = 0; k < r.ruleBody.size(); ++ k)
+        for(auto s: r.ruleBody)
         {
-            os << SymbolForOutput<T>{r.ruleBody[k], r.names};
+            os << SymbolForOutput<T>{s, r.names};
             os << " " ;
         }
         return os;
@@ -523,7 +513,7 @@ struct RuleForOutput
         operator<<(std::basic_ostream<Char, Traits>& os, const RuleForOutput& r)
     {
 
-        os << SymbolForOutput<T>{Symbol<T>(SymbolType::Nonterminal, r.ruleHead), r.names}
+        os << SymbolForOutput<T>{makeNonterminal<T>(r.ruleHead), r.names}
             << "->" << RuleBodyForOutput<T>{r.ruleBody, r.names};
 
         return os;
@@ -596,7 +586,7 @@ void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_tr
     while(!stack.empty() )
     {
         Symbol<T> x = stack.back();
-        if(x.type == SymbolType::Terminal)
+        if(x.isTerminal())
         {
             if(x.terminal == *first)
             {
@@ -610,11 +600,11 @@ void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_tr
                 std::cout << "error" << "\n";
             }
         }
-        else if(x.type == SymbolType::Nonterminal)
+        else if(x.isNonterminal())
         {
-            Symbol<T> cntFirst(SymbolType::EndTag);
+            auto cntFirst = EndTagSymbol<T>;
             if(first != last)
-                cntFirst = Symbol<T>(SymbolType::Terminal, *first);
+                cntFirst = makeTerminal(*first);
 
             if(table[x.nonterminal].count(cntFirst))
             {
@@ -622,7 +612,7 @@ void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_tr
                 auto ruleBody = table[x.nonterminal].at(cntFirst);
                 for(int i = ruleBody.size() - 1; i >= 0; -- i)
                 {
-                    if(ruleBody[i].type != SymbolType::EmptyString)
+                    if(!ruleBody[i].isEmptyString())
                     stack.push_back(ruleBody[i]);
                 }
 
