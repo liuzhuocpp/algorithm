@@ -67,7 +67,7 @@ operator<<(std::basic_ostream<Char, Traits>& os,
     return os << "]";
 }
 
-#define OUT_FUNCTION_NAME cout << __FUNCTION__ << " ------------------------------------------------" << endl;
+#define OUT_FUNCTION_NAME cout << "\n\n"<< __FUNCTION__ << " ------------------------------------------------" << endl;
 //template<typename IteratorRange>
 //void out(IteratorRange range)
 //{

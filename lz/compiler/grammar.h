@@ -28,8 +28,6 @@ enum class SymbolType
 //    Cat,
 //    Alternative,
 //    KleenStar,
-//    LeftParenthesis,
-//    RightParenthesis,
 
 };
 
@@ -162,7 +160,7 @@ struct Grammer : std::vector<RuleBodyUnion<T> >
 };
 
 
-// 为了给用户更加方便的编写文法的方式，最终文法将会存储在Grammer里，此类仅仅作为 各类操作符的重定义，使用户可以用接近EBNF的语法书写文法。
+// 为了给用户更加方便的编写文法的方式，最终文法将会存储在Grammar里，此类仅仅作为 各类操作符的重定义，使用户可以用接近EBNF的语法书写文法。
 template<typename T>
 struct NonterminalProxy
 {
@@ -175,35 +173,24 @@ public:
 
     friend RuleBody<T> operator>>(NonterminalProxy a, NonterminalProxy b)
     {
-       RuleBody<T> res;
-       res.push_back(makeNonterminal<T>(a.id));
-       res.push_back(makeNonterminal<T>(b.id));
-       return res;
+        return RuleBody<T>{makeNonterminal<T>(a.id), makeNonterminal<T>(b.id)};
     }
 
     friend RuleBody<T> operator>>(NonterminalProxy a, T b)
     {
-       RuleBody<T> res;
-       res.push_back(makeNonterminal<T>(a.id));
-       res.push_back(makeTerminal<T>(b));
-       return res;
+        return RuleBody<T> {makeNonterminal<T>(a.id), makeTerminal<T>(b)};
     }
 
     friend RuleBody<T> operator>>(T a, NonterminalProxy b)
     {
-       RuleBody<T> res;
-       res.push_back(makeTerminal<T>(a));
-       res.push_back(makeNonterminal<T>(b.id));
-       return res;
+        return RuleBody<T> {makeTerminal<T>(a), makeNonterminal<T>(b.id)};
     }
-
 
     friend RuleBody<T> operator>>(RuleBody<T> a, NonterminalProxy b)
     {
         a.push_back(makeNonterminal<T>(b.id));
         return a;
     }
-
 
     NonterminalProxy& operator=(RuleBody<T> o)
     {

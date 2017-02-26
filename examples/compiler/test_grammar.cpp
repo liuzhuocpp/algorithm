@@ -7,15 +7,11 @@
 using namespace lz;
 using namespace std;
 
-template<typename T>
-void output(const Grammer<T> &g, int i, int j)
-{
-    cout << i << "-> " << g[i][j] << endl;
-}
 
 
 void testNonterminals()
 {
+    OUT_FUNCTION_NAME
     Grammer<char> g;
     int n = 5;
     g.resize(n);
@@ -59,6 +55,7 @@ void testNonterminals()
 
 void testIsLL1grammar()
 {
+    OUT_FUNCTION_NAME
     int n = 5;
     Grammer<char> g(n);
 
@@ -79,7 +76,7 @@ void testIsLL1grammar()
 int main()
 {
 
-//    testNonterminals();
+    testNonterminals();
 
     testIsLL1grammar();
 
