@@ -2,6 +2,7 @@
 #include <lz/debug.h>
 
 #include <lz/compiler/grammar.h>
+#include <lz/compiler/ll1_grammar.h>
 
 using namespace lz;
 using namespace std;

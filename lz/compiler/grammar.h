@@ -78,6 +78,16 @@ struct Symbol
         return false;
     }
 
+
+    bool operator==(const Symbol & o) const
+    {
+        if(type != o.type) return false;
+        if(isNonterminal()) return nonterminal == o.nonterminal;
+        if(isTerminal()) return terminal == o.terminal;
+        return true;
+    }
+
+
     Symbol(SymbolType type):type(type)
     {
 
@@ -236,211 +246,7 @@ RuleBody<T> operator>>(RuleBody<T> a, T b)
 
 
 
-
-
-
-
-
-
-
-
-template<typename T>
-using Set = std::set<T>;
-
-template<typename T>
-void calculateVariableFirstSet(const Grammer<T>& g, std::vector<Set<Symbol<T>> >& firstSet , NonterminalType u)
-{
-    if(!firstSet[u].empty()) return;
-
-    for(auto ruleBody: g[u])
-    {
-        Symbol<T> r0 = ruleBody[0];
-        if(r0.isEmptyString())
-        {
-            firstSet[u].insert(r0);
-        }
-        else if(r0.isTerminal())
-        {
-            firstSet[u].insert(r0);
-        }
-        else if(r0.isNonterminal())
-        {
-            for(auto s: ruleBody)
-            {
-                if(s.type == SymbolType::Terminal)
-                {
-                    firstSet[u].insert(s);
-                    break;
-                }
-                else if(s.type == SymbolType::Nonterminal)
-                {
-                    auto v = s.nonterminal;
-                    calculateVariableFirstSet(g, firstSet, v);
-                    firstSet[u].insert(firstSet[v].begin(), firstSet[v].end());
-                    if(!firstSet[v].count(EmptyStringSymbol<T>))
-                    {
-                        break;
-                    }
-
-                }
-            }
-
-        }
-    }
-}
-
-template<typename T>
-std::vector< Set<Symbol<T> > > calculateFirstSet(const Grammer<T>& g)
-{
-    auto n = g.size();
-    std::vector< Set<Symbol<T> > > firstSet(n);
-    for(auto i = 0; i < n; ++ i)
-    {
-        if(firstSet[i].empty())
-        {
-            calculateVariableFirstSet(g, firstSet, i);
-        }
-    }
-    return firstSet;
-}
-
-
-template<typename T>
-std::vector< Set<Symbol<T> > > calculateFollowSet(const Grammer<T>& g, const std::vector< Set<Symbol<T> > >& firstSet)
-{
-    auto n = g.size();
-    std::vector< Set<Symbol<T> > > followSet(n);
-    followSet[0].insert(EndTagSymbol<T>);
-
-    while(true)
-    {
-        bool hasNew = false;
-        for(auto A: irange(n))
-        {
-            for(auto ruleBody: g[A])
-            {
-                for(auto i: irange(ruleBody.size()))
-                {
-                    Symbol<T> B = ruleBody[i];
-                    if(B.isNonterminal())
-                    {
-                        bool needRecursive = false;
-                        auto sizeB = followSet[B.nonterminal].size();
-                        if(i + 1 < ruleBody.size())
-                        {
-                            Symbol<T> next = ruleBody[i + 1];
-                            if(next.isNonterminal())
-                            {
-                                followSet[B.nonterminal].insert(firstSet[next.nonterminal].begin(), firstSet[next.nonterminal].end());
-                                if(firstSet[next.nonterminal].count(EmptyStringSymbol<T>))
-                                {
-                                    followSet[B.nonterminal].erase(EmptyStringSymbol<T>);
-                                    needRecursive = true;
-                                }
-                            }
-                            else if(next.isTerminal())
-                            {
-                                followSet[B.nonterminal].insert(next);
-                            }
-                            else
-                            {
-                                std::cout << "ERROR " <<"\n";
-                            }
-                        }
-                        else needRecursive = true;
-
-                        if(needRecursive)
-                        {
-                            followSet[B.nonterminal].insert(followSet[A].begin(), followSet[A].end());
-                        }
-
-                        if(followSet[B.nonterminal].size() > sizeB)
-                        {
-                            hasNew = true;
-                        }
-                    }
-                }
-            }
-        }
-        if(!hasNew) break;
-    }
-    return followSet;
-}
-
-template<typename K, typename V>
-using Map = std::map<K, V>;
-
-template<typename T>
-struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
-{
-    PredictiveParsingTable(const Grammer<T>& g)
-    {
-        auto firstSet = calculateFirstSet(g);
-        auto followSet = calculateFollowSet(g, firstSet);
-        construct(g, firstSet, followSet);
-
-    }
-
-
-private:
-    void construct(const Grammer<T>& g,
-        const std::vector<Set<Symbol<T>>>& firstSet,
-        const std::vector<Set<Symbol<T>>>& followSet)
-    {
-        auto n = g.size();
-        this->clear();
-        this->resize(n);
-
-        for(int i = 0; i < n; ++ i)
-        {
-            for(int j = 0; j < g[i].size(); ++ j)
-            {
-                auto ruleBody = g[i][j];
-                Symbol<T> s = g[i][j][0];
-                bool addFollow = false;
-                if(s.isNonterminal())
-                {
-                    for(auto a: firstSet[s.nonterminal])
-                    {
-                        (*this)[i][a] = ruleBody;
-                    }
-                    if(firstSet[s.nonterminal].count(EmptyStringSymbol<T> ))
-                    {
-                        (*this)[i].erase(EmptyStringSymbol<T>);
-                        addFollow = true;
-                    }
-                }
-                else if(s.isTerminal())
-                {
-                    (*this)[i][s] = ruleBody;
-                }
-                else if(s.isEmptyString())
-                {
-                    addFollow = true;
-                }
-
-                if(addFollow)
-                {
-                    for(auto b: followSet[i])
-                    {
-                        (*this)[i][b] = ruleBody;
-                    }
-                    if(followSet[i].count(EndTagSymbol<T>))
-                    {
-                        (*this)[i][EndTagSymbol<T>] = ruleBody;
-                    }
-
-                }
-            }
-        }
-    }
-};
-
-
-
-
-
-// For output
+// For output----------------------------------------------------
 template<typename T>
 struct SymbolForOutput
 {
@@ -544,91 +350,6 @@ struct GrammerForOutput
 
 };
 
-template<typename T>
-struct PredictiveParsingTableForOutput
-{
-    const PredictiveParsingTable<T>& table;
-    const std::vector<std::string>& names;
-
-    template <class Char, class Traits>
-    friend std::basic_ostream<Char, Traits>&
-    operator<<(std::basic_ostream<Char, Traits>& os, const PredictiveParsingTableForOutput&  o)
-    {
-
-        for(int i = 0; i < o.table.size(); ++ i)
-        {
-            auto iout = SymbolForOutput<T>{Symbol<T>(SymbolType::Nonterminal, i), o.names};
-            for(auto pi: o.table[i])
-            {
-                os <<std::left << std::setw(3) <<  iout << ", " << SymbolForOutput<T>{pi.first, o.names} << ":   " << iout << "->";
-                for(auto symbol: pi.second)
-                {
-                    os << SymbolForOutput<T>{symbol, o.names};
-                    os << " ";
-                }
-                os << "\n";
-            }
-        }
-        return os;
-    }
-
-};
-
-template<typename Iterator>
-void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_traits<Iterator>::value_type> &table,
-    Iterator first, Iterator last, Symbol<typename std::iterator_traits<Iterator>::value_type> startSymbol,
-    const std::vector<std::string>& names)
-{
-    using T = typename std::iterator_traits<Iterator>::value_type;
-    std::vector<Symbol<T>> stack;
-    stack.push_back(startSymbol);
-
-    while(!stack.empty() )
-    {
-        Symbol<T> x = stack.back();
-        if(x.isTerminal())
-        {
-            if(x.terminal == *first)
-            {
-                stack.pop_back();
-                first ++;
-                std::cout << "match :" << *first;
-                std::cout << "\n";
-            }
-            else
-            {
-                std::cout << "error" << "\n";
-            }
-        }
-        else if(x.isNonterminal())
-        {
-            auto cntFirst = EndTagSymbol<T>;
-            if(first != last)
-                cntFirst = makeTerminal(*first);
-
-            if(table[x.nonterminal].count(cntFirst))
-            {
-                stack.pop_back();
-                auto ruleBody = table[x.nonterminal].at(cntFirst);
-                for(int i = ruleBody.size() - 1; i >= 0; -- i)
-                {
-                    if(!ruleBody[i].isEmptyString())
-                    stack.push_back(ruleBody[i]);
-                }
-
-                std::cout << "output:";
-
-                std::cout << RuleForOutput<T>{x.nonterminal, ruleBody, names};
-                std::cout << "\n";
-            }
-            else
-            {
-                std::cout << "error" << "\n";
-
-            }
-        }
-    }
-}
 
 
 
@@ -636,11 +357,64 @@ void predictivePasringLL1(const PredictiveParsingTable<typename std::iterator_tr
 
 
 
-
-
-
-
-
+// LL1 first set calculation, maybe faster
+//template<typename T>
+//void calculateLL1TerminalsFirstSet(const Grammer<T>& g, std::vector<Set<Symbol<T>> >& firstSet , NonterminalType u)
+//{
+//    if(!firstSet[u].empty()) return;
+//
+//    for(auto ruleBody: g[u])
+//    {
+//        Symbol<T> r0 = ruleBody[0];
+//        if(r0.isEmptyString())
+//        {
+//            firstSet[u].insert(r0);
+//        }
+//        else if(r0.isTerminal())
+//        {
+//            firstSet[u].insert(r0);
+//        }
+//        else if(r0.isNonterminal())
+//        {
+//            for(auto s: ruleBody)
+//            {
+//                if(s.type == SymbolType::Terminal)
+//                {
+//                    firstSet[u].insert(s);
+//                    break;
+//                }
+//                else if(s.type == SymbolType::Nonterminal)
+//                {
+//                    auto v = s.nonterminal;
+//                    calculateLL1TerminalsFirstSet(g, firstSet, v);
+//                    firstSet[u].insert(firstSet[v].begin(), firstSet[v].end());
+//                    if(!firstSet[v].count(EmptyStringSymbol<T>))
+//                    {
+//                        break;
+//                    }
+//
+//                }
+//            }
+//
+//        }
+//    }
+//}
+//
+//template<typename T>
+//std::vector< Set<Symbol<T> > > calculateLL1TerminalsFirstSet(const Grammer<T>& g)
+//{
+//    auto n = g.size();
+//    std::vector< Set<Symbol<T> > > firstSet(n);
+//    for(auto i = 0; i < n; ++ i)
+//    {
+//        if(firstSet[i].empty())
+//        {
+//            calculateVariableFirstSet(g, firstSet, i);
+//        }
+//    }
+//    return firstSet;
+//}
+//
 
 
 
