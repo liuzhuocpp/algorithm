@@ -25,7 +25,7 @@ void calculateRuleBodyFirstSet(const RuleBody<T>& ruleBody,
 
 
 template<typename T>
-std::vector< Set<Symbol<T> > > calculateTernimalFirstSets(const Grammer<T>& g)
+std::vector< Set<Symbol<T> > > calculateTernimalFirstSets(const Grammar<T>& g)
 {
     auto n = g.size();
     std::vector< Set<Symbol<T> > > ans(n);
@@ -112,7 +112,7 @@ Set<Symbol<T>> calculateRuleBodyFirstSet(const RuleBody<T>& ruleBody,
 
 
 template<typename T>
-std::vector< Set<Symbol<T> > > calculateTernimalFollowSets(const Grammer<T>& g, const std::vector< Set<Symbol<T> > >& firstSet)
+std::vector< Set<Symbol<T> > > calculateTernimalFollowSets(const Grammar<T>& g, const std::vector< Set<Symbol<T> > >& firstSet)
 {
     auto n = g.size();
     std::vector< Set<Symbol<T> > > followSet(n);
@@ -226,7 +226,7 @@ bool isSetIntersection(const Range1 & r1, const Range2& r2)
 
 
     template<typename T>
-    bool isLL1Grammar(const Grammer<T>& g,
+    bool isLL1Grammar(const Grammar<T>& g,
         const std::vector<Set<Symbol<T>>>& firstSets,
         const std::vector<Set<Symbol<T>>>& followSets)
     {
@@ -268,7 +268,7 @@ bool isSetIntersection(const Range1 & r1, const Range2& r2)
 
 
     template<typename T>
-    LL1ParsingTable<T> constructLL1ParsingTable(const Grammer<T>& g,
+    LL1ParsingTable<T> constructLL1ParsingTable(const Grammar<T>& g,
         const std::vector<Set<Symbol<T>>>& firstSet,
         const std::vector<Set<Symbol<T>>>& followSet)
     {
@@ -308,9 +308,22 @@ bool isSetIntersection(const Range1 & r1, const Range2& r2)
 
 
 
+template<typename T>
+void eliminateLeftRecursion(Grammar<T>& g)
+{
+
+}
 
 template<typename T>
-bool isLL1Grammar(const Grammer<T>& g)
+void leftFactor(Grammar<T>& g)
+{
+
+}
+
+
+
+template<typename T>
+bool isLL1Grammar(const Grammar<T>& g)
 {
     auto firstSets = calculateTernimalFirstSets(g);
     auto followSets = calculateTernimalFollowSets(g, firstSets);
@@ -320,68 +333,66 @@ bool isLL1Grammar(const Grammer<T>& g)
 
 
 template<typename T>
-LL1ParsingTable<T> constructLL1ParsingTable(const Grammer<T>& g)
+LL1ParsingTable<T> constructLL1ParsingTable(const Grammar<T>& g)
 {
     auto firstSets = calculateTernimalFirstSets(g);
     auto followSets = calculateTernimalFollowSets(g, firstSets);
 
     return Detail::constructLL1ParsingTable(g, firstSets, followSets);
-
-
 }
 
-template<typename T>
-struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
-{
-    PredictiveParsingTable(const Grammer<T>& g)
-    {
-        auto firstSet = calculateTernimalFirstSets(g);
-        auto followSet = calculateTernimalFollowSets(g, firstSet);
-        construct(g, firstSet, followSet);
-
-    }
-
-
-private:
-    void construct(const Grammer<T>& g,
-        const std::vector<Set<Symbol<T>>>& firstSet,
-        const std::vector<Set<Symbol<T>>>& followSet)
-    {
-        auto n = g.size();
-        this->clear();
-        this->resize(n);
-
-        for(int i = 0; i < n; ++ i)
-        {
-            for(int j = 0; j < g[i].size(); ++ j)
-            {
-                auto ruleBody = g[i][j];
-
-                Set<Symbol<T>> ruleBodyFirstSet = calculateRuleBodyFirstSet(ruleBody, firstSet);
-                for(auto a: ruleBodyFirstSet)
-                {
-                    if(!a.isEmptyString())
-                        (*this)[i][a] = ruleBody;
-                    else
-                    {
-                        for(auto b: followSet[i])
-                        {
-                            (*this)[i][b] = ruleBody;
-                        }
-                    }
-                }
-
-             }
-        }
-    }
-};
+//template<typename T>
+//struct PredictiveParsingTable: std::vector<Map<Symbol<T>, RuleBody<T>>>
+//{
+//    PredictiveParsingTable(const Grammer<T>& g)
+//    {
+//        auto firstSet = calculateTernimalFirstSets(g);
+//        auto followSet = calculateTernimalFollowSets(g, firstSet);
+//        construct(g, firstSet, followSet);
+//
+//    }
+//
+//
+//private:
+//    void construct(const Grammer<T>& g,
+//        const std::vector<Set<Symbol<T>>>& firstSet,
+//        const std::vector<Set<Symbol<T>>>& followSet)
+//    {
+//        auto n = g.size();
+//        this->clear();
+//        this->resize(n);
+//
+//        for(int i = 0; i < n; ++ i)
+//        {
+//            for(int j = 0; j < g[i].size(); ++ j)
+//            {
+//                auto ruleBody = g[i][j];
+//
+//                Set<Symbol<T>> ruleBodyFirstSet = calculateRuleBodyFirstSet(ruleBody, firstSet);
+//                for(auto a: ruleBodyFirstSet)
+//                {
+//                    if(!a.isEmptyString())
+//                        (*this)[i][a] = ruleBody;
+//                    else
+//                    {
+//                        for(auto b: followSet[i])
+//                        {
+//                            (*this)[i][b] = ruleBody;
+//                        }
+//                    }
+//                }
+//
+//             }
+//        }
+//    }
+//};
 
 
 
 
 
 template<typename Iterator>
-void parseLL1Grammar(const PredictiveParsingTable<typename std::iterator_traits<Iterator>::value_type> &table,
+void parseLL1Grammar(const LL1ParsingTable<typename std::iterator_traits<Iterator>::value_type> &table,
     Iterator first, Iterator last, Symbol<typename std::iterator_traits<Iterator>::value_type> startSymbol,
     const std::vector<std::string>& names)
 {
@@ -442,14 +453,14 @@ void parseLL1Grammar(const PredictiveParsingTable<typename std::iterator_traits<
 
 
 template<typename T>
-struct PredictiveParsingTableForOutput
+struct LL1ParsingTableForOutput
 {
-    const PredictiveParsingTable<T>& table;
+    const LL1ParsingTable<T>& table;
     const std::vector<std::string>& names;
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
-    operator<<(std::basic_ostream<Char, Traits>& os, const PredictiveParsingTableForOutput&  o)
+    operator<<(std::basic_ostream<Char, Traits>& os, const LL1ParsingTableForOutput&  o)
     {
 
         for(int i = 0; i < o.table.size(); ++ i)

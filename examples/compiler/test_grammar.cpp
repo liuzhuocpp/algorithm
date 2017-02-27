@@ -12,7 +12,7 @@ using namespace std;
 void testNonterminals()
 {
     OUT_FUNCTION_NAME
-    Grammer<char> g;
+    Grammar<char> g;
     int n = 5;
     g.resize(n);
 
@@ -43,22 +43,24 @@ void testNonterminals()
     cout << "table -----------------------------" << endl<< endl;
     cout << "Is LL1 grammar? " << std::boolalpha << isLL1Grammar(g) << endl;
 
-    PredictiveParsingTable<char> table(g);
-    cout << PredictiveParsingTableForOutput<char>{table, names} << endl;
+    LL1ParsingTable<char> table = constructLL1ParsingTable(g);
+    cout << LL1ParsingTableForOutput<char>{table, names} << endl;
 
 
 
 
     string text = "a+a*(a+a)";
-    parseLL1Grammar(table, text.begin(),text.end(), Symbol<char>(SymbolType::Nonterminal, 0), names);
+
+    parseLL1Grammar(table, text.begin(),text.end(), makeNonterminal<char>(0), names);
 
 }
 
 void testIsLL1grammar()
 {
     OUT_FUNCTION_NAME
+
     int n = 5;
-    Grammer<char> g(n);
+    Grammar<char> g(n);
 
     auto E = g.getNonterminalProxy(0);
     std::vector<std::string> names{"E",};
@@ -66,6 +68,7 @@ void testIsLL1grammar()
     E = EmptyStringSymbol<char>;
     E = 'a' >> E;
 
+    names = {};
     cout << GrammerForOutput<char>{g, names} << endl;
 
 

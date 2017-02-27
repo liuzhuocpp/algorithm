@@ -151,7 +151,7 @@ struct NonterminalProxy;
 
 // T 表示终结符号
 template<typename T>
-struct Grammer : std::vector<RuleBodyUnion<T> >
+struct Grammar : std::vector<RuleBodyUnion<T> >
 {
     NonterminalProxy<T> getNonterminalProxy(NonterminalType i);
 
@@ -165,10 +165,10 @@ template<typename T>
 struct NonterminalProxy
 {
 private:
-    friend Grammer<T>;
+    friend Grammar<T>;
     NonterminalType id;
-    Grammer<T>& g;
-    NonterminalProxy(NonterminalType id, Grammer<T>& g ):id(id), g(g) { }
+    Grammar<T>& g;
+    NonterminalProxy(NonterminalType id, Grammar<T>& g ):id(id), g(g) { }
 public:
 
     friend RuleBody<T> operator>>(NonterminalProxy a, NonterminalProxy b)
@@ -221,7 +221,7 @@ public:
 
 
 template<typename T>
-NonterminalProxy<T> Grammer<T>::getNonterminalProxy(NonterminalType i)
+NonterminalProxy<T> Grammar<T>::getNonterminalProxy(NonterminalType i)
 {
     return NonterminalProxy<T>(i, *this);
 }
@@ -320,7 +320,7 @@ struct RuleForOutput
 template<typename T>
 struct GrammerForOutput
 {
-    const Grammer<T>& g;
+    const Grammar<T>& g;
     const std::vector<std::string>& names;
 
     template <class Char, class Traits>
