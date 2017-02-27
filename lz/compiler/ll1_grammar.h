@@ -340,9 +340,9 @@ void eliminateDirectLeftRecursion(Grammar<T>& g, NonterminalType A)
     }
 
     DiffType k = 0;
-    for(DiffType i = 0, j = 0; i < sames.size() && j < g[A].size();)
+    for(DiffType i = 0, j = 0; j < g[A].size();)
     {
-        if(sames[i] == j)
+        if(i < sames.size() && sames[i] == j)
         {
             i ++;
             j ++;
@@ -367,7 +367,45 @@ void eliminateDirectLeftRecursion(Grammar<T>& g, NonterminalType A)
 template<typename T>
 void eliminateLeftRecursion(Grammar<T>& g)
 {
+    using DiffType = typename Grammar<T>::difference_type;
+    DiffType n = g.size();
+    for(DiffType i = 0; i < n; ++ i)
+    {
+        for(DiffType j = 0; j < i; ++ j) // could be more efficient
+        {
 
+            std::vector<DiffType> needDeleted;
+            for(DiffType I = g[i].size() - 1; I >= 0; -- I)
+            {
+                if(g[i][I][0] == makeNonterminal<T>(j))
+                {
+                    needDeleted.push_back(I);
+
+                    DiffType iRulesNumber = g[i].size();
+                    g[i].insert(g[i].end(), g[j].begin(), g[j].end());
+
+                    for(DiffType k = iRulesNumber; k < g[i].size(); ++ k)
+                    {
+                        if(g[i][k][0].isEmptyString())
+                        {
+                            g[i][k].assign(g[i][I].begin() + 1, g[i][I].end());
+                        }
+                        else
+                        {
+                            g[i][k].insert(g[i][k].end(), g[i][I].begin() + 1, g[i][I].end());
+                        }
+                    }
+                }
+            }
+
+            for(DiffType I: needDeleted)
+            {
+                g[i].erase(g[i].begin() + I);
+            }
+
+        }
+        eliminateDirectLeftRecursion(g, i);
+    }
 }
 
 template<typename T>

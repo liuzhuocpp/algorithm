@@ -102,14 +102,49 @@ void testEliminateDirectLeftRecursion()
 
 }
 
+void testEliminateIndirectLeftRecursion()
+{
+    OUT_FUNCTION_NAME
+
+    int n = 2;
+    Grammar<char> g(n);
+    auto A = g.getNonterminalProxy(0);
+    auto B = g.getNonterminalProxy(1);
+    std::vector<std::string> names{"A", "B", "B'",
+
+    };
+    A = B >> 'a';
+
+    A = 'a';
+
+    B = A >> 'b';
+    B = 'b';
+
+
+
+
+
+
+    eliminateLeftRecursion(g);
+
+
+    cout << GrammerForOutput<char>{g, names} << endl;
+
+    cout << "Is LL1 grammar? " << std::boolalpha << isLL1Grammar(g) << endl;
+
+}
+
+
 
 
 int main()
 {
 
-    testNonterminals();
-    testIsLL1grammar();
-    testEliminateDirectLeftRecursion();
+//    testNonterminals();
+//    testIsLL1grammar();
+//    testEliminateDirectLeftRecursion();
+
+    testEliminateIndirectLeftRecursion();
 
 
 	return 0;
