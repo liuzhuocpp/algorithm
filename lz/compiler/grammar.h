@@ -170,6 +170,15 @@ private:
     Grammar<T>& g;
     NonterminalProxy(NonterminalType id, Grammar<T>& g ):id(id), g(g) { }
 public:
+    Symbol<T> symbol() const
+    {
+        return makeNonterminal<T>(id);
+    }
+    NonterminalType nonterminal() const
+    {
+        return id;
+    }
+
 
     friend RuleBody<T> operator>>(NonterminalProxy a, NonterminalProxy b)
     {
@@ -262,7 +271,8 @@ struct SymbolForOutput
             auto i = s.nonterminal;
             if(i < so.names.size() && !so.names[i].empty())
                 os << so.names[i];
-            else os << std::to_string(i);
+            else
+                os << std::to_string(i);
         }
         else if(s.isEndTag())
         {

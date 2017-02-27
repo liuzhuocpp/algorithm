@@ -308,6 +308,62 @@ bool isSetIntersection(const Range1 & r1, const Range2& r2)
 
 
 
+
+template<typename T>
+void eliminateDirectLeftRecursion(Grammar<T>& g, NonterminalType A)
+{
+    using DiffType = typename Grammar<T>::difference_type;
+    DiffType n = g.size();
+    std::vector<DiffType> sames;
+
+    for(auto i: irange(g[A].size()))
+    {
+        if(g[A][i][0] == makeNonterminal<T>(A))
+        {
+            sames.push_back(i);
+        }
+    }
+    if(sames.empty()) return ;
+    if(sames.size() == g[A].size())
+    {
+        std::cout << "error" << "\n";
+        return ;
+    }
+    NonterminalType _A = g.size();
+    g.push_back(RuleBodyUnion<T>());
+    g[_A].push_back(RuleBody<T>{EmptyStringSymbol<T>});
+    for(DiffType i: sames)
+    {
+        RuleBody<T> newBody(g[A][i].begin() + 1, g[A][i].end());
+        newBody.push_back(makeNonterminal<T>(_A));
+        g[_A].push_back(std::move(newBody));
+    }
+
+    DiffType k = 0;
+    for(DiffType i = 0, j = 0; i < sames.size() && j < g[A].size();)
+    {
+        if(sames[i] == j)
+        {
+            i ++;
+            j ++;
+        }
+        else
+        {
+            g[A][k ++] = g[A][j];
+            j ++;
+        }
+    }
+    g[A].resize(k);
+    for(DiffType i = 0; i < k; ++ i)
+    {
+        if(g[A][i][0].isEmptyString())
+            g[A][i][0] = makeNonterminal<T>(_A);
+        else
+            g[A][i].push_back(makeNonterminal<T>(_A));
+    }
+
+}
+
 template<typename T>
 void eliminateLeftRecursion(Grammar<T>& g)
 {

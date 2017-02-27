@@ -68,7 +68,7 @@ void testIsLL1grammar()
     E = EmptyStringSymbol<char>;
     E = 'a' >> E;
 
-    names = {};
+//    names = {};
     cout << GrammerForOutput<char>{g, names} << endl;
 
 
@@ -77,12 +77,43 @@ void testIsLL1grammar()
 
 }
 
+
+void testEliminateDirectLeftRecursion()
+{
+    OUT_FUNCTION_NAME
+
+
+    int n = 1;
+    Grammar<char> g(n);
+
+    auto E = g.getNonterminalProxy(0);
+    std::vector<std::string> names{"E", "E'"};
+
+    E = 'k';
+    E = 'e';
+    E = 'j';
+    E = E >> 'a';
+    E = E >> 'b';
+    E = E >> 'k';
+    eliminateDirectLeftRecursion(g, E.nonterminal());
+
+
+    cout << GrammerForOutput<char>{g, names} << endl;
+
+
+    cout << "Is LL1 grammar? " << std::boolalpha << isLL1Grammar(g) << endl;
+
+
+}
+
+
+
 int main()
 {
 
-    testNonterminals();
-
-    testIsLL1grammar();
+//    testNonterminals();
+//    testIsLL1grammar();
+    testEliminateDirectLeftRecursion();
 
 
 	return 0;
