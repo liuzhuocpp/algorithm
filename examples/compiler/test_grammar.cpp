@@ -68,7 +68,6 @@ void testIsLL1grammar()
     E = EmptyStringSymbol<char>;
     E = 'a' >> E;
 
-//    names = {};
     cout << GrammerForOutput<char>{g, names} << endl;
 
 
@@ -173,7 +172,7 @@ void testLeftFactor()
 
 
     cout << GrammerForOutput<char>{g, names} << endl;
-//
+
     cout << "Is LL1 grammar? " << std::boolalpha << isLL1Grammar(g) << endl;
 
 }
@@ -192,12 +191,13 @@ int main()
     testIsLL1grammar();
     testEliminateDirectLeftRecursion();
     testEliminateIndirectLeftRecursion();
+    testLeftFactor();
+
 #else
 #endif
 
 
 
-    testLeftFactor();
 
 
 
