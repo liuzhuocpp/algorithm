@@ -409,8 +409,48 @@ void eliminateLeftRecursion(Grammar<T>& g)
 }
 
 template<typename T>
-void leftFactor(Grammar<T>& g)
+void leftFactor(Grammar<T>& g, NonterminalType A) // could be more efficent
 {
+    using DiffType = typename Grammar<T>::difference_type;
+    std::sort(g[A].begin(), g[A].end());
+    RuleBodyUnion<T> newARuleBodyUnion;
+    for(DiffType i = 0, j; i < g[A].size(); i = j)
+    {
+        for(j = i + 1; j < g[A].size() && g[A][j][0] == g[A][i][0]; ++ j);
+        if(j - i == 1)
+        {
+            newARuleBodyUnion.push_back(g[A][i]);
+            continue;
+        }
+        DiffType l;
+        for(l = 1; ; ++ l)
+        {
+            for(DiffType k = i + 1; k < j; ++ k)
+            {
+                if(!(l < g[A][k].size() && g[A][k][l] == g[A][i][l]))
+                {
+                    goto XXX;
+                }
+            }
+
+        }
+        XXX:
+        NonterminalType _A = g.size();
+        g.push_back(RuleBodyUnion<T>());
+        for(auto k: irange(i, j))
+        {
+            g[_A].push_back(RuleBody<T>(g[A][k].begin() + l, g[A][k].end()));
+            if(g[_A][k].empty())
+            {
+                g[_A][k].push_back(EmptyStringSymbol<T>);
+            }
+        }
+        newARuleBodyUnion.push_back(RuleBody<T>(g[A][i].begin(), g[A][i].begin() + l) );
+        newARuleBodyUnion.back().push_back(makeNonterminal<T>(_A));
+        leftFactor(g, _A);
+
+    }
+    g[A] = newARuleBodyUnion;
 
 }
 

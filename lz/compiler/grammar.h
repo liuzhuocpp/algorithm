@@ -252,6 +252,26 @@ struct SymbolForOutput
     const Symbol<T>& symbol;
     const std::vector<std::string>& names;
 
+    int getNameLength() const
+    {
+        if(symbol.isNonterminal())
+        {
+            auto i = symbol.nonterminal;
+            if(i < names.size() && !names[i].empty())
+                return names[i].size();
+            else
+                return std::to_string(i).size();
+        }
+        else
+        {
+            return 1; // Could be more improved
+        }
+    }
+
+private:
+
+public:
+
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
         operator<<(std::basic_ostream<Char, Traits>& os, const SymbolForOutput& so)
@@ -269,6 +289,7 @@ struct SymbolForOutput
         else if(s.isNonterminal())
         {
             auto i = s.nonterminal;
+
             if(i < so.names.size() && !so.names[i].empty())
                 os << so.names[i];
             else
@@ -314,18 +335,54 @@ struct RuleForOutput
     NonterminalType ruleHead;
     const RuleBody<T> &ruleBody;
     const std::vector<std::string>& names;
+
+    int leftTotalWidth = -1;
+
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
-        operator<<(std::basic_ostream<Char, Traits>& os, const RuleForOutput& r)
+        operator<<(std::basic_ostream<Char, Traits>& os, const RuleForOutput& ro)
     {
 
-        os << SymbolForOutput<T>{makeNonterminal<T>(r.ruleHead), r.names}
-            << "->" << RuleBodyForOutput<T>{r.ruleBody, r.names};
+        SymbolForOutput<T> head {makeNonterminal<T>(ro.ruleHead), ro.names};
+        os << head;
+        if(ro.leftTotalWidth != -1)
+        {
+            os << std::string(std::max(ro.leftTotalWidth - head.getNameLength(), 0), ' ');
+        }
+        os << "->" << RuleBodyForOutput<T>{ro.ruleBody, ro.names};
 
         return os;
     }
 
 };
+
+
+template<typename T>
+struct RuleUnionForOutput
+{
+    const NonterminalType A;
+    const RuleBodyUnion<T>& ru;
+    const std::vector<std::string>& names;
+
+    int  leftTotalWidth = -1; // 确定左边终结符号加上空格之后，总共的宽度
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os,
+               const RuleUnionForOutput&  ruo)
+    {
+
+        for(auto i: irange(ruo.ru.size()))
+        {
+            os << RuleForOutput<T>{ruo.A, ruo.ru[i], ruo.names, ruo.leftTotalWidth} << "\n";
+        }
+
+        return os;
+    }
+
+};
+
+
 
 template<typename T>
 struct GrammerForOutput
@@ -333,18 +390,24 @@ struct GrammerForOutput
     const Grammar<T>& g;
     const std::vector<std::string>& names;
 
+    bool needLeftJustified = true;
+
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
     operator<<(std::basic_ostream<Char, Traits>& os,
                const GrammerForOutput&  g)
     {
+        int maxLength = 0;
         for(NonterminalType i: irange(g.g.size()))
         {
-            for(auto j: irange(g.g[i].size()))
-            {
-                os << RuleForOutput<T>{i, g.g[i][j], g.names} << "\n";
-            }
+            maxLength = std::max(maxLength, SymbolForOutput<T>{makeNonterminal<T>(i), g.names}.getNameLength());
         }
+
+        for(NonterminalType i: irange(g.g.size()))
+        {
+            os << RuleUnionForOutput<T>{i, g.g[i], g.names, g.needLeftJustified ? maxLength : -1};
+        }
+
         return os;
     }
 
