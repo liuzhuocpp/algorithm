@@ -3,6 +3,7 @@ cd D:\code\github\algorithm\examples && D:
 clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\github\algorithm   -o main.exe    test.cpp  && main.exe
 
 clang++ -target  x86_64-pc-windows-gnu -std=c++14 -ID:\code\lib\boost_1_58_0\        -o main.exe   test.cpp  && main.exe
+g++  -std=c++14 -ID:\code\github\algorithm        -o main.exe   test_grammar.cpp  && main.exe
 
 
 clang++ -target  x86_64-pc-windows-gnu -std=c++14 -IC:\Users\LZ\code\github\algorithm -o main.exe    test.cpp  && main.exe
@@ -10,9 +11,10 @@ clang++ -target  x86_64-pc-windows-gnu -std=c++14 -IC:\Users\LZ\code\github\algo
 
 cd D:\code\workspace\algorithm && D:
 cmake.exe ..\..\github\algorithm\examples  -G "MinGW Makefiles" && mingw32-make.exe &&  mingw32-make.exe test
+
+
+
 cd C:\Users\LZ\code\github\algorithm\examples && C:
-
-
 g++  -std=c++14 -ID:\code\github\algorithm      main.cpp     -o main.exe && main.exe
 
 

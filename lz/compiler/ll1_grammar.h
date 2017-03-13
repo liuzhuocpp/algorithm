@@ -184,14 +184,15 @@ void parseLL1Grammar(const LL1ParsingTable<typename std::iterator_traits<Iterato
         {
             if(x.terminal == *first)
             {
-                stack.pop_back();
-                first ++;
                 std::cout << "match :" << *first;
                 std::cout << "\n";
+                stack.pop_back();
+                first ++;
             }
             else
             {
                 std::cout << "error" << "\n";
+                return ;
             }
         }
         else if(x.isNonterminal())
@@ -218,6 +219,7 @@ void parseLL1Grammar(const LL1ParsingTable<typename std::iterator_traits<Iterato
             else
             {
                 std::cout << "error" << "\n";
+                return ;
 
             }
         }
