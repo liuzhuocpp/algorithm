@@ -65,19 +65,27 @@ struct Grammar: std::vector<RuleBodyUnion>
 
 
 struct EpsilonSymbol {} eps;
-
-template<typename T>
-struct Nonterminal;
+struct NoProperty{};
 
 
+template<typename T, typename P>
+struct UserNonterminal;
 
 
-template<typename T>
+
+template<typename T, typename P>
 struct GrammarFactory
 {
     Grammar g;
     std::map<T, Symbol> terminalMap;
-    Symbol cntTerminalId;
+    using ActionType = std::function<void(std::vector<P>)>;
+    std::vector<ActionType> actions;
+
+
+    Symbol getActionSymbol()
+    {
+        return actions.size() + ActionSymbolBegin;
+    }
 
     std::map<Symbol, T> calculateTerminalNames()
     {
@@ -89,7 +97,7 @@ struct GrammarFactory
         return ans;
     }
 
-    Symbol getTerminalId(T ch)
+    Symbol getTerminalSymbol(T ch)
     {
         if(terminalMap.count(ch))
         {
@@ -97,201 +105,259 @@ struct GrammarFactory
         }
         else
         {
-            terminalMap[ch] = cntTerminalId;
-            return cntTerminalId ++;
+            Symbol newId = TerminalSymbolBegin + terminalMap.size();
+            terminalMap[ch] = newId;
+            return newId;
+
         }
     }
 
     template<std::size_t N>
-    std::array<Nonterminal<T>, N> makeNonternimals();
+    std::array<UserNonterminal<T, P>, N> makeNonternimals();
 
 
 };
 
 
-template<typename T>
-struct Nonterminal
+
+
+template<typename T, typename P>
+struct UserSymbol;
+
+template<typename T, typename P>
+using UserRuleBody = std::vector<UserSymbol<T, P>>;
+
+
+template<typename T, typename P>
+struct UserNonterminal
 {
+    using ActionType = std::function<void(std::vector<P>)>;
 
-    enum class UserSymbolType
+    UserNonterminal(Symbol id = 0, ActionType func = ActionType(), GrammarFactory<T, P>* gf = nullptr):
+        id(id), action(func), gf(gf)
     {
-        Nonterminal,
-        Terminal,
-        EmptyString,
-    };
+
+    }
 
 
-    struct UserSymbol
+    UserNonterminal(const UserNonterminal<T, NoProperty>&other):
+        id(other.id), action(ActionType()), gf(nullptr)
     {
-        UserSymbolType type;
-        union
+
+    }
+
+    Symbol id;
+    std::function<void(std::vector<P>)> action;
+    GrammarFactory<T, P>* gf;
+
+    template<typename F>
+    UserNonterminal& operator[](F f)
+    {
+        action = f;
+        return *this;
+    }
+
+    template<typename P2>
+    RuleBody calculateRuleBodyWithRuleHeadAction(UserRuleBody<T, P2>);
+
+
+    template<typename P2>
+    UserNonterminal& operator=(const UserRuleBody<T, P2>& urb);
+    UserNonterminal& operator=(T o);
+    UserNonterminal& operator=(UserNonterminal o);
+    UserNonterminal& operator=(EpsilonSymbol );
+
+
+};
+
+
+
+
+
+
+enum class UserSymbolType
+{
+    Nonterminal,
+    Terminal,
+    EmptyString,
+};
+
+
+template<typename T, typename P>
+struct UserSymbol
+{
+    UserSymbol(UserNonterminal<T, P> nonterminal):
+        type(UserSymbolType::Nonterminal), nonterminal(nonterminal)
+    {
+
+    }
+
+    UserSymbol(T terminal):
+        type(UserSymbolType::Terminal), terminal(terminal)
+    {
+
+    }
+
+    UserSymbol():
+        type(UserSymbolType::EmptyString)
+    {
+
+    }
+
+
+    UserSymbolType type;
+    UserNonterminal<T, P> nonterminal = UserNonterminal<T, P>();
+    T terminal = T();
+
+};
+
+
+
+
+//template<typename P1, typename P2>
+//using PropertiesType = std::conditional_t<std::is_same<P1, NoProperty>::value, P2, P1>;
+
+
+template<typename T, typename P, typename P2>
+RuleBody convertToRuleBody(UserRuleBody<T, P> a, GrammarFactory<T, P2> & gf)
+{
+    RuleBody ans;
+    for(UserSymbol<T, P> ch: a)
+    {
+        if(ch.type == UserSymbolType::Nonterminal)
         {
-            Symbol nonterminal;
-            T terminal;
-        };
-    };
+            ans.push_back(ch.nonterminal.id);
 
-
-    static UserSymbol makeNonterminal(Symbol s)
-    {
-        UserSymbol us;
-        us.type = UserSymbolType::Nonterminal;
-        us.nonterminal = s;
-        return us;
-    }
-
-    static UserSymbol makeTerminal(Symbol s)
-    {
-        UserSymbol us;
-        us.type = UserSymbolType::Terminal;
-        us.terminal = s;
-        return us;
-    }
-
-    static UserSymbol makeEmptyString()
-    {
-        UserSymbol us;
-        us.type = UserSymbolType::EmptyString;
-        return us;
-    }
-
-    using UserRuleBody = std::vector<UserSymbol>;
-
-
-    friend UserRuleBody operator>>(Nonterminal a, Nonterminal b)
-    {
-        return UserRuleBody{makeNonterminal(a.id), makeNonterminal(b.id)};
-    }
-
-    friend UserRuleBody operator>>(Nonterminal a, T b)
-    {
-        return UserRuleBody {makeNonterminal(a.id), makeTerminal(b)};
-    }
-
-    friend UserRuleBody operator>>(T a, Nonterminal b)
-    {
-        return UserRuleBody {makeTerminal(a), makeNonterminal (b.id)};
-    }
-
-    friend UserRuleBody  operator>>(UserRuleBody a, Nonterminal b)
-    {
-        a.push_back(makeNonterminal(b.id));
-        return a;
-    }
-
-
-    RuleBody getRuleBody( UserRuleBody a)
-    {
-        RuleBody ans;
-        for(UserSymbol ch: a)
-        {
-            if(ch.type == UserSymbolType::Nonterminal)
+            if constexpr(std::is_same<P, P2>::value)
             {
-                ans.push_back(ch.nonterminal);
-            }
-            else if(ch.type == UserSymbolType::Terminal)
-            {
-                ans.push_back(gf->getTerminalId(ch.nonterminal));
+                if(ch.nonterminal.action)
+                {
+                    ans.push_back(ActionSymbolBegin + gf.actions.size());
+                    gf.actions.push_back(ch.nonterminal.action);
+
+                }
+
             }
         }
-        return ans;
+        else if(ch.type == UserSymbolType::Terminal)
+        {
+            ans.push_back(gf.getTerminalSymbol(ch.terminal));
+        }
     }
-
-
-
-
-
-
-    Nonterminal& operator=(const UserRuleBody& o)
-    {
-        gf->g[id].push_back(getRuleBody(o));
-        return *this;
-    }
-
-    Nonterminal& operator=(Nonterminal o)
-    {
-        gf->g[id].push_back({o.id});
-        return *this;
-    }
-
-    Nonterminal& operator=(EpsilonSymbol )
-    {
-        gf->g[id].push_back({});
-        return *this;
-    }
-
-    Nonterminal& operator=(T o)
-    {
-        gf->g[id].push_back({gf->getTerminalId(o)});
-        return *this;
-    }
-//
-
-
-//private:
-    Symbol id;
-    GrammarFactory<T>* gf;
-
-};
-
-
-
-
-template<typename T>
- typename Nonterminal<T>::UserRuleBody  operator>>(EpsilonSymbol a, T b)
-{
-
-    return typename  Nonterminal<T>::UserRuleBody{Nonterminal<T>::makeTerminal(b)};
+    return ans;
 }
 
 
 
-
-
-
-//template<typename T>
-//typename Nonterminal<T>::UserRuleBody  operator>>(T a, EpsilonSymbol b)
-//{
-//
-//    return typename  Nonterminal<T>::UserRuleBody{Nonterminal<T>::makeTerminal(a)};
-//}
-
-
-
-
-template<typename T>
-typename Nonterminal<T>::UserRuleBody  operator>>(typename Nonterminal<T>::UserRuleBody a, T b)
+template<typename T, typename P>
+auto operator>>(UserNonterminal<T, P> a, UserNonterminal<T, P> b)
 {
-    a.push_back(Nonterminal<T>::makeTerminal(b));
+    return UserRuleBody<T, P>{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+}
+
+template<typename T, typename P>
+auto operator>>(UserNonterminal<T, P> a, T b)
+{
+    return UserRuleBody<T, P>{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+}
+
+template<typename T, typename P>
+auto operator>>(T a, UserNonterminal<T, P> b)
+{
+    return UserRuleBody<T, P>{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+}
+
+
+template<typename T, typename P>
+auto operator>>(UserRuleBody<T, P> a, T b)
+{
+    a.push_back(UserSymbol<T, P>(b) );
+    return a;
+}
+
+template<typename T, typename P>
+auto operator>>(UserRuleBody<T, P> a, UserNonterminal<T, P> b)
+{
+    a.push_back(UserSymbol<T, P>(b));
     return a;
 }
 
 
-
-
-
-
-
-
-
-
 template<typename T>
-template<std::size_t N>
-std::array<Nonterminal<T>, N>
-
-GrammarFactory<T>::makeNonternimals()
+auto operator>>(EpsilonSymbol, T b)
 {
-    std::array<Nonterminal<T>, N> ans;
-    using DiffType = typename std::array<Nonterminal<T>, N>::difference_type;
+    return UserRuleBody<T, NoProperty>{ UserSymbol<T, NoProperty>(b) };
+}
+
+
+
+
+template<typename T, typename P>
+template<typename P2>
+RuleBody UserNonterminal<T, P>::calculateRuleBodyWithRuleHeadAction(UserRuleBody<T, P2> o)
+{
+    RuleBody ans = convertToRuleBody(o, *gf);
+    if(action) ans.insert(ans.begin(), gf->getActionSymbol());
+    return ans;
+}
+
+
+template<typename T, typename P>
+template<typename P2>
+UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2>& o)
+{
+    gf->g[id].push_back(calculateRuleBodyWithRuleHeadAction(o));
+    return *this;
+}
+
+
+
+template<typename T, typename P>
+UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(T o)
+{
+    gf->g[id].push_back({gf->getTerminalSymbol(o)});
+    return *this;
+}
+
+template<typename T, typename P>
+UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(UserNonterminal<T, P> o)
+{
+    gf->g[id].push_back({o.id});
+    return *this;
+}
+
+template<typename T, typename P>
+UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(EpsilonSymbol )
+{
+    gf->g[id].push_back({});
+    return *this;
+}
+
+
+
+
+
+
+
+
+template<typename T, typename P>
+template<std::size_t N>
+std::array<UserNonterminal<T, P>, N>
+
+GrammarFactory<T, P>::makeNonternimals()
+{
+    std::array<UserNonterminal<T, P>, N> ans;
+    using DiffType = typename std::array<UserNonterminal<T, P>, N>::difference_type;
     for(DiffType i: lz::irange(N))
     {
         ans[i].id = i;
         ans[i].gf = this;
     }
 
-    cntTerminalId = TerminalSymbolBegin;
+
     terminalMap.clear();
     g.resize(N);
+    actions.clear();
     return ans;
 }
 
@@ -365,6 +431,10 @@ struct SymbolForOutput
                 os << so.nonterminalNames[i];
             else
                 os << std::to_string(i);
+        }
+        else if(isAction(s))
+        {
+            os << '#'; // action
         }
         else if(isEndTag(s))
         {
