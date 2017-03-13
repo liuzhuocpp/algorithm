@@ -17,8 +17,10 @@ namespace lz {
 
 using Symbol = long;
 
-constexpr Symbol EndTagSymbol = -1;
+
 constexpr Symbol TerminalSymbolBegin = std::numeric_limits<Symbol>::min();
+constexpr Symbol ActionSymbolBegin = std::numeric_limits<Symbol>::min() >> 1;
+constexpr Symbol EndTagSymbol = -1;
 //从TerminalSymbolBegin开始递增是终结符号范围
 
 
@@ -28,16 +30,21 @@ bool isNonterminal(Symbol s)
     return s >= 0;
 }
 
+bool isTerminal(Symbol s)
+{
+    return s < ActionSymbolBegin;
+}
+bool isAction(Symbol s)
+{
+    return s >= ActionSymbolBegin && s < EndTagSymbol;
+}
+
+
 bool isEndTag(Symbol s)
 {
     return s == EndTagSymbol;
 }
 
-
-bool isTerminal(Symbol s)
-{
-    return s < -1;
-}
 
 struct RuleBody: std::vector<Symbol>
 {
