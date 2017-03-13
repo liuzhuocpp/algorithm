@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 #include <lz/debug.h>
 #include <lz/compiler/new/grammar.h>
+#include <lz/compiler/new/grammar_design.h>
 
 using namespace lz;
 using namespace std;
@@ -22,25 +23,22 @@ void testGrammar()
         cout << "SB222" << endl;
     };
 
-    S = A >> 'z' >> 'd';
-    S = A >> 'z' >> S;
-    S = 'a' >> A;
-    S = 't';
-    S = A;
-    S = eps;
-
-    S = eps >> 'a' >> 'b' >> 'z';
-
 
     S = A >> 'a';
-    S = A >> 'a' >> B;
-    S = eps;
+    A = 'b';
     A = eps;
 
-    B = 'a';
+    vector<Set > firstSets = calculateFirstSets(gf.g);
 
-    B = eps >> 'a' >> 'b' >> 'z' >> 'k' >> 'h' >> '&';
-    B[x] = A[x] >> 'a'  >> 'z';
+    for(Set firstSet: firstSets)
+    {
+        for(Symbol s: firstSet)
+        {
+            cout << SymbolForOutput<char>{s, nonterminalNames, gf.calculateTerminalNames()};
+        }
+        cout << endl;
+    }
+
 
 
     cout << GrammerForOutput<char>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;

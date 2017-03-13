@@ -20,6 +20,7 @@ using Symbol = long;
 
 constexpr Symbol TerminalSymbolBegin = std::numeric_limits<Symbol>::min();
 constexpr Symbol ActionSymbolBegin = std::numeric_limits<Symbol>::min() >> 1;
+constexpr Symbol EmptyStringSymbol = -2;
 constexpr Symbol EndTagSymbol = -1;
 //从TerminalSymbolBegin开始递增是终结符号范围
 
@@ -36,8 +37,14 @@ bool isTerminal(Symbol s)
 }
 bool isAction(Symbol s)
 {
-    return s >= ActionSymbolBegin && s < EndTagSymbol;
+    return s >= ActionSymbolBegin && s < EmptyStringSymbol;
 }
+
+bool isEmptyString(Symbol s)
+{
+    return s == EmptyStringSymbol;
+}
+
 
 
 bool isEndTag(Symbol s)
