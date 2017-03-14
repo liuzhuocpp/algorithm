@@ -289,7 +289,7 @@ void parseLL1Grammar(
 
     }
 
-    std::cout << " " << propertyStack.back() << " " << std::endl;
+    std::cout  << propertyStack.back() << " " << std::endl;
 }
 
 

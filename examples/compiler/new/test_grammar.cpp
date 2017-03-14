@@ -183,27 +183,36 @@ void testParseLL1Grammar()
 
     using P = int;
     auto x = [](std::vector<P> v, P& ans)
-    {
-//        cout << "66666OK" << endl;
-    };
+    {};
 
-    S[([](std::vector<P> v, P &ans) {
+
+    S
+    [([](std::vector<P> v, P &ans) {
         ans = v[0] + 1;
-    })] = '1' >> A;
-    S[([](std::vector<P> v, P &ans) {
+    })]
+     = '1' >> A;
+
+
+    S
+    [([](std::vector<P> v, P &ans) {
         ans = v[0] + 2;
-    })] = '2' >> A;
+    })]
+    = '2' >> A;
 
-    A[([](std::vector<P> v, P &ans) {
+
+    A
+    [([](std::vector<P> v, P &ans) {
         ans = v[0];
-    })] = '+' >> S;
-    A[([](std::vector<P> v, P &ans) {
-        ans = 0;
-    })] = eps;
+    })]
+    = '+' >> S;
 
-//    S = 's' >> A;
-//    A = 'a' >> A;
-//    A[x] = eps >> 'z';
+
+    A
+    [([](std::vector<P> v, P &ans) {
+        ans = 0;
+    })]
+    = eps;
+
 
     cout << "GF action size" << gf.actions.size() << endl;
 
