@@ -68,13 +68,15 @@ Set calculateRuleBodyFirstSet(
             if(!firstSets[s].count(EmptyStringSymbol))
             {
                 allHasEmptyString = 0;
-                ans.erase(EmptyStringSymbol);
                 break;
             }
+            else ans.erase(EmptyStringSymbol);
         }
         else if(isTerminal(s))
         {
-            ans.insert(s); break;
+            ans.insert(s);
+            allHasEmptyString = 0;
+            break;
         }
 
         else // error
@@ -119,7 +121,7 @@ std::vector<Set> calculateFollowSets(
                             ans[s].erase(EmptyStringSymbol);
                             ans[s].insert(ans[A].begin(), ans[A].end());
                         }
-                        if(ans.size() > oldSize) hasNew = 1;
+                        if(ans[s].size() > oldSize) hasNew = 1;
                     }
                 }
             }

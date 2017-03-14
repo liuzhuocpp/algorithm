@@ -8,7 +8,7 @@
 #ifndef LZ_COMPILER_NEW_GRAMMAR_H_
 #define LZ_COMPILER_NEW_GRAMMAR_H_
 
-
+#include <lz/iterator.h>
 
 namespace lz {
 
@@ -66,6 +66,139 @@ struct RuleBodyUnion: std::vector<RuleBody>
 struct Grammar: std::vector<RuleBodyUnion>
 {
     using std::vector<RuleBodyUnion>::vector;
+
+    struct RuleDescriptor
+    {
+        using RuleBodyIndexType = std::vector<RuleDescriptor>::difference_type;
+        Symbol A;
+        RuleBodyIndexType i;
+
+        RuleDescriptor():A(Symbol()), i(RuleBodyIndexType()) {}
+
+        RuleDescriptor(Symbol A, RuleBodyIndexType i):A(A), i(i) {}
+        friend bool operator== (RuleDescriptor a, RuleDescriptor b)
+        {
+            return a.A == b.A && a.i == b.i;
+        }
+
+        friend bool operator!= (RuleDescriptor a, RuleDescriptor b)
+        {
+            return !(a == b);
+        }
+    };
+
+
+    struct RuleSymbolDescriptor
+    {
+        RuleDescriptor ruleDescriptor;
+        int pos;
+        RuleSymbolDescriptor(){}
+        RuleSymbolDescriptor(RuleDescriptor rd, int j):
+            ruleDescriptor(rd), pos(j){}
+
+    };
+
+    template<typename Iterator>
+    int getNonterminalsNumber(Iterator first, Iterator last) const
+    {
+        int ans = 0;
+        for(;first != last; first++)
+        {
+            Symbol s = *first;
+            if(isNonterminal(s)) ans ++;
+        }
+        return ans;
+    }
+
+
+
+//
+//    // need improve
+//    Symbol ruleHeadAction(RuleDescriptor rd)
+//    {
+//        const RuleBody &body = ruleBody(rd);
+//        if(!body.empty() && isAction(body[0]))
+//        {
+//            return body[0];
+//        }
+//        else return EmptyStringSymbol;
+//    }
+//
+//
+//    // need improve
+//    Symbol ruleBodySymbolAction(RuleDescriptor rd, int j)
+//    {
+//        const RuleBody &body = ruleBody(rd);
+//        if(j + 1 < body.size() && isAction(body[j + 1]))
+//        {
+//            return body[j + 1];
+//        }
+//        else
+//        {
+//            return EmptyStringSymbol;
+//        }
+//    }
+
+
+    Symbol ruleHead(RuleDescriptor rd) const
+    {
+        return rd.A;
+    }
+    const RuleBody& ruleBody(RuleDescriptor rd) const
+    {
+        return (*this)[rd.A][rd.i];
+    }
+
+    // 假定每个非终结符都至少有一个RuleBody，否则程序将不会运行正确，有待改进
+    struct RuleIterator:IteratorFacade<RuleIterator, std::forward_iterator_tag, RuleDescriptor>
+    {
+        RuleDescriptor rd;
+        const Grammar* g;
+        RuleIterator():rd(RuleDescriptor()), g(nullptr)
+        {
+
+        }
+
+        RuleIterator(RuleDescriptor rd, const Grammar &g):
+            rd(rd), g(&g)
+        {
+
+        }
+
+
+        RuleIterator& operator++()
+        {
+            rd.i++;
+            if(rd.i == (*g)[rd.A].size())
+            {
+                rd.A ++;
+                rd.i = 0;
+            }
+            return *this;
+        }
+        RuleDescriptor operator*() const
+        {
+            return rd;
+        }
+
+        friend bool operator==(const RuleIterator& a, const RuleIterator &b)
+        {
+            return a.rd == b.rd && a.g == b.g;
+        }
+
+    };
+
+
+
+
+    std::pair<RuleIterator, RuleIterator> rules() const
+    {
+        return std::make_pair(
+            RuleIterator(RuleDescriptor(0, 0), *this),
+            RuleIterator(RuleDescriptor(size(), 0), *this));
+    }
+
+
 };
 
 
@@ -85,7 +218,7 @@ struct GrammarFactory
 {
     Grammar g;
     std::map<T, Symbol> terminalMap;
-    using ActionType = std::function<void(std::vector<P>)>;
+    using ActionType = std::function<void(std::vector<P>, P&)>;
     std::vector<ActionType> actions;
 
 
@@ -138,7 +271,7 @@ using UserRuleBody = std::vector<UserSymbol<T, P>>;
 template<typename T, typename P>
 struct UserNonterminal
 {
-    using ActionType = std::function<void(std::vector<P>)>;
+    using ActionType = std::function<void(std::vector<P>, P&)>;
 
     UserNonterminal(Symbol id = 0, ActionType func = ActionType(), GrammarFactory<T, P>* gf = nullptr):
         id(id), action(func), gf(gf)
@@ -154,12 +287,13 @@ struct UserNonterminal
     }
 
     Symbol id;
-    std::function<void(std::vector<P>)> action;
+    std::function<void(std::vector<P>, P&)> action;
     GrammarFactory<T, P>* gf;
 
     template<typename F>
     UserNonterminal& operator[](F f)
     {
+        std::cout << "CAO action" << std::endl;
         action = f;
         return *this;
     }
@@ -304,7 +438,11 @@ template<typename P2>
 RuleBody UserNonterminal<T, P>::calculateRuleBodyWithRuleHeadAction(UserRuleBody<T, P2> o)
 {
     RuleBody ans = convertToRuleBody(o, *gf);
-    if(action) ans.insert(ans.begin(), gf->getActionSymbol());
+    if(action)
+    {
+        ans.insert(ans.begin(), gf->getActionSymbol());
+        gf->actions.push_back(action);
+    }
     return ans;
 }
 
@@ -322,6 +460,7 @@ UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2
 template<typename T, typename P>
 UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(T o)
 {
+//    RuleBody rule
     gf->g[id].push_back({gf->getTerminalSymbol(o)});
     return *this;
 }
@@ -337,6 +476,14 @@ template<typename T, typename P>
 UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(EpsilonSymbol )
 {
     gf->g[id].push_back({});
+
+    if(action)
+    {
+        gf->g[id].back().push_back(gf->getActionSymbol());
+//        ans.insert(ans.begin(), gf->getActionSymbol());
+        gf->actions.push_back(action);
+    }
+
     return *this;
 }
 
@@ -446,6 +593,10 @@ struct SymbolForOutput
         else if(isEndTag(s))
         {
             os << "$";
+        }
+        else if(isEmptyString(s))
+        {
+            os <<"eps";
         }
         else
         {
