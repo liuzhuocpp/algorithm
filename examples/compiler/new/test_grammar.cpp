@@ -131,7 +131,6 @@ void testLL1Table()
     S = eps;
 
     S = 's' >> S;
-//    S = eps;
     A = 'a';
     B = 'b';
 
@@ -151,7 +150,7 @@ void testLL1Table()
              << " "
              << SymbolForOutput<char>{x.first.second, nonterminalNames, gf.calculateTerminalNames()}
              << ": " << " " ;
-//        cout << x.first.first << " " << x.first.second << ":" << endl;
+
         auto rule = x.second;
         auto head = gf.g.ruleHead(rule);
         auto body = gf.g.ruleBody(rule);
@@ -159,9 +158,6 @@ void testLL1Table()
 
     }
 
-
-
-//    cout
 
 }
 
@@ -178,7 +174,6 @@ void testParseLL1Grammar()
     auto all = gf.makeNonternimals<2>();
     auto S = std::get<0>(all);
     auto A = std::get<1>(all);
-//    auto B = std::get<2>(all);
     vector<string > nonterminalNames = {"S", "A", "B"};
 
     using P = int;
@@ -226,12 +221,9 @@ void testParseLL1Grammar()
     outVectorSet(followSets, nonterminalNames, gf.calculateTerminalNames());
 
     cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
-//    return ;
 
     auto table = constructLL1Table(gf.g);
 
-//
-//    return ;
 
     string text = "1+1+1+1+2";
     parseLL1Grammar<string::iterator, int>(text.begin(), text.end(), gf.terminalMap, gf.g, gf.actions, table);
