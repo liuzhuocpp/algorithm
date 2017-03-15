@@ -150,7 +150,7 @@ struct Grammar: std::vector<RuleBodyUnion>
     };
 
 
-    struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::forward_iterator_tag, RuleSymbolDescriptor>
+    struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, RuleSymbolDescriptor>
     {
         RuleSymbolDescriptor rsd;
         const Grammar* g;
@@ -162,7 +162,7 @@ struct Grammar: std::vector<RuleBodyUnion>
         RuleSymbolIterator& operator++()
         {
             rsd.id ++;
-            for(;rsd.id < (*g)[rsd.rule.head][rsd.rule.body].size();)
+            for(;rsd.id < (*g)[rsd.rule.head][rsd.rule.body].size(); rsd.id++)
             {
                 SymbolDescriptor s = (*g)[rsd.rule.head][rsd.rule.body][rsd.id];
                 if(g->isTerminal(s) || g->isNonterminal(s))
@@ -170,6 +170,20 @@ struct Grammar: std::vector<RuleBodyUnion>
             }
             return *this;
         }
+
+        RuleSymbolIterator& operator--()
+        {
+
+            rsd.id --;
+            for(;rsd.id >= 0; rsd.id--)
+            {
+                SymbolDescriptor s = (*g)[rsd.rule.head][rsd.rule.body][rsd.id];
+                if(g->isTerminal(s) || g->isNonterminal(s))
+                    break;
+            }
+            return *this;
+        }
+
 
         RuleSymbolDescriptor operator*() const { return rsd; }
 

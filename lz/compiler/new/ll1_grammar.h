@@ -189,8 +189,8 @@ void parseLL1Grammar(
                 int inheritActionId = -1;
                 if(rsd == Grammar::nullRuleSymbol())
                     inheritActionId = g.getActionId(rsd);
-
                 P sp;
+
                 if(inheritActionId != -1)
                 {
                     const RuleBody&ruleBody = g.ruleBody(rsd.rule);
@@ -210,6 +210,9 @@ void parseLL1Grammar(
                 RuleDescriptor nextRd = table.at(std::make_pair(s, input));
                 const RuleBody& nextRuleBody = g.ruleBody(nextRd);
 
+                using RuleSymbolIterator = Grammar::RuleSymbolIterator;
+                IteratorRange<RuleSymbolIterator> nextRule = g.ruleSymbols(nextRd);
+
 
                 SymbolDescriptor synthesizeAction = getRuleHeadAction(nextRd);
                 if(synthesizeAction != EmptyStringSymbol)
@@ -221,15 +224,14 @@ void parseLL1Grammar(
 
                 }
 
-//                for(auto it = nextRuleBody.end() - 1; it >= nextRuleBody.begin(); -- it)
-                for(int i = int(nextRuleBody.size()) - 1; i >= 0; -- i)
+
+
+                for(RuleSymbolIterator it = --nextRule.second; it != nextRule.first; -- it)
                 {
-                    auto s = nextRuleBody[i];
-                    if(!isAction(s))
-                    {
-                        symbolStack.push_back(RuleSymbolDescriptor(nextRd, i));
-                    }
+                    symbolStack.push_back(*it);
                 }
+
+
             }
             else
             {

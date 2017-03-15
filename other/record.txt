@@ -1,0 +1,5 @@
+// record sth
+
+
+
+// vector<int> a; a.begin() - 1 >= a.begin() !!!
