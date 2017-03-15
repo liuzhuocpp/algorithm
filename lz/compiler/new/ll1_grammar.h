@@ -91,49 +91,9 @@ void parseLL1Grammar(
     std::vector<RuleSymbolDescriptor > symbolStack;
     std::vector<P> propertyStack;
 
-
-//    symbolStack.push_back(RuleSymbolDescriptor(RuleDescriptor(-1, -1), -1)    );
     symbolStack.push_back( Grammar::nullRuleSymbol() );
 
     propertyStack.push_back(P());
-
-    auto getRuleHeadAction = [&](RuleDescriptor rd) ->SymbolDescriptor
-    {
-        const RuleBody& body = g.ruleBody(rd);
-        if(!body.empty() && isAction(body[0]))
-        {
-            return body[0];
-        }
-        else return EmptyStringSymbol;
-    };
-
-    auto getSymbol = [&](RuleSymbolDescriptor rsd) ->SymbolDescriptor
-    {
-        if(rsd.rule.head == -1) return startSymbol;
-        else
-        {
-            const RuleBody& body = g.ruleBody(rsd.rule);
-            return body[rsd.id];
-        }
-    };
-
-
-
-    auto getSymbolAction = [&](RuleSymbolDescriptor rsd) ->SymbolDescriptor
-    {
-        if(rsd.rule.head == -1) return EmptyStringSymbol;
-        else
-        {
-
-            const RuleBody& body = g.ruleBody(rsd.rule);
-            if(rsd.id + 1 < body.size() && isAction(body[rsd.id + 1]))
-            {
-                return body[rsd.id + 1];
-            }
-            else return EmptyStringSymbol;
-        }
-
-    };
 
 
     while(!symbolStack.empty())
@@ -142,14 +102,14 @@ void parseLL1Grammar(
         RuleSymbolDescriptor rsd = symbolStack.back();
         SymbolDescriptor s;
         if(rsd == Grammar::nullRuleSymbol()) s = startSymbol;
-        else s = getSymbol(rsd);
+        else s = g.symbol(rsd);
 
         SymbolDescriptor input = EndTagSymbol;
 
         if(first != last)
         input = translate.at(*first);
 
-        if(isTerminal(s))
+        if(g.isTerminal(s))
         {
             if(s == input)
             {
@@ -182,7 +142,7 @@ void parseLL1Grammar(
                 return ;
             }
         }
-        else if(isNonterminal(s))
+        else if(g.isNonterminal(s))
         {
             if(table.count(std::make_pair(s, input)))
             {
@@ -256,7 +216,7 @@ void parseLL1Grammar(
 
 
         }
-        else if(isAction(s))
+        else if(g.isAction(s))
         {
 
             IteratorRange<Grammar::RuleSymbolIterator> ruleSymbolsRange = g.ruleSymbols(g.rule(rsd));
