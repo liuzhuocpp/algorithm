@@ -214,31 +214,40 @@ struct Grammar: std::vector<RuleBodyUnion>
         return RuleSymbolDescriptor(RuleDescriptor(-1, -1), -1);
     }
 
+    int getActionId(RuleSymbolDescriptor rsd) const
+    {
+
+        rsd = getAction(rsd);
+        if(rsd == nullRuleSymbol()) return -1;
+        return symbol(rsd) - ActionSymbolBegin;
+    }
+
+
 
     // rsd 必须对应某个非终结符，否则返回结果未定义
     //返回结果是rsd 对应 symbol 对应的action的index 值，文法中的对每一个nonterminal的action赋予了唯一index，
     // 返回是[0, n)其中n是文法中的所有nonterminal的action的数量
 
-    int getActionId(RuleSymbolDescriptor rsd) const
+    RuleSymbolDescriptor getAction(RuleSymbolDescriptor rsd) const
     {
         const RuleBody& body =  (*this)[rsd.rule.head][rsd.rule.body];
-        SymbolDescriptor action = -1;
         if(rsd.id == -1)
         {
             if(!body.empty() && isAction(body[0]))
             {
-                action = body[0];
+                rsd.id ++;
+                return rsd;
             }
         }
         else
         {
             if(rsd.id + 1 < body.size() && isAction(body[rsd.id + 1]))
             {
-                action = body[rsd.id + 1];
+                rsd.id ++;
+                return rsd;
             }
         }
-        if(action != -1) action -= ActionSymbolBegin;
-        return action;
+        return nullRuleSymbol();
     }
 
     // s 必须是一个 terminal Symbol,返回结果是ternimal Symbol 的index 值，文法中的对每一个terminal赋予了唯一index，
@@ -267,6 +276,10 @@ struct Grammar: std::vector<RuleBodyUnion>
     {
         return s < ActionSymbolBegin;
     }
+    bool isAction(SymbolDescriptor s) const
+    {
+        return s >= ActionSymbolBegin && s < EmptyStringSymbol;
+    }
 
 
     bool isNonterminal(RuleSymbolDescriptor rsd) const
@@ -278,6 +291,13 @@ struct Grammar: std::vector<RuleBodyUnion>
     {
         return isTerminal(symbol(rsd));
     }
+
+    bool isAction(RuleSymbolDescriptor rsd)  const
+    {
+        return isAction(symbol(rsd));
+    }
+
+
 
 
     IteratorRange<RuleSymbolIterator> ruleSymbols(RuleDescriptor rd) const
@@ -303,6 +323,19 @@ struct Grammar: std::vector<RuleBodyUnion>
         }
         return ans;
     }
+
+//    template<typename Iterator>
+    int getNonterminalsNumber(RuleSymbolIterator first, RuleSymbolIterator last) const
+    {
+        int ans = 0;
+        for(;first != last; first++)
+        {
+            if(isNonterminal(*first)) ans ++;
+//            std::cout << "HH " <<std::endl;
+        }
+        return ans;
+    }
+
 
 
 

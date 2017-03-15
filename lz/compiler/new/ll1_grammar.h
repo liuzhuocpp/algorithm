@@ -193,29 +193,30 @@ void parseLL1Grammar(
 
                 if(inheritActionId != -1)
                 {
-                    const RuleBody&ruleBody = g.ruleBody(rsd.rule);
+                    RuleDescriptor rd = g.rule(rsd);
+                    IteratorRange<Grammar::RuleSymbolIterator> ruleSymbolsRange = g.ruleSymbols(rd);
 
                     int nonterminalsNumber =
-                        g.getNonterminalsNumber(ruleBody.begin(), ruleBody.begin() + rsd.id);
+                        g.getNonterminalsNumber(++ruleSymbolsRange.first, g.makeRuleSymbolIterator(rsd));
                     nonterminalsNumber ++;
                     std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
                     actions[inheritActionId](tmpStack, sp);
                 }
 
 
-                symbolStack.pop_back();
+                symbolStack.pop_back(); // 开始进行非终结符展开
 
                 // 加入综合属性
                 propertyStack.push_back(sp);
                 RuleDescriptor nextRd = table.at(std::make_pair(s, input));
-                const RuleBody& nextRuleBody = g.ruleBody(nextRd);
 
                 using RuleSymbolIterator = Grammar::RuleSymbolIterator;
                 IteratorRange<RuleSymbolIterator> nextRule = g.ruleSymbols(nextRd);
 
 
-                SymbolDescriptor synthesizeAction = getRuleHeadAction(nextRd);
-                if(synthesizeAction != EmptyStringSymbol)
+
+                int synthesizeActionId = g.getActionId(*g.ruleSymbols(nextRd).first);
+                if(synthesizeActionId != -1)
                 {
                     symbolStack.push_back(RuleSymbolDescriptor(nextRd, 0));
                 }
@@ -257,8 +258,18 @@ void parseLL1Grammar(
         }
         else if(isAction(s))
         {
+
+//            IteratorRange<Grammar::RuleSymbolIterator> ruleSymbolsRange = g.ruleSymbols(g.rule(rsd));
+
+
             const RuleBody& ruleBody = g.ruleBody(rsd.rule);
+
+
             int nonterminalsNumber = g.getNonterminalsNumber(ruleBody.begin(), ruleBody.end());
+
+//            int nonterminalsNumber = g.getNonterminalsNumber(++ruleSymbolsRange.first, ruleSymbolsRange.second);
+
+
             std::vector<P> tmpStack;
             while(nonterminalsNumber --)
             {
