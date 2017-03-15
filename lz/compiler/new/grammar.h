@@ -15,47 +15,51 @@ namespace lz {
 
 
 
-using Symbol = long;
+using SymbolDescriptor = long;
 
 
-constexpr Symbol TerminalSymbolBegin = std::numeric_limits<Symbol>::min();
-constexpr Symbol ActionSymbolBegin = std::numeric_limits<Symbol>::min() >> 1;
-constexpr Symbol EmptyStringSymbol = -2;
-constexpr Symbol EndTagSymbol = -1;
+constexpr SymbolDescriptor TerminalSymbolBegin = std::numeric_limits<SymbolDescriptor>::min();
+constexpr SymbolDescriptor ActionSymbolBegin = std::numeric_limits<SymbolDescriptor>::min() >> 1;
+constexpr SymbolDescriptor ActionSymbolEnd = -10;
+
+
+constexpr SymbolDescriptor NullSymbol = -3;
+constexpr SymbolDescriptor EmptyStringSymbol = -2;
+constexpr SymbolDescriptor EndTagSymbol = -1;
 //从TerminalSymbolBegin开始递增是终结符号范围
 
 
 
-bool isNonterminal(Symbol s)
+bool isNonterminal(SymbolDescriptor s)
 {
     return s >= 0;
 }
 
-bool isTerminal(Symbol s)
+bool isTerminal(SymbolDescriptor s)
 {
     return s < ActionSymbolBegin;
 }
-bool isAction(Symbol s)
+bool isAction(SymbolDescriptor s)
 {
     return s >= ActionSymbolBegin && s < EmptyStringSymbol;
 }
 
-bool isEmptyString(Symbol s)
+bool isEmptyString(SymbolDescriptor s)
 {
     return s == EmptyStringSymbol;
 }
 
 
 
-bool isEndTag(Symbol s)
+bool isEndTag(SymbolDescriptor s)
 {
     return s == EndTagSymbol;
 }
 
 
-struct RuleBody: std::vector<Symbol>
+struct RuleBody: std::vector<SymbolDescriptor>
 {
-    using std::vector<Symbol>::vector;
+    using std::vector<SymbolDescriptor>::vector;
 };
 
 struct RuleBodyUnion: std::vector<RuleBody>
@@ -70,15 +74,15 @@ struct Grammar: std::vector<RuleBodyUnion>
     struct RuleDescriptor
     {
         using RuleBodyIndexType = std::vector<RuleDescriptor>::difference_type;
-        Symbol A;
-        RuleBodyIndexType i;
+        SymbolDescriptor head;
+        RuleBodyIndexType body;
 
-        RuleDescriptor():A(Symbol()), i(RuleBodyIndexType()) {}
+        RuleDescriptor():head(SymbolDescriptor()), body(RuleBodyIndexType()) {}
 
-        RuleDescriptor(Symbol A, RuleBodyIndexType i):A(A), i(i) {}
+        RuleDescriptor(SymbolDescriptor A, RuleBodyIndexType i):head(A), body(i) {}
         friend bool operator== (RuleDescriptor a, RuleDescriptor b)
         {
-            return a.A == b.A && a.i == b.i;
+            return a.head == b.head && a.body == b.body;
         }
 
         friend bool operator!= (RuleDescriptor a, RuleDescriptor b)
@@ -86,68 +90,6 @@ struct Grammar: std::vector<RuleBodyUnion>
             return !(a == b);
         }
     };
-
-
-    struct RuleSymbolDescriptor
-    {
-        RuleDescriptor ruleDescriptor;
-        int pos;
-        RuleSymbolDescriptor(){}
-        RuleSymbolDescriptor(RuleDescriptor rd, int j):
-            ruleDescriptor(rd), pos(j){}
-
-    };
-
-    template<typename Iterator>
-    int getNonterminalsNumber(Iterator first, Iterator last) const
-    {
-        int ans = 0;
-        for(;first != last; first++)
-        {
-            Symbol s = *first;
-            if(isNonterminal(s)) ans ++;
-        }
-        return ans;
-    }
-
-
-
-//
-//    // need improve
-//    Symbol ruleHeadAction(RuleDescriptor rd)
-//    {
-//        const RuleBody &body = ruleBody(rd);
-//        if(!body.empty() && isAction(body[0]))
-//        {
-//            return body[0];
-//        }
-//        else return EmptyStringSymbol;
-//    }
-//
-//
-//    // need improve
-//    Symbol ruleBodySymbolAction(RuleDescriptor rd, int j)
-//    {
-//        const RuleBody &body = ruleBody(rd);
-//        if(j + 1 < body.size() && isAction(body[j + 1]))
-//        {
-//            return body[j + 1];
-//        }
-//        else
-//        {
-//            return EmptyStringSymbol;
-//        }
-//    }
-
-
-    Symbol ruleHead(RuleDescriptor rd) const
-    {
-        return rd.A;
-    }
-    const RuleBody& ruleBody(RuleDescriptor rd) const
-    {
-        return (*this)[rd.A][rd.i];
-    }
 
     // 假定每个非终结符都至少有一个RuleBody，否则程序将不会运行正确，有待改进
     struct RuleIterator:IteratorFacade<RuleIterator, std::forward_iterator_tag, RuleDescriptor>
@@ -165,14 +107,13 @@ struct Grammar: std::vector<RuleBodyUnion>
 
         }
 
-
         RuleIterator& operator++()
         {
-            rd.i++;
-            if(rd.i == (*g)[rd.A].size())
+            rd.body++;
+            if(rd.body == (*g)[rd.head].size())
             {
-                rd.A ++;
-                rd.i = 0;
+                rd.head ++;
+                rd.body = 0;
             }
             return *this;
         }
@@ -185,8 +126,156 @@ struct Grammar: std::vector<RuleBodyUnion>
         {
             return a.rd == b.rd && a.g == b.g;
         }
-
     };
+
+
+
+    struct RuleSymbolDescriptor
+    {
+        RuleDescriptor rule;
+        int id; // 当id== -1 表示代表此rule的head
+        RuleSymbolDescriptor(){}
+        RuleSymbolDescriptor(RuleDescriptor rd, int j):
+            rule(rd), id(j){}
+
+        friend bool operator== (RuleSymbolDescriptor a, RuleSymbolDescriptor b)
+        {
+            return a.rule == b.rule && a.id == b.id;
+        }
+
+        friend bool operator!= (RuleSymbolDescriptor a, RuleSymbolDescriptor b)
+        {
+            return !(a == b);
+        }
+    };
+
+
+    struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::forward_iterator_tag, RuleSymbolDescriptor>
+    {
+        RuleSymbolDescriptor rsd;
+        const Grammar* g;
+        RuleSymbolIterator():rsd(RuleSymbolDescriptor()), g(nullptr){}
+
+        RuleSymbolIterator(RuleSymbolDescriptor rd, const Grammar &g):
+            rsd(rd), g(&g){}
+
+        RuleSymbolIterator& operator++()
+        {
+            rsd.id ++;
+            for(;rsd.id < (*g)[rsd.rule.head][rsd.rule.body].size();)
+            {
+                SymbolDescriptor s = (*g)[rsd.rule.head][rsd.rule.body][rsd.id];
+                if(isTerminal(s) || isNonterminal(s))
+                    break;
+            }
+            return *this;
+        }
+
+        RuleSymbolDescriptor operator*() const { return rsd; }
+
+        friend bool operator==(const RuleSymbolIterator& a, const RuleSymbolIterator &b)
+        {
+            return a.rsd == b.rsd && a.g == b.g;
+        }
+    };
+
+
+    SymbolDescriptor symbol(RuleSymbolDescriptor rsd) const
+    {
+        if(rsd.id == -1) return rsd.rule.head;
+        else return (*this)[rsd.rule.head][rsd.rule.body][rsd.id];
+    }
+
+
+    // rsd 对应 symbol 必须是非终结符好，
+    //返回结果是rsd 对应 symbol 对应的action的index 值，文法中的对每一个nonterminal的action赋予了唯一index，
+    // 返回是[0, n)其中n是文法中的所有nonterminal的action的数量
+    //否则返回结果未定义
+    int getActionId(RuleSymbolDescriptor rsd)
+    {
+        const RuleBody& body =  (*this)[rsd.rule.head][rsd.rule.body];
+        SymbolDescriptor action = -1;
+        if(rsd.id == -1)
+        {
+            if(!body.empty() && isAction(body[0]))
+            {
+                action = body[0];
+            }
+        }
+        else
+        {
+            if(rsd.id + 1 < body.size() && isAction(body[rsd.id + 1]))
+            {
+                return action = body[rsd.id + 1];
+            }
+        }
+        if(action != -1) action -= ActionSymbolBegin;
+        return action;
+    }
+
+    // s 必须是一个 terminal Symbol,返回结果是ternimal Symbol 的index 值，文法中的对每一个terminal赋予了唯一index，
+    // 返回是[0, n)其中n是文法中的所有terminal的数量
+    //否则返回结果未定义
+    int getTerminalId(SymbolDescriptor s) const
+    {
+        return s - TerminalSymbolBegin;
+    }
+
+    // s 必须是一个 nonterminal Symbol,返回结果是nonternimal Symbol 的index 值，文法中的对每一个nonterminal赋予了唯一index，
+    // 返回是[0, n)其中n是文法中的所有nonterminal的数量
+    //否则返回结果未定义
+    int getNonterminalId(SymbolDescriptor sd) const
+    {
+        return sd;
+    }
+//    bool isTerminal(SymbolDescriptor s) const
+//    {
+//        return
+//    }
+
+//    bool isNonterminal(SymbolDescriptor s) const
+//    {
+//        return
+//    }
+
+
+    IteratorRange<RuleSymbolIterator> ruleSymbols(RuleDescriptor rd) const
+    {
+        return makeIteratorRange(
+                RuleSymbolIterator(RuleSymbolDescriptor(rd, -1), *this), // -1 表示head
+                RuleSymbolIterator(RuleSymbolDescriptor(rd, (*this)[rd.head][rd.body].size()), *this)
+                );
+    }
+
+
+
+
+
+    template<typename Iterator>
+    int getNonterminalsNumber(Iterator first, Iterator last) const
+    {
+        int ans = 0;
+        for(;first != last; first++)
+        {
+            SymbolDescriptor s = *first;
+            if(isNonterminal(s)) ans ++;
+        }
+        return ans;
+    }
+
+
+
+
+
+    SymbolDescriptor ruleHead(RuleDescriptor rd) const
+    {
+        return rd.head;
+    }
+    const RuleBody& ruleBody(RuleDescriptor rd) const
+    {
+        return (*this)[rd.head][rd.body];
+    }
+
 
 
 
@@ -217,19 +306,19 @@ template<typename T, typename P>
 struct GrammarFactory
 {
     Grammar g;
-    std::map<T, Symbol> terminalMap;
+    std::map<T, SymbolDescriptor> terminalMap;
     using ActionType = std::function<void(std::vector<P>, P&)>;
     std::vector<ActionType> actions;
 
 
-    Symbol getActionSymbol()
+    SymbolDescriptor getActionSymbol()
     {
         return actions.size() + ActionSymbolBegin;
     }
 
-    std::map<Symbol, T> calculateTerminalNames()
+    std::map<SymbolDescriptor, T> calculateTerminalNames()
     {
-        std::map<Symbol, T> ans;
+        std::map<SymbolDescriptor, T> ans;
         for(auto p: terminalMap)
         {
             ans[p.second] = p.first;
@@ -237,7 +326,7 @@ struct GrammarFactory
         return ans;
     }
 
-    Symbol getTerminalSymbol(T ch)
+    SymbolDescriptor getTerminalSymbol(T ch)
     {
         if(terminalMap.count(ch))
         {
@@ -245,7 +334,7 @@ struct GrammarFactory
         }
         else
         {
-            Symbol newId = TerminalSymbolBegin + terminalMap.size();
+            SymbolDescriptor newId = TerminalSymbolBegin + terminalMap.size();
             terminalMap[ch] = newId;
             return newId;
 
@@ -273,7 +362,7 @@ struct UserNonterminal
 {
     using ActionType = std::function<void(std::vector<P>, P&)>;
 
-    UserNonterminal(Symbol id = 0, ActionType func = ActionType(), GrammarFactory<T, P>* gf = nullptr):
+    UserNonterminal(SymbolDescriptor id = 0, ActionType func = ActionType(), GrammarFactory<T, P>* gf = nullptr):
         id(id), action(func), gf(gf)
     {
 
@@ -286,7 +375,7 @@ struct UserNonterminal
 
     }
 
-    Symbol id;
+    SymbolDescriptor id;
     std::function<void(std::vector<P>, P&)> action;
     GrammarFactory<T, P>* gf;
 
@@ -540,9 +629,9 @@ GrammarFactory<T, P>::makeNonternimals()
 template<typename T>
 struct SymbolForOutput
 {
-    const Symbol& symbol;
+    const SymbolDescriptor& symbol;
     const std::vector<std::string>& nonterminalNames;
-    std::map<Symbol, T> ternimalNames;
+    std::map<SymbolDescriptor, T> ternimalNames;
 
     int getNameLength() const
     {
@@ -566,7 +655,7 @@ struct SymbolForOutput
     friend std::basic_ostream<Char, Traits>&
         operator<<(std::basic_ostream<Char, Traits>& os, SymbolForOutput so)
     {
-        const Symbol& s = so.symbol;
+        const SymbolDescriptor& s = so.symbol;
 
 //        if(s.isEmptyString())
 //        {
@@ -614,7 +703,7 @@ struct RuleBodyForOutput
     const RuleBody &ruleBody;
 
     const std::vector<std::string>& nonterminalNames;
-    const std::map<Symbol, T>& ternimalNames;
+    const std::map<SymbolDescriptor, T>& ternimalNames;
 
 
     template <class Char, class Traits>
@@ -634,11 +723,11 @@ struct RuleBodyForOutput
 template<typename T>
 struct RuleForOutput
 {
-    Symbol ruleHead;
+    SymbolDescriptor ruleHead;
     const RuleBody &ruleBody;
 
     const std::vector<std::string>& nonterminalNames;
-    const std::map<Symbol, T>& ternimalNames;
+    const std::map<SymbolDescriptor, T>& ternimalNames;
 
     int leftTotalWidth = -1;
 
@@ -664,11 +753,11 @@ struct RuleForOutput
 template<typename T>
 struct RuleUnionForOutput
 {
-    const Symbol A;
+    const SymbolDescriptor A;
     const RuleBodyUnion& ru;
 //    const std::vector<std::string>& names;
     const std::vector<std::string>& nonterminalNames;
-    const std::map<Symbol, T>& ternimalNames;
+    const std::map<SymbolDescriptor, T>& ternimalNames;
 
 
     int  leftTotalWidth = -1; // 确定左边终结符号加上空格之后，总共的宽度
@@ -697,7 +786,7 @@ struct GrammerForOutput
     const Grammar& g;
 
     const std::vector<std::string>& nonterminalNames;
-    const std::map<Symbol, T>& ternimalNames;
+    const std::map<SymbolDescriptor, T>& ternimalNames;
 
     bool needLeftJustified = true;
 
@@ -707,12 +796,12 @@ struct GrammerForOutput
                const GrammerForOutput&  g)
     {
         int maxLength = 0;
-        for(Symbol i: irange(g.g.size()))
+        for(SymbolDescriptor i: irange(g.g.size()))
         {
             maxLength = std::max(maxLength, SymbolForOutput<T>{i, g.nonterminalNames, g.ternimalNames}.getNameLength());
         }
 
-        for(Symbol i: irange(g.g.size()))
+        for(SymbolDescriptor i: irange(g.g.size()))
         {
             os << RuleUnionForOutput<T>{i, g.g[i], g.nonterminalNames, g.ternimalNames,
                 g.needLeftJustified ? maxLength : -1};

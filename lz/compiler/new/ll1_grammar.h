@@ -14,12 +14,12 @@
 //#include <lz/new>
 namespace lz{
 
-using Table = std::map<std::pair<Symbol, Symbol>, Grammar::RuleDescriptor>;
+using Table = std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, Grammar::RuleDescriptor>;
 
 
 Table constructLL1Table(const Grammar& g)
 {
-    std::map<std::pair<Symbol, Symbol>, Grammar::RuleDescriptor> ans;
+    std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, Grammar::RuleDescriptor> ans;
 
     auto firstSets = calculateFirstSets(g);
     auto followSets = calculateFollowSets(g, firstSets);
@@ -77,11 +77,11 @@ template<typename InputIterator, typename P>
 void parseLL1Grammar(
     InputIterator first,
     InputIterator last,
-    const std::map<typename std::iterator_traits<InputIterator>::value_type, Symbol> &translate,
+    const std::map<typename std::iterator_traits<InputIterator>::value_type, SymbolDescriptor> &translate,
     const Grammar& g,
     const std::vector<std::function< void(std::vector<P>, P&) > >& actions,
     const Table &table,
-    Symbol startSymbol = 0)
+    SymbolDescriptor startSymbol = 0)
 {
 
     using RuleSymbolDescriptor = Grammar::RuleSymbolDescriptor;
@@ -95,7 +95,7 @@ void parseLL1Grammar(
 
     propertyStack.push_back(P());
 
-    auto getRuleHeadAction = [&](RuleDescriptor rd) ->Symbol
+    auto getRuleHeadAction = [&](RuleDescriptor rd) ->SymbolDescriptor
     {
         const RuleBody& body = g.ruleBody(rd);
         if(!body.empty() && isAction(body[0]))
@@ -105,26 +105,26 @@ void parseLL1Grammar(
         else return EmptyStringSymbol;
     };
 
-    auto getSymbol = [&](RuleSymbolDescriptor rsd) ->Symbol
+    auto getSymbol = [&](RuleSymbolDescriptor rsd) ->SymbolDescriptor
     {
-        if(rsd.ruleDescriptor.A == -1) return startSymbol;
+        if(rsd.rule.head == -1) return startSymbol;
         else
         {
-            const RuleBody& body = g.ruleBody(rsd.ruleDescriptor);
-            return body[rsd.pos];
+            const RuleBody& body = g.ruleBody(rsd.rule);
+            return body[rsd.id];
         }
     };
 
-    auto getSymbolAction = [&](RuleSymbolDescriptor rsd) ->Symbol
+    auto getSymbolAction = [&](RuleSymbolDescriptor rsd) ->SymbolDescriptor
     {
-        if(rsd.ruleDescriptor.A == -1) return EmptyStringSymbol;
+        if(rsd.rule.head == -1) return EmptyStringSymbol;
         else
         {
 
-            const RuleBody& body = g.ruleBody(rsd.ruleDescriptor);
-            if(rsd.pos + 1 < body.size() && isAction(body[rsd.pos + 1]))
+            const RuleBody& body = g.ruleBody(rsd.rule);
+            if(rsd.id + 1 < body.size() && isAction(body[rsd.id + 1]))
             {
-                return body[rsd.pos + 1];
+                return body[rsd.id + 1];
             }
             else return EmptyStringSymbol;
         }
@@ -136,10 +136,10 @@ void parseLL1Grammar(
     {
 
         RuleSymbolDescriptor rsd = symbolStack.back();
-        Symbol s;
+        SymbolDescriptor s;
         s = getSymbol(rsd);
 
-        Symbol terminal = EndTagSymbol;
+        SymbolDescriptor terminal = EndTagSymbol;
 
         if(first != last)
         terminal = translate.at(*first);
@@ -184,14 +184,14 @@ void parseLL1Grammar(
             if(table.count(std::make_pair(s, terminal)))
             {
 
-                Symbol inheritAction = getSymbolAction(rsd);
+                SymbolDescriptor inheritAction = getSymbolAction(rsd);
                 P sp;
                 if(isAction(inheritAction))
                 {
-                    const RuleBody&ruleBody = g.ruleBody(rsd.ruleDescriptor);
+                    const RuleBody&ruleBody = g.ruleBody(rsd.rule);
 
                     int nonterminalsNumber =
-                        g.getNonterminalsNumber(ruleBody.begin(), ruleBody.begin() + rsd.pos);
+                        g.getNonterminalsNumber(ruleBody.begin(), ruleBody.begin() + rsd.id);
                     nonterminalsNumber ++;
                     std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
                     actions[inheritAction - ActionSymbolBegin](tmpStack, sp);
@@ -206,7 +206,7 @@ void parseLL1Grammar(
                 const RuleBody& nextRuleBody = g.ruleBody(nextRd);
 
 
-                Symbol synthesizeAction = getRuleHeadAction(nextRd);
+                SymbolDescriptor synthesizeAction = getRuleHeadAction(nextRd);
                 if(synthesizeAction != EmptyStringSymbol)
                 {
                     symbolStack.push_back(RuleSymbolDescriptor(nextRd, 0));
@@ -250,7 +250,7 @@ void parseLL1Grammar(
         }
         else if(isAction(s))
         {
-            const RuleBody& ruleBody = g.ruleBody(rsd.ruleDescriptor);
+            const RuleBody& ruleBody = g.ruleBody(rsd.rule);
             int nonterminalsNumber = g.getNonterminalsNumber(ruleBody.begin(), ruleBody.end());
             std::vector<P> tmpStack;
             while(nonterminalsNumber --)

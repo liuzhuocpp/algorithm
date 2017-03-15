@@ -15,7 +15,7 @@ void outVectorSet(vector<Set > vectorSets, T1 nonterminalNames, T2 terminalNames
 
     for(Set vectorSet: vectorSets)
     {
-        for(Symbol s: vectorSet)
+        for(SymbolDescriptor s: vectorSet)
         {
             cout << SymbolForOutput<char>{s, nonterminalNames, terminalNames} << ' ';
         }
@@ -49,7 +49,7 @@ void testGrammar()
 
     for(Set firstSet: firstSets)
     {
-        for(Symbol s: firstSet)
+        for(SymbolDescriptor s: firstSet)
         {
             cout << SymbolForOutput<char>{s, nonterminalNames, gf.calculateTerminalNames()} << ' ';
         }
@@ -62,7 +62,7 @@ void testGrammar()
 
     for(Set followSet: followSets)
     {
-        for(Symbol s: followSet)
+        for(SymbolDescriptor s: followSet)
         {
             cout << SymbolForOutput<char>{s, nonterminalNames, gf.calculateTerminalNames()} << ' ';
         }

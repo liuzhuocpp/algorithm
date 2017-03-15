@@ -23,7 +23,7 @@ namespace lz {
 
 
 
-using Set = std::set<Symbol>;
+using Set = std::set<SymbolDescriptor>;
 
 
 Set calculateRuleBodyFirstSet(RuleBody::iterator ruleBodyBegin, RuleBody::iterator ruleBodyEnd,
@@ -93,7 +93,7 @@ Set calculateRuleBodyFirstSet(
 std::vector<Set> calculateFollowSets(
     const Grammar& g,
     const std::vector<Set>& firstSets,
-    Symbol startSymbol = 0)
+    SymbolDescriptor startSymbol = 0)
 {
     std::vector<Set> ans(g.size());
 
