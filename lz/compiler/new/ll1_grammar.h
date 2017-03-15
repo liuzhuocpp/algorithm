@@ -148,7 +148,7 @@ void parseLL1Grammar(
             {
                 int inheritActionId = -1;
                 if(rsd == Grammar::nullRuleSymbol())
-                    inheritActionId = g.getActionId(rsd);
+                    inheritActionId = g.calculateActionId(rsd);
                 P sp;
 
                 if(inheritActionId != -1)
@@ -175,7 +175,7 @@ void parseLL1Grammar(
 
 
 
-                int synthesizeActionId = g.getActionId(*g.ruleSymbols(nextRd).first);
+                int synthesizeActionId = g.calculateActionId(*g.ruleSymbols(nextRd).first);
                 if(synthesizeActionId != -1)
                 {
                     symbolStack.push_back(RuleSymbolDescriptor(nextRd, 0));
@@ -230,10 +230,10 @@ void parseLL1Grammar(
                 tmpStack.push_back(propertyStack.back());
                 propertyStack.pop_back();
             }
-            if(s - ActionSymbolBegin < actions.size())
-            {
-                actions[s - ActionSymbolBegin](tmpStack, propertyStack.back());
-            }
+
+
+            actions[g.getActionId(rsd)](tmpStack, propertyStack.back());
+
             symbolStack.pop_back();
 
         }

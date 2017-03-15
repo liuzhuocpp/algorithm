@@ -214,11 +214,18 @@ struct Grammar: std::vector<RuleBodyUnion>
         return RuleSymbolDescriptor(RuleDescriptor(-1, -1), -1);
     }
 
-    int getActionId(RuleSymbolDescriptor rsd) const
+    int calculateActionId(RuleSymbolDescriptor rsd) const
     {
 
-        rsd = getAction(rsd);
+        rsd = calulateAction(rsd);
         if(rsd == nullRuleSymbol()) return -1;
+        return symbol(rsd) - ActionSymbolBegin;
+    }
+
+
+    // rsd 必须指向一个action符号, 否则行为未定义
+    int getActionId(RuleSymbolDescriptor rsd) const
+    {
         return symbol(rsd) - ActionSymbolBegin;
     }
 
@@ -228,7 +235,7 @@ struct Grammar: std::vector<RuleBodyUnion>
     //返回结果是rsd 对应 symbol 对应的action的index 值，文法中的对每一个nonterminal的action赋予了唯一index，
     // 返回是[0, n)其中n是文法中的所有nonterminal的action的数量
 
-    RuleSymbolDescriptor getAction(RuleSymbolDescriptor rsd) const
+    RuleSymbolDescriptor calulateAction(RuleSymbolDescriptor rsd) const
     {
         const RuleBody& body =  (*this)[rsd.rule.head][rsd.rule.body];
         if(rsd.id == -1)
