@@ -207,37 +207,24 @@ void parseLL1Grammar(
 
 
                 Symbol synthesizeAction = getRuleHeadAction(nextRd);
-
-//                std::cout << "CO2222" << std::endl;
-
                 if(synthesizeAction != EmptyStringSymbol)
                 {
-//                    std::cout << "CO-----" << std::endl;
                     symbolStack.push_back(RuleSymbolDescriptor(nextRd, 0));
                 }
                 else // will be error
                 {
 
                 }
-//                std::cout << "CO233333" << std::endl;
+
 //                for(auto it = nextRuleBody.end() - 1; it >= nextRuleBody.begin(); -- it)
                 for(int i = int(nextRuleBody.size()) - 1; i >= 0; -- i)
                 {
-//                    std::cout << "***8888888888888" << std::endl;
-
-//                    std::cout << nextRuleBody.size() << "sucker " << std::endl;
-
                     auto s = nextRuleBody[i];
-//                    std::cout << "$$$$$" << std::endl;
                     if(!isAction(s))
                     {
-//                        std::cout << "66666%%%%%%" << std::endl;
                         symbolStack.push_back(RuleSymbolDescriptor(nextRd, i));
                     }
-//                    std::cout << "***9999999" << std::endl;
                 }
-//                std::cout << "CO-----" << std::endl;
-
             }
             else
             {
@@ -263,29 +250,21 @@ void parseLL1Grammar(
         }
         else if(isAction(s))
         {
-//            std::cout << "jjj '" << std::endl;;
             const RuleBody& ruleBody = g.ruleBody(rsd.ruleDescriptor);
-//            std::cout << "jjj '" << std::endl;;;
             int nonterminalsNumber = g.getNonterminalsNumber(ruleBody.begin(), ruleBody.end());
-//            std::cout << "jjj ---'" << std::endl;;
             std::vector<P> tmpStack;
             while(nonterminalsNumber --)
             {
                 tmpStack.push_back(propertyStack.back());
                 propertyStack.pop_back();
             }
-
-//            std::cout << "actions sizse: " << actions.size() << std::endl;
             if(s - ActionSymbolBegin < actions.size())
             {
-//                std::cout << "HH" << std::endl;;
                 actions[s - ActionSymbolBegin](tmpStack, propertyStack.back());
             }
             symbolStack.pop_back();
 
         }
-
-
 
     }
 
