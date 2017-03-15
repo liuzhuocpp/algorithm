@@ -259,15 +259,9 @@ void parseLL1Grammar(
         else if(isAction(s))
         {
 
-//            IteratorRange<Grammar::RuleSymbolIterator> ruleSymbolsRange = g.ruleSymbols(g.rule(rsd));
+            IteratorRange<Grammar::RuleSymbolIterator> ruleSymbolsRange = g.ruleSymbols(g.rule(rsd));
 
-
-            const RuleBody& ruleBody = g.ruleBody(rsd.rule);
-
-
-            int nonterminalsNumber = g.getNonterminalsNumber(ruleBody.begin(), ruleBody.end());
-
-//            int nonterminalsNumber = g.getNonterminalsNumber(++ruleSymbolsRange.first, ruleSymbolsRange.second);
+            int nonterminalsNumber = g.getNonterminalsNumber(++ruleSymbolsRange.first, ruleSymbolsRange.second);
 
 
             std::vector<P> tmpStack;
