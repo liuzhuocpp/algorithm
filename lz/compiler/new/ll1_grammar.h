@@ -139,14 +139,14 @@ void parseLL1Grammar(
         SymbolDescriptor s;
         s = getSymbol(rsd);
 
-        SymbolDescriptor terminal = EndTagSymbol;
+        SymbolDescriptor input = EndTagSymbol;
 
         if(first != last)
-        terminal = translate.at(*first);
+        input = translate.at(*first);
 
         if(isTerminal(s))
         {
-            if(s == terminal)
+            if(s == input)
             {
                 symbolStack.pop_back();
                 if(first == last)
@@ -158,8 +158,6 @@ void parseLL1Grammar(
                     std::cout << "match: " << *first << " " << std::endl;
                     ++ first;
                 }
-
-
             }
             else
             {
@@ -181,12 +179,11 @@ void parseLL1Grammar(
         }
         else if(isNonterminal(s))
         {
-            if(table.count(std::make_pair(s, terminal)))
+            if(table.count(std::make_pair(s, input)))
             {
-
-                SymbolDescriptor inheritAction = getSymbolAction(rsd);
+                int inheritActionId = g.getActionId(rsd);
                 P sp;
-                if(isAction(inheritAction))
+                if(inheritActionId != -1)
                 {
                     const RuleBody&ruleBody = g.ruleBody(rsd.rule);
 
@@ -194,7 +191,7 @@ void parseLL1Grammar(
                         g.getNonterminalsNumber(ruleBody.begin(), ruleBody.begin() + rsd.id);
                     nonterminalsNumber ++;
                     std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
-                    actions[inheritAction - ActionSymbolBegin](tmpStack, sp);
+                    actions[inheritActionId](tmpStack, sp);
                 }
 
 
@@ -202,7 +199,7 @@ void parseLL1Grammar(
 
                 // 加入综合属性
                 propertyStack.push_back(sp);
-                RuleDescriptor nextRd = table.at(std::make_pair(s, terminal));
+                RuleDescriptor nextRd = table.at(std::make_pair(s, input));
                 const RuleBody& nextRuleBody = g.ruleBody(nextRd);
 
 

@@ -179,6 +179,10 @@ struct Grammar: std::vector<RuleBodyUnion>
         }
     };
 
+    RuleDescriptor rule(RuleSymbolDescriptor rsd) const
+    {
+        return rsd.rule;
+    }
 
     SymbolDescriptor symbol(RuleSymbolDescriptor rsd) const
     {
@@ -187,11 +191,11 @@ struct Grammar: std::vector<RuleBodyUnion>
     }
 
 
-    // rsd 对应 symbol 必须是非终结符好，
+    // rsd 对应 symbol 必须是非终结符，
     //返回结果是rsd 对应 symbol 对应的action的index 值，文法中的对每一个nonterminal的action赋予了唯一index，
     // 返回是[0, n)其中n是文法中的所有nonterminal的action的数量
     //否则返回结果未定义
-    int getActionId(RuleSymbolDescriptor rsd)
+    int getActionId(RuleSymbolDescriptor rsd) const
     {
         const RuleBody& body =  (*this)[rsd.rule.head][rsd.rule.body];
         SymbolDescriptor action = -1;
@@ -206,7 +210,7 @@ struct Grammar: std::vector<RuleBodyUnion>
         {
             if(rsd.id + 1 < body.size() && isAction(body[rsd.id + 1]))
             {
-                return action = body[rsd.id + 1];
+                action = body[rsd.id + 1];
             }
         }
         if(action != -1) action -= ActionSymbolBegin;
@@ -228,6 +232,8 @@ struct Grammar: std::vector<RuleBodyUnion>
     {
         return sd;
     }
+
+
 //    bool isTerminal(SymbolDescriptor s) const
 //    {
 //        return
