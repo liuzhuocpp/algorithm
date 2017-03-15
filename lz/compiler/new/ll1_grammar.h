@@ -91,7 +91,9 @@ void parseLL1Grammar(
     std::vector<RuleSymbolDescriptor > symbolStack;
     std::vector<P> propertyStack;
 
-    symbolStack.push_back(RuleSymbolDescriptor(RuleDescriptor(-1, -1), -1)    );
+
+//    symbolStack.push_back(RuleSymbolDescriptor(RuleDescriptor(-1, -1), -1)    );
+    symbolStack.push_back( Grammar::nullRuleSymbol() );
 
     propertyStack.push_back(P());
 
@@ -115,6 +117,8 @@ void parseLL1Grammar(
         }
     };
 
+
+
     auto getSymbolAction = [&](RuleSymbolDescriptor rsd) ->SymbolDescriptor
     {
         if(rsd.rule.head == -1) return EmptyStringSymbol;
@@ -137,7 +141,8 @@ void parseLL1Grammar(
 
         RuleSymbolDescriptor rsd = symbolStack.back();
         SymbolDescriptor s;
-        s = getSymbol(rsd);
+        if(rsd == Grammar::nullRuleSymbol()) s = startSymbol;
+        else s = getSymbol(rsd);
 
         SymbolDescriptor input = EndTagSymbol;
 
@@ -181,7 +186,10 @@ void parseLL1Grammar(
         {
             if(table.count(std::make_pair(s, input)))
             {
-                int inheritActionId = g.getActionId(rsd);
+                int inheritActionId = -1;
+                if(rsd == Grammar::nullRuleSymbol())
+                    inheritActionId = g.getActionId(rsd);
+
                 P sp;
                 if(inheritActionId != -1)
                 {

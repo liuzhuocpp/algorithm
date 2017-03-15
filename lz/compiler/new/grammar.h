@@ -165,7 +165,7 @@ struct Grammar: std::vector<RuleBodyUnion>
             for(;rsd.id < (*g)[rsd.rule.head][rsd.rule.body].size();)
             {
                 SymbolDescriptor s = (*g)[rsd.rule.head][rsd.rule.body][rsd.id];
-                if(isTerminal(s) || isNonterminal(s))
+                if(g->isTerminal(s) || g->isNonterminal(s))
                     break;
             }
             return *this;
@@ -179,6 +179,11 @@ struct Grammar: std::vector<RuleBodyUnion>
         }
     };
 
+    RuleSymbolIterator makeRuleSymbolIterator(RuleSymbolDescriptor rsd) const
+    {
+        return RuleSymbolIterator(rsd, *this);
+    }
+
     RuleDescriptor rule(RuleSymbolDescriptor rsd) const
     {
         return rsd.rule;
@@ -190,11 +195,16 @@ struct Grammar: std::vector<RuleBodyUnion>
         else return (*this)[rsd.rule.head][rsd.rule.body][rsd.id];
     }
 
+    static RuleSymbolDescriptor nullRuleSymbol()
+    {
+        return RuleSymbolDescriptor(RuleDescriptor(-1, -1), -1);
+    }
 
-    // rsd 对应 symbol 必须是非终结符，
+
+    // rsd 必须对应某个非终结符，否则返回结果未定义
     //返回结果是rsd 对应 symbol 对应的action的index 值，文法中的对每一个nonterminal的action赋予了唯一index，
     // 返回是[0, n)其中n是文法中的所有nonterminal的action的数量
-    //否则返回结果未定义
+
     int getActionId(RuleSymbolDescriptor rsd) const
     {
         const RuleBody& body =  (*this)[rsd.rule.head][rsd.rule.body];
@@ -234,15 +244,26 @@ struct Grammar: std::vector<RuleBodyUnion>
     }
 
 
-//    bool isTerminal(SymbolDescriptor s) const
-//    {
-//        return
-//    }
+    bool isNonterminal(SymbolDescriptor s) const
+    {
+        return s >= 0;
+    }
 
-//    bool isNonterminal(SymbolDescriptor s) const
-//    {
-//        return
-//    }
+    bool isTerminal(SymbolDescriptor s) const
+    {
+        return s < ActionSymbolBegin;
+    }
+
+
+    bool isNonterminal(RuleSymbolDescriptor rsd) const
+    {
+        return isNonterminal(symbol(rsd));
+    }
+
+    bool isTerminal(RuleSymbolDescriptor rsd) const
+    {
+        return isTerminal(symbol(rsd));
+    }
 
 
     IteratorRange<RuleSymbolIterator> ruleSymbols(RuleDescriptor rd) const
@@ -292,6 +313,14 @@ struct Grammar: std::vector<RuleBodyUnion>
             RuleIterator(RuleDescriptor(0, 0), *this),
             RuleIterator(RuleDescriptor(size(), 0), *this));
     }
+
+    std::pair<RuleIterator, RuleIterator> rules(SymbolDescriptor s) const
+    {
+        return std::make_pair(
+            RuleIterator(RuleDescriptor(s, 0), *this),
+            RuleIterator(RuleDescriptor(s, (*this)[s].size()), *this));
+    }
+
 
 
 };
