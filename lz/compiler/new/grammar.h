@@ -510,23 +510,12 @@ template<typename T, typename P>
 struct UserSymbol
 {
     UserSymbol(UserNonterminal<T, P> nonterminal):
-        type(UserSymbolType::Nonterminal), nonterminal(nonterminal)
-    {
-
-    }
+        type(UserSymbolType::Nonterminal), nonterminal(nonterminal) {}
 
     UserSymbol(T terminal):
-        type(UserSymbolType::Terminal), terminal(terminal)
-    {
+        type(UserSymbolType::Terminal), terminal(terminal) { }
 
-    }
-
-    UserSymbol():
-        type(UserSymbolType::EmptyString)
-    {
-
-    }
-
+    UserSymbol(): type(UserSymbolType::EmptyString) { }
 
     UserSymbolType type;
     UserNonterminal<T, P> nonterminal = UserNonterminal<T, P>();
