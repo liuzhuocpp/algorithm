@@ -96,16 +96,10 @@ struct Grammar: std::vector<RuleBodyUnion>
     {
         RuleDescriptor rd;
         const Grammar* g;
-        RuleIterator():rd(RuleDescriptor()), g(nullptr)
-        {
-
-        }
+        RuleIterator():rd(RuleDescriptor()), g(nullptr) { }
 
         RuleIterator(RuleDescriptor rd, const Grammar &g):
-            rd(rd), g(&g)
-        {
-
-        }
+            rd(rd), g(&g) { }
 
         RuleIterator& operator++()
         {
@@ -400,10 +394,13 @@ struct GrammarFactory
     std::vector<ActionType> actions;
 
 
-    SymbolDescriptor getActionSymbol()
+
+    SymbolDescriptor getActionSymbolAndInsert(ActionType action)
     {
-        return actions.size() + ActionSymbolBegin;
+        actions.push_back(action);
+        return actions.size() + ActionSymbolBegin - 1;
     }
+
 
     std::map<SymbolDescriptor, T> calculateTerminalNames()
     {
@@ -415,7 +412,7 @@ struct GrammarFactory
         return ans;
     }
 
-    SymbolDescriptor getTerminalSymbol(T ch)
+    SymbolDescriptor getTerminalSymbolAndInsert(T ch)
     {
         if(terminalMap.count(ch))
         {
@@ -628,8 +625,7 @@ void UserNonterminal<T, P>::addRuleHeadAction()
     gf->g[id].push_back({});
     if(action)
     {
-        gf->g[id].back().push_back(gf->getActionSymbol());
-        gf->actions.push_back(action);
+        gf->g[id].back().push_back(gf->getActionSymbolAndInsert(action));
         action = nullptr;
     }
 }
@@ -665,15 +661,14 @@ UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2
             {
                 if(ch.nonterminal.action)
                 {
-                    gf->g[id].back().push_back(gf->getActionSymbol());
-                    gf->actions.push_back(ch.nonterminal.action);
+                    gf->g[id].back().push_back(gf->getActionSymbolAndInsert(action));
                 }
 
             }
         }
         else if(ch.type == UserSymbolType::Terminal)
         {
-            gf->g[id].back().push_back(gf->getTerminalSymbol(ch.terminal));
+            gf->g[id].back().push_back(gf->getTerminalSymbolAndInsert(ch.terminal));
         }
     }
 
@@ -687,7 +682,7 @@ template<typename T, typename P>
 UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(T o)
 {
     addRuleHeadAction();
-    gf->g[id].back().push_back({gf->getTerminalSymbol(o)});
+    gf->g[id].back().push_back({gf->getTerminalSymbolAndInsert(o)});
     return *this;
 }
 
