@@ -177,43 +177,41 @@ void testParseLL1Grammar()
     vector<string > nonterminalNames = {"S", "A", "B"};
 
     using P = int;
-    auto x = [](std::vector<P> v, P& ans)
-    {};
 
 
     S
-    [([](std::vector<P> v, P &ans) {
+    [([](const vector<P>& v, P &ans) {
         ans = v[0] + 1;
     })]
     = '1' >> A
 
-    [([](std::vector<P> v, P &ans) {
+    [([](const vector<P>& v, P &ans) {
 //             cout << "kkk" << endl;
          })]
      ;
 
 
     S
-    [([](std::vector<P> v, P &ans) {
+    [([](const vector<P>& v, P &ans) {
         ans = v[0] + 2;
     })]
     = '2' >> A;
 
 
     A
-    [([](std::vector<P> v, P &ans) {
+    [([](const vector<P>& v, P &ans) {
         ans = v[0];
     })]
     = '+' >> S;
 
 
     A
-    [([](std::vector<P> v, P &ans) {
+    [([](const vector<P>& v, P &ans) {
         ans = 0;
     })]
     = eps;
 
-    cout << "GF action size" << gf.actions.size() << endl;
+    cout << "GF action size: " << gf.actions.size() << endl;
 
     cout << GrammerForOutput<char>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
 
@@ -229,7 +227,7 @@ void testParseLL1Grammar()
     auto table = constructLL1Table(gf.g);
 
 
-    string text = "1+1+1+1+2";
+    string text = "1+1+1+2+1+2";
     parseLL1Grammar<string::iterator, int>(text.begin(), text.end(), gf.terminalMap, gf.g, gf.actions, table);
 
 

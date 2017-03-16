@@ -79,7 +79,7 @@ void parseLL1Grammar(
     InputIterator last,
     const std::map<typename std::iterator_traits<InputIterator>::value_type, SymbolDescriptor> &translate,
     const Grammar& g,
-    const std::vector<std::function< void(std::vector<P>, P&) > >& actions,
+    const std::vector<ActionType<P> >& actions,
     const Table &table,
     SymbolDescriptor startSymbol = 0)
 {

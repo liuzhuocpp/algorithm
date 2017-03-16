@@ -187,6 +187,8 @@ struct Grammar: std::vector<RuleBodyUnion>
         }
     };
 
+
+
     RuleSymbolIterator makeRuleSymbolIterator(RuleSymbolDescriptor rsd) const
     {
         return RuleSymbolIterator(rsd, *this);
@@ -386,7 +388,7 @@ struct UserNonterminal;
 
 
 template<typename P>
-using ActionType = std::function<void(std::vector<P>, P&)>;
+using ActionType = std::function<void(const std::vector<P>&, P&)>;
 
 template<typename T, typename P>
 struct GrammarFactory
