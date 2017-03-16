@@ -471,9 +471,14 @@ struct UserNonterminal
     template<typename F>
     UserNonterminal& operator[](F f)
     {
-        std::cout << "CAO action" << std::endl;
         action = f;
         return *this;
+    }
+
+    void addRuleHeadAction();
+    void cleanAction()
+    {
+        action = nullptr;
     }
 
     template<typename P2>
@@ -569,35 +574,43 @@ RuleBody convertToRuleBody(UserRuleBody<T, P> a, GrammarFactory<T, P2> & gf)
 
 
 template<typename T, typename P>
-auto operator>>(UserNonterminal<T, P> a, UserNonterminal<T, P> b)
+auto operator>>(UserNonterminal<T, P>& a, UserNonterminal<T, P>& b)
 {
-    return UserRuleBody<T, P>{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    UserRuleBody<T, P> ans{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    a.cleanAction();
+    b.cleanAction();
+    return ans;
 }
 
 template<typename T, typename P>
-auto operator>>(UserNonterminal<T, P> a, T b)
+auto operator>>(UserNonterminal<T, P>& a, T b)
 {
-    return UserRuleBody<T, P>{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    UserRuleBody<T, P> ans{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    a.cleanAction();
+    return ans;
 }
 
 template<typename T, typename P>
-auto operator>>(T a, UserNonterminal<T, P> b)
+auto operator>>(T a, UserNonterminal<T, P>& b)
 {
-    return UserRuleBody<T, P>{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    UserRuleBody<T, P>ans{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    b.cleanAction();
+    return ans;
 }
 
 
 template<typename T, typename P>
-auto operator>>(UserRuleBody<T, P> a, T b)
+auto operator>>(UserRuleBody<T, P>& a, T b)
 {
-    a.push_back(UserSymbol<T, P>(b) );
     return a;
 }
 
 template<typename T, typename P>
-auto operator>>(UserRuleBody<T, P> a, UserNonterminal<T, P> b)
+auto operator>>(UserRuleBody<T, P> a, UserNonterminal<T, P>& b)
 {
     a.push_back(UserSymbol<T, P>(b));
+    b.cleanAction();
+
     return a;
 }
 
@@ -609,7 +622,17 @@ auto operator>>(EpsilonSymbol, T b)
 }
 
 
-
+template<typename T, typename P>
+void UserNonterminal<T, P>::addRuleHeadAction()
+{
+    gf->g[id].push_back({});
+    if(action)
+    {
+        gf->g[id].back().push_back(gf->getActionSymbol());
+        gf->actions.push_back(action);
+        action = nullptr;
+    }
+}
 
 template<typename T, typename P>
 template<typename P2>
@@ -629,7 +652,32 @@ template<typename T, typename P>
 template<typename P2>
 UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2>& o)
 {
-    gf->g[id].push_back(calculateRuleBodyWithRuleHeadAction(o));
+    addRuleHeadAction();
+
+
+
+    for(UserSymbol<T, P> ch: o)
+    {
+        if(ch.type == UserSymbolType::Nonterminal)
+        {
+            gf->g[id].back().push_back(ch.nonterminal.id);
+            if constexpr(std::is_same<P, P2>::value)
+            {
+                if(ch.nonterminal.action)
+                {
+                    gf->g[id].back().push_back(gf->getActionSymbol());
+                    gf->actions.push_back(ch.nonterminal.action);
+                }
+
+            }
+        }
+        else if(ch.type == UserSymbolType::Terminal)
+        {
+            gf->g[id].back().push_back(gf->getTerminalSymbol(ch.terminal));
+        }
+    }
+
+
     return *this;
 }
 
@@ -638,30 +686,23 @@ UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2
 template<typename T, typename P>
 UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(T o)
 {
-//    RuleBody rule
-    gf->g[id].push_back({gf->getTerminalSymbol(o)});
+    addRuleHeadAction();
+    gf->g[id].back().push_back({gf->getTerminalSymbol(o)});
     return *this;
 }
 
 template<typename T, typename P>
 UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(UserNonterminal<T, P> o)
 {
-    gf->g[id].push_back({o.id});
+    addRuleHeadAction();
+    gf->g[id].back().push_back({o.id});
     return *this;
 }
 
 template<typename T, typename P>
 UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(EpsilonSymbol )
 {
-    gf->g[id].push_back({});
-
-    if(action)
-    {
-        gf->g[id].back().push_back(gf->getActionSymbol());
-//        ans.insert(ans.begin(), gf->getActionSymbol());
-        gf->actions.push_back(action);
-    }
-
+    addRuleHeadAction();
     return *this;
 }
 

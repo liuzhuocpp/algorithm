@@ -185,7 +185,12 @@ void testParseLL1Grammar()
     [([](std::vector<P> v, P &ans) {
         ans = v[0] + 1;
     })]
-     = '1' >> A;
+    = '1' >> A
+
+    [([](std::vector<P> v, P &ans) {
+             cout << "kkk" << endl;
+         })]
+     ;
 
 
     S
