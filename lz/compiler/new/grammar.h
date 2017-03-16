@@ -385,17 +385,20 @@ struct UserNonterminal;
 
 
 
+template<typename P>
+using ActionType = std::function<void(std::vector<P>, P&)>;
+
 template<typename T, typename P>
 struct GrammarFactory
 {
     Grammar g;
     std::map<T, SymbolDescriptor> terminalMap;
-    using ActionType = std::function<void(std::vector<P>, P&)>;
-    std::vector<ActionType> actions;
+//    using ActionType = std::function<void(std::vector<P>, P&)>;
+    std::vector<ActionType<P>> actions;
 
 
 
-    SymbolDescriptor getActionSymbolAndInsert(ActionType action)
+    SymbolDescriptor getActionSymbolAndInsert(ActionType<P> action)
     {
         actions.push_back(action);
         return actions.size() + ActionSymbolBegin - 1;
@@ -446,9 +449,14 @@ using UserRuleBody = std::vector<UserSymbol<T, P>>;
 template<typename T, typename P>
 struct UserNonterminal
 {
-    using ActionType = std::function<void(std::vector<P>, P&)>;
+//    using ActionType = typename GrammarFactory<T, P>::ActionType;
 
-    UserNonterminal(SymbolDescriptor id = 0, ActionType func = ActionType(), GrammarFactory<T, P>* gf = nullptr):
+    SymbolDescriptor id;
+    ActionType<P> action;
+    GrammarFactory<T, P>* gf;
+
+
+    UserNonterminal(SymbolDescriptor id = 0, ActionType<P> func = ActionType<P>(), GrammarFactory<T, P>* gf = nullptr):
         id(id), action(func), gf(gf)
     {
 
@@ -456,14 +464,11 @@ struct UserNonterminal
 
 
     UserNonterminal(const UserNonterminal<T, NoProperty>&other):
-        id(other.id), action(ActionType()), gf(nullptr)
+        id(other.id), action(ActionType<P>()), gf(nullptr)
     {
 
     }
 
-    SymbolDescriptor id;
-    std::function<void(std::vector<P>, P&)> action;
-    GrammarFactory<T, P>* gf;
 
     template<typename F>
     UserNonterminal& operator[](F f)
@@ -477,9 +482,6 @@ struct UserNonterminal
     {
         action = nullptr;
     }
-
-    template<typename P2>
-    RuleBody calculateRuleBodyWithRuleHeadAction(UserRuleBody<T, P2>);
 
 
     template<typename P2>
@@ -533,40 +535,6 @@ struct UserSymbol
 };
 
 
-
-
-//template<typename P1, typename P2>
-//using PropertiesType = std::conditional_t<std::is_same<P1, NoProperty>::value, P2, P1>;
-
-
-template<typename T, typename P, typename P2>
-RuleBody convertToRuleBody(UserRuleBody<T, P> a, GrammarFactory<T, P2> & gf)
-{
-    RuleBody ans;
-    for(UserSymbol<T, P> ch: a)
-    {
-        if(ch.type == UserSymbolType::Nonterminal)
-        {
-            ans.push_back(ch.nonterminal.id);
-
-            if constexpr(std::is_same<P, P2>::value)
-            {
-                if(ch.nonterminal.action)
-                {
-                    ans.push_back(ActionSymbolBegin + gf.actions.size());
-                    gf.actions.push_back(ch.nonterminal.action);
-
-                }
-
-            }
-        }
-        else if(ch.type == UserSymbolType::Terminal)
-        {
-            ans.push_back(gf.getTerminalSymbol(ch.terminal));
-        }
-    }
-    return ans;
-}
 
 
 
@@ -628,19 +596,6 @@ void UserNonterminal<T, P>::addRuleHeadAction()
         gf->g[id].back().push_back(gf->getActionSymbolAndInsert(action));
         action = nullptr;
     }
-}
-
-template<typename T, typename P>
-template<typename P2>
-RuleBody UserNonterminal<T, P>::calculateRuleBodyWithRuleHeadAction(UserRuleBody<T, P2> o)
-{
-    RuleBody ans = convertToRuleBody(o, *gf);
-    if(action)
-    {
-        ans.insert(ans.begin(), gf->getActionSymbol());
-        gf->actions.push_back(action);
-    }
-    return ans;
 }
 
 
