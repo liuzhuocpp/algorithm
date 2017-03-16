@@ -179,7 +179,10 @@ struct Grammar: std::vector<RuleBodyUnion>
         }
 
 
-        RuleSymbolDescriptor operator*() const { return rsd; }
+        RuleSymbolDescriptor operator*() const
+        {
+            return rsd;
+        }
 
         friend bool operator==(const RuleSymbolIterator& a, const RuleSymbolIterator &b)
         {
