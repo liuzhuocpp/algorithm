@@ -502,7 +502,6 @@ enum class UserSymbolType
 {
     Nonterminal,
     Terminal,
-    EmptyString,
 };
 
 
@@ -514,8 +513,6 @@ struct UserSymbol
 
     UserSymbol(T terminal):
         type(UserSymbolType::Terminal), terminal(terminal) { }
-
-    UserSymbol(): type(UserSymbolType::EmptyString) { }
 
     UserSymbolType type;
     UserNonterminal<T, P> nonterminal = UserNonterminal<T, P>();
@@ -554,7 +551,7 @@ auto operator>>(T a, UserNonterminal<T, P>& b)
 
 
 template<typename T, typename P>
-auto operator>>(UserRuleBody<T, P>& a, T b)
+auto operator>>(UserRuleBody<T, P> a, T b)
 {
     return a;
 }
@@ -605,7 +602,7 @@ UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2
             {
                 if(ch.nonterminal.action)
                 {
-                    gf->g[id].back().push_back(gf->getActionSymbolAndInsert(action));
+                    gf->g[id].back().push_back(gf->getActionSymbolAndInsert(ch.nonterminal.action));
                 }
 
             }

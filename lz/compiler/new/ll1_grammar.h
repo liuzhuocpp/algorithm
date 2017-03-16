@@ -147,7 +147,7 @@ void parseLL1Grammar(
             if(table.count(std::make_pair(s, input)))
             {
                 int inheritActionId = -1;
-                if(rsd == Grammar::nullRuleSymbol())
+                if(rsd != Grammar::nullRuleSymbol())
                     inheritActionId = g.calculateActionId(rsd);
                 P sp;
 
@@ -156,11 +156,13 @@ void parseLL1Grammar(
                     RuleDescriptor rd = g.rule(rsd);
                     IteratorRange<Grammar::RuleSymbolIterator> ruleSymbolsRange = g.ruleSymbols(rd);
 
+
                     int nonterminalsNumber =
                         g.getNonterminalsNumber(++ruleSymbolsRange.first, g.makeRuleSymbolIterator(rsd));
                     nonterminalsNumber ++;
                     std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
                     actions[inheritActionId](tmpStack, sp);
+
                 }
 
 

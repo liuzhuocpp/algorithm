@@ -188,7 +188,7 @@ void testParseLL1Grammar()
     = '1' >> A
 
     [([](std::vector<P> v, P &ans) {
-             cout << "kkk" << endl;
+//             cout << "kkk" << endl;
          })]
      ;
 
@@ -212,7 +212,6 @@ void testParseLL1Grammar()
         ans = 0;
     })]
     = eps;
-
 
     cout << "GF action size" << gf.actions.size() << endl;
 
