@@ -82,10 +82,11 @@ void testParseLL1Grammar()
 
     auto firstSets = calculateFirstSets(gf.g);
     auto followSets = calculateFollowSets(gf.g, firstSets);
+    cout << string(100, '-') << endl;
     outVectorSet(firstSets, nonterminalNames, gf.calculateTerminalNames());
     cout << string(100, '-') << endl;
     outVectorSet(followSets, nonterminalNames, gf.calculateTerminalNames());
-
+    cout << string(100, '-') << endl;
     cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
 
     auto table = constructLL1Table(gf.g);

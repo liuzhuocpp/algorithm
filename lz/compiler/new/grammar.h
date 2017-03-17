@@ -13,67 +13,28 @@
 
 namespace lz {
 
-
-//using SymbolDescriptor = long;
-//
-//
-//constexpr SymbolDescriptor TerminalSymbolBegin = std::numeric_limits<SymbolDescriptor>::min();
-//constexpr SymbolDescriptor ActionSymbolBegin = std::numeric_limits<SymbolDescriptor>::min() >> 1;
-//constexpr SymbolDescriptor ActionSymbolEnd = -10;
-//
-//
-//constexpr SymbolDescriptor NullSymbol = -3;
-//constexpr SymbolDescriptor EmptyStringSymbol = -2;
-//constexpr SymbolDescriptor EndTagSymbol = -1;
-////从TerminalSymbolBegin开始递增是终结符号范围
-//
-//
-//
-//bool isNonterminal(SymbolDescriptor s)
+//struct RuleBody: std::vector<SymbolDescriptor>
 //{
-//    return s >= 0;
-//}
+//    using std::vector<SymbolDescriptor>::vector;
+//};
 //
-//bool isTerminal(SymbolDescriptor s)
+//struct RuleBodyUnion: std::vector<RuleBody>
 //{
-//    return s < ActionSymbolBegin;
-//}
-//bool isAction(SymbolDescriptor s)
-//{
-//    return s >= ActionSymbolBegin && s < EmptyStringSymbol;
-//}
-//
-//bool isEmptyString(SymbolDescriptor s)
-//{
-//    return s == EmptyStringSymbol;
-//}
-//
-//
-//
-//bool isEndTag(SymbolDescriptor s)
-//{
-//    return s == EndTagSymbol;
-//}
-
-
-struct RuleBody: std::vector<SymbolDescriptor>
-{
-    using std::vector<SymbolDescriptor>::vector;
-};
-
-struct RuleBodyUnion: std::vector<RuleBody>
-{
-    using std::vector<RuleBody>::vector;
-};
+//    using std::vector<RuleBody>::vector;
+//};
 
 
 template<typename P>
 using ActionType = std::function<void(const std::vector<P>&, P&)>;
 
 template<typename P>
-struct Grammar: std::vector<RuleBodyUnion>
+struct Grammar: std::vector<std::vector<std::vector<SymbolDescriptor>>>
 {
-    using std::vector<RuleBodyUnion>::vector;
+private:
+    using RuleBody = std::vector<SymbolDescriptor>;
+    using RuleBodyUnion = std::vector<RuleBody>;
+public:
+    using  std::vector<std::vector<std::vector<SymbolDescriptor>>>::vector;
 
     using NonterminalProperties = P;
     std::vector<ActionType<P>> actions;
@@ -299,7 +260,6 @@ struct GrammarFactory
         g.actions.push_back(action);
         return g.actions.size() + ActionSymbolBegin - 1;
     }
-
 
     std::map<SymbolDescriptor, T> calculateTerminalNames()
     {
@@ -604,11 +564,6 @@ struct SymbolForOutput
     {
         const SymbolDescriptor& s = so.symbol;
 
-//        if(s.isEmptyString())
-//        {
-//            os << "#"  ; // 暂时用#号代替空字符串字符
-//        }
-//        else
         if(isTerminal(s))
         {
             os << (so.ternimalNames)[s];
@@ -644,22 +599,21 @@ struct SymbolForOutput
 
 };
 
-template<typename T>
-struct RuleBodyForOutput
+template<typename Iterator, typename T>
+struct SymbolRangeForOutput
 {
-    const RuleBody &ruleBody;
-
+    Iterator first, last;
     const std::vector<std::string>& nonterminalNames;
     const std::map<SymbolDescriptor, T>& ternimalNames;
 
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
-        operator<<(std::basic_ostream<Char, Traits>& os, const RuleBodyForOutput& r)
+        operator<<(std::basic_ostream<Char, Traits>& os, const SymbolRangeForOutput& sr)
     {
-        for(auto s: r.ruleBody)
+        for(auto s: makeIteratorRange(sr.first, sr.last))
         {
-            os << SymbolForOutput<T>{s, r.nonterminalNames, r.ternimalNames};
+            os << SymbolForOutput<T>{s, sr.nonterminalNames, sr.ternimalNames};
             os << " " ;
         }
         return os;
@@ -667,11 +621,11 @@ struct RuleBodyForOutput
 
 };
 
-template<typename T>
+template<typename Iterator, typename T>
 struct RuleForOutput
 {
-    SymbolDescriptor ruleHead;
-    const RuleBody &ruleBody;
+
+    Iterator first, last;
 
     const std::vector<std::string>& nonterminalNames;
     const std::map<SymbolDescriptor, T>& ternimalNames;
@@ -683,13 +637,15 @@ struct RuleForOutput
         operator<<(std::basic_ostream<Char, Traits>& os, const RuleForOutput& ro)
     {
 
-        SymbolForOutput<T> head {ro.ruleHead, ro.nonterminalNames, ro.ternimalNames};
+        SymbolForOutput<T> head {*ro.first, ro.nonterminalNames, ro.ternimalNames};
         os << head;
         if(ro.leftTotalWidth != -1)
         {
             os << std::string(std::max(ro.leftTotalWidth - head.getNameLength(), 0), ' ');
         }
-        os << "->" << RuleBodyForOutput<T>{ro.ruleBody, ro.nonterminalNames, ro.ternimalNames};
+        auto nextFirst = ro.first;
+
+        os << "->" << SymbolRangeForOutput<Iterator, T>{++nextFirst, ro.last, ro.nonterminalNames, ro.ternimalNames };
 
         return os;
     }
@@ -697,34 +653,33 @@ struct RuleForOutput
 };
 
 
-template<typename T>
-struct RuleUnionForOutput
-{
-    const SymbolDescriptor A;
-    const RuleBodyUnion& ru;
-//    const std::vector<std::string>& names;
-    const std::vector<std::string>& nonterminalNames;
-    const std::map<SymbolDescriptor, T>& ternimalNames;
-
-
-    int  leftTotalWidth = -1; // 确定左边终结符号加上空格之后，总共的宽度
-
-    template <class Char, class Traits>
-    friend std::basic_ostream<Char, Traits>&
-    operator<<(std::basic_ostream<Char, Traits>& os,
-               const RuleUnionForOutput&  ruo)
-    {
-
-        for(auto i: irange(ruo.ru.size()))
-        {
-            os << RuleForOutput<T>{ruo.A, ruo.ru[i], ruo.nonterminalNames,ruo.ternimalNames,  ruo.leftTotalWidth} << "\n";
-        }
-
-        return os;
-    }
-
-};
-
+//template<typename Iterator, typename T>
+//struct RuleRangeForOutput
+//{
+//    Iterator first, last;
+//
+//    const std::vector<std::string>& nonterminalNames;
+//    const std::map<SymbolDescriptor, T>& ternimalNames;
+//
+//
+//    int  leftTotalWidth = -1; // 确定左边终结符号加上空格之后，总共的宽度
+//
+//    template <class Char, class Traits>
+//    friend std::basic_ostream<Char, Traits>&
+//    operator<<(std::basic_ostream<Char, Traits>& os,
+//               const RuleUnionForOutput&  ruo)
+//    {
+//
+//        for(auto i: irange(ruo.ru.size()))
+//        {
+//            os << RuleForOutput<T>{ruo.A, ruo.ru[i], ruo.nonterminalNames,ruo.ternimalNames,  ruo.leftTotalWidth} << "\n";
+//        }
+//
+//        return os;
+//    }
+//
+//};
+//
 
 
 template<typename T, typename Grammar>
@@ -743,15 +698,21 @@ struct GrammerForOutput
                const GrammerForOutput&  g)
     {
         int maxLength = 0;
-        for(SymbolDescriptor i: irange(g.g.size()))
+
+
+        for(auto rd: g.g.rules())
         {
-            maxLength = std::max(maxLength, SymbolForOutput<T>{i, g.nonterminalNames, g.ternimalNames}.getNameLength());
+            maxLength = std::max(maxLength, SymbolForOutput<T>{*g.g.ruleSymbols(rd).first,
+                g.nonterminalNames, g.ternimalNames}.getNameLength());
         }
 
-        for(SymbolDescriptor i: irange(g.g.size()))
+        for(auto rd: g.g.rules())
         {
-            os << RuleUnionForOutput<T>{i, g.g[i], g.nonterminalNames, g.ternimalNames,
+            auto ruleRange = g.g.ruleSymbols(rd);
+
+            os << RuleForOutput<decltype(ruleRange.first), T>{ruleRange.first, ruleRange.second, g.nonterminalNames, g.ternimalNames,
                 g.needLeftJustified ? maxLength : -1};
+            os << "\n";
         }
 
 
