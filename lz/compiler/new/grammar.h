@@ -9,52 +9,51 @@
 #define LZ_COMPILER_NEW_GRAMMAR_H_
 
 #include <lz/iterator.h>
+#include <lz/compiler/new/symbol.h>
 
 namespace lz {
 
 
-
-
-using SymbolDescriptor = long;
-
-
-constexpr SymbolDescriptor TerminalSymbolBegin = std::numeric_limits<SymbolDescriptor>::min();
-constexpr SymbolDescriptor ActionSymbolBegin = std::numeric_limits<SymbolDescriptor>::min() >> 1;
-constexpr SymbolDescriptor ActionSymbolEnd = -10;
-
-
-constexpr SymbolDescriptor NullSymbol = -3;
-constexpr SymbolDescriptor EmptyStringSymbol = -2;
-constexpr SymbolDescriptor EndTagSymbol = -1;
-//从TerminalSymbolBegin开始递增是终结符号范围
-
-
-
-bool isNonterminal(SymbolDescriptor s)
-{
-    return s >= 0;
-}
-
-bool isTerminal(SymbolDescriptor s)
-{
-    return s < ActionSymbolBegin;
-}
-bool isAction(SymbolDescriptor s)
-{
-    return s >= ActionSymbolBegin && s < EmptyStringSymbol;
-}
-
-bool isEmptyString(SymbolDescriptor s)
-{
-    return s == EmptyStringSymbol;
-}
-
-
-
-bool isEndTag(SymbolDescriptor s)
-{
-    return s == EndTagSymbol;
-}
+//using SymbolDescriptor = long;
+//
+//
+//constexpr SymbolDescriptor TerminalSymbolBegin = std::numeric_limits<SymbolDescriptor>::min();
+//constexpr SymbolDescriptor ActionSymbolBegin = std::numeric_limits<SymbolDescriptor>::min() >> 1;
+//constexpr SymbolDescriptor ActionSymbolEnd = -10;
+//
+//
+//constexpr SymbolDescriptor NullSymbol = -3;
+//constexpr SymbolDescriptor EmptyStringSymbol = -2;
+//constexpr SymbolDescriptor EndTagSymbol = -1;
+////从TerminalSymbolBegin开始递增是终结符号范围
+//
+//
+//
+//bool isNonterminal(SymbolDescriptor s)
+//{
+//    return s >= 0;
+//}
+//
+//bool isTerminal(SymbolDescriptor s)
+//{
+//    return s < ActionSymbolBegin;
+//}
+//bool isAction(SymbolDescriptor s)
+//{
+//    return s >= ActionSymbolBegin && s < EmptyStringSymbol;
+//}
+//
+//bool isEmptyString(SymbolDescriptor s)
+//{
+//    return s == EmptyStringSymbol;
+//}
+//
+//
+//
+//bool isEndTag(SymbolDescriptor s)
+//{
+//    return s == EndTagSymbol;
+//}
 
 
 struct RuleBody: std::vector<SymbolDescriptor>
