@@ -18,18 +18,15 @@
 namespace lz {
 
 
-
-
-
-
-
 using Set = std::set<SymbolDescriptor>;
+
 
 
 Set calculateRuleBodyFirstSet(RuleBody::iterator ruleBodyBegin, RuleBody::iterator ruleBodyEnd,
     const std::vector<Set>& nonterminalsFirstSet);
 
 
+template<typename Grammar>
 std::vector<Set> calculateFirstSets(const Grammar& g)
 {
     std::vector<Set> ans(g.size());
@@ -89,7 +86,7 @@ Set calculateRuleBodyFirstSet(
 
 }
 
-
+template<typename Grammar>
 std::vector<Set> calculateFollowSets(
     const Grammar& g,
     const std::vector<Set>& firstSets,

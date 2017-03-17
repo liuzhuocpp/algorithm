@@ -14,12 +14,12 @@
 //#include <lz/new>
 namespace lz{
 
-using Table = std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, Grammar::RuleDescriptor>;
+//using Table = std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, Grammar::RuleDescriptor>;
 
-
-Table constructLL1Table(const Grammar& g)
+template<typename Grammar>
+auto constructLL1Table(const Grammar& g)
 {
-    std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, Grammar::RuleDescriptor> ans;
+    std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, typename Grammar::RuleDescriptor> ans;
 
     auto firstSets = calculateFirstSets(g);
     auto followSets = calculateFollowSets(g, firstSets);
@@ -39,14 +39,12 @@ Table constructLL1Table(const Grammar& g)
 
         for(auto firstS: calculateRuleBodyFirstSet(body.begin(), body.end(), firstSets))
         {
-//            std::cout << "firstS: " << firstS << " " ;
             if(isEmptyString(firstS))
             {
                 for(auto followS: followSets[head])
                 {
                     if(!addPair(std::make_pair(head, followS), rule))
                     {
-//                        std::cout << "SB" << std::endl;
                         ans.clear();
                         return ans;
                     }
@@ -61,31 +59,31 @@ Table constructLL1Table(const Grammar& g)
                 }
             }
         }
-//        std::cout << "----****" << std::endl;
     }
 
     return ans;
 }
 
+template<typename Grammar>
 bool isLL1Grammar(const Grammar &g)
 {
     return !constructLL1Table(g).empty();
 }
 
 
-template<typename InputIterator, typename P>
+template<typename InputIterator, typename Grammar, typename P>
 void parseLL1Grammar(
     InputIterator first,
     InputIterator last,
     const std::map<typename std::iterator_traits<InputIterator>::value_type, SymbolDescriptor> &translate,
     const Grammar& g,
     const std::vector<ActionType<P> >& actions,
-    const Table &table,
+    const std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, typename Grammar::RuleDescriptor> &table,
     SymbolDescriptor startSymbol = 0)
 {
 
-    using RuleDescriptor = Grammar::RuleDescriptor;
-    using RuleSymbolIterator = Grammar::RuleSymbolIterator;
+    using RuleDescriptor = typename Grammar::RuleDescriptor;
+    using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
 
     std::vector<std::tuple<SymbolDescriptor, int, SymbolDescriptor> > symbolStack;
     std::vector<P> propertyStack;

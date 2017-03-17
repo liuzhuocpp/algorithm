@@ -67,13 +67,18 @@ struct RuleBodyUnion: std::vector<RuleBody>
     using std::vector<RuleBody>::vector;
 };
 
+
+template<typename P>
+using ActionType = std::function<void(const std::vector<P>&, P&)>;
+
+template<typename P>
 struct Grammar: std::vector<RuleBodyUnion>
 {
     using std::vector<RuleBodyUnion>::vector;
 
     struct RuleDescriptor
     {
-        using RuleBodyIndexType = std::vector<RuleDescriptor>::difference_type;
+        using RuleBodyIndexType = typename std::vector<RuleDescriptor>::difference_type;
         SymbolDescriptor head;
         RuleBodyIndexType body;
 
@@ -324,13 +329,11 @@ struct UserNonterminal;
 
 
 
-template<typename P>
-using ActionType = std::function<void(const std::vector<P>&, P&)>;
 
 template<typename T, typename P>
 struct GrammarFactory
 {
-    Grammar g;
+    Grammar<P> g;
     std::map<T, SymbolDescriptor> terminalMap;
 //    using ActionType = std::function<void(std::vector<P>, P&)>;
     std::vector<ActionType<P>> actions;
@@ -785,7 +788,7 @@ struct RuleUnionForOutput
 
 
 
-template<typename T>
+template<typename T, typename Grammar>
 struct GrammerForOutput
 {
     const Grammar& g;

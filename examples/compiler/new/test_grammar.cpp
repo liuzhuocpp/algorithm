@@ -70,7 +70,7 @@ void testGrammar()
     }
 
 
-    cout << GrammerForOutput<char>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
+    cout << GrammerForOutput<char, decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
 
 
     for(auto o: gf.actions)
@@ -213,7 +213,7 @@ void testParseLL1Grammar()
 
     cout << "GF action size: " << gf.actions.size() << endl;
 
-    cout << GrammerForOutput<char>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
+    cout << GrammerForOutput<char,decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
 
 
     auto firstSets = calculateFirstSets(gf.g);
@@ -228,7 +228,7 @@ void testParseLL1Grammar()
 
 
     string text = "1+2+2+1+1+1";
-    parseLL1Grammar<string::iterator, int>(text.begin(), text.end(), gf.terminalMap, gf.g, gf.actions, table);
+    parseLL1Grammar<string::iterator, Grammar<int>, int>(text.begin(), text.end(), gf.terminalMap, gf.g, gf.actions, table);
 
 
 }
