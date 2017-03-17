@@ -171,7 +171,9 @@ parseLL1Grammar(
             {
                 if(first != last)
                 {
-                    std::cout << "error: stack top symbol is nonterminal, input character is  " << *first << std::endl;
+                    std::cout << "error: stack top symbol is nonterminal: "
+                            << s
+                            << ", input character is  " << *first << std::endl;
                 }
                 else
                 {

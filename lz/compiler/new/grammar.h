@@ -393,6 +393,7 @@ auto operator>>(T a, NonterminalProxy<T, P>& b)
 template<typename T, typename P>
 auto operator>>(Detail::UserRuleBody<T, P> a, T b)
 {
+    a.push_back(Detail::UserSymbol<T, P>(b));
     return a;
 }
 
