@@ -234,19 +234,10 @@ public:
 
 };
 
-
-
-
-//struct NoProperty{};
-
 struct EpsilonSymbol {} eps;
-
-
 
 template<typename T, typename P>
 struct NonterminalProxy;
-
-
 
 
 template<typename T, typename P>
