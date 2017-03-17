@@ -250,9 +250,11 @@ struct Grammar: std::vector<RuleBodyUnion>
 
     IteratorRange<RuleSymbolIterator> ruleSymbols(RuleDescriptor rd) const
     {
+
+        const RuleBody& body = (*this)[rd.head][rd.body];
         return makeIteratorRange(
-                RuleSymbolIterator(rd.head, (*this)[rd.head][rd.body], -1), // -1 表示head
-                RuleSymbolIterator(rd.head, (*this)[rd.head][rd.body], ((*this)[rd.head][rd.body]).size())
+                RuleSymbolIterator(rd.head, body, -1), // -1 表示head
+                RuleSymbolIterator(rd.head, body, body.size())
                 );
     }
 
