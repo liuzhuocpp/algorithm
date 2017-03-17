@@ -21,8 +21,8 @@ namespace lz {
 using Set = std::set<SymbolDescriptor>;
 
 
-
-Set calculateRuleBodyFirstSet(RuleBody::iterator ruleBodyBegin, RuleBody::iterator ruleBodyEnd,
+template<typename InputIterator>
+Set calculateRuleBodyFirstSet(InputIterator ruleBodyBegin, InputIterator ruleBodyEnd,
     const std::vector<Set>& nonterminalsFirstSet);
 
 
@@ -33,15 +33,14 @@ std::vector<Set> calculateFirstSets(const Grammar& g)
     while(true)
     {
         bool hasNew = 0;
-        for(auto A: lz::irange(g.size()) )
+        for(auto rd: g.rules())
         {
-            for(auto ruleBody: g[A])
-            {
-                auto ruleBodyFirstSet = calculateRuleBodyFirstSet(ruleBody.begin(), ruleBody.end(), ans);
-                auto oldSize = ans[A].size();
-                ans[A].insert(ruleBodyFirstSet.begin(), ruleBodyFirstSet.end());
-                if(ans[A].size() > oldSize) hasNew = 1;
-            }
+            auto ruleSymbolRange = g.ruleSymbols(rd);
+            auto head = *ruleSymbolRange.first;
+            auto ruleBodyFirstSet = calculateRuleBodyFirstSet(++ruleSymbolRange.first, ruleSymbolRange.second, ans);
+            auto oldSize = ans[head].size();
+            ans[head].insert(ruleBodyFirstSet.begin(), ruleBodyFirstSet.end());
+            if(ans[head].size() > oldSize) hasNew = 1;
         }
         if(!hasNew) break;
     }
@@ -49,9 +48,10 @@ std::vector<Set> calculateFirstSets(const Grammar& g)
     return ans;
 }
 
+template<typename Iterator>
 Set calculateRuleBodyFirstSet(
-    RuleBody::iterator ruleBodyBegin,
-    RuleBody::iterator ruleBodyEnd,
+    Iterator ruleBodyBegin,
+    Iterator ruleBodyEnd,
     const std::vector<Set>& firstSets)
 {
     Set ans;
@@ -100,28 +100,31 @@ std::vector<Set> calculateFollowSets(
     {
         bool hasNew = 0;
 
-        for(auto A: lz::irange(g.size()) )
+        for(auto rd: g.rules())
         {
-            for(auto ruleBody: g[A])
-            {
-                for(auto it = ruleBody.begin(); it != ruleBody.end(); ++ it)
-                {
-                    auto s = *it;
-                    if(isNonterminal(s))
-                    {
-                        Set::size_type oldSize = ans[s].size();
+            auto ruleSymbolRange = g.ruleSymbols(rd);
+            auto head = *ruleSymbolRange.first ++;
 
-                        auto backFirstSet = calculateRuleBodyFirstSet(it + 1, ruleBody.end(), firstSets);
-                        ans[s].insert(backFirstSet.begin(), backFirstSet.end());
-                        if(backFirstSet.count(EmptyStringSymbol))
-                        {
-                            ans[s].erase(EmptyStringSymbol);
-                            ans[s].insert(ans[A].begin(), ans[A].end());
-                        }
-                        if(ans[s].size() > oldSize) hasNew = 1;
+            for(auto it = ruleSymbolRange.first ; it != ruleSymbolRange.second; ++ it)
+            {
+                auto s = *it;
+                if(isNonterminal(s))
+                {
+                    Set::size_type oldSize = ans[s].size();
+                    auto nextIt = it;
+
+                    auto backFirstSet = calculateRuleBodyFirstSet(++nextIt, ruleSymbolRange.second, firstSets);
+                    ans[s].insert(backFirstSet.begin(), backFirstSet.end());
+                    if(backFirstSet.count(EmptyStringSymbol))
+                    {
+                        ans[s].erase(EmptyStringSymbol);
+                        ans[s].insert(ans[head].begin(), ans[head].end());
                     }
+                    if(ans[s].size() > oldSize) hasNew = 1;
                 }
+
             }
+
         }
         if(!hasNew) break;
     }

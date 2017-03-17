@@ -14,8 +14,6 @@
 //#include <lz/new>
 namespace lz{
 
-//using Table = std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, Grammar::RuleDescriptor>;
-
 template<typename Grammar>
 auto constructLL1Table(const Grammar& g)
 {
@@ -32,12 +30,11 @@ auto constructLL1Table(const Grammar& g)
 
     for(auto rule: g.rules())
     {
-        auto head = g.ruleHead(rule);
-        auto body = g.ruleBody(rule);
+        auto ruleSymbolRange = g.ruleSymbols(rule);
+        auto head = *ruleSymbolRange.first++;
 
 
-
-        for(auto firstS: calculateRuleBodyFirstSet(body.begin(), body.end(), firstSets))
+        for(auto firstS: calculateRuleBodyFirstSet(ruleSymbolRange.first, ruleSymbolRange.second, firstSets))
         {
             if(isEmptyString(firstS))
             {
@@ -77,7 +74,6 @@ void parseLL1Grammar(
     InputIterator last,
     const std::map<typename std::iterator_traits<InputIterator>::value_type, SymbolDescriptor> &translate,
     const Grammar& g,
-//    const std::vector<ActionType<P> >& actions,
     const std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, typename Grammar::RuleDescriptor> &table,
     SymbolDescriptor startSymbol = 0)
 {

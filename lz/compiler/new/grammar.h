@@ -258,15 +258,6 @@ struct Grammar: std::vector<RuleBodyUnion>
                 );
     }
 
-    SymbolDescriptor ruleHead(RuleDescriptor rd) const
-    {
-        return rd.head;
-    }
-    const RuleBody& ruleBody(RuleDescriptor rd) const
-    {
-        return (*this)[rd.head][rd.body];
-    }
-
     std::pair<RuleIterator, RuleIterator> rules() const
     {
         return std::make_pair(
@@ -363,14 +354,12 @@ struct UserNonterminal
     UserNonterminal(SymbolDescriptor id = 0, ActionType<P> func = ActionType<P>(), GrammarFactory<T, P>* gf = nullptr):
         id(id), action(func), gf(gf)
     {
-
     }
 
 
     UserNonterminal(const UserNonterminal<T, NoProperty>&other):
         id(other.id), action(ActionType<P>()), gf(nullptr)
     {
-
     }
 
 
@@ -393,14 +382,7 @@ struct UserNonterminal
     UserNonterminal& operator=(T o);
     UserNonterminal& operator=(UserNonterminal o);
     UserNonterminal& operator=(EpsilonSymbol );
-
-
 };
-
-
-
-
-
 
 enum class UserSymbolType
 {
@@ -469,7 +451,6 @@ auto operator>>(UserRuleBody<T, P> a, UserNonterminal<T, P>& b)
     return a;
 }
 
-
 template<typename T>
 auto operator>>(EpsilonSymbol, T b)
 {
@@ -488,15 +469,11 @@ void UserNonterminal<T, P>::addRuleHeadAction()
     }
 }
 
-
 template<typename T, typename P>
 template<typename P2>
 UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2>& o)
 {
     addRuleHeadAction();
-
-
-
     for(UserSymbol<T, P> ch: o)
     {
         if(ch.type == UserSymbolType::Nonterminal)
