@@ -10,6 +10,7 @@
 
 #include <type_traits>
 #include <tuple>
+#include <lz/utility.h>
 namespace lz {
 
 using std::integral_constant;
@@ -18,21 +19,6 @@ using std::endl;
 
 
 
-struct NoProperty {
-	using Tag = NoProperty;
-	using ValueType = NoProperty;
-	using NextProperty = NoProperty;
-
-	NoProperty() = default;
-
-protected:
-    template<typename ...Args, size_t N>
-    NoProperty(const std::tuple<Args...> &tp, std::integral_constant<size_t, N> t)
-	{
-	}
-
-
-};
 
 
     namespace PropertyPrivate {

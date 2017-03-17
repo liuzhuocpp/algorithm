@@ -130,6 +130,21 @@ auto calculateIndexMarker(const IndexMap& indexMap, std::size_t n)
 auto emptyFunction = [](auto...) {};
 
 
+struct NoProperty {
+    using Tag = NoProperty;
+    using ValueType = NoProperty;
+    using NextProperty = NoProperty;
+
+    NoProperty() = default;
+
+protected:
+    template<typename ...Args, size_t N>
+    NoProperty(const std::tuple<Args...> &tp, std::integral_constant<size_t, N> t)
+    {
+    }
+
+
+};
 
 
 
