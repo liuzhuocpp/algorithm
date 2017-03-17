@@ -84,9 +84,8 @@ void parseLL1Grammar(
     SymbolDescriptor startSymbol = 0)
 {
 
-//    using RuleSymbolDescriptor = Grammar::RuleSymbolDescriptor;
     using RuleDescriptor = Grammar::RuleDescriptor;
-
+    using RuleSymbolIterator = Grammar::RuleSymbolIterator;
 
     std::vector<std::tuple<SymbolDescriptor, int, SymbolDescriptor> > symbolStack;
     std::vector<P> propertyStack;
@@ -158,7 +157,7 @@ void parseLL1Grammar(
                 // 加入综合属性
                 propertyStack.push_back(sp);
                 RuleDescriptor nextRd = table.at(std::make_pair(s, input));
-                using RuleSymbolIterator = Grammar::RuleSymbolIterator;
+
                 IteratorRange<RuleSymbolIterator> nextRule = g.ruleSymbols(nextRd);
 
 

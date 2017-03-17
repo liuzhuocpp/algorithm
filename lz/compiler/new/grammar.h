@@ -146,61 +146,60 @@ public:
 
     struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, SymbolDescriptor>
     {
-        RuleSymbolDescriptor rsd;
-        const Grammar* g;
-        RuleSymbolIterator():rsd(RuleSymbolDescriptor()), g(nullptr){}
+        SymbolDescriptor head;
+        const RuleBody* body;
+        int cur;
 
-        RuleSymbolIterator(RuleSymbolDescriptor rd, const Grammar &g):
-            rsd(rd), g(&g){}
+        RuleSymbolIterator(){}
+
+        RuleSymbolIterator(SymbolDescriptor head, const RuleBody& body, int cur):
+            head(head), body(&body), cur(cur){}
 
         RuleSymbolIterator& operator++()
         {
-            rsd.id ++;
-            for(;rsd.id < (*g)[rsd.rule.head][rsd.rule.body].size(); rsd.id++)
+            cur++;
+            if(cur < body->size())
             {
-                SymbolDescriptor s = (*g)[rsd.rule.head][rsd.rule.body][rsd.id];
-                if(g->isTerminal(s) || g->isNonterminal(s))
-                    break;
+                SymbolDescriptor s = (*body)[cur];
+                if(!Grammar::isNonterminal(s) &&
+                   !Grammar::isTerminal(s))
+                {
+                    cur ++;
+                }
             }
             return *this;
         }
 
         RuleSymbolIterator& operator--()
         {
-
-            rsd.id --;
-            for(;rsd.id >= 0; rsd.id--)
+            cur --;
+            if(cur >= 0)
             {
-                SymbolDescriptor s = (*g)[rsd.rule.head][rsd.rule.body][rsd.id];
-                if(g->isTerminal(s) || g->isNonterminal(s))
-                    break;
+                SymbolDescriptor s = (*body)[cur];
+                if(!Grammar::isNonterminal(s) &&
+                   !Grammar::isTerminal(s))
+                {
+                    cur --;
+                }
+
             }
+
             return *this;
         }
 
 
         SymbolDescriptor operator*() const
         {
-            return g->symbol(rsd);
+            if(cur == -1) return head;
+            else return (*body)[cur];
         }
 
         friend bool operator==(const RuleSymbolIterator& a, const RuleSymbolIterator &b)
         {
-            return a.rsd == b.rsd && a.g == b.g;
+            return a.head == b.head && a.body == b.body && a.cur == b.cur;
         }
     };
 
-
-
-    RuleSymbolIterator makeRuleSymbolIterator(RuleSymbolDescriptor rsd) const
-    {
-        return RuleSymbolIterator(rsd, *this);
-    }
-
-    RuleDescriptor rule(RuleSymbolDescriptor rsd) const
-    {
-        return rsd.rule;
-    }
 
     SymbolDescriptor symbol(RuleSymbolDescriptor rsd) const
     {
@@ -213,13 +212,6 @@ public:
         return RuleSymbolDescriptor(RuleDescriptor(-1, -1), -1);
     }
 
-    int calculateActionId(RuleSymbolDescriptor rsd) const
-    {
-
-        rsd = calulateAction(rsd);
-        if(rsd == nullRuleSymbol()) return -1;
-        return symbol(rsd) - ActionSymbolBegin;
-    }
 
 
     // rsd 必须指向一个action符号, 否则行为未定义
@@ -230,46 +222,20 @@ public:
 
     SymbolDescriptor calculateAction(RuleDescriptor rd, RuleSymbolIterator it) const
     {
-        RuleSymbolDescriptor rsd = calulateAction(it.rsd);
-        if(rsd == nullRuleSymbol()) return NullSymbol;
-        else return symbol(rsd);
-    }
+        auto ruleRange = ruleSymbols(rd);
+        int id = it.cur;
+        const RuleBody& body =  (*this)[rd.head][rd.body];
+        id++;
 
-
-
-    // rsd 必须指向一个action符号, 否则行为未定义
-    int getActionId(RuleSymbolDescriptor rsd) const
-    {
-        return symbol(rsd) - ActionSymbolBegin;
-    }
-
-
-
-    // rsd 必须对应某个非终结符，否则返回结果未定义
-    //返回结果是rsd 对应 symbol 对应的action的index 值，文法中的对每一个nonterminal的action赋予了唯一index，
-    // 返回是[0, n)其中n是文法中的所有nonterminal的action的数量
-
-    RuleSymbolDescriptor calulateAction(RuleSymbolDescriptor rsd) const
-    {
-        const RuleBody& body =  (*this)[rsd.rule.head][rsd.rule.body];
-        if(rsd.id == -1)
+        if(id < body.size() && isAction(body[id]))
         {
-            if(!body.empty() && isAction(body[0]))
-            {
-                rsd.id ++;
-                return rsd;
-            }
+            return body[id];
         }
-        else
-        {
-            if(rsd.id + 1 < body.size() && isAction(body[rsd.id + 1]))
-            {
-                rsd.id ++;
-                return rsd;
-            }
-        }
-        return nullRuleSymbol();
+        else return NullSymbol;
     }
+
+
+
 
     // s 必须是一个 terminal Symbol,返回结果是ternimal Symbol 的index 值，文法中的对每一个terminal赋予了唯一index，
     // 返回是[0, n)其中n是文法中的所有terminal的数量
@@ -288,44 +254,28 @@ public:
     }
 
 
-    bool isNonterminal(SymbolDescriptor s) const
+    static bool isNonterminal(SymbolDescriptor s)
     {
         return s >= 0;
     }
 
-    bool isTerminal(SymbolDescriptor s) const
+    static bool isTerminal(SymbolDescriptor s)
     {
         return s < ActionSymbolBegin;
     }
-    bool isAction(SymbolDescriptor s) const
+
+    static bool isAction(SymbolDescriptor s)
     {
         return s >= ActionSymbolBegin && s < EmptyStringSymbol;
     }
-
-
-    bool isNonterminal(RuleSymbolDescriptor rsd) const
-    {
-        return isNonterminal(symbol(rsd));
-    }
-
-    bool isTerminal(RuleSymbolDescriptor rsd) const
-    {
-        return isTerminal(symbol(rsd));
-    }
-
-    bool isAction(RuleSymbolDescriptor rsd)  const
-    {
-        return isAction(symbol(rsd));
-    }
-
 
 
 
     IteratorRange<RuleSymbolIterator> ruleSymbols(RuleDescriptor rd) const
     {
         return makeIteratorRange(
-                RuleSymbolIterator(RuleSymbolDescriptor(rd, -1), *this), // -1 表示head
-                RuleSymbolIterator(RuleSymbolDescriptor(rd, (*this)[rd.head][rd.body].size()), *this)
+                RuleSymbolIterator(rd.head, (*this)[rd.head][rd.body], -1), // -1 表示head
+                RuleSymbolIterator(rd.head, (*this)[rd.head][rd.body], ((*this)[rd.head][rd.body]).size())
                 );
     }
 
@@ -345,14 +295,12 @@ public:
         return ans;
     }
 
-//    template<typename Iterator>
     int getNonterminalsNumber(RuleSymbolIterator first, RuleSymbolIterator last) const
     {
         int ans = 0;
         for(;first != last; first++)
         {
             if(isNonterminal(*first)) ans ++;
-//            std::cout << "HH " <<std::endl;
         }
         return ans;
     }
