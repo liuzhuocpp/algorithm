@@ -35,7 +35,7 @@ void testParseLL1Grammar()
     OUT_FUNCTION_NAME
 
     GrammarFactory<char, int> gf;
-    auto all = gf.makeNonternimals<2>();
+    auto all = gf.makeNonternimalProxies<2>();
     auto S = std::get<0>(all);
     auto A = std::get<1>(all);
     vector<string > nonterminalNames = {"S", "A", "B"};

@@ -237,12 +237,14 @@ public:
 
 
 
-struct EpsilonSymbol {} eps;
 struct NoProperty{};
+
+struct EpsilonSymbol {} eps;
+
 
 
 template<typename T, typename P>
-struct UserNonterminal;
+struct NonterminalProxy;
 
 
 
@@ -279,43 +281,48 @@ struct GrammarFactory
     }
 
     template<std::size_t N>
-    std::array<UserNonterminal<T, P>, N> makeNonternimals();
+    std::array<NonterminalProxy<T, P>, N> makeNonternimalProxies();
 
 
 };
 
 
+    namespace Detail {
+
+
+    template<typename T, typename P>
+    struct UserSymbol;
+
+    template<typename T, typename P>
+    using UserRuleBody = std::vector<UserSymbol<T, P>>;
+
+    }
+
+
 
 
 template<typename T, typename P>
-struct UserSymbol;
-
-template<typename T, typename P>
-using UserRuleBody = std::vector<UserSymbol<T, P>>;
-
-
-template<typename T, typename P>
-struct UserNonterminal
+struct NonterminalProxy
 {
     SymbolDescriptor id;
     ActionType<P> action;
     GrammarFactory<T, P>* gf;
 
 
-    UserNonterminal(SymbolDescriptor id = 0, ActionType<P> func = ActionType<P>(), GrammarFactory<T, P>* gf = nullptr):
+    NonterminalProxy(SymbolDescriptor id = 0, ActionType<P> func = ActionType<P>(), GrammarFactory<T, P>* gf = nullptr):
         id(id), action(func), gf(gf)
     {
     }
 
 
-    UserNonterminal(const UserNonterminal<T, NoProperty>&other):
+    NonterminalProxy(const NonterminalProxy<T, NoProperty>&other):
         id(other.id), action(ActionType<P>()), gf(nullptr)
     {
     }
 
 
     template<typename F>
-    UserNonterminal& operator[](F f)
+    NonterminalProxy& operator[](F f)
     {
         action = f;
         return *this;
@@ -329,74 +336,79 @@ struct UserNonterminal
 
 
     template<typename P2>
-    UserNonterminal& operator=(const UserRuleBody<T, P2>& urb);
-    UserNonterminal& operator=(T o);
-    UserNonterminal& operator=(UserNonterminal o);
-    UserNonterminal& operator=(EpsilonSymbol );
+    NonterminalProxy& operator=(const Detail::UserRuleBody<T, P2>& urb);
+    NonterminalProxy& operator=(T o);
+    NonterminalProxy& operator=(NonterminalProxy o);
+    NonterminalProxy& operator=(EpsilonSymbol );
 };
 
-enum class UserSymbolType
-{
-    Nonterminal,
-    Terminal,
-};
+
+    namespace Detail {
+
+    enum class UserSymbolType
+    {
+        Nonterminal,
+        Terminal,
+    };
+
+    template<typename T, typename P>
+    struct UserSymbol
+    {
+        UserSymbol(NonterminalProxy<T, P> nonterminal):
+            type(UserSymbolType::Nonterminal), nonterminal(nonterminal) {}
+
+        UserSymbol(T terminal):
+            type(UserSymbolType::Terminal), terminal(terminal) { }
+
+        UserSymbolType type;
+        NonterminalProxy<T, P> nonterminal = NonterminalProxy<T, P>();
+        T terminal = T();
+
+    };
+
+
+    }
+
+
+
 
 
 template<typename T, typename P>
-struct UserSymbol
+auto operator>>(NonterminalProxy<T, P>& a, NonterminalProxy<T, P>& b)
 {
-    UserSymbol(UserNonterminal<T, P> nonterminal):
-        type(UserSymbolType::Nonterminal), nonterminal(nonterminal) {}
-
-    UserSymbol(T terminal):
-        type(UserSymbolType::Terminal), terminal(terminal) { }
-
-    UserSymbolType type;
-    UserNonterminal<T, P> nonterminal = UserNonterminal<T, P>();
-    T terminal = T();
-
-};
-
-
-
-
-
-template<typename T, typename P>
-auto operator>>(UserNonterminal<T, P>& a, UserNonterminal<T, P>& b)
-{
-    UserRuleBody<T, P> ans{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    Detail::UserRuleBody<T, P> ans{ Detail::UserSymbol<T, P>(a), Detail::UserSymbol<T, P>(b) };
     a.cleanAction();
     b.cleanAction();
     return ans;
 }
 
 template<typename T, typename P>
-auto operator>>(UserNonterminal<T, P>& a, T b)
+auto operator>>(NonterminalProxy<T, P>& a, T b)
 {
-    UserRuleBody<T, P> ans{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    Detail::UserRuleBody<T, P> ans{ Detail::UserSymbol<T, P>(a), Detail::UserSymbol<T, P>(b) };
     a.cleanAction();
     return ans;
 }
 
 template<typename T, typename P>
-auto operator>>(T a, UserNonterminal<T, P>& b)
+auto operator>>(T a, NonterminalProxy<T, P>& b)
 {
-    UserRuleBody<T, P>ans{ UserSymbol<T, P>(a), UserSymbol<T, P>(b) };
+    Detail::UserRuleBody<T, P>ans{ Detail::UserSymbol<T, P>(a), Detail::UserSymbol<T, P>(b) };
     b.cleanAction();
     return ans;
 }
 
 
 template<typename T, typename P>
-auto operator>>(UserRuleBody<T, P> a, T b)
+auto operator>>(Detail::UserRuleBody<T, P> a, T b)
 {
     return a;
 }
 
 template<typename T, typename P>
-auto operator>>(UserRuleBody<T, P> a, UserNonterminal<T, P>& b)
+auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P>& b)
 {
-    a.push_back(UserSymbol<T, P>(b));
+    a.push_back(Detail::UserSymbol<T, P>(b));
     b.cleanAction();
 
     return a;
@@ -405,14 +417,13 @@ auto operator>>(UserRuleBody<T, P> a, UserNonterminal<T, P>& b)
 template<typename T>
 auto operator>>(EpsilonSymbol, T b)
 {
-    return UserRuleBody<T, NoProperty>{ UserSymbol<T, NoProperty>(b) };
+    return Detail::UserRuleBody<T, NoProperty>{ Detail::UserSymbol<T, NoProperty>(b) };
 }
 
 
 template<typename T, typename P>
-std::vector<SymbolDescriptor> UserNonterminal<T, P>::addRuleHeadAction()
+std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHeadAction()
 {
-
     std::vector<SymbolDescriptor> ans;
     ans.push_back(id);
     if(action)
@@ -425,12 +436,12 @@ std::vector<SymbolDescriptor> UserNonterminal<T, P>::addRuleHeadAction()
 
 template<typename T, typename P>
 template<typename P2>
-UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2>& o)
+NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRuleBody<T, P2>& o)
 {
     std::vector<SymbolDescriptor> rule = addRuleHeadAction();
-    for(UserSymbol<T, P> ch: o)
+    for(Detail::UserSymbol<T, P> ch: o)
     {
-        if(ch.type == UserSymbolType::Nonterminal)
+        if(ch.type == Detail::UserSymbolType::Nonterminal)
         {
             rule.push_back(ch.nonterminal.id);
             if constexpr(std::is_same<P, P2>::value)
@@ -442,7 +453,7 @@ UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2
 
             }
         }
-        else if(ch.type == UserSymbolType::Terminal)
+        else if(ch.type == Detail::UserSymbolType::Terminal)
         {
             rule.push_back(gf->getTerminalSymbolAndInsert(ch.terminal));
         }
@@ -456,7 +467,7 @@ UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2
 
 
 template<typename T, typename P>
-UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(T o)
+NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(T o)
 {
     std::vector<SymbolDescriptor> rule = addRuleHeadAction();
     rule.push_back({gf->getTerminalSymbolAndInsert(o)});
@@ -465,7 +476,7 @@ UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(T o)
 }
 
 template<typename T, typename P>
-UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(UserNonterminal<T, P> o)
+NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(NonterminalProxy<T, P> o)
 {
     std::vector<SymbolDescriptor> rule = addRuleHeadAction();
     rule.push_back({o.id});
@@ -474,7 +485,7 @@ UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(UserNonterminal<T, P> o
 }
 
 template<typename T, typename P>
-UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(EpsilonSymbol )
+NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(EpsilonSymbol )
 {
     std::vector<SymbolDescriptor> rule = addRuleHeadAction();
     gf->g.addRule(rule.begin(), rule.end());
@@ -483,12 +494,12 @@ UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(EpsilonSymbol )
 
 template<typename T, typename P>
 template<std::size_t N>
-std::array<UserNonterminal<T, P>, N>
+std::array<NonterminalProxy<T, P>, N>
 
-GrammarFactory<T, P>::makeNonternimals()
+GrammarFactory<T, P>::makeNonternimalProxies()
 {
-    std::array<UserNonterminal<T, P>, N> ans;
-    using DiffType = typename std::array<UserNonterminal<T, P>, N>::difference_type;
+    std::array<NonterminalProxy<T, P>, N> ans;
+    using DiffType = typename std::array<NonterminalProxy<T, P>, N>::difference_type;
     for(DiffType i: lz::irange(N))
     {
         ans[i].id = i;
