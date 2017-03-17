@@ -237,7 +237,7 @@ public:
 
 
 
-struct NoProperty{};
+//struct NoProperty{};
 
 struct EpsilonSymbol {} eps;
 
