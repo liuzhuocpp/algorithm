@@ -102,7 +102,7 @@ void parseLL1Grammar(
         if(first != last)
         input = translate.at(*first);
 
-        if(g.isTerminal(s))
+        if(isTerminal(s))
         {
             if(s == input)
             {
@@ -135,7 +135,7 @@ void parseLL1Grammar(
                 return ;
             }
         }
-        else if(g.isNonterminal(s))
+        else if(isNonterminal(s))
         {
             if(table.count(std::make_pair(s, input)))
             {
@@ -171,7 +171,7 @@ void parseLL1Grammar(
                 for(RuleSymbolIterator it = ++nextRule.first; it != nextRule.second; ++ it)
                 {
                     symbolStack.push_back(std::make_tuple(*it, nextNonterminalsNumber, g.calculateAction(nextRd, it) ));
-                    if(g.isNonterminal(*it)) nextNonterminalsNumber++;
+                    if(isNonterminal(*it)) nextNonterminalsNumber++;
                 }
 
                 std::reverse(symbolStack.begin() + nextRuleBodyBeginInSymbolStack, symbolStack.end());
@@ -179,11 +179,6 @@ void parseLL1Grammar(
                 {
                     std::get<1>(symbolStack[nextRuleBodyBeginInSymbolStack - 1]) = nextNonterminalsNumber - 1;
                 }
-
-
-
-
-
             }
             else
             {
@@ -203,11 +198,8 @@ void parseLL1Grammar(
 
                 return ;
             }
-
-
-
         }
-        else if(g.isAction(s))
+        else if(isAction(s))
         {
 
             std::vector<P> tmpStack;
@@ -218,9 +210,7 @@ void parseLL1Grammar(
             }
 
             g.getActionFunc(s)(tmpStack, propertyStack.back());
-
             symbolStack.pop_back();
-
         }
 
     }

@@ -75,7 +75,7 @@ void testParseLL1Grammar()
     })]
     = eps;
 
-    cout << "action size: " << gf.g.actions.size() << endl;
+    cout << "action size: " << gf.g.actionsNumber() << endl;
 
     cout << GrammerForOutput<char,decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
 

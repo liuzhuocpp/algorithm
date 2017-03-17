@@ -29,7 +29,7 @@ Set calculateRuleBodyFirstSet(InputIterator ruleBodyBegin, InputIterator ruleBod
 template<typename Grammar>
 std::vector<Set> calculateFirstSets(const Grammar& g)
 {
-    std::vector<Set> ans(g.size());
+    std::vector<Set> ans(g.nonterminalsNumber());
     while(true)
     {
         bool hasNew = 0;
@@ -92,7 +92,7 @@ std::vector<Set> calculateFollowSets(
     const std::vector<Set>& firstSets,
     SymbolDescriptor startSymbol = 0)
 {
-    std::vector<Set> ans(g.size());
+    std::vector<Set> ans(g.nonterminalsNumber());
 
     ans[startSymbol].insert(EndTagSymbol);
 

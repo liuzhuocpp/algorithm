@@ -13,31 +13,26 @@
 
 namespace lz {
 
-//struct RuleBody: std::vector<SymbolDescriptor>
-//{
-//    using std::vector<SymbolDescriptor>::vector;
-//};
-//
-//struct RuleBodyUnion: std::vector<RuleBody>
-//{
-//    using std::vector<RuleBody>::vector;
-//};
-
 
 template<typename P>
 using ActionType = std::function<void(const std::vector<P>&, P&)>;
 
+
 template<typename P>
-struct Grammar: std::vector<std::vector<std::vector<SymbolDescriptor>>>
+struct Grammar: private std::vector<std::vector<std::vector<SymbolDescriptor>>>
 {
 private:
     using RuleBody = std::vector<SymbolDescriptor>;
     using RuleBodyUnion = std::vector<RuleBody>;
-public:
+    using Base = std::vector<RuleBodyUnion>;
+    std::vector<ActionType<P>> actions;
     using  std::vector<std::vector<std::vector<SymbolDescriptor>>>::vector;
+public:
+
+    using SizeType = std::size_t;
 
     using NonterminalProperties = P;
-    std::vector<ActionType<P>> actions;
+
 
     struct RuleDescriptor
     {
@@ -108,8 +103,7 @@ public:
             if(cur < body->size())
             {
                 SymbolDescriptor s = (*body)[cur];
-                if(!Grammar::isNonterminal(s) &&
-                   !Grammar::isTerminal(s))
+                if(!isNonterminal(s) && !isTerminal(s))
                 {
                     cur ++;
                 }
@@ -123,17 +117,14 @@ public:
             if(cur >= 0)
             {
                 SymbolDescriptor s = (*body)[cur];
-                if(!Grammar::isNonterminal(s) &&
-                   !Grammar::isTerminal(s))
+                if(!isNonterminal(s) && !isTerminal(s))
                 {
                     cur --;
                 }
 
             }
-
             return *this;
         }
-
 
         SymbolDescriptor operator*() const
         {
@@ -146,15 +137,6 @@ public:
             return a.head == b.head && a.body == b.body && a.cur == b.cur;
         }
     };
-
-
-    // s 代表一个action symbol
-    ActionType<P> getActionFunc(SymbolDescriptor s) const
-    {
-        return actions[s - ActionSymbolBegin];
-    }
-
-
 
     // rd 与it 所指向的字符必须是非终结符
     SymbolDescriptor calculateAction(RuleDescriptor rd, RuleSymbolIterator it) const
@@ -172,40 +154,58 @@ public:
     }
 
 
-
-
-    // s 必须是一个 terminal Symbol,返回结果是ternimal Symbol 的index 值，文法中的对每一个terminal赋予了唯一index，
-    // 返回是[0, n)其中n是文法中的所有terminal的数量
-    //否则返回结果未定义
-    int getTerminalId(SymbolDescriptor s) const
+    // s 代表一个action symbol
+    ActionType<P> getActionFunc(SymbolDescriptor s) const
     {
-        return s - TerminalSymbolBegin;
+        return actions[s - ActionSymbolBegin];
     }
 
-    // s 必须是一个 nonterminal Symbol,返回结果是nonternimal Symbol 的index 值，文法中的对每一个nonterminal赋予了唯一index，
-    // 返回是[0, n)其中n是文法中的所有nonterminal的数量
-    //否则返回结果未定义
-    int getNonterminalId(SymbolDescriptor sd) const
+    SizeType actionsNumber() const
     {
-        return sd;
+        return actions.size();
     }
 
 
-    static bool isNonterminal(SymbolDescriptor s)
+
+    SymbolDescriptor addActionFunc(ActionType<P> f)
     {
-        return s >= 0;
+        actions.push_back(f);
+        return actions.size() + ActionSymbolBegin - 1;
     }
 
-    static bool isTerminal(SymbolDescriptor s)
+    SymbolDescriptor addNonterminal()
     {
-        return s < ActionSymbolBegin;
+        this->push_back({});
+        return this->size() - 1;
     }
 
-    static bool isAction(SymbolDescriptor s)
+    void clear()
     {
-        return s >= ActionSymbolBegin && s < EmptyStringSymbol;
+        Base::clear();
+        actions.clear();
     }
 
+    void assginNonterminalsNumber(int n)
+    {
+        clear();
+        this->resize(n);
+    }
+    SizeType nonterminalsNumber() const
+    {
+        return this->size();
+    }
+
+    template<typename InputIterator>
+    void addRule(InputIterator first, InputIterator last)
+    {
+        Grammar & g = *this;
+        SymbolDescriptor head = *first++;
+        g[head].push_back({});
+        for(;first != last; ++ first)
+        {
+            g[head].back().push_back(*first);
+        }
+    }
 
 
     IteratorRange<RuleSymbolIterator> ruleSymbols(RuleDescriptor rd) const
@@ -225,14 +225,12 @@ public:
             RuleIterator(RuleDescriptor(size(), 0), *this));
     }
 
-    std::pair<RuleIterator, RuleIterator> rules(SymbolDescriptor s) const
+    std::pair<RuleIterator, RuleIterator> outRules(SymbolDescriptor s) const
     {
         return std::make_pair(
             RuleIterator(RuleDescriptor(s, 0), *this),
             RuleIterator(RuleDescriptor(s, (*this)[s].size()), *this));
     }
-
-
 
 };
 
@@ -254,12 +252,6 @@ struct GrammarFactory
 {
     Grammar<P> g;
     std::map<T, SymbolDescriptor> terminalMap;
-
-    SymbolDescriptor getActionSymbolAndInsert(ActionType<P> action)
-    {
-        g.actions.push_back(action);
-        return g.actions.size() + ActionSymbolBegin - 1;
-    }
 
     std::map<SymbolDescriptor, T> calculateTerminalNames()
     {
@@ -329,7 +321,7 @@ struct UserNonterminal
         return *this;
     }
 
-    void addRuleHeadAction();
+    std::vector<SymbolDescriptor> addRuleHeadAction();
     void cleanAction()
     {
         action = nullptr;
@@ -418,40 +410,44 @@ auto operator>>(EpsilonSymbol, T b)
 
 
 template<typename T, typename P>
-void UserNonterminal<T, P>::addRuleHeadAction()
+std::vector<SymbolDescriptor> UserNonterminal<T, P>::addRuleHeadAction()
 {
-    gf->g[id].push_back({});
+
+    std::vector<SymbolDescriptor> ans;
+    ans.push_back(id);
     if(action)
     {
-        gf->g[id].back().push_back(gf->getActionSymbolAndInsert(action));
-        action = nullptr;
+        ans.push_back(gf->g.addActionFunc(action));
+        cleanAction();
     }
+    return ans;
 }
 
 template<typename T, typename P>
 template<typename P2>
 UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2>& o)
 {
-    addRuleHeadAction();
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
     for(UserSymbol<T, P> ch: o)
     {
         if(ch.type == UserSymbolType::Nonterminal)
         {
-            gf->g[id].back().push_back(ch.nonterminal.id);
+            rule.push_back(ch.nonterminal.id);
             if constexpr(std::is_same<P, P2>::value)
             {
                 if(ch.nonterminal.action)
                 {
-                    gf->g[id].back().push_back(gf->getActionSymbolAndInsert(ch.nonterminal.action));
+                    rule.push_back(gf->g.addActionFunc(ch.nonterminal.action));
                 }
 
             }
         }
         else if(ch.type == UserSymbolType::Terminal)
         {
-            gf->g[id].back().push_back(gf->getTerminalSymbolAndInsert(ch.terminal));
+            rule.push_back(gf->getTerminalSymbolAndInsert(ch.terminal));
         }
     }
+    gf->g.addRule(rule.begin(), rule.end());
 
 
     return *this;
@@ -462,32 +458,28 @@ UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(const UserRuleBody<T, P2
 template<typename T, typename P>
 UserNonterminal<T, P>& UserNonterminal<T, P>::operator=(T o)
 {
-    addRuleHeadAction();
-    gf->g[id].back().push_back({gf->getTerminalSymbolAndInsert(o)});
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    rule.push_back({gf->getTerminalSymbolAndInsert(o)});
+    gf->g.addRule(rule.begin(), rule.end());
     return *this;
 }
 
 template<typename T, typename P>
 UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(UserNonterminal<T, P> o)
 {
-    addRuleHeadAction();
-    gf->g[id].back().push_back({o.id});
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    rule.push_back({o.id});
+    gf->g.addRule(rule.begin(), rule.end());
     return *this;
 }
 
 template<typename T, typename P>
 UserNonterminal<T, P>&  UserNonterminal<T, P>::operator=(EpsilonSymbol )
 {
-    addRuleHeadAction();
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    gf->g.addRule(rule.begin(), rule.end());
     return *this;
 }
-
-
-
-
-
-
-
 
 template<typename T, typename P>
 template<std::size_t N>
@@ -505,8 +497,8 @@ GrammarFactory<T, P>::makeNonternimals()
 
 
     terminalMap.clear();
-    g.resize(N);
-    g.actions.clear();
+    g.clear();
+    g.assginNonterminalsNumber(N);
 
     return ans;
 }
