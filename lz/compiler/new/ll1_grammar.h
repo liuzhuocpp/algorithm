@@ -84,7 +84,7 @@ void parseLL1Grammar(
     SymbolDescriptor startSymbol = 0)
 {
 
-    using RuleSymbolDescriptor = Grammar::RuleSymbolDescriptor;
+//    using RuleSymbolDescriptor = Grammar::RuleSymbolDescriptor;
     using RuleDescriptor = Grammar::RuleDescriptor;
 
 
@@ -145,7 +145,6 @@ void parseLL1Grammar(
             if(table.count(std::make_pair(s, input)))
             {
                 P sp;
-
 
                 if(sInheritActoin != NullSymbol)
                 {

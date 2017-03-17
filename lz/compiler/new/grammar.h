@@ -123,7 +123,7 @@ struct Grammar: std::vector<RuleBodyUnion>
     };
 
 
-
+private:
     struct RuleSymbolDescriptor
     {
         RuleDescriptor rule;
@@ -142,7 +142,7 @@ struct Grammar: std::vector<RuleBodyUnion>
             return !(a == b);
         }
     };
-
+public:
 
     struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, SymbolDescriptor>
     {
