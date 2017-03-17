@@ -76,6 +76,9 @@ struct Grammar: std::vector<RuleBodyUnion>
 {
     using std::vector<RuleBodyUnion>::vector;
 
+    using NonterminalProperties = P;
+    std::vector<ActionType<P>> actions;
+
     struct RuleDescriptor
     {
         using RuleBodyIndexType = typename std::vector<RuleDescriptor>::difference_type;
@@ -127,10 +130,6 @@ struct Grammar: std::vector<RuleBodyUnion>
         }
     };
 
-
-private:
-
-public:
 
     struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, SymbolDescriptor>
     {
@@ -189,13 +188,15 @@ public:
     };
 
 
-
-    // rsd 必须指向一个action符号, 否则行为未定义
-    int getActionId(SymbolDescriptor sd) const
+    // s 代表一个action symbol
+    ActionType<P> getActionFunc(SymbolDescriptor s) const
     {
-        return sd - ActionSymbolBegin;
+        return actions[s - ActionSymbolBegin];
     }
 
+
+
+    // rd 与it 所指向的字符必须是非终结符
     SymbolDescriptor calculateAction(RuleDescriptor rd, RuleSymbolIterator it) const
     {
         auto ruleRange = ruleSymbols(rd);
@@ -255,37 +256,6 @@ public:
                 );
     }
 
-
-
-
-
-    template<typename Iterator>
-    int getNonterminalsNumber(Iterator first, Iterator last) const
-    {
-        int ans = 0;
-        for(;first != last; first++)
-        {
-            SymbolDescriptor s = *first;
-            if(isNonterminal(s)) ans ++;
-        }
-        return ans;
-    }
-
-    int getNonterminalsNumber(RuleSymbolIterator first, RuleSymbolIterator last) const
-    {
-        int ans = 0;
-        for(;first != last; first++)
-        {
-            if(isNonterminal(*first)) ans ++;
-        }
-        return ans;
-    }
-
-
-
-
-
-
     SymbolDescriptor ruleHead(RuleDescriptor rd) const
     {
         return rd.head;
@@ -294,10 +264,6 @@ public:
     {
         return (*this)[rd.head][rd.body];
     }
-
-
-
-
 
     std::pair<RuleIterator, RuleIterator> rules() const
     {
@@ -335,15 +301,18 @@ struct GrammarFactory
 {
     Grammar<P> g;
     std::map<T, SymbolDescriptor> terminalMap;
-//    using ActionType = std::function<void(std::vector<P>, P&)>;
-    std::vector<ActionType<P>> actions;
+//    std::vector<ActionType<P>> actions;
 
 
 
     SymbolDescriptor getActionSymbolAndInsert(ActionType<P> action)
     {
-        actions.push_back(action);
-        return actions.size() + ActionSymbolBegin - 1;
+        g.actions.push_back(action);
+        return g.actions.size() + ActionSymbolBegin - 1;
+//        return
+
+//        actions.push_back(action);
+//        return actions.size() + ActionSymbolBegin - 1;
     }
 
 
@@ -608,7 +577,8 @@ GrammarFactory<T, P>::makeNonternimals()
 
     terminalMap.clear();
     g.resize(N);
-    actions.clear();
+    g.actions.clear();
+//    actions.clear();
     return ans;
 }
 

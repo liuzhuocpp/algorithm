@@ -71,22 +71,24 @@ bool isLL1Grammar(const Grammar &g)
 }
 
 
-template<typename InputIterator, typename Grammar, typename P>
+template<typename InputIterator, typename Grammar>
 void parseLL1Grammar(
     InputIterator first,
     InputIterator last,
     const std::map<typename std::iterator_traits<InputIterator>::value_type, SymbolDescriptor> &translate,
     const Grammar& g,
-    const std::vector<ActionType<P> >& actions,
+//    const std::vector<ActionType<P> >& actions,
     const std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, typename Grammar::RuleDescriptor> &table,
     SymbolDescriptor startSymbol = 0)
 {
 
+    using P = typename Grammar::NonterminalProperties;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
 
     std::vector<std::tuple<SymbolDescriptor, int, SymbolDescriptor> > symbolStack;
     std::vector<P> propertyStack;
+
 
     symbolStack.push_back( std::make_tuple(startSymbol, 0, NullSymbol) );
 
@@ -146,8 +148,7 @@ void parseLL1Grammar(
                 if(sInheritActoin != NullSymbol)
                 {
                     std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
-                    actions[g.getActionId(sInheritActoin)](tmpStack, sp);
-
+                    g.getActionFunc(sInheritActoin)(tmpStack, sp);
                 }
                 symbolStack.pop_back(); // 开始进行非终结符展开
 
@@ -220,8 +221,7 @@ void parseLL1Grammar(
                 propertyStack.pop_back();
             }
 
-
-            actions[g.getActionId(s)](tmpStack, propertyStack.back());
+            g.getActionFunc(s)(tmpStack, propertyStack.back());
 
             symbolStack.pop_back();
 
