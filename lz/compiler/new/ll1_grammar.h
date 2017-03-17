@@ -88,10 +88,10 @@ void parseLL1Grammar(
     using RuleDescriptor = Grammar::RuleDescriptor;
 
 
-    std::vector<std::pair<RuleSymbolDescriptor, int> > symbolStack;
+    std::vector<std::tuple<SymbolDescriptor, int, SymbolDescriptor> > symbolStack;
     std::vector<P> propertyStack;
 
-    symbolStack.push_back( std::make_pair(Grammar::nullRuleSymbol(), 0) );
+    symbolStack.push_back( std::make_tuple(startSymbol, 0, NullSymbol) );
 
     propertyStack.push_back(P());
 
@@ -99,11 +99,8 @@ void parseLL1Grammar(
     while(!symbolStack.empty())
     {
         int nonterminalsNumber;
-        RuleSymbolDescriptor rsd;
-        std::tie(rsd, nonterminalsNumber) = symbolStack.back();
-        SymbolDescriptor s;
-        if(rsd == Grammar::nullRuleSymbol()) s = startSymbol;
-        else s = g.symbol(rsd);
+        SymbolDescriptor s, sInheritActoin;
+        std::tie(s, nonterminalsNumber, sInheritActoin) = symbolStack.back();
 
         SymbolDescriptor input = EndTagSymbol;
 
@@ -147,60 +144,47 @@ void parseLL1Grammar(
         {
             if(table.count(std::make_pair(s, input)))
             {
-                int inheritActionId = -1;
-                if(rsd != Grammar::nullRuleSymbol())
-                    inheritActionId = g.calculateActionId(rsd);
                 P sp;
 
-                if(inheritActionId != -1)
+
+                if(sInheritActoin != NullSymbol)
                 {
-                    RuleDescriptor rd = g.rule(rsd);
-                    IteratorRange<Grammar::RuleSymbolIterator> ruleSymbolsRange = g.ruleSymbols(rd);
-
-
-//                    int nonterminalsNumber =
-//                        g.getNonterminalsNumber(++ruleSymbolsRange.first, g.makeRuleSymbolIterator(rsd));
-//                    nonterminalsNumber ++;
                     std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
-                    actions[inheritActionId](tmpStack, sp);
+                    actions[g.getActionId(sInheritActoin)](tmpStack, sp);
 
                 }
-
-
                 symbolStack.pop_back(); // 开始进行非终结符展开
+
 
                 // 加入综合属性
                 propertyStack.push_back(sp);
                 RuleDescriptor nextRd = table.at(std::make_pair(s, input));
-
                 using RuleSymbolIterator = Grammar::RuleSymbolIterator;
                 IteratorRange<RuleSymbolIterator> nextRule = g.ruleSymbols(nextRd);
 
 
-
-                int synthesizeActionId = g.calculateActionId(*g.ruleSymbols(nextRd).first);
+                SymbolDescriptor synthesizeAction = g.calculateAction(nextRd, g.ruleSymbols(nextRd).first);
                 int nextNonterminalsNumber = 1;
                 int nextRuleBodyBeginInSymbolStack = symbolStack.size();
-                if(synthesizeActionId != -1)
+                if(synthesizeAction != NullSymbol)
                 {
-                    symbolStack.push_back(std::make_pair(RuleSymbolDescriptor(nextRd, 0), 0));
+                    symbolStack.push_back(std::make_tuple(synthesizeAction, 0, NullSymbol));
                     nextRuleBodyBeginInSymbolStack++;
                 }
                 else // will be error
                 {
 
                 }
-
                 for(RuleSymbolIterator it = ++nextRule.first; it != nextRule.second; ++ it)
                 {
-                    symbolStack.push_back(std::make_pair(*it, nextNonterminalsNumber ));
+                    symbolStack.push_back(std::make_tuple(*it, nextNonterminalsNumber, g.calculateAction(nextRd, it) ));
                     if(g.isNonterminal(*it)) nextNonterminalsNumber++;
                 }
 
                 std::reverse(symbolStack.begin() + nextRuleBodyBeginInSymbolStack, symbolStack.end());
-                if(synthesizeActionId != -1)
+                if(synthesizeAction != NullSymbol)
                 {
-                    symbolStack[nextRuleBodyBeginInSymbolStack - 1].second = nextNonterminalsNumber - 1;
+                    std::get<1>(symbolStack[nextRuleBodyBeginInSymbolStack - 1]) = nextNonterminalsNumber - 1;
                 }
 
 
@@ -233,11 +217,6 @@ void parseLL1Grammar(
         else if(g.isAction(s))
         {
 
-            IteratorRange<Grammar::RuleSymbolIterator> ruleSymbolsRange = g.ruleSymbols(g.rule(rsd));
-
-//            int nonterminalsNumber = g.getNonterminalsNumber(++ruleSymbolsRange.first, ruleSymbolsRange.second);
-//
-//
             std::vector<P> tmpStack;
             while(nonterminalsNumber --)
             {
@@ -246,7 +225,7 @@ void parseLL1Grammar(
             }
 
 
-            actions[g.getActionId(rsd)](tmpStack, propertyStack.back());
+            actions[g.getActionId(s)](tmpStack, propertyStack.back());
 
             symbolStack.pop_back();
 

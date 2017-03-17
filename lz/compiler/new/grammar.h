@@ -144,7 +144,7 @@ struct Grammar: std::vector<RuleBodyUnion>
     };
 
 
-    struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, RuleSymbolDescriptor>
+    struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, SymbolDescriptor>
     {
         RuleSymbolDescriptor rsd;
         const Grammar* g;
@@ -179,9 +179,9 @@ struct Grammar: std::vector<RuleBodyUnion>
         }
 
 
-        RuleSymbolDescriptor operator*() const
+        SymbolDescriptor operator*() const
         {
-            return rsd;
+            return g->symbol(rsd);
         }
 
         friend bool operator==(const RuleSymbolIterator& a, const RuleSymbolIterator &b)
@@ -220,6 +220,21 @@ struct Grammar: std::vector<RuleBodyUnion>
         if(rsd == nullRuleSymbol()) return -1;
         return symbol(rsd) - ActionSymbolBegin;
     }
+
+
+    // rsd 必须指向一个action符号, 否则行为未定义
+    int getActionId(SymbolDescriptor sd) const
+    {
+        return sd - ActionSymbolBegin;
+    }
+
+    SymbolDescriptor calculateAction(RuleDescriptor rd, RuleSymbolIterator it) const
+    {
+        RuleSymbolDescriptor rsd = calulateAction(it.rsd);
+        if(rsd == nullRuleSymbol()) return NullSymbol;
+        else return symbol(rsd);
+    }
+
 
 
     // rsd 必须指向一个action符号, 否则行为未定义

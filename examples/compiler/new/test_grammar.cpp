@@ -227,7 +227,7 @@ void testParseLL1Grammar()
     auto table = constructLL1Table(gf.g);
 
 
-    string text = "1+1+1+2+1+2";
+    string text = "1+2+2+1+1+1";
     parseLL1Grammar<string::iterator, int>(text.begin(), text.end(), gf.terminalMap, gf.g, gf.actions, table);
 
 
