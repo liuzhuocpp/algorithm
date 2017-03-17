@@ -653,34 +653,6 @@ struct RuleForOutput
 };
 
 
-//template<typename Iterator, typename T>
-//struct RuleRangeForOutput
-//{
-//    Iterator first, last;
-//
-//    const std::vector<std::string>& nonterminalNames;
-//    const std::map<SymbolDescriptor, T>& ternimalNames;
-//
-//
-//    int  leftTotalWidth = -1; // 确定左边终结符号加上空格之后，总共的宽度
-//
-//    template <class Char, class Traits>
-//    friend std::basic_ostream<Char, Traits>&
-//    operator<<(std::basic_ostream<Char, Traits>& os,
-//               const RuleUnionForOutput&  ruo)
-//    {
-//
-//        for(auto i: irange(ruo.ru.size()))
-//        {
-//            os << RuleForOutput<T>{ruo.A, ruo.ru[i], ruo.nonterminalNames,ruo.ternimalNames,  ruo.leftTotalWidth} << "\n";
-//        }
-//
-//        return os;
-//    }
-//
-//};
-//
-
 
 template<typename T, typename Grammar>
 struct GrammerForOutput
