@@ -301,18 +301,11 @@ struct GrammarFactory
 {
     Grammar<P> g;
     std::map<T, SymbolDescriptor> terminalMap;
-//    std::vector<ActionType<P>> actions;
-
-
 
     SymbolDescriptor getActionSymbolAndInsert(ActionType<P> action)
     {
         g.actions.push_back(action);
         return g.actions.size() + ActionSymbolBegin - 1;
-//        return
-
-//        actions.push_back(action);
-//        return actions.size() + ActionSymbolBegin - 1;
     }
 
 
@@ -360,8 +353,6 @@ using UserRuleBody = std::vector<UserSymbol<T, P>>;
 template<typename T, typename P>
 struct UserNonterminal
 {
-//    using ActionType = typename GrammarFactory<T, P>::ActionType;
-
     SymbolDescriptor id;
     ActionType<P> action;
     GrammarFactory<T, P>* gf;
@@ -578,7 +569,7 @@ GrammarFactory<T, P>::makeNonternimals()
     terminalMap.clear();
     g.resize(N);
     g.actions.clear();
-//    actions.clear();
+
     return ans;
 }
 
