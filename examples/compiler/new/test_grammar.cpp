@@ -92,8 +92,10 @@ void testParseLL1Grammar()
     auto table = constructLL1Table(gf.g);
 
 
-    string text = "1+2+2+1+1+1";
-    parseLL1Grammar<string::iterator, Grammar<int>>(text.begin(), text.end(), gf.terminalMap, gf.g, table);
+    string text = "1+2+2+2+1";
+    auto ans = parseLL1Grammar<string::iterator, Grammar<int>>(text.begin(), text.end(), gf.terminalMap, gf.g, table);
+
+    cout << ans << endl;
 
 
 }

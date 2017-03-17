@@ -69,7 +69,8 @@ bool isLL1Grammar(const Grammar &g)
 
 
 template<typename InputIterator, typename Grammar>
-void parseLL1Grammar(
+typename Grammar::NonterminalProperties
+parseLL1Grammar(
     InputIterator first,
     InputIterator last,
     const std::map<typename std::iterator_traits<InputIterator>::value_type, SymbolDescriptor> &translate,
@@ -82,14 +83,11 @@ void parseLL1Grammar(
     using RuleDescriptor = typename Grammar::RuleDescriptor;
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
 
+    //当前字符，所在规则对应的当前字符的所需要的非终结字符数目，当前字符的动作（仅仅当前字符是非终结字符）
     std::vector<std::tuple<SymbolDescriptor, int, SymbolDescriptor> > symbolStack;
     std::vector<P> propertyStack;
 
-
-    symbolStack.push_back( std::make_tuple(startSymbol, 0, NullSymbol) );
-
-    propertyStack.push_back(P());
-
+    symbolStack.push_back(std::make_tuple(startSymbol, 0, NullSymbol));
 
     while(!symbolStack.empty())
     {
@@ -98,9 +96,7 @@ void parseLL1Grammar(
         std::tie(s, nonterminalsNumber, sInheritActoin) = symbolStack.back();
 
         SymbolDescriptor input = EndTagSymbol;
-
-        if(first != last)
-        input = translate.at(*first);
+        if(first != last) input = translate.at(*first);
 
         if(isTerminal(s))
         {
@@ -121,18 +117,13 @@ void parseLL1Grammar(
             {
                 if(first != last)
                 {
-                    std::cout << "error: stack top symbol is terminal "
-                            << ", input character is "
-                            << *first
-                            << std::endl;
+                    std::cout << "error: stack top symbol is terminal, input character is: " << *first << std::endl;
                 }
                 else
                 {
-                    std::cout << "error: stack top symbol is terminal"
-                            << ", input character is end tag"
-                            <<  std::endl;
+                    std::cout << "error: stack top symbol is terminal, input character is end tag" << std::endl;
                 }
-                return ;
+                goto ErrorLabel;
             }
         }
         else if(isNonterminal(s))
@@ -152,10 +143,7 @@ void parseLL1Grammar(
                 // 加入综合属性
                 propertyStack.push_back(sp);
                 RuleDescriptor nextRd = table.at(std::make_pair(s, input));
-
                 IteratorRange<RuleSymbolIterator> nextRule = g.ruleSymbols(nextRd);
-
-
                 SymbolDescriptor synthesizeAction = g.calculateAction(nextRd, g.ruleSymbols(nextRd).first);
                 int nextNonterminalsNumber = 1;
                 int nextRuleBodyBeginInSymbolStack = symbolStack.size();
@@ -173,7 +161,6 @@ void parseLL1Grammar(
                     symbolStack.push_back(std::make_tuple(*it, nextNonterminalsNumber, g.calculateAction(nextRd, it) ));
                     if(isNonterminal(*it)) nextNonterminalsNumber++;
                 }
-
                 std::reverse(symbolStack.begin() + nextRuleBodyBeginInSymbolStack, symbolStack.end());
                 if(synthesizeAction != NullSymbol)
                 {
@@ -184,24 +171,17 @@ void parseLL1Grammar(
             {
                 if(first != last)
                 {
-                    std::cout << "error: stack top symbol is nonterminal "
-                            << ", input character is "
-                            << *first
-                            << std::endl;
+                    std::cout << "error: stack top symbol is nonterminal, input character is  " << *first << std::endl;
                 }
                 else
                 {
-                    std::cout << "error: stack top symbol is nonterminal"
-                            << ", input character is end tag"
-                            <<  std::endl;
+                    std::cout << "error: stack top symbol is nonterminal, input character is end tag" <<  std::endl;
                 }
-
-                return ;
+                goto ErrorLabel;
             }
         }
         else if(isAction(s))
         {
-
             std::vector<P> tmpStack;
             while(nonterminalsNumber --)
             {
@@ -212,10 +192,12 @@ void parseLL1Grammar(
             g.getActionFunc(s)(tmpStack, propertyStack.back());
             symbolStack.pop_back();
         }
-
     }
 
-    std::cout  << propertyStack.back() << " " << std::endl;
+    if(propertyStack.size() == 1) return propertyStack.back();
+
+ErrorLabel:
+    return P();
 }
 
 
