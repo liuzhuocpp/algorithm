@@ -124,24 +124,7 @@ struct Grammar: std::vector<RuleBodyUnion>
 
 
 private:
-    struct RuleSymbolDescriptor
-    {
-        RuleDescriptor rule;
-        int id; // 当id== -1 表示代表此rule的head
-        RuleSymbolDescriptor(){}
-        RuleSymbolDescriptor(RuleDescriptor rd, int j):
-            rule(rd), id(j){}
 
-        friend bool operator== (RuleSymbolDescriptor a, RuleSymbolDescriptor b)
-        {
-            return a.rule == b.rule && a.id == b.id;
-        }
-
-        friend bool operator!= (RuleSymbolDescriptor a, RuleSymbolDescriptor b)
-        {
-            return !(a == b);
-        }
-    };
 public:
 
     struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, SymbolDescriptor>
@@ -199,18 +182,6 @@ public:
             return a.head == b.head && a.body == b.body && a.cur == b.cur;
         }
     };
-
-
-    SymbolDescriptor symbol(RuleSymbolDescriptor rsd) const
-    {
-        if(rsd.id == -1) return rsd.rule.head;
-        else return (*this)[rsd.rule.head][rsd.rule.body][rsd.id];
-    }
-
-    static RuleSymbolDescriptor nullRuleSymbol()
-    {
-        return RuleSymbolDescriptor(RuleDescriptor(-1, -1), -1);
-    }
 
 
 
