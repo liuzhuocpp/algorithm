@@ -30,7 +30,7 @@ void outVectorSet(vector<Set > vectorSets, T1 nonterminalNames, T2 terminalNames
 template< typename InputIterator, typename GrammarFactory, typename NonterminalNames>
 auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFactory &gf, const NonterminalNames& nonterminalNames)
 {
-    using P = typename decltype(gf.g)::NonterminalProperties;
+    using P = typename decltype(gf.g)::NodeProperties;
 
 
     cout << "action size: " << gf.g.actionsNumber() << endl;

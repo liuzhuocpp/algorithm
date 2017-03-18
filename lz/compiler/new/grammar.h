@@ -29,9 +29,11 @@ private:
     using  std::vector<std::vector<std::vector<SymbolDescriptor>>>::vector;
 public:
 
+    using NodeProperties = P;
+
     using SizeType = std::size_t;
 
-    using NonterminalProperties = P;
+//    using NonterminalProperties = P;
 
 
     struct RuleDescriptor

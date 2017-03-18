@@ -69,7 +69,7 @@ bool isLL1Grammar(const Grammar &g)
 
 
 template<typename InputIterator, typename Grammar>
-typename Grammar::NonterminalProperties
+typename Grammar::NodeProperties
 parseLL1Grammar(
     InputIterator first,
     InputIterator last,
@@ -79,7 +79,7 @@ parseLL1Grammar(
     SymbolDescriptor startSymbol = 0)
 {
 
-    using P = typename Grammar::NonterminalProperties;
+    using P = typename Grammar::NodeProperties;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
 
