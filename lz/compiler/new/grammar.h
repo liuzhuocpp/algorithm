@@ -246,7 +246,7 @@ struct GrammarFactory
     Grammar<P> g;
     std::map<T, SymbolDescriptor> terminalMap;
 
-    std::map<SymbolDescriptor, T> calculateTerminalNames()
+    std::map<SymbolDescriptor, T> calculateTerminalNames() const
     {
         std::map<SymbolDescriptor, T> ans;
         for(auto p: terminalMap)
@@ -260,7 +260,7 @@ struct GrammarFactory
     {
         if(terminalMap.count(ch))
         {
-            return terminalMap[ch];
+            return terminalMap.at(ch);
         }
         else
         {

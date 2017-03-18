@@ -26,7 +26,35 @@ void outVectorSet(vector<Set > vectorSets, T1 nonterminalNames, T2 terminalNames
 
 
 
+// run parsing process to see the detail
+template< typename InputIterator, typename GrammarFactory, typename NonterminalNames>
+auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFactory &gf, const NonterminalNames& nonterminalNames)
+{
+    using P = typename decltype(gf.g)::NonterminalProperties;
 
+
+    cout << "action size: " << gf.g.actionsNumber() << endl;
+
+    cout << GrammerForOutput<char,decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
+
+
+    auto firstSets = calculateFirstSets(gf.g);
+    auto followSets = calculateFollowSets(gf.g, firstSets);
+    cout << "First sets:" << endl;
+    outVectorSet(firstSets, nonterminalNames, gf.calculateTerminalNames());
+    cout << "Follow sets:" << endl;
+    outVectorSet(followSets, nonterminalNames, gf.calculateTerminalNames());
+    cout << string(100, '-') << endl;
+    cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
+
+    auto table = constructLL1Table(gf.g);
+    auto ans = parseLL1Grammar<InputIterator, Grammar<int>>(first, last, gf.terminalMap, gf.g, table);
+
+    if constexpr(!std::is_same<P, NoProperty>::value)
+    {
+        cout << ans << endl;
+    }
+}
 
 
 
@@ -75,27 +103,8 @@ void testParseLL1Grammar()
     })]
     = eps;
 
-    cout << "action size: " << gf.g.actionsNumber() << endl;
-
-    cout << GrammerForOutput<char,decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
-
-
-    auto firstSets = calculateFirstSets(gf.g);
-    auto followSets = calculateFollowSets(gf.g, firstSets);
-    cout << string(100, '-') << endl;
-    outVectorSet(firstSets, nonterminalNames, gf.calculateTerminalNames());
-    cout << string(100, '-') << endl;
-    outVectorSet(followSets, nonterminalNames, gf.calculateTerminalNames());
-    cout << string(100, '-') << endl;
-    cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
-
-    auto table = constructLL1Table(gf.g);
-
-
     string text = "1+2+2+2+1";
-    auto ans = parseLL1Grammar<string::iterator, Grammar<int>>(text.begin(), text.end(), gf.terminalMap, gf.g, table);
-
-    cout << ans << endl;
+    runParseLL1Grammar(text.begin(), text.end(), gf, nonterminalNames);
 
 
 }
@@ -112,7 +121,6 @@ void testParseRegexGrammar()
     auto all = gf.makeNonternimalProxies<2>();
     auto S = std::get<0>(all);
     auto A = std::get<1>(all);
-//    auto B = std::get<2>(all);
     vector<string > nonterminalNames = {"S", "A", "B"};
 
     using P = int;
@@ -124,31 +132,8 @@ void testParseRegexGrammar()
     A = '*' >> A;
     A = '|' >> S;
 
-
-
-
-    cout << "action size: " << gf.g.actionsNumber() << endl;
-
-    cout << GrammerForOutput<char,decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
-
-
-    auto firstSets = calculateFirstSets(gf.g);
-    auto followSets = calculateFollowSets(gf.g, firstSets);
-    cout << string(100, '-') << endl;
-    outVectorSet(firstSets, nonterminalNames, gf.calculateTerminalNames());
-    cout << string(100, '-') << endl;
-    outVectorSet(followSets, nonterminalNames, gf.calculateTerminalNames());
-    cout << string(100, '-') << endl;
-    cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
-
-    auto table = constructLL1Table(gf.g);
-
-
-    string text = "(a)aaaaaa(((a)aaaa(aaaa|aa)))****|((aaaa)((aaaa)aaa)(aaaaa)***a**a**)***aa(aaaa)";
-    auto ans = parseLL1Grammar<string::iterator, Grammar<int>>(text.begin(), text.end(), gf.terminalMap, gf.g, table);
-
-//    cout << ans << endl;
-
+    string text = "(a)|aaaaaa(((a)aaaa(aaaa|aa)))****|((aaaa)((aaaa)aaa)(aaaaa)***a**a**)***aa(aaaa)";
+    runParseLL1Grammar(text.begin(), text.end(), gf, nonterminalNames);
 
 }
 
