@@ -18,20 +18,22 @@ template<typename P>
 using ActionType = std::function<void(const std::vector<P>&, P&)>;
 
 
-template<typename P>
+template<typename _NodeProperties>
 struct Grammar: private std::vector<std::vector<std::vector<SymbolDescriptor>>>
 {
+public:
+    using NodeProperties = _NodeProperties;
+
+    using SizeType = std::size_t;
+
 private:
     using RuleBody = std::vector<SymbolDescriptor>;
     using RuleBodyUnion = std::vector<RuleBody>;
     using Base = std::vector<RuleBodyUnion>;
-    std::vector<ActionType<P>> actions;
+    std::vector<ActionType<NodeProperties>> actions;
     using  std::vector<std::vector<std::vector<SymbolDescriptor>>>::vector;
 public:
 
-    using NodeProperties = P;
-
-    using SizeType = std::size_t;
 
 //    using NonterminalProperties = P;
 
@@ -157,7 +159,7 @@ public:
 
 
     // s 代表一个action symbol
-    ActionType<P> getActionFunc(SymbolDescriptor s) const
+    ActionType<NodeProperties> getActionFunc(SymbolDescriptor s) const
     {
         return actions[s - ActionSymbolBegin];
     }
@@ -169,7 +171,7 @@ public:
 
 
 
-    SymbolDescriptor addActionFunc(ActionType<P> f)
+    SymbolDescriptor addActionFunc(ActionType<NodeProperties> f)
     {
         actions.push_back(f);
         return actions.size() + ActionSymbolBegin - 1;
