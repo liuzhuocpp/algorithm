@@ -245,6 +245,24 @@ struct GrammarFactory
 {
     Grammar<P> g;
     std::map<T, SymbolDescriptor> terminalMap;
+    std::map<int, SymbolDescriptor> nonterminalMap;
+
+
+    GrammarFactory(){}
+    GrammarFactory(NonterminalProxy<T, P>& startSymbol);
+
+    SymbolDescriptor getNonterminalAndInsert(int nonterminalProxyId)
+    {
+        if(nonterminalMap.count(nonterminalProxyId))
+        {
+            return nonterminalMap[nonterminalProxyId];
+        }
+        else
+        {
+            g.addNonterminal();
+            return nonterminalMap[nonterminalProxyId] = nonterminalMap.size();
+        }
+    }
 
     std::map<SymbolDescriptor, T> calculateTerminalNames() const
     {
@@ -271,8 +289,8 @@ struct GrammarFactory
         }
     }
 
-    template<std::size_t N>
-    std::array<NonterminalProxy<T, P>, N> makeNonternimalProxies();
+
+    void connectStartNonterminal(NonterminalProxy<T, P>&);
 
 
 };
@@ -295,14 +313,18 @@ struct GrammarFactory
 template<typename T, typename P>
 struct NonterminalProxy
 {
+private:
+    static int counter;
+public:
     SymbolDescriptor id;
     ActionType<P> action;
     GrammarFactory<T, P>* gf;
 
 
-    NonterminalProxy(SymbolDescriptor id = 0, ActionType<P> func = ActionType<P>(), GrammarFactory<T, P>* gf = nullptr):
-        id(id), action(func), gf(gf)
+    NonterminalProxy(ActionType<P> func = ActionType<P>(), GrammarFactory<T, P>* gf = nullptr):
+         action(func), gf(gf)
     {
+        id = counter ++;
     }
 
 
@@ -329,9 +351,33 @@ struct NonterminalProxy
     template<typename P2>
     NonterminalProxy& operator=(const Detail::UserRuleBody<T, P2>& urb);
     NonterminalProxy& operator=(T o);
-    NonterminalProxy& operator=(NonterminalProxy o);
+    NonterminalProxy& operator=(NonterminalProxy& o);
     NonterminalProxy& operator=(EpsilonSymbol );
 };
+
+template<typename T, typename P>
+int NonterminalProxy<T, P>::counter = 0;
+
+
+
+template<typename T, typename P>
+GrammarFactory<T, P>::GrammarFactory(NonterminalProxy<T, P>& startSymbol)
+{
+    this->connectStartNonterminal(startSymbol);
+}
+
+template<typename T, typename P>
+void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start)
+{
+    start.gf = this;
+
+    terminalMap.clear();
+    g.clear();
+
+
+}
+
+
 
 
     namespace Detail {
@@ -345,14 +391,14 @@ struct NonterminalProxy
     template<typename T, typename P>
     struct UserSymbol
     {
-        UserSymbol(NonterminalProxy<T, P> nonterminal):
+        UserSymbol(NonterminalProxy<T, P>* nonterminal):
             type(UserSymbolType::Nonterminal), nonterminal(nonterminal) {}
 
         UserSymbol(T terminal):
             type(UserSymbolType::Terminal), terminal(terminal) { }
 
         UserSymbolType type;
-        NonterminalProxy<T, P> nonterminal = NonterminalProxy<T, P>();
+        NonterminalProxy<T, P> *nonterminal = nullptr;
         T terminal = T();
 
     };
@@ -367,25 +413,22 @@ struct NonterminalProxy
 template<typename T, typename P>
 auto operator>>(NonterminalProxy<T, P>& a, NonterminalProxy<T, P>& b)
 {
-    Detail::UserRuleBody<T, P> ans{ Detail::UserSymbol<T, P>(a), Detail::UserSymbol<T, P>(b) };
-    a.cleanAction();
-    b.cleanAction();
+    Detail::UserRuleBody<T, P> ans{ &a, &b };
     return ans;
 }
 
 template<typename T, typename P>
 auto operator>>(NonterminalProxy<T, P>& a, T b)
 {
-    Detail::UserRuleBody<T, P> ans{ Detail::UserSymbol<T, P>(a), Detail::UserSymbol<T, P>(b) };
-    a.cleanAction();
+    Detail::UserRuleBody<T, P> ans{ &a, b};
+
     return ans;
 }
 
 template<typename T, typename P>
 auto operator>>(T a, NonterminalProxy<T, P>& b)
 {
-    Detail::UserRuleBody<T, P>ans{ Detail::UserSymbol<T, P>(a), Detail::UserSymbol<T, P>(b) };
-    b.cleanAction();
+    Detail::UserRuleBody<T, P>ans{a, &b };
     return ans;
 }
 
@@ -400,8 +443,7 @@ auto operator>>(Detail::UserRuleBody<T, P> a, T b)
 template<typename T, typename P>
 auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P>& b)
 {
-    a.push_back(Detail::UserSymbol<T, P>(b));
-    b.cleanAction();
+    a.push_back(&b);
 
     return a;
 }
@@ -409,7 +451,7 @@ auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P>& b)
 template<typename T>
 auto operator>>(EpsilonSymbol, T b)
 {
-    return Detail::UserRuleBody<T, NoProperty>{ Detail::UserSymbol<T, NoProperty>(b) };
+    return Detail::UserRuleBody<T, NoProperty>{ b };
 }
 
 
@@ -417,7 +459,8 @@ template<typename T, typename P>
 std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHeadAction()
 {
     std::vector<SymbolDescriptor> ans;
-    ans.push_back(id);
+
+    ans.push_back(gf->getNonterminalAndInsert(id));
     if(action)
     {
         ans.push_back(gf->g.addActionFunc(action));
@@ -435,15 +478,17 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRule
     {
         if(ch.type == Detail::UserSymbolType::Nonterminal)
         {
-            rule.push_back(ch.nonterminal.id);
+            rule.push_back(gf->getNonterminalAndInsert(ch.nonterminal->id));
             if constexpr(std::is_same<P, P2>::value)
             {
-                if(ch.nonterminal.action)
+                if(ch.nonterminal->action)
                 {
-                    rule.push_back(gf->g.addActionFunc(ch.nonterminal.action));
-                }
+                    rule.push_back(gf->g.addActionFunc(ch.nonterminal->action));
+                    ch.nonterminal->cleanAction();
 
+                }
             }
+            ch.nonterminal->gf = this->gf;
         }
         else if(ch.type == Detail::UserSymbolType::Terminal)
         {
@@ -468,10 +513,17 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(T o)
 }
 
 template<typename T, typename P>
-NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(NonterminalProxy<T, P> o)
+NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(NonterminalProxy<T, P>& o)
 {
     std::vector<SymbolDescriptor> rule = addRuleHeadAction();
-    rule.push_back({o.id});
+    rule.push_back({gf->getNonterminalAndInsert(o.id)});
+    if(o.action)
+    {
+        rule.push_back(gf->g.addActionFunc(o.action));
+        o.cleanAction();
+    }
+    o.gf = this->gf;
+
     gf->g.addRule(rule.begin(), rule.end());
     return *this;
 }
@@ -483,30 +535,6 @@ NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(EpsilonSymbol )
     gf->g.addRule(rule.begin(), rule.end());
     return *this;
 }
-
-template<typename T, typename P>
-template<std::size_t N>
-std::array<NonterminalProxy<T, P>, N>
-
-GrammarFactory<T, P>::makeNonternimalProxies()
-{
-    std::array<NonterminalProxy<T, P>, N> ans;
-    using DiffType = typename std::array<NonterminalProxy<T, P>, N>::difference_type;
-    for(DiffType i: lz::irange(N))
-    {
-        ans[i].id = i;
-        ans[i].gf = this;
-    }
-
-
-    terminalMap.clear();
-    g.clear();
-    g.assginNonterminalsNumber(N);
-
-    return ans;
-}
-
-
 
 
 

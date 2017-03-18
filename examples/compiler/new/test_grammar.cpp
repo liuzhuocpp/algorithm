@@ -62,13 +62,15 @@ void testParseLL1Grammar()
 {
     OUT_FUNCTION_NAME
 
-    GrammarFactory<char, int> gf;
-    auto all = gf.makeNonternimalProxies<2>();
-    auto S = std::get<0>(all);
-    auto A = std::get<1>(all);
+    using P = int;
+
+    NonterminalProxy<char, P> S, A, B;
+
+    GrammarFactory<char, P> gf(S);
+
+
     vector<string > nonterminalNames = {"S", "A", "B"};
 
-    using P = int;
 
 
     S
@@ -117,13 +119,12 @@ void testParseRegexGrammar()
 {
     OUT_FUNCTION_NAME
 
-    GrammarFactory<char, int> gf;
-    auto all = gf.makeNonternimalProxies<2>();
-    auto S = std::get<0>(all);
-    auto A = std::get<1>(all);
-    vector<string > nonterminalNames = {"S", "A", "B"};
-
     using P = int;
+    NonterminalProxy<char, P> S, A, B;
+    GrammarFactory<char, P> gf(S);
+
+
+    vector<string > nonterminalNames = {"S", "A", "B"};
 
     S = '(' >> S >> ')' >> A;
     S = 'a' >> A;
