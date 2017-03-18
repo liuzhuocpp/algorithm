@@ -104,6 +104,54 @@ void testParseLL1Grammar()
 
 
 
+void testParseRegexGrammar()
+{
+    OUT_FUNCTION_NAME
+
+    GrammarFactory<char, int> gf;
+    auto all = gf.makeNonternimalProxies<2>();
+    auto S = std::get<0>(all);
+    auto A = std::get<1>(all);
+//    auto B = std::get<2>(all);
+    vector<string > nonterminalNames = {"S", "A", "B"};
+
+    using P = int;
+
+    S = '(' >> S >> ')' >> A;
+    S = 'a' >> A;
+    A = eps;
+    A = S;
+    A = '*' >> A;
+    A = '|' >> S;
+
+
+
+
+    cout << "action size: " << gf.g.actionsNumber() << endl;
+
+    cout << GrammerForOutput<char,decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
+
+
+    auto firstSets = calculateFirstSets(gf.g);
+    auto followSets = calculateFollowSets(gf.g, firstSets);
+    cout << string(100, '-') << endl;
+    outVectorSet(firstSets, nonterminalNames, gf.calculateTerminalNames());
+    cout << string(100, '-') << endl;
+    outVectorSet(followSets, nonterminalNames, gf.calculateTerminalNames());
+    cout << string(100, '-') << endl;
+    cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
+
+    auto table = constructLL1Table(gf.g);
+
+
+    string text = "(a)aaaaaa(((a)aaaa(aaaa|aa)))****|((aaaa)((aaaa)aaa)(aaaaa)***a**a**)***aa(aaaa)";
+    auto ans = parseLL1Grammar<string::iterator, Grammar<int>>(text.begin(), text.end(), gf.terminalMap, gf.g, table);
+
+//    cout << ans << endl;
+
+
+}
+
 
 
 
@@ -117,9 +165,8 @@ void testParseLL1Grammar()
 
 int main()
 {
-//    testGrammar();
-//    testRules();
-//    testLL1Table();
+
     testParseLL1Grammar();
+    testParseRegexGrammar();
 	return 0;
 }
