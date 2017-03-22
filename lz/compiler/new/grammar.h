@@ -38,7 +38,7 @@ public:
 //    using NonterminalProperties = P;
 
 
-    struct RuleDescriptor
+    struct RuleDescriptor: public EqualityComparableFacade<RuleDescriptor>, LessThanComparableFacade<RuleDescriptor>
     {
         using RuleBodyIndexType = typename std::vector<RuleDescriptor>::difference_type;
         SymbolDescriptor head;
@@ -52,9 +52,10 @@ public:
             return a.head == b.head && a.body == b.body;
         }
 
-        friend bool operator!= (RuleDescriptor a, RuleDescriptor b)
+        friend bool operator<(RuleDescriptor a, RuleDescriptor b)
         {
-            return !(a == b);
+            if(a.head != b.head) return a.head < b.head;
+            return a.body < b.body;
         }
     };
 

@@ -22,6 +22,7 @@ g++  -std=c++14 -ID:\code\github\algorithm      main.cpp     -o main.exe && main
 
 
 还没实现的算法：
+(编译原理)
 Sparse matrix
 跳表
 Euler Path / Tour 圈套圈算法
