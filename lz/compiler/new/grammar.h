@@ -91,7 +91,9 @@ public:
     };
 
 
-    struct RuleSymbolIterator:IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, SymbolDescriptor>
+    struct RuleSymbolIterator:
+        IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, SymbolDescriptor>,
+        LessThanComparableFacade<RuleSymbolIterator>
     {
         SymbolDescriptor head;
         const RuleBody* body;
@@ -141,6 +143,13 @@ public:
         {
             return a.head == b.head && a.body == b.body && a.cur == b.cur;
         }
+
+        friend bool operator<(const RuleSymbolIterator& a, const RuleSymbolIterator &b)
+        {
+            return a.cur < b.cur;
+//            return a.head == b.head && a.body == b.body && a.cur == b.cur;
+        }
+
     };
 
     // rd 与it 所指向的字符必须是非终结符
@@ -227,7 +236,7 @@ public:
     }
 
     template<typename InputIterator>
-    void addRule(InputIterator first, InputIterator last)
+    RuleDescriptor addRule(InputIterator first, InputIterator last)
     {
         Grammar & g = *this;
         SymbolDescriptor head = *first++;
@@ -236,6 +245,7 @@ public:
         {
             g[head].back().push_back(*first);
         }
+        return RuleDescriptor(head, g[head].size() - 1);
     }
 
 
