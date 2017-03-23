@@ -192,8 +192,21 @@ public:
     {
         terminalsNumber++;
         return TerminalSymbolBegin + terminalsNumber - 1;
-//        this->push_back({});
-//        return this->size() - 1;
+    }
+
+    using NonterminalIterator = IntegerIterator<SymbolDescriptor>;
+    using TerminalIterator = IntegerIterator<SymbolDescriptor>;
+
+    IteratorRange<NonterminalIterator> nonterminals() const
+    {
+        return makeIteratorRange(NonterminalIterator(0), NonterminalIterator(this->size()));
+    }
+
+    IteratorRange<TerminalIterator> terminals() const
+    {
+        return makeIteratorRange(
+                TerminalIterator(TerminalSymbolBegin),
+                TerminalIterator(TerminalSymbolBegin + terminalsNumber));
     }
 
 
