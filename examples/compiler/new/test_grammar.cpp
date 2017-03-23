@@ -48,7 +48,7 @@ auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFa
     cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
 
     auto table = constructLL1Table(gf.g);
-    auto ans = parseLL1Grammar<InputIterator, Grammar<int>>(first, last, gf.terminalMap, gf.g, table);
+    auto ans = parseLL1Grammar<InputIterator, Grammar<P>>(first, last, gf.terminalMap, gf.g, table);
 
     if constexpr(!std::is_same<P, NoProperty>::value)
     {
@@ -119,7 +119,7 @@ void testParseRegexGrammar()
 {
     OUT_FUNCTION_NAME
 
-    using P = int;
+    using P = NoProperty;
     NonterminalProxy<char, P> S, A, B;
     GrammarFactory<char, P> gf(S);
 
@@ -151,8 +151,8 @@ void testParseRegexGrammar()
 
 int main()
 {
-
-    testParseLL1Grammar();
     testParseRegexGrammar();
+    testParseLL1Grammar();
+
 	return 0;
 }

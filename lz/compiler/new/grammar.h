@@ -184,6 +184,19 @@ public:
         return this->size() - 1;
     }
 
+private:
+    int terminalsNumber = 0;
+public:
+
+    SymbolDescriptor addTerminal()
+    {
+        terminalsNumber++;
+        return TerminalSymbolBegin + terminalsNumber - 1;
+//        this->push_back({});
+//        return this->size() - 1;
+    }
+
+
     void clear()
     {
         Base::clear();
@@ -264,8 +277,7 @@ struct GrammarFactory
         }
         else
         {
-            g.addNonterminal();
-            return nonterminalMap[nonterminalProxyId] = nonterminalMap.size();
+            return nonterminalMap[nonterminalProxyId] = g.addNonterminal();
         }
     }
 
@@ -287,10 +299,7 @@ struct GrammarFactory
         }
         else
         {
-            SymbolDescriptor newId = TerminalSymbolBegin + terminalMap.size();
-            terminalMap[ch] = newId;
-            return newId;
-
+            return terminalMap[ch] = g.addTerminal();
         }
     }
 
