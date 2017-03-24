@@ -33,8 +33,50 @@ struct ItemDescriptor:std::pair<RuleDescriptor, RuleSymbolIterator>
 
     ItemDescriptor() = default;
 
+};
+
+template<typename Grammar, typename T>
+struct ItemDescriptorForOutput
+{
+    using Item = ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>;
+
+    const Grammar& g;
+    Item item;
+    const std::vector<std::string>& nonterminalNames;
+    const std::map<SymbolDescriptor, T>& ternimalNames;
+
+
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+        operator<<(std::basic_ostream<Char, Traits>& os, const ItemDescriptorForOutput& ido)
+    {
+        auto ruleSymbols = ido.g.ruleSymbols(ido.item.ruleDescirptor());
+
+        SymbolForOutput<T> head {*ruleSymbols.begin(), ido.nonterminalNames, ido.ternimalNames};
+
+        os << head <<"->";
+
+        for(auto it = ++ruleSymbols.begin(); it != ruleSymbols.end(); ++ it)
+        {
+            if(ido.item.ruleSymbolIterator() == it)
+            {
+                os << ".";
+                os << " " ;
+            }
+            os << SymbolForOutput<T>{*it, ido.nonterminalNames, ido.ternimalNames};
+            os << " " ;
+        }
+        if(ido.item.ruleSymbolIterator() == ruleSymbols.end())
+        {
+            os << ".";
+        }
+        return os;
+    }
+
 
 };
+
 
 
 
@@ -48,7 +90,7 @@ auto calculateNonkernelItemSetClosure(const Grammar &g,
     using RuleDescriptor = typename Grammar::RuleDescriptor;
     using Item = ItemDescriptor<RuleDescriptor, RuleSymbolIterator>;
 
-    std::vector<Item> nonkernelItems(items);
+    std::vector<Item> nonkernelItems;
     std::set<SymbolDescriptor> vis;
     std::queue<SymbolDescriptor> q;
 
@@ -69,20 +111,27 @@ auto calculateNonkernelItemSetClosure(const Grammar &g,
     {
         auto u = q.front();
         q.pop();
-        for(auto outRule: g.outRules(u))
+
+
+        for(typename Grammar::RuleDescriptor outRule: g.outRules(u))
         {
             auto begin = ++ g.ruleSymbols(outRule).begin();
+
             nonkernelItems.push_back(Item(outRule, begin));
 
-            if(begin != g.ruleSymbols(outRule).end())
+
+            if(begin != g.ruleSymbols(outRule).end() &&
+                    isNonterminal(*begin) &&
+                    !vis.count(*begin))
             {
-                if(!vis.count(*begin))
-                {
-                    q.push(*begin);
-                }
+                vis.insert(*begin);
+                q.push(*begin);
+
             }
         }
     }
+
+
     return nonkernelItems;
 }
 
@@ -92,7 +141,11 @@ auto calculateNextItemSet(const Grammar& g,
     const std::vector<ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>> & itemSet,
     SymbolDescriptor target)
 {
+
+
     auto nonkernelItems = calculateNonkernelItemSetClosure(g, itemSet);
+
+
 
     using Item = ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>;
 
@@ -152,7 +205,6 @@ makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
     // 存储状态ID
     std::queue<int> q;
     q.push(0);
-
     while(!q.empty())
     {
         std::vector<Item> cntItemSet = itemSets[q.front()];
@@ -160,6 +212,7 @@ makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
         auto addSymbol = [&](SymbolDescriptor inputSymbol)
         {
             std::vector<Item> nextItemSet = calculateNextItemSet(g, cntItemSet, inputSymbol);
+
             if(nextItemSet.empty()) return ;
             if(!itemSetToId.count(nextItemSet))
             {
@@ -170,14 +223,21 @@ makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
             gotoFunction[{itemSetToId[cntItemSet], inputSymbol}] = itemSetToId[nextItemSet];
         };
 
-        for(SymbolDescriptor inputSymbol : g.terminals())
-        {
-            addSymbol(inputSymbol);
-        }
+
         for(SymbolDescriptor s: g.nonterminals())
         {
+
             addSymbol(s);
         }
+
+        for(SymbolDescriptor inputSymbol : g.terminals())
+        {
+
+            addSymbol(inputSymbol);
+
+        }
+
+
     }
 
     return std::make_tuple(itemSets, itemSetToId, gotoFunction);
@@ -194,16 +254,10 @@ auto makeAugmentedGrammar(Grammar &g, SymbolDescriptor start)
     SymbolDescriptor newStart = g.addNonterminal();
     std::vector<SymbolDescriptor> newRule{newStart, start};
     return g.addRule(newRule.begin(), newRule.end());
-//    return newStart;
 }
 
 
-//template<typename Grammar>
-//struct AugmentedGrammar
-//{
-//    const Grammar& g;
-//
-//};
+
 
 
 

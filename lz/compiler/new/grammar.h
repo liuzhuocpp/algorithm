@@ -19,7 +19,10 @@ using ActionType = std::function<void(const std::vector<P>&, P&)>;
 
 
 template<typename _NodeProperties>
-struct Grammar: private std::vector<std::vector<std::vector<SymbolDescriptor>>>
+struct Grammar:
+//    private
+    public
+std::vector<std::vector<std::vector<SymbolDescriptor>>>
 {
 public:
     using NodeProperties = _NodeProperties;
@@ -265,12 +268,36 @@ public:
             RuleIterator(RuleDescriptor(0, 0), *this),
             RuleIterator(RuleDescriptor(size(), 0), *this));
     }
-
-    std::pair<RuleIterator, RuleIterator> outRules(SymbolDescriptor s) const
+    // 假定每个非终结符都至少有一个RuleBody，否则程序将不会运行正确，有待改进
+    struct OutRuleIterator:IteratorFacade<OutRuleIterator, std::forward_iterator_tag, RuleDescriptor>
     {
-        return std::make_pair(
-            RuleIterator(RuleDescriptor(s, 0), *this),
-            RuleIterator(RuleDescriptor(s, (*this)[s].size()), *this));
+        RuleDescriptor rd;
+        OutRuleIterator():rd(RuleDescriptor()) { }
+
+        OutRuleIterator(RuleDescriptor rd): rd(rd) { }
+
+        OutRuleIterator& operator++()
+        {
+            rd.body++;
+            return *this;
+        }
+        RuleDescriptor operator*() const
+        {
+            return rd;
+        }
+
+        friend bool operator==(const OutRuleIterator& a, const OutRuleIterator &b)
+        {
+            return a.rd == b.rd;
+        }
+    };
+
+    // 有问题需要改
+    IteratorRange<OutRuleIterator> outRules(SymbolDescriptor s) const
+    {
+        return makeIteratorRange(
+                OutRuleIterator(RuleDescriptor(s, 0)),
+                OutRuleIterator(RuleDescriptor(s, (*this)[s].size())));
     }
 
 };

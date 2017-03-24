@@ -54,27 +54,70 @@ void testParseSLR1Grammar()
 {
     OUT_FUNCTION_NAME
 
-    using P = int;
+    using P = NoProperty;
 
-    NonterminalProxy<char, P> S, A, B;
-    GrammarFactory<char, P> gf(S);
-    vector<string > nonterminalNames = {"S", "A", "B"};
+    NonterminalProxy<char, P> S, A, B, E, T, F;
 
 
 
-    S = '1' >> A;
-    A = '+' >> S;
-    A = eps;
+    GrammarFactory<char, P> gf(E);
+    vector<string > nonterminalNames = {"E", "T", "F", "E'" };
 
-    string text = "1+1+1+1";
+    E = E >> '+' >> T;
+    E = T;
+    T = T >> '*' >> F;
+    T = F;
+    F = '(' >> E >> ')';
+    F = 'a';
+
+
+
+
+
+//    vector<string > nonterminalNames = {"S", "A", "S'"};
+//
+//
+//    S = '1' >> A;
+//    A = '+' >> S;
+//    A = eps;
+
+
+
+
+
     Grammar<P> g = gf.g;
     auto startRule = makeAugmentedGrammar(g, 0);
+
+    cout << "startRule " << startRule.head << " " << startRule.body << endl;
+
+    cout << GrammerForOutput<char,decltype(g)>{g, nonterminalNames, gf.calculateTerminalNames()} ;
+    cout << "--------------------------------------------------" << endl;
+
+    string text = "1+1+1+1";
+
+
 
     auto result = makeItemSets(g, startRule);
 
     auto itemSets = get<0>(result);
     auto itemSetToId = get<1>(result);
     auto gotoFunction = get<2>(result);
+
+    cout << string(50, '*') << endl;
+    cout << itemSets.size() << endl;
+
+
+    int counter = 0;
+    for(auto itemSet: itemSets)
+    {
+        cout << "I" << counter++ << ":" << endl;
+        for(auto item: itemSet)
+        {
+            cout << ItemDescriptorForOutput<Grammar<P>, char>{g, item, nonterminalNames, gf.calculateTerminalNames()} << endl;
+        }
+        cout << string(50, '-') << endl;
+    }
+
 
 
 
