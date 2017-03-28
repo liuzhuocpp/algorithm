@@ -33,7 +33,7 @@ private:
     using RuleBody = std::vector<SymbolDescriptor>;
     using RuleBodyUnion = std::vector<RuleBody>;
     using Base = std::vector<RuleBodyUnion>;
-    std::vector<SemanticRuleType<NodeProperties>> actions;
+    std::vector<SemanticRuleType<NodeProperties>> semanticRuleFuncs;
     using  std::vector<std::vector<std::vector<SymbolDescriptor>>>::vector;
 public:
 
@@ -174,20 +174,20 @@ public:
     // s 代表一个action symbol
     SemanticRuleType<NodeProperties> getSemanticRuleFunc(SymbolDescriptor s) const
     {
-        return actions[s - ActionSymbolBegin];
+        return semanticRuleFuncs[s - SemanticRuleSymbolBegin];
     }
 
     SizeType actionsNumber() const
     {
-        return actions.size();
+        return semanticRuleFuncs.size();
     }
 
 
 
-    SymbolDescriptor addSemanticRule(SemanticRuleType<NodeProperties> f)
+    SymbolDescriptor addSemanticRuleFunc(SemanticRuleType<NodeProperties> f)
     {
-        actions.push_back(f);
-        return actions.size() + ActionSymbolBegin - 1;
+        semanticRuleFuncs.push_back(f);
+        return semanticRuleFuncs.size() + SemanticRuleSymbolBegin - 1;
     }
 
     SymbolDescriptor addNonterminal()
@@ -225,7 +225,7 @@ public:
     void clear()
     {
         Base::clear();
-        actions.clear();
+        semanticRuleFuncs.clear();
     }
 
     void assginNonterminalsNumber(int n)
@@ -527,7 +527,7 @@ std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHeadAction()
     ans.push_back(gf->getNonterminalAndInsert(id));
     if(action)
     {
-        ans.push_back(gf->g.addSemanticRule(action));
+        ans.push_back(gf->g.addSemanticRuleFunc(action));
         cleanAction();
     }
     return ans;
@@ -547,7 +547,7 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRule
             {
                 if(ch.nonterminal->action)
                 {
-                    rule.push_back(gf->g.addSemanticRule(ch.nonterminal->action));
+                    rule.push_back(gf->g.addSemanticRuleFunc(ch.nonterminal->action));
                     ch.nonterminal->cleanAction();
 
                 }
@@ -583,7 +583,7 @@ NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(NonterminalProxy<T, P
     rule.push_back({gf->getNonterminalAndInsert(o.id)});
     if(o.action)
     {
-        rule.push_back(gf->g.addSemanticRule(o.action));
+        rule.push_back(gf->g.addSemanticRuleFunc(o.action));
         o.cleanAction();
     }
     o.gf = this->gf;
