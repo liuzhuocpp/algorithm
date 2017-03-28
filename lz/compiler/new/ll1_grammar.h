@@ -144,7 +144,7 @@ parseLL1Grammar(
                 propertyStack.push_back(sp);
                 RuleDescriptor nextRd = table.at(std::make_pair(s, input));
                 IteratorRange<RuleSymbolIterator> nextRule = g.ruleSymbols(nextRd);
-                SymbolDescriptor synthesizeAction = g.calculateAction(nextRd, g.ruleSymbols(nextRd).first);
+                SymbolDescriptor synthesizeAction = g.calculateSemanticRule(nextRd, g.ruleSymbols(nextRd).first);
                 int nextNonterminalsNumber = 1;
                 int nextRuleBodyBeginInSymbolStack = symbolStack.size();
                 if(synthesizeAction != NullSymbol)
@@ -158,7 +158,7 @@ parseLL1Grammar(
                 }
                 for(RuleSymbolIterator it = ++nextRule.first; it != nextRule.second; ++ it)
                 {
-                    symbolStack.push_back(std::make_tuple(*it, nextNonterminalsNumber, g.calculateAction(nextRd, it) ));
+                    symbolStack.push_back(std::make_tuple(*it, nextNonterminalsNumber, g.calculateSemanticRule(nextRd, it) ));
                     if(isNonterminal(*it)) nextNonterminalsNumber++;
                 }
                 std::reverse(symbolStack.begin() + nextRuleBodyBeginInSymbolStack, symbolStack.end());

@@ -156,7 +156,7 @@ public:
     };
 
     // rd 与it 所指向的字符必须是非终结符
-    SymbolDescriptor calculateAction(RuleDescriptor rd, RuleSymbolIterator it) const
+    SymbolDescriptor calculateSemanticRule(RuleDescriptor rd, RuleSymbolIterator it) const
     {
         auto ruleRange = ruleSymbols(rd);
         int id = it.cur;
