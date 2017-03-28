@@ -15,8 +15,8 @@ namespace lz{
 using SymbolDescriptor = long;
 
 constexpr SymbolDescriptor TerminalSymbolBegin = std::numeric_limits<SymbolDescriptor>::min();
-constexpr SymbolDescriptor ActionSymbolBegin = std::numeric_limits<SymbolDescriptor>::min() >> 1;
-constexpr SymbolDescriptor ActionSymbolEnd = -10;
+constexpr SymbolDescriptor SemanticRuleSymbolBegin = std::numeric_limits<SymbolDescriptor>::min() >> 1;
+constexpr SymbolDescriptor SemanticRuleSymbolEnd = -10;
 
 constexpr SymbolDescriptor NullSymbol = -3;
 constexpr SymbolDescriptor EmptyStringSymbol = -2;
@@ -41,12 +41,12 @@ bool isNonterminal(SymbolDescriptor s)
 
 bool isTerminal(SymbolDescriptor s)
 {
-    return s < ActionSymbolBegin;
+    return s < SemanticRuleSymbolBegin;
 }
 
 bool isSemanticRule(SymbolDescriptor s)
 {
-    return s >= ActionSymbolBegin && s < EmptyStringSymbol;
+    return s >= SemanticRuleSymbolBegin && s < SemanticRuleSymbolEnd;
 }
 
 bool isEmptyString(SymbolDescriptor s)
