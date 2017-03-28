@@ -135,21 +135,23 @@ parseLL1Grammar(
                 if(sInheritActoin != NullSymbol)
                 {
                     std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
+                    // 计算继承属性的语义规则
                     g.getSemanticRuleFunc(sInheritActoin)(tmpStack, sp);
                 }
                 symbolStack.pop_back(); // 开始进行非终结符展开
 
 
-                // 加入综合属性
+                // 加入属性
                 propertyStack.push_back(sp);
                 RuleDescriptor nextRd = table.at(std::make_pair(s, input));
                 IteratorRange<RuleSymbolIterator> nextRule = g.ruleSymbols(nextRd);
-                SymbolDescriptor synthesizeAction = g.calculateSemanticRule(nextRd, g.ruleSymbols(nextRd).first);
+                // 将综合属性的语义规则压入栈中
+                SymbolDescriptor synthesizeSemanticRule = g.calculateSemanticRule(nextRd, g.ruleSymbols(nextRd).first);
                 int nextNonterminalsNumber = 1;
                 int nextRuleBodyBeginInSymbolStack = symbolStack.size();
-                if(synthesizeAction != NullSymbol)
+                if(synthesizeSemanticRule != NullSymbol)
                 {
-                    symbolStack.push_back(std::make_tuple(synthesizeAction, 0, NullSymbol));
+                    symbolStack.push_back(std::make_tuple(synthesizeSemanticRule, 0, NullSymbol));
                     nextRuleBodyBeginInSymbolStack++;
                 }
                 else // will be error
@@ -162,7 +164,7 @@ parseLL1Grammar(
                     if(isNonterminal(*it)) nextNonterminalsNumber++;
                 }
                 std::reverse(symbolStack.begin() + nextRuleBodyBeginInSymbolStack, symbolStack.end());
-                if(synthesizeAction != NullSymbol)
+                if(synthesizeSemanticRule != NullSymbol)
                 {
                     std::get<1>(symbolStack[nextRuleBodyBeginInSymbolStack - 1]) = nextNonterminalsNumber - 1;
                 }
@@ -190,7 +192,7 @@ parseLL1Grammar(
                 tmpStack.push_back(propertyStack.back());
                 propertyStack.pop_back();
             }
-
+            //调用计算综合属性的语义规则
             g.getSemanticRuleFunc(s)(tmpStack, propertyStack.back());
             symbolStack.pop_back();
         }
