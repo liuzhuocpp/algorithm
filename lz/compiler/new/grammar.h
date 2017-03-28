@@ -15,7 +15,7 @@ namespace lz {
 
 
 template<typename P>
-using ActionType = std::function<void(const std::vector<P>&, P&)>;
+using SemanticRuleType = std::function<void(const std::vector<P>&, P&)>;
 
 
 template<typename _NodeProperties>
@@ -33,7 +33,7 @@ private:
     using RuleBody = std::vector<SymbolDescriptor>;
     using RuleBodyUnion = std::vector<RuleBody>;
     using Base = std::vector<RuleBodyUnion>;
-    std::vector<ActionType<NodeProperties>> actions;
+    std::vector<SemanticRuleType<NodeProperties>> actions;
     using  std::vector<std::vector<std::vector<SymbolDescriptor>>>::vector;
 public:
 
@@ -163,7 +163,7 @@ public:
         const RuleBody& body =  (*this)[rd.head][rd.body];
         id++;
 
-        if(id < body.size() && isAction(body[id]))
+        if(id < body.size() && isSemanticRule(body[id]))
         {
             return body[id];
         }
@@ -172,7 +172,7 @@ public:
 
 
     // s 代表一个action symbol
-    ActionType<NodeProperties> getActionFunc(SymbolDescriptor s) const
+    SemanticRuleType<NodeProperties> getSemanticRuleFunc(SymbolDescriptor s) const
     {
         return actions[s - ActionSymbolBegin];
     }
@@ -184,7 +184,7 @@ public:
 
 
 
-    SymbolDescriptor addActionFunc(ActionType<NodeProperties> f)
+    SymbolDescriptor addSemanticRule(SemanticRuleType<NodeProperties> f)
     {
         actions.push_back(f);
         return actions.size() + ActionSymbolBegin - 1;
@@ -381,11 +381,11 @@ private:
     static int counter;
 public:
     SymbolDescriptor id;
-    ActionType<P> action;
+    SemanticRuleType<P> action;
     GrammarFactory<T, P>* gf;
 
 
-    NonterminalProxy(ActionType<P> func = ActionType<P>(), GrammarFactory<T, P>* gf = nullptr):
+    NonterminalProxy(SemanticRuleType<P> func = SemanticRuleType<P>(), GrammarFactory<T, P>* gf = nullptr):
          action(func), gf(gf)
     {
         id = counter ++;
@@ -393,7 +393,7 @@ public:
 
 
     NonterminalProxy(const NonterminalProxy<T, NoProperty>&other):
-        id(other.id), action(ActionType<P>()), gf(nullptr)
+        id(other.id), action(SemanticRuleType<P>()), gf(nullptr)
     {
     }
 
@@ -527,7 +527,7 @@ std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHeadAction()
     ans.push_back(gf->getNonterminalAndInsert(id));
     if(action)
     {
-        ans.push_back(gf->g.addActionFunc(action));
+        ans.push_back(gf->g.addSemanticRule(action));
         cleanAction();
     }
     return ans;
@@ -547,7 +547,7 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRule
             {
                 if(ch.nonterminal->action)
                 {
-                    rule.push_back(gf->g.addActionFunc(ch.nonterminal->action));
+                    rule.push_back(gf->g.addSemanticRule(ch.nonterminal->action));
                     ch.nonterminal->cleanAction();
 
                 }
@@ -583,7 +583,7 @@ NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(NonterminalProxy<T, P
     rule.push_back({gf->getNonterminalAndInsert(o.id)});
     if(o.action)
     {
-        rule.push_back(gf->g.addActionFunc(o.action));
+        rule.push_back(gf->g.addSemanticRule(o.action));
         o.cleanAction();
     }
     o.gf = this->gf;
@@ -664,7 +664,7 @@ struct SymbolForOutput
             else
                 os << std::to_string(i);
         }
-        else if(isAction(s))
+        else if(isSemanticRule(s))
         {
             os << '#'; // action
         }

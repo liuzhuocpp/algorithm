@@ -44,7 +44,7 @@ bool isTerminal(SymbolDescriptor s)
     return s < ActionSymbolBegin;
 }
 
-bool isAction(SymbolDescriptor s)
+bool isSemanticRule(SymbolDescriptor s)
 {
     return s >= ActionSymbolBegin && s < EmptyStringSymbol;
 }

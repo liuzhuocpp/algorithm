@@ -135,7 +135,7 @@ parseLL1Grammar(
                 if(sInheritActoin != NullSymbol)
                 {
                     std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
-                    g.getActionFunc(sInheritActoin)(tmpStack, sp);
+                    g.getSemanticRuleFunc(sInheritActoin)(tmpStack, sp);
                 }
                 symbolStack.pop_back(); // 开始进行非终结符展开
 
@@ -182,7 +182,7 @@ parseLL1Grammar(
                 goto ErrorLabel;
             }
         }
-        else if(isAction(s))
+        else if(isSemanticRule(s))
         {
             std::vector<P> tmpStack;
             while(nonterminalsNumber --)
@@ -191,7 +191,7 @@ parseLL1Grammar(
                 propertyStack.pop_back();
             }
 
-            g.getActionFunc(s)(tmpStack, propertyStack.back());
+            g.getSemanticRuleFunc(s)(tmpStack, propertyStack.back());
             symbolStack.pop_back();
         }
     }
