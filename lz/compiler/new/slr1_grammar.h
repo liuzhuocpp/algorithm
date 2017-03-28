@@ -261,6 +261,61 @@ auto makeAugmentedGrammar(Grammar &g, SymbolDescriptor start)
 
 
 
+
+
+
+
+
+
+
+
+
+
+//enum ActionType
+//{
+//
+//};
+//struct Action
+//{
+//
+//
+//};
+
+template<typename Grammar>
+auto calculateSlr1ActionAndGoto(
+    const Grammar& g,
+    typename Grammar::RuleDescriptor startRule,
+    const std::vector<ItemDescriptor< typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>>& itemSet,
+    const std::map<std::pair<int, SymbolDescriptor>, int> gotoFunction )
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }// namesapce lz
 
 #endif /* LZ_COMPILER_NEW_SLR1_GRAMMAR_H_ */
