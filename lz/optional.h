@@ -20,7 +20,25 @@ template<typename T>
 struct Optional
 {
     Optional() {}
+
+    Optional(const T& t)
+    {
+        *this = t;
+    }
+
+    Optional& operator=(const T& t)
+    {
+        if(val == nullptr) val = new T(t);
+        else *val = t;
+        return *this;
+    }
+
     Optional(const Optional& other)
+    {
+        *this = other;
+    }
+
+    Optional& operator=(const Optional& other)
     {
         if(other.val != nullptr)
         {
@@ -35,15 +53,15 @@ struct Optional
                 val = nullptr;
             }
         }
-
-    }
-    Optional& operator=(const Optional& other)
-    {
-        Optional::Optional(other);
         return *this;
     }
 
     Optional(Optional && other)
+    {
+        *this = std::move(other);
+    }
+
+    Optional& operator=(Optional && other)
     {
         if(other.val != nullptr)
         {
@@ -58,12 +76,6 @@ struct Optional
                 val = nullptr;
             }
         }
-    }
-
-
-    Optional& operator=(Optional && other)
-    {
-        Optional::Optional(std::move(other));
         return *this;
     }
 

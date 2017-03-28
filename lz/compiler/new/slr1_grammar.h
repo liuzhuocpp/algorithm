@@ -10,6 +10,9 @@
 
 
 #include <lz/compiler/new/symbol.h>
+#include <lz/compiler/new/grammar_design.h>
+#include <lz/optional.h>
+
 namespace lz {
 
 
@@ -271,29 +274,179 @@ auto makeAugmentedGrammar(Grammar &g, SymbolDescriptor start)
 
 
 
-//enum ActionType
-//{
-//
-//};
-//struct Action
-//{
-//
-//
-//};
+enum class ActionType
+{
+   Shift, Reduce, Accept,
+};
 
-template<typename Grammar>
-auto calculateSlr1ActionAndGoto(
+template<typename RuleDescriptor>
+struct ActionValue
+{
+    ActionType type;
+
+    int itemSetId; // 移入
+    RuleDescriptor rule; // 规约
+    ActionValue(){}
+    ActionValue(int i):type(ActionType::Shift), itemSetId(i){}
+    ActionValue(RuleDescriptor rule):type(ActionType::Reduce), rule(rule){}
+    ActionValue(ActionType type):type(type){}
+};
+
+template<typename Grammar, typename ItemSets>
+auto
+calculateSLR1ActionTable(
     const Grammar& g,
     typename Grammar::RuleDescriptor startRule,
-    const std::vector<ItemDescriptor< typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>>& itemSet,
-    const std::map<std::pair<int, SymbolDescriptor>, int> gotoFunction )
+    const ItemSets& itemSets,
+    const std::map<std::pair<int, SymbolDescriptor>, int>& gotoFunction )
 {
+
+    using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
+    using RuleDescriptor = typename Grammar::RuleDescriptor;
+    using Item = ItemDescriptor<RuleDescriptor, RuleSymbolIterator>;
+    using Action = ActionValue<RuleDescriptor>;
+
+
+
+    std::vector<std::set<SymbolDescriptor>> firstSets = calculateFirstSets(g);
+    std::vector<std::set<SymbolDescriptor>> followSets =
+        calculateFollowSets(g, firstSets, *g.ruleSymbols(startRule).begin() );
+
+
+    std::map<std::pair<int, SymbolDescriptor>, Action > actionTable;
+    using ActionTableOptinal = Optional<std::map<std::pair<int, SymbolDescriptor>, Action >>;
+    ActionTableOptinal emptyOption = {};
+
+    auto addAction = [&](auto i, auto j, auto v){
+        if(actionTable.count({i, j}))
+        {
+            return false;
+        }
+        actionTable[std::make_pair(i, j)] = v;
+        return true;
+    };
+
+    for(int i = 0; i < itemSets.size(); ++ i)
+    {
+        auto cntItemSet = itemSets[i];
+
+        auto nonkernelItemSet = calculateNonkernelItemSetClosure(g, cntItemSet);
+
+        cntItemSet.insert(cntItemSet.end(), nonkernelItemSet.begin(), nonkernelItemSet.end());
+
+        for(Item item: cntItemSet)
+        {
+            if(item.ruleSymbolIterator() == g.ruleSymbols(item.ruleDescirptor()).end())
+            {
+                if(item.ruleDescirptor() == startRule)
+                {
+                    if(!addAction(i, EndTagSymbol, ActionType::Accept))
+                    {
+                        return emptyOption;
+                    }
+                }
+                else
+                {
+                    SymbolDescriptor cntSymbol = *g.ruleSymbols(item.ruleDescirptor()).begin();
+
+
+                    for(SymbolDescriptor followSymbol: followSets[cntSymbol])
+                    {
+                        if(!addAction(i, followSymbol, Action(item.ruleDescirptor())))
+                        {
+                            return emptyOption;
+                        }
+                    }
+                }
+            }
+            else if(isTerminal(*item.ruleSymbolIterator()))
+            {
+                if(!addAction(i, *item.ruleSymbolIterator(), Action(gotoFunction.at({i, *item.ruleSymbolIterator()}))))
+                {
+                    return emptyOption;
+                }
+
+            }
+        }
+    }
+
+
+    return ActionTableOptinal(actionTable);
 
 }
 
 
 
+template<typename InputIterator, typename Translate, typename Grammar, typename ActionTable, typename GotoTable>
+void parseSLR1Grammar(
+        InputIterator first,
+        InputIterator last,
+        const Translate &translate,
+        const Grammar &g,
+        const ActionTable& actionTable,
+        const GotoTable& gotoTable)
+{
+    using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
+    using RuleDescriptor = typename Grammar::RuleDescriptor;
+    using Item = ItemDescriptor<RuleDescriptor, RuleSymbolIterator>;
+    using Action = ActionValue<RuleDescriptor>;
 
+
+    std::vector<int> stateStack;
+    stateStack.push_back(0);
+    while(!stateStack.empty())
+    {
+
+        SymbolDescriptor input = EndTagSymbol;
+        if(first != last) input =  translate.at(*first);
+//        std::cout << "input: " << input << std::endl;
+        int u = stateStack.back();
+//        std::cout << "cnt state: " << u << std::endl;
+
+        if(actionTable.count({u, input}) )
+        {
+            Action cnt = actionTable.at({u, input});
+            if(cnt.type == ActionType::Accept)
+            {
+                std::cout << "Accept" << std::endl;
+                break;
+            }
+            else if(cnt.type == ActionType::Shift)
+            {
+                stateStack.push_back(cnt.itemSetId);
+                std::cout << "Shift: " << u << " " << *first << " " << cnt.itemSetId << std::endl;
+                first ++;
+            }
+            else if(cnt.type == ActionType::Reduce)
+            {
+                auto symbolRange = g.ruleSymbols(cnt.rule);
+                int r = std::distance(++symbolRange.begin(), symbolRange.end());
+                while(r --)
+                {
+                    stateStack.pop_back();
+                }
+                stateStack.push_back(gotoTable.at({stateStack.back(), *symbolRange.begin()}   ) );
+
+                std::cout << "Reduce: " << u << " " << *first << std::endl;
+            }
+            else
+            {
+                std::cout << "unkonwn ERROR" << std::endl;
+            }
+
+
+        }
+        else
+        {
+            std::cout << "ERROR" << std::endl;
+            return ;
+        }
+    }
+
+
+
+
+}
 
 
 
