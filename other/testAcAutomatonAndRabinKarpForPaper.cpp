@@ -320,7 +320,6 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
 {
     OUT_FUNCTION_NAME
 
-    using HashType = unsigned long long;
     int n = textString.size();
     int m = paternStrings[0].size();// 每个小串的长度
 
@@ -356,8 +355,8 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
 
         foundNumber = 0;
         foundPos = -1;
-        auto ans = rabinKarp.query(textString.begin(), textString.end());
-        std::tie(foundId,  foundNumber, foundPos) = ans;
+        std::tie(foundId,  foundNumber, foundPos) = rabinKarp.query(textString.begin(), textString.end());
+//        std::tie(foundId,  foundNumber, foundPos) = ans;
 
     }
 
@@ -378,11 +377,90 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
 
 }
 
+
+template<int C>
+void testAcAutomatonAndRabinKarp(int runBuildNumber, int runQueryNumber)
+{
+    OUT_FUNCTION_NAME
+
+    int n = textString.size();
+    int m = paternStrings[0].size();// 每个小串的长度
+    int patternStringNumber = paternStrings.size();
+    double firstTime, secondTime, thirdTime;
+
+    RabinKarp rabinKarp;
+    AcAutomaton<C> ac;
+
+    firstTime = clock();
+    while(runBuildNumber -- )
+    {
+        rabinKarp = RabinKarp();
+        rabinKarp.build(m, C);
+        for(int i = 0; i < patternStringNumber / 2; ++ i)
+        {
+            rabinKarp.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
+        }
+
+
+        ac = AcAutomaton<C>();
+        for(int i = patternStringNumber / 2; i < patternStringNumber; ++ i)
+        {
+            ac.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
+        }
+        ac.build();
+
+
+
+
+    }
+
+
+
+
+
+
+    secondTime = clock();
+
+
+    int foundId, foundNumber, foundPos;
+    while(runQueryNumber -- )
+    {
+        foundId = -1;
+        foundNumber = 0;
+        foundPos = -1;
+        std::tie(foundId,  foundNumber, foundPos) = rabinKarp.query(textString.begin(), textString.end());
+        if(foundId == -1)
+        {
+            std::tie(foundId,  foundNumber, foundPos) = ac.query(textString.begin(), textString.end());
+        }
+
+    }
+
+
+    thirdTime = clock();
+
+
+
+
+
+
+    cout << "build time: " << (secondTime - firstTime)  << "ms" << endl;
+    cout << "query time: " << (thirdTime - secondTime)  << "ms" << endl;
+    cout << "foundId: " << foundId <<  endl;
+    cout << "foundNumber: " << foundNumber <<  endl;
+    cout << "foundPos: " << foundPos <<  endl;
+
+
+}
+
+
+
+
 int main()
 {
     constexpr int C = 10;
 
-//    srand(time(NULL));
+    srand(time(NULL));
 
     setPaternAndText(C);
 
@@ -390,9 +468,12 @@ int main()
 
     int runBuildNumber = 10000;
     int runQueryNumber = 100000;
-    testAcAutomaton<C>(runBuildNumber, runQueryNumber);
 
-    testRabinKarp<C>(runBuildNumber, runQueryNumber);
+//    testRabinKarp<C>(runBuildNumber, runQueryNumber);
+    testAcAutomaton<C>(runBuildNumber, runQueryNumber);
+    testAcAutomatonAndRabinKarp<C>(runBuildNumber, runQueryNumber);
+
+
 
 
 
