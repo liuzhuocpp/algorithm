@@ -76,21 +76,25 @@ struct AcAutomaton
         }
     }
     template<typename RandomIterator>
-    pair<int, int> query(RandomIterator first, RandomIterator end)
+    tuple<int, int, int> query(RandomIterator first, RandomIterator end)
     {
         RandomIterator s = first;
         int n = end - first;
 
         Node *u = root;
-        pair<int, int> ans(-1, 0);
+        tuple<int, int, int> ans(-1, 0, -1);
         for(int i = 0; i < n; ++ i)
         {
             u = u->son[s[i]];
             Node *tp = u;
             if(tp->tail != -1)
             {
-                ans.first = tp->tail;
-                ans.second ++;
+                std::get<0>(ans) = tp->tail;
+                std::get<1>(ans) ++;
+                std::get<2>(ans) = i;
+//                ans.second ++;
+
+//                return ans;
             }
         }
         return ans;
@@ -154,8 +158,10 @@ void setPaternAndText(int c)
     }
 
 
+    int cot = 0;
     while(1)
     {
+//        cout << "cot: " << cot ++ << endl;
         textString = generateIntergeSeq(100, c);
         int containNumber = 0; // 大串包含模式串的数目
         for(int i = 0; i < n - m; ++ i)
@@ -198,14 +204,17 @@ void testAcAutomaton(int runBuildNumber, int runQueryNumber)
     secondTime = clock();
     int foundNumber;
     int foundId;
+    int foundPos;
 
     while(runQueryNumber --)
     {
         foundId = -1;
         foundNumber = 0;
+        foundPos = -1;
         auto ans = ac.query(textString.begin(), textString.end());
-        foundId = ans.first;
-        foundNumber = ans.second;
+        foundId = std::get<0>(ans);
+        foundNumber = std::get<1>(ans);
+        foundPos = std::get<2>(ans);
     }
 
     thirdTime = clock();
@@ -215,6 +224,8 @@ void testAcAutomaton(int runBuildNumber, int runQueryNumber)
 
     cout << "foundId: " << foundId << endl;
     cout << "foundNumber: " << foundNumber << endl;
+    cout << "foundPos: " << foundPos << endl;
+
 }
 
 template<int d>
@@ -227,15 +238,18 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
     int m = paternStrings[0].size();// 每个小串的长度
 
 
-    unordered_map<HashType, int> hashTable;
+//    unordered_map<HashType, int> hashTable;
     double firstTime, secondTime, thirdTime;
+
+    vector<int> noHashTable;
 
     firstTime = clock();
     HashType t;
     HashType h;
     while(runBuildNumber -- )
     {
-        hashTable.clear();
+//        hashTable.clear();
+        noHashTable.assign(2000, -1);
         for(int i = 0; i < int(paternStrings.size()); ++ i)
         {
             HashType ph = 0;
@@ -243,7 +257,8 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
             {
                 ph = ph * d + x;
             }
-            hashTable.insert(make_pair(ph, i));
+//            hashTable.insert(make_pair(ph, i));
+            noHashTable[ph] = i;
         }
 
         h = 1;
@@ -255,30 +270,45 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
 
 
 
+
     secondTime = clock();
-    int foundId, foundNumber;
+    int foundId, foundNumber, foundPos;
     while(runQueryNumber -- )
     {
         foundId = -1;
+        foundPos = -1;
         foundNumber = 0;
         t = 0;
         for(int i = 0; i < m; ++ i)
         {
             t = t * d + textString[i];
         }
-
         for(int i = 0; i < n - m; ++ i)
         {
-            if(hashTable.count(t))
+            if(noHashTable[t] != -1)
             {
-                foundId = hashTable[t];
+                foundId =  noHashTable[t] ;
                 foundNumber ++;
-//                break;
+                foundPos = i+ m - 1;
             }
+
             if(i + m < n)
             {
+//                t = t / d * d + textString[i + m];
                 t = (t - textString[i] * h) * d + textString[i + m];
             }
+
+//            if(hashTable.count(t))
+//            {
+//                foundId = hashTable[t];
+//                foundNumber ++;
+//                foundPos = i;
+//                break;
+//            }
+//            if(i + m < n)
+//            {
+//                t = (t - textString[i] * h) * d + textString[i + m];
+//            }
         }
 
     }
@@ -295,6 +325,7 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
     cout << "query time: " << (thirdTime - secondTime)  << "ms" << endl;
     cout << "foundId: " << foundId <<  endl;
     cout << "foundNumber: " << foundNumber <<  endl;
+    cout << "foundPos: " << foundPos <<  endl;
 
 
 }
