@@ -76,24 +76,24 @@ struct AcAutomaton
         }
     }
     template<typename RandomIterator>
-    int query(RandomIterator first, RandomIterator end)
+    pair<int, int> query(RandomIterator first, RandomIterator end)
     {
         RandomIterator s = first;
         int n = end - first;
 
         Node *u = root;
-        int ans = 0;
+        pair<int, int> ans(-1, 0);
         for(int i = 0; i < n; ++ i)
         {
             u = u->son[s[i]];
             Node *tp = u;
             if(tp->tail != -1)
             {
-                return tp->tail;
-
+                ans.first = tp->tail;
+                ans.second ++;
             }
         }
-        return -1;
+        return ans;
     }
     ~AcAutomaton()
     {
@@ -197,12 +197,15 @@ void testAcAutomaton(int runBuildNumber, int runQueryNumber)
 
     secondTime = clock();
     int foundNumber;
+    int foundId;
 
     while(runQueryNumber --)
     {
+        foundId = -1;
         foundNumber = 0;
-        int ans = ac.query(textString.begin(), textString.end());
-        foundNumber = ans;
+        auto ans = ac.query(textString.begin(), textString.end());
+        foundId = ans.first;
+        foundNumber = ans.second;
     }
 
     thirdTime = clock();
@@ -210,6 +213,7 @@ void testAcAutomaton(int runBuildNumber, int runQueryNumber)
     cout << "build time: " << (secondTime - firstTime)  << "ms" << endl;
     cout << "query time: " << (thirdTime - secondTime)  << "ms" << endl;
 
+    cout << "foundId: " << foundId << endl;
     cout << "foundNumber: " << foundNumber << endl;
 }
 
@@ -243,12 +247,7 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
         }
 
         h = 1;
-        t = 0;
         for(int i = 1; i < m; ++ i) h = h * d;
-        for(int i = 0; i < m; ++ i)
-        {
-            t = t * d + textString[i];
-        }
 
     }
 
@@ -257,16 +256,24 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
 
 
     secondTime = clock();
-    int foundNumber;
+    int foundId, foundNumber;
     while(runQueryNumber -- )
     {
+        foundId = -1;
         foundNumber = 0;
+        t = 0;
+        for(int i = 0; i < m; ++ i)
+        {
+            t = t * d + textString[i];
+        }
+
         for(int i = 0; i < n - m; ++ i)
         {
             if(hashTable.count(t))
             {
-                foundNumber = hashTable[t];
-                break;
+                foundId = hashTable[t];
+                foundNumber ++;
+//                break;
             }
             if(i + m < n)
             {
@@ -286,6 +293,7 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
 
     cout << "build time: " << (secondTime - firstTime)  << "ms" << endl;
     cout << "query time: " << (thirdTime - secondTime)  << "ms" << endl;
+    cout << "foundId: " << foundId <<  endl;
     cout << "foundNumber: " << foundNumber <<  endl;
 
 
@@ -294,7 +302,9 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
 int main()
 {
     constexpr int C = 10;
+
     srand(time(NULL));
+
     setPaternAndText(C);
 
 
