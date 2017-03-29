@@ -396,14 +396,14 @@ void testAcAutomatonAndRabinKarp(int runBuildNumber, int runQueryNumber)
     {
         rabinKarp = RabinKarp();
         rabinKarp.build(m, C);
-        for(int i = 0; i < patternStringNumber / 2; ++ i)
+        for(int i = 0; i < patternStringNumber / 4 * 3; ++ i)
         {
             rabinKarp.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
         }
 
 
         ac = AcAutomaton<C>();
-        for(int i = patternStringNumber / 2; i < patternStringNumber; ++ i)
+        for(int i = patternStringNumber / 4 * 3; i < patternStringNumber; ++ i)
         {
             ac.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
         }
