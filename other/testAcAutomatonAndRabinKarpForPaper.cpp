@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include <cassert>
 
 #define nullptr 0
 using namespace std;
@@ -86,17 +87,6 @@ struct AcAutomaton
                     q.push(u->son[i]);
                 }
 
-//                if(u->son[i] == nullptr)
-//                {
-//                    if(u == root) u->son[i] = root;
-//                    else u->son[i] = u->next->son[i];
-//                }
-//                else
-//                {
-//                    if(u == root) u->son[i]->next = root;
-//                    else u->son[i]->next = u->next->son[i];
-//                    q.push(u->son[i]);
-//                }
             }
         }
     }
@@ -135,6 +125,74 @@ struct AcAutomaton
 
 
 };
+
+
+
+
+struct RabinKarp
+{
+    vector<int> noHashTable;
+    int h;
+    int m;
+    int d;
+
+    // 每个小串的长度
+    void build(int _m, int _d)
+    {
+        m = _m;
+        d = _d;
+        h = 1;
+        for(int i = 1; i < m; ++ i) h = h * d;
+
+        noHashTable.assign(2000, -1);
+    }
+
+    template<typename Iterator>
+    void insert(Iterator first, Iterator last, int id)
+    {
+        m = last - first;// 每个小串的长度
+        assert(m == (last - first));
+        int ph = 0;
+        for(int i = 0; i < m; ++ i)
+        {
+            int x = first[i];
+            ph = ph * d + x;
+        }
+        noHashTable[ph] = id;
+    }
+
+    template<typename Iterator>
+    tuple<int, int, int> query(Iterator first, Iterator last)
+    {
+        int n = last - first;
+        tuple<int, int, int> ans(-1, 0, -1);
+        int t = 0;
+        for(int i = 0; i < m; ++ i)
+        {
+            t = t * d + first[i];
+        }
+        for(int i = 0; i < n - m; ++ i)
+        {
+            if(noHashTable[t] != -1)
+            {
+                std::get<0>(ans) = noHashTable[t];
+                std::get<1>(ans)++;
+                std::get<2>(ans) = i + m - 1;
+            }
+
+            if(i + m < n)
+            {
+                t = (t - first[i] * h) * d + first[i + m];
+            }
+        }
+        return ans;
+
+
+
+    }
+};
+
+
 
 
 
@@ -188,13 +246,12 @@ void setPaternAndText(int c)
     }
 
 
-    int cot = 0;
+//    int cot = 0;
     while(1)
     {
-//        cout << "cot: " << cot ++ << endl;
-        textString = generateIntergeSeq(100, c);
+        textString = generateIntergeSeq(n, c);
         int containNumber = 0; // 大串包含模式串的数目
-        for(int i = 0; i < n - m; ++ i)
+        for(int i = 0; i <= n - m; ++ i)
         {
             vector<int> tmp(textString.begin() + i, textString.begin() + i + m);
             if(flag.count(tmp))
@@ -268,31 +325,21 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
     int m = paternStrings[0].size();// 每个小串的长度
 
 
-//    unordered_map<HashType, int> hashTable;
     double firstTime, secondTime, thirdTime;
 
-    vector<int> noHashTable;
+    RabinKarp rabinKarp;
+
 
     firstTime = clock();
-    HashType t;
-    HashType h;
     while(runBuildNumber -- )
     {
-//        hashTable.clear();
-        noHashTable.assign(2000, -1);
+        rabinKarp = RabinKarp();
+        rabinKarp.build(m, d);
         for(int i = 0; i < int(paternStrings.size()); ++ i)
         {
-            HashType ph = 0;
-            for(int x: paternStrings[i])
-            {
-                ph = ph * d + x;
-            }
-//            hashTable.insert(make_pair(ph, i));
-            noHashTable[ph] = i;
+            rabinKarp.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
         }
 
-        h = 1;
-        for(int i = 1; i < m; ++ i) h = h * d;
 
     }
 
@@ -306,40 +353,11 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
     while(runQueryNumber -- )
     {
         foundId = -1;
-        foundPos = -1;
+
         foundNumber = 0;
-        t = 0;
-        for(int i = 0; i < m; ++ i)
-        {
-            t = t * d + textString[i];
-        }
-        for(int i = 0; i < n - m; ++ i)
-        {
-            if(noHashTable[t] != -1)
-            {
-                foundId =  noHashTable[t] ;
-                foundNumber ++;
-                foundPos = i+ m - 1;
-            }
-
-            if(i + m < n)
-            {
-//                t = t / d * d + textString[i + m];
-                t = (t - textString[i] * h) * d + textString[i + m];
-            }
-
-//            if(hashTable.count(t))
-//            {
-//                foundId = hashTable[t];
-//                foundNumber ++;
-//                foundPos = i;
-//                break;
-//            }
-//            if(i + m < n)
-//            {
-//                t = (t - textString[i] * h) * d + textString[i + m];
-//            }
-        }
+        foundPos = -1;
+        auto ans = rabinKarp.query(textString.begin(), textString.end());
+        std::tie(foundId,  foundNumber, foundPos) = ans;
 
     }
 
@@ -364,7 +382,7 @@ int main()
 {
     constexpr int C = 10;
 
-    srand(time(NULL));
+//    srand(time(NULL));
 
     setPaternAndText(C);
 
