@@ -53,7 +53,7 @@ struct AcAutomaton
     void build() // bfs
     {
         queue<Node*> q;
-        root->next = root;
+        root->next = nullptr;
         q.push(root);
         while(!q.empty())
         {
@@ -61,17 +61,42 @@ struct AcAutomaton
             q.pop();
             for(int i = 0; i < N; ++ i)
             {
-                if(u->son[i] == nullptr)
+                if(u->son[i] != nullptr)
                 {
-                    if(u == root) u->son[i] = root;
-                    else u->son[i] = u->next->son[i];
-                }
-                else
-                {
-                    if(u == root) u->son[i]->next = root;
-                    else u->son[i]->next = u->next->son[i];
+                    if(u == root)
+                    {
+                        u->son[i]->next = root;
+                    }
+                    else
+                    {
+                        Node* p;
+                        for(p = u->next; p != nullptr; p = p->next)
+                        {
+                            if(p->son[i] != nullptr)
+                            {
+                                u->son[i]->next = p->son[i];
+                                break;
+                            }
+                        }
+                        if(p == nullptr)
+                        {
+                            u->son[i]->next = root;
+                        }
+                    }
                     q.push(u->son[i]);
                 }
+
+//                if(u->son[i] == nullptr)
+//                {
+//                    if(u == root) u->son[i] = root;
+//                    else u->son[i] = u->next->son[i];
+//                }
+//                else
+//                {
+//                    if(u == root) u->son[i]->next = root;
+//                    else u->son[i]->next = u->next->son[i];
+//                    q.push(u->son[i]);
+//                }
             }
         }
     }
@@ -83,19 +108,24 @@ struct AcAutomaton
 
         Node *u = root;
         tuple<int, int, int> ans(-1, 0, -1);
+
         for(int i = 0; i < n; ++ i)
         {
+
+            while(u != root && u->son[s[i]] == nullptr) u = u->next;
+
             u = u->son[s[i]];
-            Node *tp = u;
-            if(tp->tail != -1)
+            if(u == nullptr) u = root;
+
+            if(u->tail != -1)
             {
-                std::get<0>(ans) = tp->tail;
+                std::get<0>(ans) = u->tail;
                 std::get<1>(ans) ++;
                 std::get<2>(ans) = i;
-//                ans.second ++;
 
-//                return ans;
             }
+
+
         }
         return ans;
     }
