@@ -268,7 +268,7 @@ void setPaternAndText(int c)
 #define OUT_FUNCTION_NAME cout << string(30, '-') << __FUNCTION__ << endl;
 
 template<int C>
-void testAcAutomaton(int runBuildNumber, int runQueryNumber)
+auto testAcAutomaton(int runBuildNumber, int runQueryNumber)
 {
     OUT_FUNCTION_NAME
 
@@ -313,10 +313,12 @@ void testAcAutomaton(int runBuildNumber, int runQueryNumber)
     cout << "foundNumber: " << foundNumber << endl;
     cout << "foundPos: " << foundPos << endl;
 
+    return make_tuple(foundId, foundNumber, foundPos, (secondTime - firstTime), (thirdTime - secondTime));
+
 }
 
 template<int d>
-void testRabinKarp(int runBuildNumber, int runQueryNumber)
+auto testRabinKarp(int runBuildNumber, int runQueryNumber)
 {
     OUT_FUNCTION_NAME
 
@@ -373,13 +375,14 @@ void testRabinKarp(int runBuildNumber, int runQueryNumber)
     cout << "foundId: " << foundId <<  endl;
     cout << "foundNumber: " << foundNumber <<  endl;
     cout << "foundPos: " << foundPos <<  endl;
+    return make_tuple(foundId, foundNumber, foundPos, (secondTime - firstTime), (thirdTime - secondTime));
 
 
 }
 
 
 template<int C>
-void testAcAutomatonAndRabinKarp(int runBuildNumber, int runQueryNumber)
+auto testAcAutomatonAndRabinKarp(int runBuildNumber, int runQueryNumber)
 {
     OUT_FUNCTION_NAME
 
@@ -396,14 +399,14 @@ void testAcAutomatonAndRabinKarp(int runBuildNumber, int runQueryNumber)
     {
         rabinKarp = RabinKarp();
         rabinKarp.build(m, C);
-        for(int i = 0; i < patternStringNumber / 4 * 3; ++ i)
+        for(int i = 0; i < patternStringNumber / 5 * 4; ++ i)
         {
             rabinKarp.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
         }
 
 
         ac = AcAutomaton<C>();
-        for(int i = patternStringNumber / 4 * 3; i < patternStringNumber; ++ i)
+        for(int i = patternStringNumber  / 5 * 4; i < patternStringNumber; ++ i)
         {
             ac.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
         }
@@ -450,6 +453,7 @@ void testAcAutomatonAndRabinKarp(int runBuildNumber, int runQueryNumber)
     cout << "foundNumber: " << foundNumber <<  endl;
     cout << "foundPos: " << foundPos <<  endl;
 
+    return make_tuple(foundId, foundNumber, foundPos, (secondTime - firstTime), (thirdTime - secondTime));
 
 }
 
@@ -460,18 +464,45 @@ int main()
 {
     constexpr int C = 10;
 
-    srand(time(NULL));
-
-    setPaternAndText(C);
-
-
-
     int runBuildNumber = 10000;
     int runQueryNumber = 100000;
+    srand(time(NULL));
+    int testNumber = 10;
 
-//    testRabinKarp<C>(runBuildNumber, runQueryNumber);
-    testAcAutomaton<C>(runBuildNumber, runQueryNumber);
-    testAcAutomatonAndRabinKarp<C>(runBuildNumber, runQueryNumber);
+    double AcAutomatonBuildTime;
+    double AcAutomatonQueryTime;
+
+    double AcAutomatonAndRabinKarpBuildTime;
+    double AcAutomatonAndRabinKarpQueryTime;
+
+    for(int i = 0; i < testNumber; ++ i)
+    {
+        setPaternAndText(C);
+
+    //    testRabinKarp<C>(runBuildNumber, runQueryNumber);
+
+        auto AcAutomatonAns = testAcAutomaton<C>(runBuildNumber, runQueryNumber);
+        auto AcAutomatonAndRabinKarpAns = testAcAutomatonAndRabinKarp<C>(runBuildNumber, runQueryNumber);
+
+        AcAutomatonBuildTime += get<3>(AcAutomatonAns);
+        AcAutomatonQueryTime += get<4>(AcAutomatonAns);
+
+        AcAutomatonAndRabinKarpBuildTime += get<3>(AcAutomatonAndRabinKarpAns);
+        AcAutomatonAndRabinKarpQueryTime += get<4>(AcAutomatonAndRabinKarpAns);
+
+
+
+    }
+
+    cout << "AcAutomatonBuildTime: " << AcAutomatonBuildTime / testNumber << endl;
+    cout << "AcAutomatonAndRabinKarpBuildTime: " << AcAutomatonAndRabinKarpBuildTime / testNumber << endl;
+
+
+    cout << "AcAutomatonQueryTime: " << AcAutomatonQueryTime / testNumber<< endl;
+    cout << "AcAutomatonAndRabinKarpQueryTime: " << AcAutomatonAndRabinKarpQueryTime / testNumber << endl;
+
+
+
 
 
 
