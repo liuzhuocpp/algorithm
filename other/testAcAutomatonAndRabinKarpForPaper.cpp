@@ -224,6 +224,7 @@ struct RabinKarp
     int h;
     int m;
 
+
     void clear()
     {
 
@@ -236,6 +237,7 @@ struct RabinKarp
         h = 1;
         for(int i = 1; i < m; ++ i) h = h * d;
         noHashTable.assign(2000, -1);
+//        noHashTable.resize(2000);
 
         for(int i = 0; i < last - first; ++ i)
         {
@@ -297,6 +299,12 @@ struct AcAutomatonAndRabinKarp
 {
     AcAutomaton<N> ac;
     RabinKarp<N> rabinKarp;
+    vector<vector<int>>::iterator patternStringsBegin;
+    vector<vector<int>>::iterator patternStringsEnd;
+    vector<vector<int>>::iterator patternStringsMid;
+    // [patternStringsBegin, patternStringsMid)
+    // [patternStringsMid, patternStringsEnd)
+
 
     void clear()
     {
@@ -306,20 +314,30 @@ struct AcAutomatonAndRabinKarp
 
     void build(vector<vector<int>>::iterator first, vector<vector<int>>::iterator last)
     {
-        int patternsNumber = last - first;
-        rabinKarp.build(first, first + patternsNumber / 5 * 4);
-        ac.build(first + patternsNumber / 5 * 4, last);
+        int patternsNumber = patternStringsEnd - patternStringsBegin;
+
+        patternStringsBegin = first;
+        patternStringsEnd = last;
+        patternStringsMid = first + patternsNumber / 5 * 4;
+
+        rabinKarp.build(patternStringsBegin, patternStringsMid);
+        ac.build(patternStringsMid, patternStringsEnd);
 
     }
     template<typename Iterator>
     tuple<int, int, int> query(Iterator first, Iterator last)
     {
-        auto rabinAns = rabinKarp.query(first, last);
-        if(get<0>(rabinAns) != -1)
+        auto ans = rabinKarp.query(first, last);
+        if(get<0>(ans) != -1)
         {
-            return rabinAns;
+            return ans;
         }
-        return ac.query(first, last);
+        ans = ac.query(first, last);
+        if(get<0>(ans) != -1)
+        {
+            get<0>(ans) += patternStringsMid - patternStringsBegin;
+        }
+        return ans;
     }
 
 };
@@ -599,6 +617,7 @@ int main()
 
     }
 
+    cout << string(60, '-' ) << endl << endl << endl;
 
     cout << "bruteForceBuildTime: " << bruteForceBuildTime / testNumber<< endl;
     cout << "bruteForceQueryTime: " << bruteForceQueryTime / testNumber << endl;
