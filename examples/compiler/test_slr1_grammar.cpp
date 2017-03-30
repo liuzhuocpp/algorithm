@@ -2,8 +2,13 @@
 #include <lz/debug.h>
 #include <lz/std_utility.h>
 #include <lz/compiler/grammar.h>
+
+#include <lz/compiler/noterminal_proxy.h>
+
 #include <lz/compiler/grammar_design.h>
 #include <lz/compiler/slr1_grammar.h>
+
+
 
 
 

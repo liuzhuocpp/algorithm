@@ -3,6 +3,7 @@
 #include <lz/debug.h>
 #include <lz/std_utility.h>
 #include <lz/compiler/grammar.h>
+#include <lz/compiler/noterminal_proxy.h>
 #include <lz/compiler/grammar_design.h>
 #include <lz/compiler/ll1_grammar.h>
 
