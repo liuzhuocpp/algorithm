@@ -224,10 +224,15 @@ struct RabinKarp
     int h;
     int m;
 
+    RabinKarp()
+    {
+        noHashTable.assign(2000000, -1);
+
+    }
+
 
     void clear()
     {
-
     }
 
 //    void build(vector<vector<int>>& ps)
@@ -236,7 +241,7 @@ struct RabinKarp
         m = first[0].size();
         h = 1;
         for(int i = 1; i < m; ++ i) h = h * d;
-        noHashTable.assign(2000, -1);
+
 //        noHashTable.resize(2000);
 
         for(int i = 0; i < last - first; ++ i)
@@ -448,12 +453,9 @@ vector<int> generateIntergeSeq(int n, int c)
 void setPaternAndText(int c)
 {
     patternStrings.clear();
-
     set<vector<int> > flag;
-    int paternStringNumber = 100;
-
-    int n = 100; // text串长度
-    int m = 3; // 每个pattern长度
+    int paternStringNumber = 10000;
+    int m = 6; // 每个pattern长度
     for(int i = 0; i < paternStringNumber; ++ i)
     {
         vector<int> cnt;
@@ -471,7 +473,7 @@ void setPaternAndText(int c)
     }
 
 
-//    int cot = 0;
+    int n = 1000; // text串长度
     while(1)
     {
         textString = generateIntergeSeq(n, c);
@@ -557,8 +559,8 @@ int main()
 
     constexpr int C = 10;
 
-    int runBuildNumber = 10000;
-    int runQueryNumber = 10000;
+    int runBuildNumber = 100;
+    int runQueryNumber = 100;
     srand(time(NULL));
 
 
