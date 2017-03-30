@@ -10,12 +10,13 @@
 
 #include <lz/iterator.h>
 #include <lz/compiler/symbol.h>
+#include <lz/compiler/utility.h>
+
+
 
 namespace lz {
 
 
-template<typename P>
-using SemanticRuleType = std::function<void(const std::vector<P>&, P&)>;
 
 
 template<typename _NodeProperties>
