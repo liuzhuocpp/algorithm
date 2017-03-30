@@ -1,246 +1,620 @@
 /*
  * grammar.h
  *
- *  Created on: 2017年2月21日
+ *  Created on: 2017年3月11日
  *      Author: LZ
  */
 
-#ifndef LZ_COMPILER_GRAMMAR_H_
-#define LZ_COMPILER_GRAMMAR_H_
+#ifndef LZ_COMPILER_NEW_GRAMMAR_H_
+#define LZ_COMPILER_NEW_GRAMMAR_H_
 
-
+#include <lz/iterator.h>
+#include <lz/compiler/symbol.h>
 
 namespace lz {
+
+
+template<typename P>
+using SemanticRuleType = std::function<void(const std::vector<P>&, P&)>;
+
+
+template<typename _NodeProperties>
+struct Grammar:
+//    private
+    public
+std::vector<std::vector<std::vector<SymbolDescriptor>>>
+{
+public:
+    using NodeProperties = _NodeProperties;
+
+    using SizeType = std::size_t;
+
+private:
+    using RuleBody = std::vector<SymbolDescriptor>;
+    using RuleBodyUnion = std::vector<RuleBody>;
+    using Base = std::vector<RuleBodyUnion>;
+    std::vector<SemanticRuleType<NodeProperties>> semanticRuleFuncs;
+    using  std::vector<std::vector<std::vector<SymbolDescriptor>>>::vector;
+public:
+
+
+//    using NonterminalProperties = P;
+
+
+    struct RuleDescriptor: public EqualityComparableFacade<RuleDescriptor>, LessThanComparableFacade<RuleDescriptor>
+    {
+        using RuleBodyIndexType = typename std::vector<RuleDescriptor>::difference_type;
+        SymbolDescriptor head;
+        RuleBodyIndexType body;
+
+        RuleDescriptor():head(SymbolDescriptor()), body(RuleBodyIndexType()) {}
+
+        RuleDescriptor(SymbolDescriptor A, RuleBodyIndexType i):head(A), body(i) {}
+        friend bool operator== (RuleDescriptor a, RuleDescriptor b)
+        {
+            return a.head == b.head && a.body == b.body;
+        }
+
+        friend bool operator<(RuleDescriptor a, RuleDescriptor b)
+        {
+            if(a.head != b.head) return a.head < b.head;
+            return a.body < b.body;
+        }
+    };
+
+    // 假定每个非终结符都至少有一个RuleBody，否则程序将不会运行正确，有待改进
+    struct RuleIterator:IteratorFacade<RuleIterator, std::forward_iterator_tag, RuleDescriptor>
+    {
+        RuleDescriptor rd;
+        const Grammar* g;
+        RuleIterator():rd(RuleDescriptor()), g(nullptr) { }
+
+        RuleIterator(RuleDescriptor rd, const Grammar &g):
+            rd(rd), g(&g) { }
+
+        RuleIterator& operator++()
+        {
+            rd.body++;
+            if(rd.body == (*g)[rd.head].size())
+            {
+                rd.head ++;
+                rd.body = 0;
+            }
+            return *this;
+        }
+        RuleDescriptor operator*() const
+        {
+            return rd;
+        }
+
+        friend bool operator==(const RuleIterator& a, const RuleIterator &b)
+        {
+            return a.rd == b.rd && a.g == b.g;
+        }
+    };
+
+
+    struct RuleSymbolIterator:
+        IteratorFacade<RuleSymbolIterator, std::bidirectional_iterator_tag, SymbolDescriptor>,
+        LessThanComparableFacade<RuleSymbolIterator>
+    {
+        SymbolDescriptor head;
+        const RuleBody* body;
+        int cur;
+
+        RuleSymbolIterator(){}
+
+        RuleSymbolIterator(SymbolDescriptor head, const RuleBody& body, int cur):
+            head(head), body(&body), cur(cur){}
+
+        RuleSymbolIterator& operator++()
+        {
+            cur++;
+            if(cur < body->size())
+            {
+                SymbolDescriptor s = (*body)[cur];
+                if(!isNonterminal(s) && !isTerminal(s))
+                {
+                    cur ++;
+                }
+            }
+            return *this;
+        }
+
+        RuleSymbolIterator& operator--()
+        {
+            cur --;
+            if(cur >= 0)
+            {
+                SymbolDescriptor s = (*body)[cur];
+                if(!isNonterminal(s) && !isTerminal(s))
+                {
+                    cur --;
+                }
+
+            }
+            return *this;
+        }
+
+        SymbolDescriptor operator*() const
+        {
+            if(cur == -1) return head;
+            else return (*body)[cur];
+        }
+
+        friend bool operator==(const RuleSymbolIterator& a, const RuleSymbolIterator &b)
+        {
+            return a.head == b.head && a.body == b.body && a.cur == b.cur;
+        }
+
+        friend bool operator<(const RuleSymbolIterator& a, const RuleSymbolIterator &b)
+        {
+            return a.cur < b.cur;
+//            return a.head == b.head && a.body == b.body && a.cur == b.cur;
+        }
+
+    };
+
+    // rd 与it 所指向的字符必须是非终结符
+    SymbolDescriptor calculateSemanticRule(RuleDescriptor rd, RuleSymbolIterator it) const
+    {
+        auto ruleRange = ruleSymbols(rd);
+        int id = it.cur;
+        const RuleBody& body =  (*this)[rd.head][rd.body];
+        id++;
+
+        if(id < body.size() && isSemanticRule(body[id]))
+        {
+            return body[id];
+        }
+        else return NullSymbol;
+    }
+
+
+    // s 代表一个action symbol
+    SemanticRuleType<NodeProperties> getSemanticRuleFunc(SymbolDescriptor s) const
+    {
+        return semanticRuleFuncs[s - SemanticRuleSymbolBegin];
+    }
+
+    SizeType actionsNumber() const
+    {
+        return semanticRuleFuncs.size();
+    }
+
+
+
+    SymbolDescriptor addSemanticRuleFunc(SemanticRuleType<NodeProperties> f)
+    {
+        semanticRuleFuncs.push_back(f);
+        return semanticRuleFuncs.size() + SemanticRuleSymbolBegin - 1;
+    }
+
+    SymbolDescriptor addNonterminal()
+    {
+        this->push_back({});
+        return this->size() - 1;
+    }
+
+private:
+    int terminalsNumber = 0;
+public:
+
+    SymbolDescriptor addTerminal()
+    {
+        terminalsNumber++;
+        return TerminalSymbolBegin + terminalsNumber - 1;
+    }
+
+    using NonterminalIterator = IntegerIterator<SymbolDescriptor>;
+    using TerminalIterator = IntegerIterator<SymbolDescriptor>;
+
+    IteratorRange<NonterminalIterator> nonterminals() const
+    {
+        return makeIteratorRange(NonterminalIterator(0), NonterminalIterator(this->size()));
+    }
+
+    IteratorRange<TerminalIterator> terminals() const
+    {
+        return makeIteratorRange(
+                TerminalIterator(TerminalSymbolBegin),
+                TerminalIterator(TerminalSymbolBegin + terminalsNumber));
+    }
+
+
+    void clear()
+    {
+        Base::clear();
+        semanticRuleFuncs.clear();
+    }
+
+    void assginNonterminalsNumber(int n)
+    {
+        clear();
+        this->resize(n);
+    }
+    SizeType nonterminalsNumber() const
+    {
+        return this->size();
+    }
+
+    template<typename InputIterator>
+    RuleDescriptor addRule(InputIterator first, InputIterator last)
+    {
+        Grammar & g = *this;
+        SymbolDescriptor head = *first++;
+        g[head].push_back({});
+        for(;first != last; ++ first)
+        {
+            g[head].back().push_back(*first);
+        }
+        return RuleDescriptor(head, g[head].size() - 1);
+    }
+
+
+    IteratorRange<RuleSymbolIterator> ruleSymbols(RuleDescriptor rd) const
+    {
+
+        const RuleBody& body = (*this)[rd.head][rd.body];
+        return makeIteratorRange(
+                RuleSymbolIterator(rd.head, body, -1), // -1 表示head
+                RuleSymbolIterator(rd.head, body, body.size())
+                );
+    }
+
+    std::pair<RuleIterator, RuleIterator> rules() const
+    {
+        return std::make_pair(
+            RuleIterator(RuleDescriptor(0, 0), *this),
+            RuleIterator(RuleDescriptor(size(), 0), *this));
+    }
+    // 假定每个非终结符都至少有一个RuleBody，否则程序将不会运行正确，有待改进
+    struct OutRuleIterator:IteratorFacade<OutRuleIterator, std::forward_iterator_tag, RuleDescriptor>
+    {
+        RuleDescriptor rd;
+        OutRuleIterator():rd(RuleDescriptor()) { }
+
+        OutRuleIterator(RuleDescriptor rd): rd(rd) { }
+
+        OutRuleIterator& operator++()
+        {
+            rd.body++;
+            return *this;
+        }
+        RuleDescriptor operator*() const
+        {
+            return rd;
+        }
+
+        friend bool operator==(const OutRuleIterator& a, const OutRuleIterator &b)
+        {
+            return a.rd == b.rd;
+        }
+    };
+
+    // 有问题需要改
+    IteratorRange<OutRuleIterator> outRules(SymbolDescriptor s) const
+    {
+        return makeIteratorRange(
+                OutRuleIterator(RuleDescriptor(s, 0)),
+                OutRuleIterator(RuleDescriptor(s, (*this)[s].size())));
+    }
+
+};
+
+struct EpsilonSymbol {} eps;
+
+template<typename T, typename P>
+struct NonterminalProxy;
+
+
+template<typename T, typename P>
+struct GrammarFactory
+{
+    Grammar<P> g;
+    std::map<T, SymbolDescriptor> terminalMap;
+    std::map<int, SymbolDescriptor> nonterminalMap;
+
+
+    GrammarFactory(){}
+    GrammarFactory(NonterminalProxy<T, P>& startSymbol);
+
+    SymbolDescriptor getNonterminalAndInsert(int nonterminalProxyId)
+    {
+        if(nonterminalMap.count(nonterminalProxyId))
+        {
+            return nonterminalMap[nonterminalProxyId];
+        }
+        else
+        {
+            return nonterminalMap[nonterminalProxyId] = g.addNonterminal();
+        }
+    }
+
+    std::map<SymbolDescriptor, T> calculateTerminalNames() const
+    {
+        std::map<SymbolDescriptor, T> ans;
+        for(auto p: terminalMap)
+        {
+            ans[p.second] = p.first;
+        }
+        return ans;
+    }
+
+    SymbolDescriptor getTerminalSymbolAndInsert(T ch)
+    {
+        if(terminalMap.count(ch))
+        {
+            return terminalMap.at(ch);
+        }
+        else
+        {
+            return terminalMap[ch] = g.addTerminal();
+        }
+    }
+
+
+    void connectStartNonterminal(NonterminalProxy<T, P>&);
+
+
+};
+
 
     namespace Detail {
 
 
+    template<typename T, typename P>
+    struct UserSymbol;
 
-    }
-enum class SymbolType
-{
-    Nonterminal,
-    Terminal,
-    EmptyString,
-    EndTag,
-
-
-//    Cat,
-//    Alternative,
-//    KleenStar,
-
-};
-
-
-
-
-using NonterminalType = long;
-
-template<typename T>
-struct Symbol
-{
-    SymbolType type;
-    union
-    {
-        NonterminalType nonterminal;
-        T terminal;
-    };
-
-
-    bool isNonterminal() const
-    {
-        return type == SymbolType::Nonterminal;
-    }
-
-    bool isTerminal() const
-    {
-        return type == SymbolType::Terminal;
-    }
-
-    bool isEmptyString() const
-    {
-        return type == SymbolType::EmptyString;
-    }
-
-    bool isEndTag() const
-    {
-        return type == SymbolType::EndTag;
-    }
-
-
-    bool operator<(const Symbol & o) const
-    {
-        if(type != o.type) return type < o.type;
-        if(type == SymbolType::Nonterminal) return nonterminal < o.nonterminal;
-        if(type == SymbolType::Terminal) return terminal < o.terminal;
-        return false;
-    }
-
-
-    bool operator==(const Symbol & o) const
-    {
-        if(type != o.type) return false;
-        if(isNonterminal()) return nonterminal == o.nonterminal;
-        if(isTerminal()) return terminal == o.terminal;
-        return true;
-    }
-
-
-    Symbol(SymbolType type):type(type)
-    {
+    template<typename T, typename P>
+    using UserRuleBody = std::vector<UserSymbol<T, P>>;
 
     }
 
-    template<typename Any> // need improve
-    Symbol(SymbolType type, Any any):type(type)
-    {
-        if(type == SymbolType::Nonterminal)
-        {
-            nonterminal = any;
-        }
-        else if(type == SymbolType::Terminal)
-        {
-            terminal = any;
-        }
-        else if(type == SymbolType::EmptyString)
-        {
-
-        }
-        else {}
-    }
-};
 
 
 
-template<typename T>
-Symbol<T> makeNonterminal(NonterminalType i)
-{
-    return Symbol<T>(SymbolType::Nonterminal, i);
-}
-
-template<typename T>
-Symbol<T> makeTerminal(T i)
-{
-    return Symbol<T>(SymbolType::Terminal, i);
-}
-
-template<typename T>
-const Symbol<T> EmptyStringSymbol(SymbolType::EmptyString);
-
-template<typename T>
-const Symbol<T> EndTagSymbol(SymbolType::EndTag);
-
-
-
-template<typename T>
-struct RuleBody: std::vector<Symbol<T>>
-{
-    using std::vector<Symbol<T>>::vector;
-};
-
-// A->α1 | α2 | α3 | ...
-template<typename T>
-struct RuleBodyUnion: std::vector< RuleBody<T> >
-{
-    using std::vector< RuleBody<T>  >::vector;
-};
-
-
-template<typename T>
-struct NonterminalProxy;
-
-// T 表示终结符号
-template<typename T>
-struct Grammar : std::vector<RuleBodyUnion<T> >
-{
-    NonterminalProxy<T> getNonterminalProxy(NonterminalType i);
-
-    using std::vector<RuleBodyUnion<T> >::vector;
-
-};
-
-
-// 为了给用户更加方便的编写文法的方式，最终文法将会存储在Grammar里，此类仅仅作为 各类操作符的重定义，使用户可以用接近EBNF的语法书写文法。
-template<typename T>
+template<typename T, typename P>
 struct NonterminalProxy
 {
 private:
-    friend Grammar<T>;
-    NonterminalType id;
-    Grammar<T>& g;
-    NonterminalProxy(NonterminalType id, Grammar<T>& g ):id(id), g(g) { }
+    static int counter;
 public:
-    Symbol<T> symbol() const
-    {
-        return makeNonterminal<T>(id);
-    }
-    NonterminalType nonterminal() const
-    {
-        return id;
-    }
+    SymbolDescriptor id;
+    SemanticRuleType<P> action;
+    GrammarFactory<T, P>* gf;
 
 
-    friend RuleBody<T> operator>>(NonterminalProxy a, NonterminalProxy b)
+    NonterminalProxy(SemanticRuleType<P> func = SemanticRuleType<P>(), GrammarFactory<T, P>* gf = nullptr):
+         action(func), gf(gf)
     {
-        return RuleBody<T>{makeNonterminal<T>(a.id), makeNonterminal<T>(b.id)};
+        id = counter ++;
     }
 
-    friend RuleBody<T> operator>>(NonterminalProxy a, T b)
+
+    NonterminalProxy(const NonterminalProxy<T, NoProperty>&other):
+        id(other.id), action(SemanticRuleType<P>()), gf(nullptr)
     {
-        return RuleBody<T> {makeNonterminal<T>(a.id), makeTerminal<T>(b)};
     }
 
-    friend RuleBody<T> operator>>(T a, NonterminalProxy b)
-    {
-        return RuleBody<T> {makeTerminal<T>(a), makeNonterminal<T>(b.id)};
-    }
 
-    friend RuleBody<T> operator>>(RuleBody<T> a, NonterminalProxy b)
+    template<typename F>
+    NonterminalProxy& operator[](F f)
     {
-        a.push_back(makeNonterminal<T>(b.id));
-        return a;
-    }
-
-    NonterminalProxy& operator=(RuleBody<T> o)
-    {
-        g[id].push_back(o);
+        action = f;
         return *this;
     }
 
-    NonterminalProxy& operator=(NonterminalProxy o)
+    std::vector<SymbolDescriptor> addRuleHeadAction();
+    void cleanAction()
     {
-        g[id].push_back({makeNonterminal<T>(o.id)});
-        return *this;
+        action = nullptr;
     }
 
-    NonterminalProxy& operator=(Symbol<T> o)
-    {
-        g[id].push_back({o});
-        return *this;
-    }
 
-    NonterminalProxy& operator=(T o)
-    {
-        g[id].push_back({makeTerminal(o)});
-        return *this;
-    }
+    template<typename P2>
+    NonterminalProxy& operator=(const Detail::UserRuleBody<T, P2>& urb);
+    NonterminalProxy& operator=(T o);
+    NonterminalProxy& operator=(NonterminalProxy& o);
+    NonterminalProxy& operator=(EpsilonSymbol );
 };
 
+template<typename T, typename P>
+int NonterminalProxy<T, P>::counter = 0;
 
 
 
-template<typename T>
-NonterminalProxy<T> Grammar<T>::getNonterminalProxy(NonterminalType i)
+template<typename T, typename P>
+GrammarFactory<T, P>::GrammarFactory(NonterminalProxy<T, P>& startSymbol)
 {
-    return NonterminalProxy<T>(i, *this);
+    this->connectStartNonterminal(startSymbol);
 }
 
-template<typename T>
-RuleBody<T> operator>>(RuleBody<T> a, T b)
+template<typename T, typename P>
+void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start)
 {
-    a.push_back(Symbol<T>(SymbolType::Terminal, b));
+    start.gf = this;
+
+    terminalMap.clear();
+    g.clear();
+
+
+}
+
+
+
+
+    namespace Detail {
+
+    enum class UserSymbolType
+    {
+        Nonterminal,
+        Terminal,
+    };
+
+    template<typename T, typename P>
+    struct UserSymbol
+    {
+        UserSymbol(NonterminalProxy<T, P>* nonterminal):
+            type(UserSymbolType::Nonterminal), nonterminal(nonterminal) {}
+
+        UserSymbol(T terminal):
+            type(UserSymbolType::Terminal), terminal(terminal) { }
+
+        UserSymbolType type;
+        NonterminalProxy<T, P> *nonterminal = nullptr;
+        T terminal = T();
+
+    };
+
+
+    }
+
+
+
+
+
+template<typename T, typename P>
+auto operator>>(NonterminalProxy<T, P>& a, NonterminalProxy<T, P>& b)
+{
+    Detail::UserRuleBody<T, P> ans{ &a, &b };
+    return ans;
+}
+
+template<typename T, typename P>
+auto operator>>(NonterminalProxy<T, P>& a, T b)
+{
+    Detail::UserRuleBody<T, P> ans{ &a, b};
+
+    return ans;
+}
+
+template<typename T, typename P>
+auto operator>>(T a, NonterminalProxy<T, P>& b)
+{
+    Detail::UserRuleBody<T, P>ans{a, &b };
+    return ans;
+}
+
+
+template<typename T, typename P>
+auto operator>>(Detail::UserRuleBody<T, P> a, T b)
+{
+    a.push_back(Detail::UserSymbol<T, P>(b));
     return a;
 }
+
+template<typename T, typename P>
+auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P>& b)
+{
+    a.push_back(&b);
+
+    return a;
+}
+
+template<typename T>
+auto operator>>(EpsilonSymbol, T b)
+{
+    return Detail::UserRuleBody<T, NoProperty>{ b };
+}
+
+
+template<typename T, typename P>
+std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHeadAction()
+{
+    std::vector<SymbolDescriptor> ans;
+
+    ans.push_back(gf->getNonterminalAndInsert(id));
+    if(action)
+    {
+        ans.push_back(gf->g.addSemanticRuleFunc(action));
+        cleanAction();
+    }
+    return ans;
+}
+
+template<typename T, typename P>
+template<typename P2>
+NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRuleBody<T, P2>& o)
+{
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    for(Detail::UserSymbol<T, P> ch: o)
+    {
+        if(ch.type == Detail::UserSymbolType::Nonterminal)
+        {
+            rule.push_back(gf->getNonterminalAndInsert(ch.nonterminal->id));
+            if constexpr(std::is_same<P, P2>::value)
+            {
+                if(ch.nonterminal->action)
+                {
+                    rule.push_back(gf->g.addSemanticRuleFunc(ch.nonterminal->action));
+                    ch.nonterminal->cleanAction();
+
+                }
+            }
+            ch.nonterminal->gf = this->gf;
+        }
+        else if(ch.type == Detail::UserSymbolType::Terminal)
+        {
+            rule.push_back(gf->getTerminalSymbolAndInsert(ch.terminal));
+        }
+    }
+    gf->g.addRule(rule.begin(), rule.end());
+
+
+    return *this;
+}
+
+
+
+template<typename T, typename P>
+NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(T o)
+{
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    rule.push_back({gf->getTerminalSymbolAndInsert(o)});
+    gf->g.addRule(rule.begin(), rule.end());
+    return *this;
+}
+
+template<typename T, typename P>
+NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(NonterminalProxy<T, P>& o)
+{
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    rule.push_back({gf->getNonterminalAndInsert(o.id)});
+    if(o.action)
+    {
+        rule.push_back(gf->g.addSemanticRuleFunc(o.action));
+        o.cleanAction();
+    }
+    o.gf = this->gf;
+
+    gf->g.addRule(rule.begin(), rule.end());
+    return *this;
+}
+
+template<typename T, typename P>
+NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(EpsilonSymbol )
+{
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    gf->g.addRule(rule.begin(), rule.end());
+    return *this;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -249,16 +623,17 @@ RuleBody<T> operator>>(RuleBody<T> a, T b)
 template<typename T>
 struct SymbolForOutput
 {
-    const Symbol<T>& symbol;
-    const std::vector<std::string>& names;
+    const SymbolDescriptor& symbol;
+    const std::vector<std::string>& nonterminalNames;
+    std::map<SymbolDescriptor, T> ternimalNames;
 
     int getNameLength() const
     {
-        if(symbol.isNonterminal())
+        if(isNonterminal(symbol))
         {
-            auto i = symbol.nonterminal;
-            if(i < names.size() && !names[i].empty())
-                return names[i].size();
+            auto i = symbol;
+            if(i < nonterminalNames.size() && !nonterminalNames[i].empty())
+                return nonterminalNames[i].size();
             else
                 return std::to_string(i).size();
         }
@@ -268,36 +643,38 @@ struct SymbolForOutput
         }
     }
 
-private:
 
-public:
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
-        operator<<(std::basic_ostream<Char, Traits>& os, const SymbolForOutput& so)
+        operator<<(std::basic_ostream<Char, Traits>& os, SymbolForOutput so)
     {
-        const Symbol<T>& s = so.symbol;
+        const SymbolDescriptor& s = so.symbol;
 
-        if(s.isEmptyString())
+        if(isTerminal(s))
         {
-            os << "#"  ; // 暂时用#号代替空字符串字符
+            os << (so.ternimalNames)[s];
         }
-        else if(s.isTerminal())
+        else if(isNonterminal(s))
         {
-            os << s.terminal;
-        }
-        else if(s.isNonterminal())
-        {
-            auto i = s.nonterminal;
+            auto i = s;
 
-            if(i < so.names.size() && !so.names[i].empty())
-                os << so.names[i];
+            if(i < so.nonterminalNames.size() && !so.nonterminalNames[i].empty())
+                os << so.nonterminalNames[i];
             else
                 os << std::to_string(i);
         }
-        else if(s.isEndTag())
+        else if(isSemanticRule(s))
+        {
+            os << '#'; // action
+        }
+        else if(isEndTag(s))
         {
             os << "$";
+        }
+        else if(isEmptyString(s))
+        {
+            os <<"eps";
         }
         else
         {
@@ -309,19 +686,21 @@ public:
 
 };
 
-template<typename T>
-struct RuleBodyForOutput
+template<typename Iterator, typename T>
+struct SymbolRangeForOutput
 {
-    const RuleBody<T> &ruleBody;
-    const std::vector<std::string>& names;
+    Iterator first, last;
+    const std::vector<std::string>& nonterminalNames;
+    const std::map<SymbolDescriptor, T>& ternimalNames;
+
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
-        operator<<(std::basic_ostream<Char, Traits>& os, const RuleBodyForOutput& r)
+        operator<<(std::basic_ostream<Char, Traits>& os, const SymbolRangeForOutput& sr)
     {
-        for(auto s: r.ruleBody)
+        for(auto s: makeIteratorRange(sr.first, sr.last))
         {
-            os << SymbolForOutput<T>{s, r.names};
+            os << SymbolForOutput<T>{s, sr.nonterminalNames, sr.ternimalNames};
             os << " " ;
         }
         return os;
@@ -329,12 +708,14 @@ struct RuleBodyForOutput
 
 };
 
-template<typename T>
+template<typename Iterator, typename T>
 struct RuleForOutput
 {
-    NonterminalType ruleHead;
-    const RuleBody<T> &ruleBody;
-    const std::vector<std::string>& names;
+
+    Iterator first, last;
+
+    const std::vector<std::string>& nonterminalNames;
+    const std::map<SymbolDescriptor, T>& ternimalNames;
 
     int leftTotalWidth = -1;
 
@@ -343,39 +724,15 @@ struct RuleForOutput
         operator<<(std::basic_ostream<Char, Traits>& os, const RuleForOutput& ro)
     {
 
-        SymbolForOutput<T> head {makeNonterminal<T>(ro.ruleHead), ro.names};
+        SymbolForOutput<T> head {*ro.first, ro.nonterminalNames, ro.ternimalNames};
         os << head;
         if(ro.leftTotalWidth != -1)
         {
             os << std::string(std::max(ro.leftTotalWidth - head.getNameLength(), 0), ' ');
         }
-        os << "->" << RuleBodyForOutput<T>{ro.ruleBody, ro.names};
+        auto nextFirst = ro.first;
 
-        return os;
-    }
-
-};
-
-
-template<typename T>
-struct RuleUnionForOutput
-{
-    const NonterminalType A;
-    const RuleBodyUnion<T>& ru;
-    const std::vector<std::string>& names;
-
-    int  leftTotalWidth = -1; // 确定左边终结符号加上空格之后，总共的宽度
-
-    template <class Char, class Traits>
-    friend std::basic_ostream<Char, Traits>&
-    operator<<(std::basic_ostream<Char, Traits>& os,
-               const RuleUnionForOutput&  ruo)
-    {
-
-        for(auto i: irange(ruo.ru.size()))
-        {
-            os << RuleForOutput<T>{ruo.A, ruo.ru[i], ruo.names, ruo.leftTotalWidth} << "\n";
-        }
+        os << "->" << SymbolRangeForOutput<Iterator, T>{++nextFirst, ro.last, ro.nonterminalNames, ro.ternimalNames };
 
         return os;
     }
@@ -384,11 +741,13 @@ struct RuleUnionForOutput
 
 
 
-template<typename T>
+template<typename T, typename Grammar>
 struct GrammerForOutput
 {
-    const Grammar<T>& g;
-    const std::vector<std::string>& names;
+    const Grammar& g;
+
+    const std::vector<std::string>& nonterminalNames;
+    const std::map<SymbolDescriptor, T>& ternimalNames;
 
     bool needLeftJustified = true;
 
@@ -398,15 +757,23 @@ struct GrammerForOutput
                const GrammerForOutput&  g)
     {
         int maxLength = 0;
-        for(NonterminalType i: irange(g.g.size()))
+
+
+        for(auto rd: g.g.rules())
         {
-            maxLength = std::max(maxLength, SymbolForOutput<T>{makeNonterminal<T>(i), g.names}.getNameLength());
+            maxLength = std::max(maxLength, SymbolForOutput<T>{*g.g.ruleSymbols(rd).first,
+                g.nonterminalNames, g.ternimalNames}.getNameLength());
         }
 
-        for(NonterminalType i: irange(g.g.size()))
+        for(auto rd: g.g.rules())
         {
-            os << RuleUnionForOutput<T>{i, g.g[i], g.names, g.needLeftJustified ? maxLength : -1};
+            auto ruleRange = g.g.ruleSymbols(rd);
+
+            os << RuleForOutput<decltype(ruleRange.first), T>{ruleRange.first, ruleRange.second, g.nonterminalNames, g.ternimalNames,
+                g.needLeftJustified ? maxLength : -1};
+            os << "\n";
         }
+
 
         return os;
     }
@@ -415,93 +782,6 @@ struct GrammerForOutput
 
 
 
+}// namesapce lz
 
-
-
-
-
-// LL1 first set calculation, maybe faster
-//template<typename T>
-//void calculateLL1TerminalsFirstSet(const Grammer<T>& g, std::vector<Set<Symbol<T>> >& firstSet , NonterminalType u)
-//{
-//    if(!firstSet[u].empty()) return;
-//
-//    for(auto ruleBody: g[u])
-//    {
-//        Symbol<T> r0 = ruleBody[0];
-//        if(r0.isEmptyString())
-//        {
-//            firstSet[u].insert(r0);
-//        }
-//        else if(r0.isTerminal())
-//        {
-//            firstSet[u].insert(r0);
-//        }
-//        else if(r0.isNonterminal())
-//        {
-//            for(auto s: ruleBody)
-//            {
-//                if(s.type == SymbolType::Terminal)
-//                {
-//                    firstSet[u].insert(s);
-//                    break;
-//                }
-//                else if(s.type == SymbolType::Nonterminal)
-//                {
-//                    auto v = s.nonterminal;
-//                    calculateLL1TerminalsFirstSet(g, firstSet, v);
-//                    firstSet[u].insert(firstSet[v].begin(), firstSet[v].end());
-//                    if(!firstSet[v].count(EmptyStringSymbol<T>))
-//                    {
-//                        break;
-//                    }
-//
-//                }
-//            }
-//
-//        }
-//    }
-//}
-//
-//template<typename T>
-//std::vector< Set<Symbol<T> > > calculateLL1TerminalsFirstSet(const Grammer<T>& g)
-//{
-//    auto n = g.size();
-//    std::vector< Set<Symbol<T> > > firstSet(n);
-//    for(auto i = 0; i < n; ++ i)
-//    {
-//        if(firstSet[i].empty())
-//        {
-//            calculateVariableFirstSet(g, firstSet, i);
-//        }
-//    }
-//    return firstSet;
-//}
-//
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-} // namespace lz
-
-
-
-
-
-#endif /* LZ_COMPILER_GRAMMAR_H_ */
+#endif /* LZ_COMPILER_NEW_GRAMMAR_H_ */

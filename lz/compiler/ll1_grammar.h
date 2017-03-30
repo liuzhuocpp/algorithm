@@ -1,260 +1,209 @@
 /*
- * ll1_grammer.h
+ * ll1_grammar.h
  *
- *  Created on: 2017年2月26日
+ *  Created on: 2017年3月14日
  *      Author: LZ
  */
 
-#ifndef LZ_COMPILER_LL1_GRAMMAR_H_
-#define LZ_COMPILER_LL1_GRAMMAR_H_
+#ifndef LZ_COMPILER_NEW_LL1_GRAMMAR_H_
+#define LZ_COMPILER_NEW_LL1_GRAMMAR_H_
+
 
 #include <lz/compiler/grammar.h>
 #include <lz/compiler/grammar_design.h>
+//#include <lz/new>
+namespace lz{
 
-namespace lz {
-
-
-
-
-
-
-template<typename K, typename V>
-using Map = std::map<K, V>;
-
-template<typename T>
-struct LL1ParsingTable:std::vector<Map<Symbol<T>, RuleBody<T>>>
+template<typename Grammar>
+auto constructLL1Table(const Grammar& g)
 {
+    std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, typename Grammar::RuleDescriptor> ans;
 
-};
+    auto firstSets = calculateFirstSets(g);
+    auto followSets = calculateFollowSets(g, firstSets);
 
+    auto addPair = [&](auto key, auto value){
+        if(ans.count(key) && ans[key] != value) return 0;
+        ans[key] =  value;
+        return 1;
+    };
 
-
-
-
-template<typename InputIterator1, typename InputIterator2>
-bool isSetIntersection(InputIterator1 first1, InputIterator1 last1,
-    InputIterator2 first2, InputIterator2 last2)
-{
-    for(;first1 != last1 && first2 != last2;)
+    for(auto rule: g.rules())
     {
-        if(*first1 < *first2)
+        auto ruleSymbolRange = g.ruleSymbols(rule);
+        auto head = *ruleSymbolRange.first++;
+
+
+        for(auto firstS: calculateRuleBodyFirstSet(ruleSymbolRange.first, ruleSymbolRange.second, firstSets))
         {
-            first1 ++;
-        }
-        else if(*first2 < *first1)
-        {
-            first2 ++;
-        }
-        else
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-
-template<typename Range1, typename Range2>
-bool isSetIntersection(const Range1 & r1, const Range2& r2)
-{
-    return isSetIntersection(std::begin(r1), std::end(r1), std::begin(r2), std::end(r2));
-}
-
-
-
-    namespace Detail {
-
-
-    template<typename T>
-    bool isLL1Grammar(const Grammar<T>& g,
-        const std::vector<Set<Symbol<T>>>& firstSets,
-        const std::vector<Set<Symbol<T>>>& followSets)
-    {
-        for(NonterminalType A: irange(g.size()))
-        {
-            for(auto i: irange(g[A].size()))
+            if(isEmptyString(firstS))
             {
-                for(auto j: irange(i + 1, g[A].size()))
+                for(auto followS: followSets[head])
                 {
-                    auto firstSetI = calculateRuleBodyFirstSet(g[A][i], firstSets);
-                    auto firstSetJ = calculateRuleBodyFirstSet(g[A][j], firstSets);
-                    if(isSetIntersection(firstSetI, firstSetJ))
+                    if(!addPair(std::make_pair(head, followS), rule))
                     {
-                        return false;
-                    }
-
-                    if(firstSetI.count(EmptyStringSymbol<T>))
-                    {
-                        if(isSetIntersection(followSets[A], firstSetJ))
-                        {
-                            return false;
-                        }
-                    }
-
-                    if(firstSetJ.count(EmptyStringSymbol<T>))
-                    {
-                        if(isSetIntersection(followSets[A], firstSetI))
-                        {
-                            return false;
-                        }
-                    }
-
-                }
-            }
-        }
-        return true;
-    }
-
-
-
-    template<typename T>
-    LL1ParsingTable<T> constructLL1ParsingTable(const Grammar<T>& g,
-        const std::vector<Set<Symbol<T>>>& firstSet,
-        const std::vector<Set<Symbol<T>>>& followSet)
-    {
-        LL1ParsingTable<T> table;
-        auto n = g.size();
-        table.resize(n);
-
-        for(int i = 0; i < n; ++ i)
-        {
-            for(int j = 0; j < g[i].size(); ++ j)
-            {
-                auto ruleBody = g[i][j];
-
-                Set<Symbol<T>> ruleBodyFirstSet = calculateRuleBodyFirstSet(ruleBody, firstSet);
-                for(auto a: ruleBodyFirstSet)
-                {
-                    if(!a.isEmptyString())
-                    {
-                        table[i][a] = ruleBody;
-                    }
-                    else
-                    {
-                        for(auto b: followSet[i])
-                        {
-                            table[i][b] = ruleBody;
-                        }
+                        ans.clear();
+                        return ans;
                     }
                 }
-             }
-        }
-        return table;
-    }
-
-
-
-    } // Detail
-
-
-
-template<typename T>
-bool isLL1Grammar(const Grammar<T>& g)
-{
-    auto firstSets = calculateNonternimalFirstSets(g);
-    auto followSets = calculateNonternimalFollowSets(g, firstSets);
-
-    return Detail::isLL1Grammar(g, firstSets, followSets);
-}
-
-
-template<typename T>
-LL1ParsingTable<T> constructLL1ParsingTable(const Grammar<T>& g)
-{
-    auto firstSets = calculateNonternimalFirstSets(g);
-    auto followSets = calculateNonternimalFollowSets(g, firstSets);
-
-    return Detail::constructLL1ParsingTable(g, firstSets, followSets);
-}
-
-
-template<typename Iterator>
-void parseLL1Grammar(const LL1ParsingTable<typename std::iterator_traits<Iterator>::value_type> &table,
-    Iterator first, Iterator last, Symbol<typename std::iterator_traits<Iterator>::value_type> startSymbol,
-    const std::vector<std::string>& names)
-{
-    using T = typename std::iterator_traits<Iterator>::value_type;
-    std::vector<Symbol<T>> stack;
-    stack.push_back(startSymbol);
-
-    while(!stack.empty() )
-    {
-        Symbol<T> x = stack.back();
-        if(x.isTerminal())
-        {
-            if(x.terminal == *first)
-            {
-                std::cout << "match :" << *first;
-                std::cout << "\n";
-                stack.pop_back();
-                first ++;
             }
             else
             {
-                std::cout << "error" << "\n";
-                return ;
+                if(!addPair(std::make_pair(head, firstS), rule))
+                {
+                    ans.clear();
+                    return ans;
+                }
             }
         }
-        else if(x.isNonterminal())
+    }
+
+    return ans;
+}
+
+template<typename Grammar>
+bool isLL1Grammar(const Grammar &g)
+{
+    return !constructLL1Table(g).empty();
+}
+
+
+template<typename InputIterator, typename Grammar>
+typename Grammar::NodeProperties
+parseLL1Grammar(
+    InputIterator first,
+    InputIterator last,
+    const std::map<typename std::iterator_traits<InputIterator>::value_type, SymbolDescriptor> &translate,
+    const Grammar& g,
+    const std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, typename Grammar::RuleDescriptor> &table,
+    SymbolDescriptor startSymbol = 0)
+{
+
+    using P = typename Grammar::NodeProperties;
+    using RuleDescriptor = typename Grammar::RuleDescriptor;
+    using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
+
+    //当前字符，所在规则对应的当前字符的所需要的非终结字符数目，当前字符的动作（仅仅当前字符是非终结字符）
+    std::vector<std::tuple<SymbolDescriptor, int, SymbolDescriptor> > symbolStack;
+    std::vector<P> propertyStack;
+
+    symbolStack.push_back(std::make_tuple(startSymbol, 0, NullSymbol));
+
+    while(!symbolStack.empty())
+    {
+        int nonterminalsNumber;
+        SymbolDescriptor s, sInheritActoin;
+        std::tie(s, nonterminalsNumber, sInheritActoin) = symbolStack.back();
+
+        SymbolDescriptor input = EndTagSymbol;
+        if(first != last) input = translate.at(*first);
+
+        if(isTerminal(s))
         {
-            auto cntFirst = EndTagSymbol<T>;
-            if(first != last)
-                cntFirst = makeTerminal(*first);
-
-            if(table[x.nonterminal].count(cntFirst))
+            if(s == input)
             {
-                stack.pop_back();
-                auto ruleBody = table[x.nonterminal].at(cntFirst);
-                for(int i = ruleBody.size() - 1; i >= 0; -- i)
+                symbolStack.pop_back();
+                if(first == last)
                 {
-                    if(!ruleBody[i].isEmptyString())
-                    stack.push_back(ruleBody[i]);
+                    std::cout << "match finish" << std::endl;
                 }
-
-                std::cout << "output:";
-
-                std::cout << RuleForOutput<T>{x.nonterminal, ruleBody, names};
-                std::cout << "\n";
+                else
+                {
+                    std::cout << "match: " << *first << " " << std::endl;
+                    ++ first;
+                }
             }
             else
             {
-                std::cout << "error" << "\n";
-                return ;
-
+                if(first != last)
+                {
+                    std::cout << "error: stack top symbol is terminal, input character is: " << *first << std::endl;
+                }
+                else
+                {
+                    std::cout << "error: stack top symbol is terminal, input character is end tag" << std::endl;
+                }
+                goto ErrorLabel;
             }
         }
+        else if(isNonterminal(s))
+        {
+            if(table.count(std::make_pair(s, input)))
+            {
+                P sp;
+
+                if(sInheritActoin != NullSymbol)
+                {
+                    std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
+                    // 计算继承属性的语义规则
+                    g.getSemanticRuleFunc(sInheritActoin)(tmpStack, sp);
+                }
+                symbolStack.pop_back(); // 开始进行非终结符展开
+
+
+                // 加入属性
+                propertyStack.push_back(sp);
+                RuleDescriptor nextRd = table.at(std::make_pair(s, input));
+                IteratorRange<RuleSymbolIterator> nextRule = g.ruleSymbols(nextRd);
+                // 将综合属性的语义规则压入栈中
+                SymbolDescriptor synthesizeSemanticRule = g.calculateSemanticRule(nextRd, g.ruleSymbols(nextRd).first);
+                int nextNonterminalsNumber = 1;
+                int nextRuleBodyBeginInSymbolStack = symbolStack.size();
+                if(synthesizeSemanticRule != NullSymbol)
+                {
+                    symbolStack.push_back(std::make_tuple(synthesizeSemanticRule, 0, NullSymbol));
+                    nextRuleBodyBeginInSymbolStack++;
+                }
+                else // will be error
+                {
+
+                }
+                for(RuleSymbolIterator it = ++nextRule.first; it != nextRule.second; ++ it)
+                {
+                    symbolStack.push_back(std::make_tuple(*it, nextNonterminalsNumber, g.calculateSemanticRule(nextRd, it) ));
+                    if(isNonterminal(*it)) nextNonterminalsNumber++;
+                }
+                std::reverse(symbolStack.begin() + nextRuleBodyBeginInSymbolStack, symbolStack.end());
+                if(synthesizeSemanticRule != NullSymbol)
+                {
+                    std::get<1>(symbolStack[nextRuleBodyBeginInSymbolStack - 1]) = nextNonterminalsNumber - 1;
+                }
+            }
+            else
+            {
+                if(first != last)
+                {
+                    std::cout << "error: stack top symbol is nonterminal: "
+                            << s
+                            << ", input character is  " << *first << std::endl;
+                }
+                else
+                {
+                    std::cout << "error: stack top symbol is nonterminal, input character is end tag" <<  std::endl;
+                }
+                goto ErrorLabel;
+            }
+        }
+        else if(isSemanticRule(s))
+        {
+            std::vector<P> tmpStack;
+            while(nonterminalsNumber --)
+            {
+                tmpStack.push_back(propertyStack.back());
+                propertyStack.pop_back();
+            }
+            //调用计算综合属性的语义规则
+            g.getSemanticRuleFunc(s)(tmpStack, propertyStack.back());
+            symbolStack.pop_back();
+        }
     }
+
+    if(propertyStack.size() == 1) return propertyStack.back();
+
+ErrorLabel:
+    return P();
 }
 
-template<typename T>
-struct LL1ParsingTableForOutput
-{
-    const LL1ParsingTable<T>& table;
-    const std::vector<std::string>& names;
-
-    template <class Char, class Traits>
-    friend std::basic_ostream<Char, Traits>&
-    operator<<(std::basic_ostream<Char, Traits>& os, const LL1ParsingTableForOutput&  o)
-    {
-
-        for(int i = 0; i < o.table.size(); ++ i)
-        {
-            auto iout = SymbolForOutput<T>{Symbol<T>(SymbolType::Nonterminal, i), o.names};
-            for(auto pi: o.table[i])
-            {
-                os <<std::left << std::setw(3) <<  iout << ", " << SymbolForOutput<T>{pi.first, o.names} << ":   " << iout << "->";
-                for(auto symbol: pi.second)
-                {
-                    os << SymbolForOutput<T>{symbol, o.names};
-                    os << " ";
-                }
-                os << "\n";
-            }
-        }
-        return os;
-    }
-
-};
 
 
 
@@ -266,10 +215,8 @@ struct LL1ParsingTableForOutput
 
 
 
-} // namespace lz
 
 
+}// namesapce lz
 
-
-
-#endif /* LZ_COMPILER_LL1_GRAMMAR_H_ */
+#endif /* LZ_COMPILER_NEW_LL1_GRAMMAR_H_ */

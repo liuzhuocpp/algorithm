@@ -9,8 +9,8 @@
 #define LZ_COMPILER_NEW_SLR1_GRAMMAR_H_
 
 
-#include <lz/compiler/new/symbol.h>
-#include <lz/compiler/new/grammar_design.h>
+#include <lz/compiler/symbol.h>
+#include <lz/compiler/grammar_design.h>
 #include <lz/optional.h>
 
 namespace lz {

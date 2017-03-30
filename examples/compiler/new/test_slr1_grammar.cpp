@@ -1,9 +1,9 @@
 #include <bits/stdc++.h>
 #include <lz/debug.h>
 #include <lz/std_utility.h>
-#include <lz/compiler/new/grammar.h>
-#include <lz/compiler/new/grammar_design.h>
-#include <lz/compiler/new/slr1_grammar.h>
+#include <lz/compiler/grammar.h>
+#include <lz/compiler/grammar_design.h>
+#include <lz/compiler/slr1_grammar.h>
 
 
 
