@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 
 
-#set(CMAKE_CXX_FLAGS "  -target x86_64-pc-windows-gnu -std=c++14 -ID:\\code\\github\\algorithm -ID:\\code\\lib\\boost_1_58_0")  
-set(CMAKE_CXX_FLAGS "  -target x86_64-pc-windows-gnu -std=c++14 -I" ${PROJECT_SOURCE_DIR}\\.. )
+#set(CMAKE_CXX_FLAGS "  -target x86_64-pc-windows-gnu -std=c++1z -ID:\\code\\github\\algorithm -ID:\\code\\lib\\boost_1_58_0")  
+set(CMAKE_CXX_FLAGS "  -target x86_64-pc-windows-gnu -std=c++1z -I" ${PROJECT_SOURCE_DIR}\\.. )
 set(CMAKE_CXX_COMPILER "clang++") 
 
 project (Exmaple)

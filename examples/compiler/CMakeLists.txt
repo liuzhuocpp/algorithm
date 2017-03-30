@@ -5,4 +5,3 @@ add_executable(compiler_test_grammar test_grammar.cpp)
 
 
 add_test (compiler_test_grammar ${EXECUTABLE_OUTPUT_PATH}/compiler_test_grammar)
-
