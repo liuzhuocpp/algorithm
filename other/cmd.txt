@@ -1,6 +1,7 @@
 cd D:\code\github\algorithm\examples && D:
 clang++ -target  x86_64-pc-windows-gnu -std=c++1z -ID:\code\github\algorithm   -o main.exe    test.cpp  && main.exe
 
+clang++ -target  x86_64-pc-windows-gnu -std=c++1z    -o main.exe    test.cpp  && main.exe
 
 
 

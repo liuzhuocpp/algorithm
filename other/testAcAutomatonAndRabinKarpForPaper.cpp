@@ -30,8 +30,51 @@ struct AcAutomaton
         }
     };
     Node *root;
-    AcAutomaton():root(new Node()) {
+    AcAutomaton():root(nullptr) {
 
+    }
+
+    AcAutomaton(const AcAutomaton &other) = delete;
+
+    void clear()
+    {
+        if(root == nullptr) return ;
+
+        // 当前和父亲
+        std::queue<Node*> q;
+        q.push(root);
+        vector<Node*> all;
+
+        while(!q.empty())
+        {
+            Node* u = q.front();
+            all.push_back(u);
+            q.pop();
+            for(int i = 0; i < N; ++ i)
+            {
+                if(u->son[i] != nullptr)
+                {
+                    q.push(u->son[i]);
+                }
+            }
+        }
+        for(int i = 0; i < all.size(); ++ i)
+        {
+            delete all[i];
+        }
+        root = nullptr;
+
+    }
+
+    void build(vector<vector<int>>::iterator first,  vector<vector<int>>::iterator last)
+    {
+        clear();
+        root = new Node();
+        for(int i = 0; i < last - first; ++ i)
+        {
+            insert(first[i].begin(), first[i].end(), i);
+        }
+        build();
     }
 
     template<typename RandomIterator>
@@ -112,7 +155,6 @@ struct AcAutomaton
                 std::get<0>(ans) = u->tail;
                 std::get<1>(ans) ++;
                 std::get<2>(ans) = i;
-
             }
 
 
@@ -121,31 +163,87 @@ struct AcAutomaton
     }
     ~AcAutomaton()
     {
+//        cout << "out " << endl;
+        clear();
+
+
     }
 
 
 };
 
+// 进制位
+template<int C>
+struct BruteForce
+{
+
+    vector<vector<int>>::iterator patternStringsBegin;
+    vector<vector<int>>::iterator patternStringsEnd;
+
+    void clear()
+    {
+
+    }
 
 
+    void build(vector<vector<int>>::iterator first, vector<vector<int>>:: iterator last)
+    {
+        patternStringsBegin = first;
+        patternStringsEnd = last;
+    }
 
+    template<typename Iterator>
+    auto query(Iterator first, Iterator last)
+    {
+        tuple<int, int, int> ans(-1, 0, -1);
+
+        int n = last - first;
+        int m = patternStringsBegin[0].size();
+        for(int i = 0; i <= n - m; ++ i)
+        {
+            for(int j = 0; j < patternStringsEnd - patternStringsBegin; ++ j)
+            {
+                if(std::equal(patternStringsBegin[j].begin(), patternStringsBegin[j].end(), first + i))
+                {
+                    get<0>(ans) = j;
+                    get<1>(ans) ++;
+                    get<2>(ans) = i + m - 1;
+                }
+            }
+        }
+        return ans;
+    }
+};
+
+
+// 进制位
+template<int d>
 struct RabinKarp
 {
     vector<int> noHashTable;
     int h;
     int m;
-    int d;
 
-    // 每个小串的长度
-    void build(int _m, int _d)
+    void clear()
     {
-        m = _m;
-        d = _d;
+
+    }
+
+//    void build(vector<vector<int>>& ps)
+    void build(vector<vector<int>>::iterator first, vector<vector<int>>:: iterator last)
+    {
+        m = first[0].size();
         h = 1;
         for(int i = 1; i < m; ++ i) h = h * d;
-
         noHashTable.assign(2000, -1);
+
+        for(int i = 0; i < last - first; ++ i)
+        {
+            insert(first[i].begin(), first[i].end(), i);
+        }
     }
+
+
 
     template<typename Iterator>
     void insert(Iterator first, Iterator last, int id)
@@ -194,6 +292,117 @@ struct RabinKarp
 
 
 
+template<int N>
+struct AcAutomatonAndRabinKarp
+{
+    AcAutomaton<N> ac;
+    RabinKarp<N> rabinKarp;
+
+    void clear()
+    {
+        ac.clear();
+        rabinKarp.clear();
+    }
+
+    void build(vector<vector<int>>::iterator first, vector<vector<int>>::iterator last)
+    {
+        int patternsNumber = last - first;
+        rabinKarp.build(first, first + patternsNumber / 5 * 4);
+        ac.build(first + patternsNumber / 5 * 4, last);
+
+    }
+    template<typename Iterator>
+    tuple<int, int, int> query(Iterator first, Iterator last)
+    {
+        auto rabinAns = rabinKarp.query(first, last);
+        if(get<0>(rabinAns) != -1)
+        {
+            return rabinAns;
+        }
+        return ac.query(first, last);
+    }
+
+};
+
+
+
+template<int N>
+struct MultiKMP
+{
+    template<typename RandomIterator>
+    static vector<int> computePrefix(RandomIterator first, RandomIterator end)
+    {
+        int n = end - first;
+        RandomIterator s = first;
+        vector<int> p(n);
+        for(int k = p[0] = -1, i = 1; i < n; ++ i)
+        {
+            while(k != -1 && !(s[k + 1] == s[i]) ) k = p[k];
+            if(k != -1) k ++;
+            else if(s[0] == s[i]) k = 0;
+            p[i] = k;
+        }
+        return std::move(p);
+    }
+
+    template<typename RandomIteratorS, typename RandomIteratorT>
+    static RandomIteratorT search(const vector<int> &p, RandomIteratorS sfirst, RandomIteratorS send,
+                      RandomIteratorT tfirst, RandomIteratorT tend)
+    {
+        RandomIteratorS s = sfirst;
+        RandomIteratorT t = tfirst;
+        int ns = send - sfirst, nt = tend - tfirst;
+        for(int i = -1, j = 0; j < nt; ++ j)
+        {
+            while(i != -1 && !(s[i + 1] == t[j]) ) i = p[i];
+            if(i != -1) i ++;
+            else if(s[0] == t[j]) i = 0;
+
+            if(i == ns - 1) return t + j - i;
+        }
+        return tend;
+    }
+
+
+    vector<vector<int>>::iterator patternStringBegin, patternStringEnd;
+    vector<vector<int>> nexts;
+
+
+    void build(vector<vector<int>>::iterator first, vector<vector<int>>::iterator last)
+    {
+        patternStringBegin = first;
+        patternStringEnd = last;
+
+        int n = last - first;
+        nexts.assign(n, vector<int>());
+        for(int i = 0; i < n; ++ i)
+        {
+            nexts[i] = computePrefix(first[i].begin(), first[i].end());
+        }
+    }
+
+    template<typename Iterator>
+    tuple<int, int, int> query(Iterator first, Iterator last)
+    {
+        int n = last - first;
+        tuple<int, int, int> ans(-1, 0, -1);
+
+        for(int j = 0; j < nexts.size(); ++ j)
+        {
+            auto foundPosIt = search(nexts[j], patternStringBegin[j].begin(), patternStringBegin[j].end(), first, last);
+            if(foundPosIt != last)
+            {
+                get<0>(ans) = j;
+                get<1>(ans)++;
+                get<2>(ans) = foundPosIt - first;
+            }
+        }
+
+
+        return ans;
+    }
+
+};
 
 
 
@@ -202,9 +411,7 @@ struct RabinKarp
 
 
 
-
-
-vector<vector<int> > paternStrings;
+vector<vector<int> > patternStrings;
 vector<int> textString;
 
 // 产生长度为n，每个字符为0到c - 1的整数序列
@@ -222,7 +429,7 @@ vector<int> generateIntergeSeq(int n, int c)
 // 每个字符都是0到c-1
 void setPaternAndText(int c)
 {
-    paternStrings.clear();
+    patternStrings.clear();
 
     set<vector<int> > flag;
     int paternStringNumber = 100;
@@ -242,7 +449,7 @@ void setPaternAndText(int c)
             }
         }
 
-        paternStrings.push_back(cnt);
+        patternStrings.push_back(cnt);
     }
 
 
@@ -267,24 +474,26 @@ void setPaternAndText(int c)
 
 #define OUT_FUNCTION_NAME cout << string(30, '-') << __FUNCTION__ << endl;
 
-template<int C>
-auto testAcAutomaton(int runBuildNumber, int runQueryNumber)
+
+
+
+
+template<typename AL>
+auto testAL(int runBuildNumber,
+        int runQueryNumber,
+        vector<vector<int>>& patternStrings,
+        vector<int>& textString,
+        string info)
 {
-    OUT_FUNCTION_NAME
+    cout << string(30, '-') << info << endl;
 
     double firstTime, secondTime, thirdTime;
 
-
+    AL al;
     firstTime = clock();
-    AcAutomaton<C> ac;
     while(runBuildNumber -- )
     {
-        ac = AcAutomaton<C>();
-        for(int i = 0; i < int(paternStrings.size()); ++ i)
-        {
-            ac.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
-        }
-        ac.build();
+        al.build(patternStrings.begin(), patternStrings.end());
     }
 
 
@@ -298,7 +507,8 @@ auto testAcAutomaton(int runBuildNumber, int runQueryNumber)
         foundId = -1;
         foundNumber = 0;
         foundPos = -1;
-        auto ans = ac.query(textString.begin(), textString.end());
+
+        auto ans = al.query(textString.begin(), textString.end());
         foundId = std::get<0>(ans);
         foundNumber = std::get<1>(ans);
         foundPos = std::get<2>(ans);
@@ -317,190 +527,97 @@ auto testAcAutomaton(int runBuildNumber, int runQueryNumber)
 
 }
 
-template<int d>
-auto testRabinKarp(int runBuildNumber, int runQueryNumber)
-{
-    OUT_FUNCTION_NAME
-
-    int n = textString.size();
-    int m = paternStrings[0].size();// 每个小串的长度
 
 
-    double firstTime, secondTime, thirdTime;
-
-    RabinKarp rabinKarp;
-
-
-    firstTime = clock();
-    while(runBuildNumber -- )
-    {
-        rabinKarp = RabinKarp();
-        rabinKarp.build(m, d);
-        for(int i = 0; i < int(paternStrings.size()); ++ i)
-        {
-            rabinKarp.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
-        }
-
-
-    }
-
-
-
-
-
-
-    secondTime = clock();
-    int foundId, foundNumber, foundPos;
-    while(runQueryNumber -- )
-    {
-        foundId = -1;
-
-        foundNumber = 0;
-        foundPos = -1;
-        std::tie(foundId,  foundNumber, foundPos) = rabinKarp.query(textString.begin(), textString.end());
-//        std::tie(foundId,  foundNumber, foundPos) = ans;
-
-    }
-
-
-    thirdTime = clock();
-
-
-
-
-
-
-    cout << "build time: " << (secondTime - firstTime)  << "ms" << endl;
-    cout << "query time: " << (thirdTime - secondTime)  << "ms" << endl;
-    cout << "foundId: " << foundId <<  endl;
-    cout << "foundNumber: " << foundNumber <<  endl;
-    cout << "foundPos: " << foundPos <<  endl;
-    return make_tuple(foundId, foundNumber, foundPos, (secondTime - firstTime), (thirdTime - secondTime));
-
-
-}
-
-
-template<int C>
-auto testAcAutomatonAndRabinKarp(int runBuildNumber, int runQueryNumber)
-{
-    OUT_FUNCTION_NAME
-
-    int n = textString.size();
-    int m = paternStrings[0].size();// 每个小串的长度
-    int patternStringNumber = paternStrings.size();
-    double firstTime, secondTime, thirdTime;
-
-    RabinKarp rabinKarp;
-    AcAutomaton<C> ac;
-
-    firstTime = clock();
-    while(runBuildNumber -- )
-    {
-        rabinKarp = RabinKarp();
-        rabinKarp.build(m, C);
-        for(int i = 0; i < patternStringNumber / 5 * 4; ++ i)
-        {
-            rabinKarp.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
-        }
-
-
-        ac = AcAutomaton<C>();
-        for(int i = patternStringNumber  / 5 * 4; i < patternStringNumber; ++ i)
-        {
-            ac.insert(paternStrings[i].begin(), paternStrings[i].end(), i);
-        }
-        ac.build();
-
-
-
-
-    }
-
-
-
-
-
-
-    secondTime = clock();
-
-
-    int foundId, foundNumber, foundPos;
-    while(runQueryNumber -- )
-    {
-        foundId = -1;
-        foundNumber = 0;
-        foundPos = -1;
-        std::tie(foundId,  foundNumber, foundPos) = rabinKarp.query(textString.begin(), textString.end());
-        if(foundId == -1)
-        {
-            std::tie(foundId,  foundNumber, foundPos) = ac.query(textString.begin(), textString.end());
-        }
-
-    }
-
-
-    thirdTime = clock();
-
-
-
-
-
-
-    cout << "build time: " << (secondTime - firstTime)  << "ms" << endl;
-    cout << "query time: " << (thirdTime - secondTime)  << "ms" << endl;
-    cout << "foundId: " << foundId <<  endl;
-    cout << "foundNumber: " << foundNumber <<  endl;
-    cout << "foundPos: " << foundPos <<  endl;
-
-    return make_tuple(foundId, foundNumber, foundPos, (secondTime - firstTime), (thirdTime - secondTime));
-
-}
 
 
 
 
 int main()
 {
+    const int testNumber = 10;
+
     constexpr int C = 10;
 
     int runBuildNumber = 10000;
-    int runQueryNumber = 100000;
+    int runQueryNumber = 10000;
     srand(time(NULL));
-    int testNumber = 10;
 
-    double AcAutomatonBuildTime;
-    double AcAutomatonQueryTime;
 
-    double AcAutomatonAndRabinKarpBuildTime;
-    double AcAutomatonAndRabinKarpQueryTime;
+    double bruteForceBuildTime = 0;
+    double bruteForceQueryTime = 0;
 
-    for(int i = 0; i < testNumber; ++ i)
+    double multiKMPBuildTime = 0;
+    double multiKMPQueryTime = 0;
+
+    double AcAutomatonBuildTime = 0;
+    double AcAutomatonQueryTime = 0;
+
+
+    double AcAutomatonAndRabinKarpBuildTime = 0;
+    double AcAutomatonAndRabinKarpQueryTime = 0;
+
+
+
+
+
+    for(int i = 1; i <= testNumber; ++ i)
     {
         setPaternAndText(C);
 
-    //    testRabinKarp<C>(runBuildNumber, runQueryNumber);
+        cout << string(100, '*') << "new poll " << i << endl;
 
-        auto AcAutomatonAns = testAcAutomaton<C>(runBuildNumber, runQueryNumber);
-        auto AcAutomatonAndRabinKarpAns = testAcAutomatonAndRabinKarp<C>(runBuildNumber, runQueryNumber);
 
+
+        auto bruteForceAns = testAL<BruteForce<C>>(
+                runBuildNumber, runQueryNumber, patternStrings, textString, "bruteForce");
+        bruteForceBuildTime += get<3>(bruteForceAns);
+        bruteForceQueryTime += get<4>(bruteForceAns);
+
+        auto multiKMPAns = testAL<MultiKMP<C>>(
+                runBuildNumber, runQueryNumber, patternStrings, textString, "multiKMP");
+        multiKMPBuildTime += get<3>(multiKMPAns);
+        multiKMPQueryTime += get<4>(multiKMPAns);
+
+
+        auto AcAutomatonAns = testAL<AcAutomaton<C>>(
+            runBuildNumber, runQueryNumber, patternStrings, textString, "AcAutomaton");
         AcAutomatonBuildTime += get<3>(AcAutomatonAns);
         AcAutomatonQueryTime += get<4>(AcAutomatonAns);
 
+
+        auto AcAutomatonAndRabinKarpAns = testAL<AcAutomatonAndRabinKarp<C>>(
+            runBuildNumber, runQueryNumber, patternStrings, textString, "AcAutomatonAndRabinKarp");
         AcAutomatonAndRabinKarpBuildTime += get<3>(AcAutomatonAndRabinKarpAns);
         AcAutomatonAndRabinKarpQueryTime += get<4>(AcAutomatonAndRabinKarpAns);
 
 
 
+
+
+
+
     }
 
+
+    cout << "bruteForceBuildTime: " << bruteForceBuildTime / testNumber<< endl;
+    cout << "bruteForceQueryTime: " << bruteForceQueryTime / testNumber << endl;
+    cout << string(60, '-' ) << endl;
+
+
+    cout << "multiKMPBuildTime: " << multiKMPBuildTime / testNumber<< endl;
+    cout << "multiKMPQueryTime: " << multiKMPQueryTime / testNumber << endl;
+    cout << string(60, '-' ) << endl;
+
+
     cout << "AcAutomatonBuildTime: " << AcAutomatonBuildTime / testNumber << endl;
-    cout << "AcAutomatonAndRabinKarpBuildTime: " << AcAutomatonAndRabinKarpBuildTime / testNumber << endl;
-
-
     cout << "AcAutomatonQueryTime: " << AcAutomatonQueryTime / testNumber<< endl;
-    cout << "AcAutomatonAndRabinKarpQueryTime: " << AcAutomatonAndRabinKarpQueryTime / testNumber << endl;
+    cout << string(60, '-' ) << endl;
 
+
+    cout << "AcAutomatonAndRabinKarpBuildTime: " << AcAutomatonAndRabinKarpBuildTime / testNumber << endl;
+    cout << "AcAutomatonAndRabinKarpQueryTime: " << AcAutomatonAndRabinKarpQueryTime / testNumber << endl;
+    cout << string(60, '-' ) << endl;
 
 
 
