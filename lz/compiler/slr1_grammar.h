@@ -16,15 +16,27 @@
 namespace lz {
 
 
-template<typename RuleDescriptor, typename RuleSymbolIterator>
-struct ItemDescriptor:std::pair<RuleDescriptor, RuleSymbolIterator>
+template<typename Grammar>
+struct ItemDescriptor: std::pair<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>
 {
+    using RuleDescriptor = typename Grammar::RuleDescriptor;
+    using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
+
     using Base = std::pair<RuleDescriptor, RuleSymbolIterator>;
-    RuleDescriptor ruleDescirptor() const
+    const RuleDescriptor& ruleDescirptor() const
     {
         return Base::first;
     }
-    RuleSymbolIterator ruleSymbolIterator() const
+    const RuleSymbolIterator& ruleSymbolIterator() const
+    {
+        return Base::second;
+    }
+
+    RuleDescriptor& ruleDescirptor()
+    {
+        return Base::first;
+    }
+    RuleSymbolIterator& ruleSymbolIterator()
     {
         return Base::second;
     }
@@ -41,7 +53,7 @@ struct ItemDescriptor:std::pair<RuleDescriptor, RuleSymbolIterator>
 template<typename Grammar, typename NonterminalMap, typename TerminalMap>
 struct ItemDescriptorForOutput
 {
-    using Item = ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>;
+    using Item = ItemDescriptor<Grammar>;
     using SymbolDescriptor = typename Grammar::SymbolDescriptor;
 
 
@@ -90,20 +102,20 @@ struct ItemDescriptorForOutput
 
 template<typename Grammar>
 auto calculateNonkernelItemSetClosure(const Grammar &g,
-    const std::vector<ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>> & items )
+    const std::vector<ItemDescriptor<Grammar>> & items )
 {
 
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
-    using Item = ItemDescriptor<RuleDescriptor, RuleSymbolIterator>;
+    using Item = ItemDescriptor<Grammar>;
 
     std::vector<Item> nonkernelItems;
     std::set<SymbolDescriptor> vis;
     std::queue<SymbolDescriptor> q;
 
-    for(auto item: items)
+    for(Item item: items)
     {
-        auto symbolRange = g.ruleSymbols(item.first);
+        auto symbolRange = g.ruleSymbols(item.ruleDescirptor());
         if(item.ruleSymbolIterator() != symbolRange.end())
         {
             if(isNonterminal(*item.ruleSymbolIterator()))
@@ -145,11 +157,11 @@ auto calculateNonkernelItemSetClosure(const Grammar &g,
 
 template<typename Grammar>
 auto calculateNextItemSet(const Grammar& g,
-    const std::vector<ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>> & itemSet,
+    const std::vector<ItemDescriptor<Grammar>> & itemSet,
     SymbolDescriptor target)
 {
     auto nonkernelItems = calculateNonkernelItemSetClosure(g, itemSet);
-    using Item = ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>;
+    using Item = ItemDescriptor<Grammar>;
     std::vector<Item> nextItemSet;
 
     auto addItem = [&](Item item) {
@@ -157,7 +169,7 @@ auto calculateNextItemSet(const Grammar& g,
         if(symbolIterator != g.ruleSymbols(item.ruleDescirptor()).end()
             && *symbolIterator == target)
         {
-            item.second ++;
+            item.ruleSymbolIterator() ++;
             nextItemSet.push_back(item);
         }
     };
@@ -180,7 +192,7 @@ auto makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
 {
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
-    using Item = ItemDescriptor<RuleDescriptor, RuleSymbolIterator>;
+    using Item = ItemDescriptor<Grammar>;
     std::vector<Item> startItemSet(1, Item(startRule, ++g.ruleSymbols(startRule).begin()));
     std::vector<std::vector<Item>> itemSets;
     std::map<std::vector<Item>, int> itemSetToId; // itemSet -> int
@@ -283,7 +295,7 @@ calculateSLR1ActionTable(
 
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
-    using Item = ItemDescriptor<RuleDescriptor, RuleSymbolIterator>;
+    using Item = ItemDescriptor<Grammar>;
     using Action = ActionValue<RuleDescriptor>;
 
 
@@ -368,7 +380,7 @@ void parseSLR1Grammar(
 {
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
-    using Item = ItemDescriptor<RuleDescriptor, RuleSymbolIterator>;
+    using Item = ItemDescriptor<Grammar>;
     using Action = ActionValue<RuleDescriptor>;
 
 
