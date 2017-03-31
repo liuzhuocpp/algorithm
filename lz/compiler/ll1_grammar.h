@@ -71,7 +71,7 @@ bool isLL1Grammar(const Grammar &g)
 template<typename InputIterator,
     typename Grammar,
     typename Table,
-    typename TerminalNameMap =
+    typename IndexToTerminalMap =
             lz::IdentityMap< typename std::iterator_traits<InputIterator>::value_type > > // 默认输出terminal index
 
 typename Grammar::NodeProperties
@@ -81,18 +81,22 @@ parseLL1Grammar(
     const Grammar& g,
     const Table &table,
     SymbolDescriptor startSymbol = 0,
-    TerminalNameMap nameMap = TerminalNameMap())
+    IndexToTerminalMap nameMap = IndexToTerminalMap())
 {
 
     using P = typename Grammar::NodeProperties;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
 
+//    std::cout << "intpu: " << "SS" << std::endl;
+
+
     //当前字符，所在规则对应的当前字符的所需要的非终结字符数目，当前字符的动作（仅仅当前字符是非终结字符）
     std::vector<std::tuple<SymbolDescriptor, int, SymbolDescriptor> > symbolStack;
     std::vector<P> propertyStack;
 
     symbolStack.push_back(std::make_tuple(startSymbol, 0, NullSymbol));
+//    std::cout << "intpu: " << "SS" << std::endl;
 
     while(!symbolStack.empty())
     {
@@ -101,11 +105,15 @@ parseLL1Grammar(
         std::tie(s, nonterminalsNumber, sInheritActoin) = symbolStack.back();
 
         SymbolDescriptor input = EndTagSymbol;
+//        std::cout << "intpu: " << input << std::endl;
+
+
         if(first != last)
         {
             // 有待改进
             input = lz::makeTerminal(*first);
         }
+//        std::cout << "intpu: " << input << std::endl;
 
         if(isTerminal(s))
         {

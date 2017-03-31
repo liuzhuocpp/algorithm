@@ -46,7 +46,7 @@ void testParseSLR1Grammar()
     Grammar<P> g = gf.g;
     auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
 
-    auto terminalMap = gf.getTerminalMap();
+    auto terminalMap = gf.getIndexToTerminalMap();
 
 
     auto startRule = makeAugmentedGrammar(g, 0);

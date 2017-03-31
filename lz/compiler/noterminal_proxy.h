@@ -31,6 +31,7 @@ private:
 
 public:
     std::map<T, SymbolDescriptor> terminalMap;
+    std::map<T, int> terminalToIndexMap;
 
     GrammarFactory(){}
     GrammarFactory(NonterminalProxy<T, P>& startSymbol);
@@ -38,7 +39,7 @@ public:
     void connectStartNonterminal(NonterminalProxy<T, P>&);
 
     // 返回一个Map,key是terminal的id，value是对应的terminal
-    auto getTerminalMap() const
+    auto getIndexToTerminalMap() const
     {
         SharedArrayMap<T> ans(terminalMap.size());
         for(auto p: terminalMap)
@@ -46,6 +47,20 @@ public:
             ans[getTerminalId(p.second)] = p.first;
         }
         return ans;
+    }
+    auto getTerminalToIndexMap()
+    {
+//        terminalToIndexMap = terminalMap;
+        terminalToIndexMap.clear();
+        for(auto& _pair: terminalMap)
+        {
+            terminalToIndexMap[_pair.first] = lz::getTerminalId(_pair.second);
+//            _pair.second  = lz::getTerminalId(_pair.second);
+        }
+
+        ConstAssociativeMap<decltype(terminalToIndexMap)> ans(terminalToIndexMap);
+        return ans;
+
     }
 private:
 

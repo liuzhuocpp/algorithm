@@ -16,10 +16,8 @@ void outVectorSet(vector<Set > vectorSets, T1 nonterminalNames, T2 terminalNames
     cout << string(100, '-') << endl;
     for(Set vectorSet: vectorSets)
     {
-//        cout << " ??" << endl;
         for(SymbolDescriptor s: vectorSet)
         {
-//            cout << "S: " << s << endl;
             cout << SymbolForOutput<SymbolDescriptor, T1, T2>{s, nonterminalNames, terminalNames} << ' ';
         }
         cout << "|" <<endl;
@@ -31,51 +29,50 @@ void outVectorSet(vector<Set > vectorSets, T1 nonterminalNames, T2 terminalNames
 
 // run parsing process to see the detail
 template< typename InputIterator, typename GrammarFactory, typename NonterminalMap>
-auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFactory &gf, NonterminalMap nonterminalMap)
+auto runParseLL1Grammar(InputIterator first, InputIterator last, GrammarFactory &gf, NonterminalMap nonterminalMap)
 {
     using P = typename decltype(gf.g)::NodeProperties;
     cout << "action size: " << gf.g.actionsNumber() << endl;
 
-    cout << GrammerForOutput<decltype(gf.g), NonterminalMap, decltype(gf.getTerminalMap())>
-        {gf.g, nonterminalMap, gf.getTerminalMap()} ;
+    cout << GrammerForOutput<decltype(gf.g), NonterminalMap, decltype(gf.getIndexToTerminalMap())>
+        {gf.g, nonterminalMap, gf.getIndexToTerminalMap()} ;
 
     auto firstSets = calculateFirstSets(gf.g);
     auto followSets = calculateFollowSets(gf.g, firstSets);
 
     cout << "First sets:" << endl;
-    outVectorSet(firstSets, nonterminalMap, gf.getTerminalMap());
+    outVectorSet(firstSets, nonterminalMap, gf.getIndexToTerminalMap());
 
     cout << "Follow sets:" << endl;
-    outVectorSet(followSets, nonterminalMap, gf.getTerminalMap());
+    outVectorSet(followSets, nonterminalMap, gf.getIndexToTerminalMap());
     cout << string(100, '-') << endl;
     cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
 
     auto table = constructLL1Table(gf.g);
 
-    auto terminalIndexMap = gf.terminalMap;
+
     using TerminalType = typename std::iterator_traits<InputIterator>::value_type;
-    vector<TerminalType> terminalNames(gf.g.terminalsNumber());
 
-    for(auto& _pair: terminalIndexMap)
-    {
+    auto terminalToIndexMap = gf.getTerminalToIndexMap();
 
-        _pair.second  = lz::getTerminalId(_pair.second);
-        terminalNames[_pair.second] = _pair.first;
-    }
-
-
-    ConstAssociativeMap<decltype(terminalIndexMap)> terminalToIndexMap(terminalIndexMap);
-    using TerminalIterator = TerminalIndexIterator<InputIterator, ConstAssociativeMap<decltype(terminalIndexMap)>>;
+    using TerminalIterator = TerminalIndexIterator<InputIterator, decltype(terminalToIndexMap) >;
 
 
 
     TerminalIterator begin(first, terminalToIndexMap);
     TerminalIterator end(last, terminalToIndexMap);
 
+//
+//    cout << "JJJ" << terminalToIndexMap['1'] << endl;
+//    cout << "JJJ" << terminalToIndexMap['2'] << endl;
+//    cout << "JJJ" << terminalToIndexMap['+'] << endl;
 
+//    cout << "HHHH" << endl;
+//    gf.getIndexToTerminalMap();
 
+//    cout << "HHHH" << endl;
     auto ans = parseLL1Grammar<TerminalIterator, Grammar<P>, decltype(table) >
-        (begin, end, gf.g, table, 0, makeIteratorMap(terminalNames.begin()) );
+        (begin, end, gf.g, table, 0, gf.getIndexToTerminalMap() );
 
     if constexpr(!std::is_same<P, NoProperty>::value)
     {
