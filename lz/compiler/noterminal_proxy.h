@@ -47,6 +47,19 @@ public:
         }
     }
 
+    // 返回一个Map,key是terminal的id，value是对应的terminal
+    auto getTerminalMap() const
+    {
+        SharedArrayMap<T> ans(terminalMap.size());
+        for(auto p: terminalMap)
+        {
+            ans[getTerminalId(p.second)] = p.first;
+        }
+        return ans;
+    }
+
+
+
     std::map<SymbolDescriptor, T> calculateTerminalNames() const
     {
         std::map<SymbolDescriptor, T> ans;
