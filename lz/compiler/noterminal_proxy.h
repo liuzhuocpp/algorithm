@@ -21,10 +21,16 @@ struct NonterminalProxy;
 template<typename T, typename P>
 struct GrammarFactory
 {
+    template<typename _T, typename _P>
+    friend class NonterminalProxy;
+
     Grammar<P> g;
-    std::map<T, SymbolDescriptor> terminalMap;
+private:
     std::map<int, SymbolDescriptor> nonterminalMap;
 
+
+public:
+    std::map<T, SymbolDescriptor> terminalMap;
 
     GrammarFactory(){}
     GrammarFactory(NonterminalProxy<T, P>& startSymbol);
