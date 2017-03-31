@@ -35,17 +35,7 @@ public:
     GrammarFactory(){}
     GrammarFactory(NonterminalProxy<T, P>& startSymbol);
 
-    SymbolDescriptor getNonterminalAndInsert(int nonterminalProxyId)
-    {
-        if(nonterminalMap.count(nonterminalProxyId))
-        {
-            return nonterminalMap[nonterminalProxyId];
-        }
-        else
-        {
-            return nonterminalMap[nonterminalProxyId] = g.addNonterminal();
-        }
-    }
+    void connectStartNonterminal(NonterminalProxy<T, P>&);
 
     // 返回一个Map,key是terminal的id，value是对应的terminal
     auto getTerminalMap() const
@@ -57,17 +47,19 @@ public:
         }
         return ans;
     }
+private:
 
 
-
-    std::map<SymbolDescriptor, T> calculateTerminalNames() const
+    SymbolDescriptor getNonterminalAndInsert(int nonterminalProxyId)
     {
-        std::map<SymbolDescriptor, T> ans;
-        for(auto p: terminalMap)
+        if(nonterminalMap.count(nonterminalProxyId))
         {
-            ans[p.second] = p.first;
+            return nonterminalMap[nonterminalProxyId];
         }
-        return ans;
+        else
+        {
+            return nonterminalMap[nonterminalProxyId] = g.addNonterminal();
+        }
     }
 
     SymbolDescriptor getTerminalSymbolAndInsert(T ch)
@@ -83,7 +75,6 @@ public:
     }
 
 
-    void connectStartNonterminal(NonterminalProxy<T, P>&);
 
 
 };
