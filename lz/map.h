@@ -185,6 +185,65 @@ ComposeMap<FM, SM> makeComposeMap(const FM &fm, const SM &sm)
     return ComposeMap<FM, SM>(fm, sm);
 }
 
+
+
+template<typename UniquePairAssociativeContainer>
+struct AssociativeMap:
+    MapFacade<
+    typename UniquePairAssociativeContainer::key_type,
+    typename UniquePairAssociativeContainer::mapped_type>
+{
+public:
+    AssociativeMap(){}
+
+    AssociativeMap(UniquePairAssociativeContainer &associativeContainer )
+        :associativeContainer(&associativeContainer)
+    {
+
+    }
+
+    template<typename KeyType>
+    decltype(auto) operator[](KeyType && key) const
+    {
+        return (*associativeContainer)[key];
+    }
+private:
+    UniquePairAssociativeContainer * associativeContainer = nullptr;
+
+};
+
+
+template<typename UniquePairAssociativeContainer>
+struct ConstAssociativeMap:
+    MapFacade<
+    typename UniquePairAssociativeContainer::key_type,
+    typename UniquePairAssociativeContainer::mapped_type>
+{
+public:
+    ConstAssociativeMap(){}
+
+    ConstAssociativeMap(const UniquePairAssociativeContainer &associativeContainer )
+        :associativeContainer(&associativeContainer)
+    {
+
+    }
+
+    template<typename KeyType>
+    decltype(auto) operator[](KeyType && key) const
+    {
+        return associativeContainer->at(key);
+    }
+private:
+    const UniquePairAssociativeContainer * associativeContainer = nullptr;
+
+};
+
+
+
+
+
+
+
 } // namespace lz
 
 #endif /* LZ_MAP_H_ */

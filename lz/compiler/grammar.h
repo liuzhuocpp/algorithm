@@ -197,14 +197,18 @@ public:
         return this->size() - 1;
     }
 
+    SizeType terminalsNumber() const
+    {
+        return m_terminalsNumber;
+    }
 private:
-    int terminalsNumber = 0;
+    SizeType m_terminalsNumber = 0;
 public:
 
     SymbolDescriptor addTerminal()
     {
-        terminalsNumber++;
-        return TerminalSymbolBegin + terminalsNumber - 1;
+        m_terminalsNumber++;
+        return TerminalSymbolBegin + m_terminalsNumber - 1;
     }
 
     using NonterminalIterator = IntegerIterator<SymbolDescriptor>;
@@ -219,7 +223,7 @@ public:
     {
         return makeIteratorRange(
                 TerminalIterator(TerminalSymbolBegin),
-                TerminalIterator(TerminalSymbolBegin + terminalsNumber));
+                TerminalIterator(TerminalSymbolBegin + m_terminalsNumber));
     }
 
 

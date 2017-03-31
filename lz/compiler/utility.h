@@ -35,6 +35,37 @@ struct GrammarTraits
 };
 
 
+// 把每个terminal转化为一个[0,n)的整数，其中n是不同的终结符的数目
+template<typename Iterator, typename TerminalIndexMap>
+struct TerminalIndexIterator:
+    public IteratorAdapter<TerminalIndexIterator< Iterator, TerminalIndexMap>,
+            Iterator,
+            typename std::iterator_traits<Iterator>::iterator_category,
+            typename MapTraits<TerminalIndexMap>::ValueType >
+{
+    using Base = IteratorAdapter<TerminalIndexIterator< Iterator, TerminalIndexMap>,
+            Iterator,
+            typename std::iterator_traits<Iterator>::iterator_category,
+            typename MapTraits<TerminalIndexMap>::ValueType >;
+
+    TerminalIndexMap indexMap;
+
+    TerminalIndexIterator()
+    {}
+
+    TerminalIndexIterator(Iterator it, TerminalIndexMap indexMap):
+        Base(it), indexMap(indexMap)
+    {}
+
+    typename MapTraits<TerminalIndexMap>::ValueType operator*() const
+    {
+//        std::cout << "??" << std::endl;
+        return indexMap[*this->base()];
+    }
+
+};
+
+
 
 
 

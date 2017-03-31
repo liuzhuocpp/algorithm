@@ -6,7 +6,7 @@
 #include <lz/compiler/noterminal_proxy.h>
 #include <lz/compiler/grammar_design.h>
 #include <lz/compiler/ll1_grammar.h>
-
+#include <lz/map.h>
 using namespace lz;
 using namespace std;
 
@@ -36,7 +36,7 @@ auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFa
 
     cout << "action size: " << gf.g.actionsNumber() << endl;
 
-    cout << GrammerForOutput<char,decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
+    cout << GrammerForOutput<char, decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
 
 
     auto firstSets = calculateFirstSets(gf.g);
@@ -49,7 +49,31 @@ auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFa
     cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
 
     auto table = constructLL1Table(gf.g);
-    auto ans = parseLL1Grammar<InputIterator, Grammar<P>>(first, last, gf.terminalMap, gf.g, table);
+
+    auto terminalIndexMap = gf.terminalMap;
+    using TerminalType = typename std::iterator_traits<InputIterator>::value_type;
+    vector<TerminalType> terminalNames(gf.g.terminalsNumber());
+
+    for(auto& _pair: terminalIndexMap)
+    {
+
+        _pair.second  = lz::getTerminalId(_pair.second);
+        terminalNames[_pair.second] = _pair.first;
+    }
+
+
+    ConstAssociativeMap<decltype(terminalIndexMap)> terminalToIndexMap(terminalIndexMap);
+    using TerminalIterator = TerminalIndexIterator<InputIterator, ConstAssociativeMap<decltype(terminalIndexMap)>>;
+
+
+
+    TerminalIterator begin(first, terminalToIndexMap);
+    TerminalIterator end(last, terminalToIndexMap);
+
+
+
+    auto ans = parseLL1Grammar<TerminalIterator, Grammar<P>, decltype(table) >
+        (begin, end, gf.g, table, 0, makeIteratorMap(terminalNames.begin()) );
 
     if constexpr(!std::is_same<P, NoProperty>::value)
     {
@@ -62,13 +86,9 @@ auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFa
 void testParseLL1Grammar()
 {
     OUT_FUNCTION_NAME
-
     using P = int;
-
     NonterminalProxy<char, P> S, A, B;
-
     GrammarFactory<char, P> gf(S);
-
 
     vector<string > nonterminalNames = {"S", "A", "B"};
 
@@ -107,6 +127,9 @@ void testParseLL1Grammar()
     = eps;
 
     string text = "1+2+2+2+1";
+
+//    TerminalIndexIterator<string::iterator, >
+
     runParseLL1Grammar(text.begin(), text.end(), gf, nonterminalNames);
 
 

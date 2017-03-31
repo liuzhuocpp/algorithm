@@ -68,15 +68,20 @@ bool isLL1Grammar(const Grammar &g)
 }
 
 
-template<typename InputIterator, typename Grammar>
+template<typename InputIterator,
+    typename Grammar,
+    typename Table,
+    typename TerminalNameMap =
+            lz::IdentityMap< typename std::iterator_traits<InputIterator>::value_type > > // 默认输出terminal index
+
 typename Grammar::NodeProperties
 parseLL1Grammar(
     InputIterator first,
     InputIterator last,
-    const std::map<typename std::iterator_traits<InputIterator>::value_type, SymbolDescriptor> &translate,
     const Grammar& g,
-    const std::map<std::pair<SymbolDescriptor, SymbolDescriptor>, typename Grammar::RuleDescriptor> &table,
-    SymbolDescriptor startSymbol = 0)
+    const Table &table,
+    SymbolDescriptor startSymbol = 0,
+    TerminalNameMap nameMap = TerminalNameMap())
 {
 
     using P = typename Grammar::NodeProperties;
@@ -96,7 +101,11 @@ parseLL1Grammar(
         std::tie(s, nonterminalsNumber, sInheritActoin) = symbolStack.back();
 
         SymbolDescriptor input = EndTagSymbol;
-        if(first != last) input = translate.at(*first);
+        if(first != last)
+        {
+            // 有待改进
+            input = lz::makeTerminal(*first);
+        }
 
         if(isTerminal(s))
         {
@@ -109,7 +118,7 @@ parseLL1Grammar(
                 }
                 else
                 {
-                    std::cout << "match: " << *first << " " << std::endl;
+                    std::cout << "match: " << nameMap[*first] << " " << std::endl;
                     ++ first;
                 }
             }
@@ -175,7 +184,7 @@ parseLL1Grammar(
                 {
                     std::cout << "error: stack top symbol is nonterminal: "
                             << s
-                            << ", input character is  " << *first << std::endl;
+                            << ", input character is  " << nameMap[*first] << std::endl;
                 }
                 else
                 {
