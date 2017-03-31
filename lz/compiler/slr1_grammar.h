@@ -391,9 +391,7 @@ void parseSLR1Grammar(
 
         SymbolDescriptor input = EndTagSymbol;
         if(first != last) input =  translate.at(*first);
-//        std::cout << "input: " << input << std::endl;
         int u = stateStack.back();
-//        std::cout << "cnt state: " << u << std::endl;
 
         if(actionTable.count({u, input}) )
         {
