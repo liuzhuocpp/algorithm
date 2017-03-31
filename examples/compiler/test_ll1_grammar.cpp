@@ -128,7 +128,6 @@ void testParseLL1Grammar()
 
     string text = "1+2+2+2+1";
 
-//    TerminalIndexIterator<string::iterator, >
 
     runParseLL1Grammar(text.begin(), text.end(), gf, nonterminalNames);
 
