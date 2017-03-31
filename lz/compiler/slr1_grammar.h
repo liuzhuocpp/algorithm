@@ -148,14 +148,8 @@ auto calculateNextItemSet(const Grammar& g,
     const std::vector<ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>> & itemSet,
     SymbolDescriptor target)
 {
-
-
     auto nonkernelItems = calculateNonkernelItemSetClosure(g, itemSet);
-
-
-
     using Item = ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>;
-
     std::vector<Item> nextItemSet;
 
     auto addItem = [&](Item item) {
@@ -175,32 +169,21 @@ auto calculateNextItemSet(const Grammar& g,
     {
         addItem(item);
     }
-
-
     std::sort(nextItemSet.begin(), nextItemSet.end());
-
     return nextItemSet;
-
-
-
 }
 
 
 
 template<typename Grammar>
-auto
-makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
+auto makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
 {
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
     using Item = ItemDescriptor<RuleDescriptor, RuleSymbolIterator>;
-
-
     std::vector<Item> startItemSet(1, Item(startRule, ++g.ruleSymbols(startRule).begin()));
-
     std::vector<std::vector<Item>> itemSets;
     std::map<std::vector<Item>, int> itemSetToId; // itemSet -> int
-
 
     itemSets.push_back(startItemSet);
     itemSetToId[startItemSet] = 0;
@@ -239,18 +222,11 @@ makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
 
         for(SymbolDescriptor inputSymbol : g.terminals())
         {
-
             addSymbol(inputSymbol);
-
         }
-
-
     }
 
     return std::make_tuple(itemSets, itemSetToId, gotoFunction);
-
-
-
 }
 
 
