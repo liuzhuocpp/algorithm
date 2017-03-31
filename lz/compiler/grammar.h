@@ -305,6 +305,9 @@ public:
                 OutRuleIterator(RuleDescriptor(s, (*this)[s].size())));
     }
 
+
+    using SymbolDescriptor = lz::SymbolDescriptor;
+
 };
 
 
@@ -328,22 +331,21 @@ public:
 
 
 // For output----------------------------------------------------
-template<typename T>
+// NonterminalMap::Value must a string
+
+template<typename SymbolDescriptor, typename NonterminalMap, typename TerminalMap>
 struct SymbolForOutput
 {
     const SymbolDescriptor& symbol;
-    const std::vector<std::string>& nonterminalNames;
-    std::map<SymbolDescriptor, T> ternimalNames;
+    NonterminalMap nonterminalMap;
+    TerminalMap terminalMap;
 
     int getNameLength() const
     {
         if(isNonterminal(symbol))
         {
-            auto i = symbol;
-            if(i < nonterminalNames.size() && !nonterminalNames[i].empty())
-                return nonterminalNames[i].size();
-            else
-                return std::to_string(i).size();
+            auto i = getNonterminalId(symbol);
+            return nonterminalMap[i].size();
         }
         else
         {
@@ -358,19 +360,17 @@ struct SymbolForOutput
         operator<<(std::basic_ostream<Char, Traits>& os, SymbolForOutput so)
     {
         const SymbolDescriptor& s = so.symbol;
-
+//        std::cout << "S::" << s << std::endl;
         if(isTerminal(s))
         {
-            os << (so.ternimalNames)[s];
+//            std::cout << "SBterminal??" << std::endl;
+
+            os << so.terminalMap[getTerminalId(s)];
         }
         else if(isNonterminal(s))
         {
-            auto i = s;
-
-            if(i < so.nonterminalNames.size() && !so.nonterminalNames[i].empty())
-                os << so.nonterminalNames[i];
-            else
-                os << std::to_string(i);
+//            std::cout << "nonononterminal??" << std::endl;
+            os << so.nonterminalMap[getNonterminalId(s)];
         }
         else if(isSemanticRule(s))
         {
@@ -394,21 +394,24 @@ struct SymbolForOutput
 
 };
 
-template<typename Iterator, typename T>
+template<typename Iterator, typename NonterminalMap, typename TerminalMap>
 struct SymbolRangeForOutput
 {
+    using SymbolDescriptor = typename std::iterator_traits<Iterator>::value_type;
+
     Iterator first, last;
-    const std::vector<std::string>& nonterminalNames;
-    const std::map<SymbolDescriptor, T>& ternimalNames;
+    NonterminalMap nonterminalMap;
+    TerminalMap terminalMap;
 
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
         operator<<(std::basic_ostream<Char, Traits>& os, const SymbolRangeForOutput& sr)
     {
-        for(auto s: makeIteratorRange(sr.first, sr.last))
+        for(SymbolDescriptor s: makeIteratorRange(sr.first, sr.last))
         {
-            os << SymbolForOutput<T>{s, sr.nonterminalNames, sr.ternimalNames};
+            os << SymbolForOutput<SymbolDescriptor, NonterminalMap, TerminalMap>
+                {s, sr.nonterminalMap, sr.terminalMap};
             os << " " ;
         }
         return os;
@@ -416,31 +419,31 @@ struct SymbolRangeForOutput
 
 };
 
-template<typename Iterator, typename T>
+template<typename Iterator, typename NonterminalMap, typename TerminalMap>
 struct RuleForOutput
 {
+    using SymbolDescriptor = typename std::iterator_traits<Iterator>::value_type;
 
     Iterator first, last;
-
-    const std::vector<std::string>& nonterminalNames;
-    const std::map<SymbolDescriptor, T>& ternimalNames;
+    NonterminalMap nonterminalMap;
+    TerminalMap terminalMap;
 
     int leftTotalWidth = -1;
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
-        operator<<(std::basic_ostream<Char, Traits>& os, const RuleForOutput& ro)
+        operator<<(std::basic_ostream<Char, Traits>& os, RuleForOutput ro)
     {
 
-        SymbolForOutput<T> head {*ro.first, ro.nonterminalNames, ro.ternimalNames};
+        SymbolForOutput<SymbolDescriptor, NonterminalMap, TerminalMap> head {*ro.first, ro.nonterminalMap, ro.terminalMap};
         os << head;
         if(ro.leftTotalWidth != -1)
         {
             os << std::string(std::max(ro.leftTotalWidth - head.getNameLength(), 0), ' ');
         }
-        auto nextFirst = ro.first;
 
-        os << "->" << SymbolRangeForOutput<Iterator, T>{++nextFirst, ro.last, ro.nonterminalNames, ro.ternimalNames };
+        os << "->" << SymbolRangeForOutput<Iterator, NonterminalMap, TerminalMap>
+            {++ro.first, ro.last, ro.nonterminalMap, ro.terminalMap };
 
         return os;
     }
@@ -449,35 +452,35 @@ struct RuleForOutput
 
 
 
-template<typename T, typename Grammar>
+template<typename Grammar, typename NonterminalMap, typename TerminalMap>
 struct GrammerForOutput
 {
+    using SymbolDescriptor = typename Grammar::SymbolDescriptor;
     const Grammar& g;
-
-    const std::vector<std::string>& nonterminalNames;
-    const std::map<SymbolDescriptor, T>& ternimalNames;
+    NonterminalMap nonterminalMap;
+    TerminalMap terminalMap;
 
     bool needLeftJustified = true;
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
-    operator<<(std::basic_ostream<Char, Traits>& os,
-               const GrammerForOutput&  g)
+
+    operator<<(std::basic_ostream<Char, Traits>& os, const GrammerForOutput&  g)
     {
         int maxLength = 0;
-
-
         for(auto rd: g.g.rules())
         {
-            maxLength = std::max(maxLength, SymbolForOutput<T>{*g.g.ruleSymbols(rd).first,
-                g.nonterminalNames, g.ternimalNames}.getNameLength());
+            maxLength = std::max(maxLength,
+                    SymbolForOutput<SymbolDescriptor, NonterminalMap, TerminalMap>{*g.g.ruleSymbols(rd).first,
+                g.nonterminalMap, g.terminalMap}.getNameLength());
         }
 
         for(auto rd: g.g.rules())
         {
             auto ruleRange = g.g.ruleSymbols(rd);
 
-            os << RuleForOutput<decltype(ruleRange.first), T>{ruleRange.first, ruleRange.second, g.nonterminalNames, g.ternimalNames,
+            os << RuleForOutput<decltype(ruleRange.first), NonterminalMap, TerminalMap>
+                {ruleRange.first, ruleRange.second, g.nonterminalMap, g.terminalMap,
                 g.needLeftJustified ? maxLength : -1};
             os << "\n";
         }

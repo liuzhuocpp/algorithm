@@ -38,15 +38,17 @@ struct ItemDescriptor:std::pair<RuleDescriptor, RuleSymbolIterator>
 
 };
 
-template<typename Grammar, typename T>
+template<typename Grammar, typename NonterminalMap, typename TerminalMap>
 struct ItemDescriptorForOutput
 {
     using Item = ItemDescriptor<typename Grammar::RuleDescriptor, typename Grammar::RuleSymbolIterator>;
+    using SymbolDescriptor = typename Grammar::SymbolDescriptor;
 
-    const Grammar& g;
+
     Item item;
-    const std::vector<std::string>& nonterminalNames;
-    const std::map<SymbolDescriptor, T>& ternimalNames;
+    const Grammar& g;
+    NonterminalMap nonterminalMap;
+    TerminalMap terminalMap;
 
 
 
@@ -56,7 +58,8 @@ struct ItemDescriptorForOutput
     {
         auto ruleSymbols = ido.g.ruleSymbols(ido.item.ruleDescirptor());
 
-        SymbolForOutput<T> head {*ruleSymbols.begin(), ido.nonterminalNames, ido.ternimalNames};
+        SymbolForOutput<SymbolDescriptor, NonterminalMap, TerminalMap>
+            head {*ruleSymbols.begin(), ido.nonterminalMap, ido.terminalMap};
 
         os << head <<"->";
 
@@ -67,7 +70,8 @@ struct ItemDescriptorForOutput
                 os << ".";
                 os << " " ;
             }
-            os << SymbolForOutput<T>{*it, ido.nonterminalNames, ido.ternimalNames};
+            os << SymbolForOutput<SymbolDescriptor, NonterminalMap, TerminalMap>
+                {*it, ido.nonterminalMap, ido.terminalMap};
             os << " " ;
         }
         if(ido.item.ruleSymbolIterator() == ruleSymbols.end())

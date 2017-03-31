@@ -13,12 +13,14 @@ using namespace std;
 template<typename T1, typename T2>
 void outVectorSet(vector<Set > vectorSets, T1 nonterminalNames, T2 terminalNames)
 {
-
+    cout << string(100, '-') << endl;
     for(Set vectorSet: vectorSets)
     {
+//        cout << " ??" << endl;
         for(SymbolDescriptor s: vectorSet)
         {
-            cout << SymbolForOutput<char>{s, nonterminalNames, terminalNames} << ' ';
+//            cout << "S: " << s << endl;
+            cout << SymbolForOutput<SymbolDescriptor, T1, T2>{s, nonterminalNames, terminalNames} << ' ';
         }
         cout << "|" <<endl;
     }
@@ -28,23 +30,23 @@ void outVectorSet(vector<Set > vectorSets, T1 nonterminalNames, T2 terminalNames
 
 
 // run parsing process to see the detail
-template< typename InputIterator, typename GrammarFactory, typename NonterminalNames>
-auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFactory &gf, const NonterminalNames& nonterminalNames)
+template< typename InputIterator, typename GrammarFactory, typename NonterminalMap>
+auto runParseLL1Grammar(InputIterator first, InputIterator last, const GrammarFactory &gf, NonterminalMap nonterminalMap)
 {
     using P = typename decltype(gf.g)::NodeProperties;
-
-
     cout << "action size: " << gf.g.actionsNumber() << endl;
 
-    cout << GrammerForOutput<char, decltype(gf.g)>{gf.g, nonterminalNames, gf.calculateTerminalNames()} ;
-
+    cout << GrammerForOutput<decltype(gf.g), NonterminalMap, decltype(gf.getTerminalMap())>
+        {gf.g, nonterminalMap, gf.getTerminalMap()} ;
 
     auto firstSets = calculateFirstSets(gf.g);
     auto followSets = calculateFollowSets(gf.g, firstSets);
+
     cout << "First sets:" << endl;
-    outVectorSet(firstSets, nonterminalNames, gf.calculateTerminalNames());
+    outVectorSet(firstSets, nonterminalMap, gf.getTerminalMap());
+
     cout << "Follow sets:" << endl;
-    outVectorSet(followSets, nonterminalNames, gf.calculateTerminalNames());
+    outVectorSet(followSets, nonterminalMap, gf.getTerminalMap());
     cout << string(100, '-') << endl;
     cout << "isLL1 Grammar ? " << std::boolalpha << " " <<  isLL1Grammar(gf.g) << endl;;
 
@@ -157,7 +159,7 @@ void testParseRegexGrammar()
     A = '|' >> S;
 
     string text = "(a)|aaaaaa(((a)aaaa(aaaa|aa)))****|((aaaa)((aaaa)aaa)(aaaaa)***a**a**)***aa(aaaa)";
-    runParseLL1Grammar(text.begin(), text.end(), gf, nonterminalNames);
+    runParseLL1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin())   );
 
 }
 

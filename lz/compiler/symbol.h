@@ -34,6 +34,12 @@ std::ptrdiff_t getTerminalId(SymbolDescriptor s)
 }
 
 
+std::ptrdiff_t getNonterminalId(SymbolDescriptor s)
+{
+    return s;
+}
+
+
 bool isNonterminal(SymbolDescriptor s)
 {
     return s >= 0;
