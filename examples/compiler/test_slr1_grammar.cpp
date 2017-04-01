@@ -174,7 +174,7 @@ void testParseSLR1AmbiguousGrammar()
     S = S >> '/' >> S     > '+' > '-' > '*' > '/';
     S = '-' >> S          > '+' > '-' > '*' > '/';
     S = '+' >> S          > '+' > '-' > '*' > '/';
-//    S = '+' >> S          > '+' > '-' > '*' > '/';
+
 
     S = '(' >> S >> ')';
 
@@ -207,7 +207,7 @@ void testParseSLR1AmbiguousGrammar()
 
 int main()
 {
-//    testParseSLR1Grammar();
+    testParseSLR1Grammar();
     testParseSLR1AmbiguousGrammar();
     return 0;
 }
