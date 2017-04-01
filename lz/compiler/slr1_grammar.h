@@ -414,6 +414,7 @@ void parseSLR1Grammar(
     using RuleDescriptor = typename Grammar::RuleDescriptor;
     using Item = ItemDescriptor<Grammar>;
     using Action = ActionValue<RuleDescriptor>;
+    using P = typename Grammar::NodeProperties;
 
 
     std::vector<int> stateStack;
@@ -424,10 +425,7 @@ void parseSLR1Grammar(
         SymbolDescriptor input = EndTagSymbol;
         if(first != last)
         {
-//            input =  translate.at(*first);
             input = lz::makeTerminal(*first);
-
-
         }
 
 
