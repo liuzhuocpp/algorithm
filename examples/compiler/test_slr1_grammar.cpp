@@ -15,36 +15,11 @@
 using namespace lz;
 using namespace std;
 
-
-
-
-void testParseSLR1Grammar()
+template<typename InputIterator, typename T, typename P, typename NonterminalNameMap>
+void runParseSLR1Grammar(InputIterator first, InputIterator last, GrammarFactory<T, P> &gf, NonterminalNameMap nonterminalMap)
 {
-    OUT_FUNCTION_NAME
-
-    using P = NoProperty;
-
-    NonterminalProxy<char, P> S, A, B, E, T, F;
-
-
-
-    GrammarFactory<char, P> gf(E);
-    vector<string > nonterminalNames = {"E", "T", "F", "E'" };
-
-
-
-    E = E >> '+' >> T;
-    E = T;
-    T = T >> '*' >> F;
-    T = F;
-    F = '(' >> E >> ')';
-    F = 'a';
-
-
-
-
     Grammar<P> g = gf.g;
-    auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
+//    auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
 
     auto terminalMap = gf.getIndexToTerminalMap();
 
@@ -120,17 +95,46 @@ void testParseSLR1Grammar()
 
     auto terminalToIndexMap = gf.getTerminalToIndexMap();
 
-    using TerminalIterator = TerminalIndexIterator<string::iterator, decltype(terminalToIndexMap) >;
+    using TerminalIterator = TerminalIndexIterator<InputIterator, decltype(terminalToIndexMap) >;
 
 
-    string text = "a*a";
 
-    TerminalIterator begin(text.begin(), terminalToIndexMap);
-    TerminalIterator end(text.end(), terminalToIndexMap);
+    TerminalIterator begin(first, terminalToIndexMap);
+    TerminalIterator end(last, terminalToIndexMap);
 
 
     parseSLR1Grammar(begin, end,  g, actionTableOption.value(), gotoFunction, gf.getIndexToTerminalMap());
 
+}
+
+
+void testParseSLR1Grammar()
+{
+    OUT_FUNCTION_NAME
+
+    using P = NoProperty;
+
+    NonterminalProxy<char, P> S, A, B, E, T, F;
+
+
+
+    GrammarFactory<char, P> gf(E);
+    vector<string > nonterminalNames = {"E", "T", "F", "E'" };
+
+
+
+    E = E >> '+' >> T;
+    E = T;
+    T = T >> '*' >> F;
+    T = F;
+    F = '(' >> E >> ')';
+    F = 'a';
+
+
+
+    string text = "a*a";
+
+    runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()));;
 
 
 
@@ -139,6 +143,13 @@ void testParseSLR1Grammar()
 
 
 
+
+
+
+}
+
+void testParseSLR1AmbiguousGrammar()
+{
 
 }
 
