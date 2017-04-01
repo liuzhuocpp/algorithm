@@ -112,7 +112,6 @@ private:
         std::vector<T> lowPriority, highPriority;
         friend UserRuleBody operator > (UserRuleBody ruleBody, T terminal)
         {
-            std::cout << "SB ? " << std::endl;
             ruleBody.lowPriority.push_back(terminal);
             return ruleBody;
         }
@@ -122,6 +121,21 @@ private:
             ruleBody.highPriority.push_back(terminal);
             return ruleBody;
         }
+
+        friend UserRuleBody operator > (UserRuleBody ruleBody, std::vector<T> terminals)
+        {
+            ruleBody.lowPriority.insert(ruleBody.lowPriority.end(), terminals.begin(), terminals.end());
+
+            return ruleBody;
+        }
+
+        friend UserRuleBody operator < (UserRuleBody ruleBody, std::vector<T> terminals)
+        {
+            ruleBody.highPriority.insert(ruleBody.highPriority.end(), terminals.begin(), terminals.end());
+
+            return ruleBody;
+        }
+
 
     };
 

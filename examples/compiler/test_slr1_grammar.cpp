@@ -172,12 +172,15 @@ void testParseSLR1AmbiguousGrammar()
     S = S >> '-' >> S     > '+' > '-' < '*' < '/';
     S = S >> '*' >> S     > '+' > '-' > '*' > '/';
     S = S >> '/' >> S     > '+' > '-' > '*' > '/';
+    S = '-' >> S          > '+' > '-' > '*' > '/';
+    S = '+' >> S          > '+' > '-' > '*' > '/';
+
     S = '(' >> S >> ')';
 
 
 
 
-    string text = "a+(a-a+a)/a/a*a";
+    string text = "------a+(a-a+a)/--+++++---a/a*a";
 
     runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()), true );;
 
