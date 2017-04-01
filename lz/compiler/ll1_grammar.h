@@ -96,7 +96,7 @@ parseLL1Grammar(
     std::vector<P> propertyStack;
 
     symbolStack.push_back(std::make_tuple(startSymbol, 0, NullSymbol));
-//    std::cout << "intpu: " << "SS" << std::endl;
+
 
     while(!symbolStack.empty())
     {
@@ -105,7 +105,6 @@ parseLL1Grammar(
         std::tie(s, nonterminalsNumber, sInheritActoin) = symbolStack.back();
 
         SymbolDescriptor input = EndTagSymbol;
-//        std::cout << "intpu: " << input << std::endl;
 
 
         if(first != last)
@@ -113,7 +112,6 @@ parseLL1Grammar(
             // 有待改进
             input = lz::makeTerminal(*first);
         }
-//        std::cout << "intpu: " << input << std::endl;
 
         if(isTerminal(s))
         {

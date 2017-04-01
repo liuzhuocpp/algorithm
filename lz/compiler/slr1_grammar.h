@@ -182,6 +182,9 @@ auto calculateNextItemSet(const Grammar& g,
         addItem(item);
     }
     std::sort(nextItemSet.begin(), nextItemSet.end());
+    // 不能忘记unique！！
+    auto newEnd = std::unique(nextItemSet.begin(), nextItemSet.end());
+    nextItemSet.resize(newEnd - nextItemSet.begin());
     return nextItemSet;
 }
 
@@ -210,7 +213,10 @@ auto makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
     while(!q.empty())
     {
         std::vector<Item> cntItemSet = itemSets[q.front()];
+        std::cout << "??" << " " << q.front() << " " << cntItemSet.size() <<  std::endl;
+
         q.pop();
+
         auto addSymbol = [&](SymbolDescriptor inputSymbol)
         {
             std::vector<Item> nextItemSet = calculateNextItemSet(g, cntItemSet, inputSymbol);
@@ -438,7 +444,16 @@ void parseSLR1Grammar(
             else if(cnt.type == ActionType::Shift)
             {
                 stateStack.push_back(cnt.itemSetId);
-                std::cout << "Shift: " << u << " " << indexToTerminalMap[*first] << " " << cnt.itemSetId << std::endl;
+
+                if(first == last)
+                {
+                    std::cout << "Shift: " << u << " " << "$" << " " << cnt.itemSetId << std::endl;
+                }
+                else
+                {
+                    std::cout << "Shift: " << u << " " << indexToTerminalMap[*first] << " " << cnt.itemSetId << std::endl;
+                }
+
                 first ++;
             }
             else if(cnt.type == ActionType::Reduce)
