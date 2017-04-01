@@ -101,8 +101,29 @@ private:
     template<typename T, typename P>
     struct UserSymbol;
 
+//    template<typename T, typename P>
+//    using UserRuleBody = std::vector<UserSymbol<T, P>>;
+
     template<typename T, typename P>
-    using UserRuleBody = std::vector<UserSymbol<T, P>>;
+    struct UserRuleBody: std::vector<UserSymbol<T, P>>
+    {
+        using std::vector<UserSymbol<T, P>>::vector;
+
+        std::vector<T> lowPriority, highPriority;
+        friend UserRuleBody operator > (UserRuleBody ruleBody, T terminal)
+        {
+            std::cout << "SB ? " << std::endl;
+            ruleBody.lowPriority.push_back(terminal);
+            return ruleBody;
+        }
+
+        friend UserRuleBody operator < (UserRuleBody ruleBody, T terminal)
+        {
+            ruleBody.highPriority.push_back(terminal);
+            return ruleBody;
+        }
+
+    };
 
     }
 
@@ -294,7 +315,20 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRule
             rule.push_back(gf->getTerminalSymbolAndInsert(ch.terminal));
         }
     }
-    gf->g.addRule(rule.begin(), rule.end());
+
+
+    auto rd = gf->g.addRule(rule.begin(), rule.end());
+    for(T realTerminal: o.highPriority)
+    {
+        SymbolDescriptor terminal = gf->getTerminalSymbolAndInsert(realTerminal);
+        gf->g.setPriority(rd, terminal, -1);
+    }
+
+    for(T realTerminal: o.lowPriority)
+    {
+        SymbolDescriptor terminal = gf->getTerminalSymbolAndInsert(realTerminal);
+        gf->g.setPriority(rd, terminal, 1);
+    }
 
 
     return *this;

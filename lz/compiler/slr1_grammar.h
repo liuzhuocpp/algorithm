@@ -309,12 +309,35 @@ calculateSLR1ActionTable(
     using ActionTableOptinal = Optional<std::map<std::pair<int, SymbolDescriptor>, Action >>;
     ActionTableOptinal emptyOption = {};
 
-    auto addAction = [&](auto i, auto j, auto v){
+    auto addAction = [&](auto i, SymbolDescriptor j, Action newAction) {
+
         if(actionTable.count({i, j}))
         {
-            return false;
+            Action oldAction = actionTable.at({i, j});
+
+            if(oldAction.type == ActionType::Reduce && newAction.type == ActionType::Shift)
+            {
+            }
+            else if(oldAction.type == ActionType::Shift && newAction.type == ActionType::Reduce)
+            {
+                std::swap(oldAction, newAction);
+            }
+            else return false;
+            // oldAction 是reduce， newAction是shift
+
+            if(g.getPriority(oldAction.rule, j) > 0)
+            {
+                actionTable[{i, j}] = oldAction;
+            }
+            else if(g.getPriority(oldAction.rule, j) < 0)
+            {
+                actionTable[{i, j}] = newAction;
+            }
+            else return false;
+            return true;
+
         }
-        actionTable[std::make_pair(i, j)] = v;
+        actionTable[std::make_pair(i, j)] = newAction;
         return true;
     };
 

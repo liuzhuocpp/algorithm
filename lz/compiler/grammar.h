@@ -27,8 +27,8 @@ std::vector<std::vector<std::vector<SymbolDescriptor>>>
 {
 public:
     using NodeProperties = _NodeProperties;
-
     using SizeType = std::size_t;
+
 
 private:
     using RuleBody = std::vector<SymbolDescriptor>;
@@ -62,6 +62,28 @@ public:
             return a.body < b.body;
         }
     };
+
+
+
+    std::map<std::pair<RuleDescriptor, int> , int> priorities;
+
+    // 设置产生式和非终结符的优先级大小
+    void setPriority(RuleDescriptor rd, SymbolDescriptor terminal, int priority)
+    {
+        priorities[{rd, terminal}] = priority;
+    }
+
+    // 获取产生式和非终结符的优先级大小
+    // 返回值 ==0 表示两者没有优先级大小关系
+    int getPriority(RuleDescriptor rd, SymbolDescriptor terminal) const
+    {
+        if(priorities.count({rd, terminal}))
+        {
+            return priorities.at({rd, terminal});
+        }
+        return 0;
+    }
+
 
     // 假定每个非终结符都至少有一个RuleBody，否则程序将不会运行正确，有待改进
     struct RuleIterator:IteratorFacade<RuleIterator, std::forward_iterator_tag, RuleDescriptor>

@@ -16,7 +16,12 @@ using namespace lz;
 using namespace std;
 
 template<typename InputIterator, typename T, typename P, typename NonterminalNameMap>
-void runParseSLR1Grammar(InputIterator first, InputIterator last, GrammarFactory<T, P> &gf, NonterminalNameMap nonterminalMap)
+void runParseSLR1Grammar(
+        InputIterator first,
+        InputIterator last,
+        GrammarFactory<T, P> &gf,
+        NonterminalNameMap nonterminalMap,
+        bool outputNonkernelItem = true)
 {
     Grammar<P> g = gf.g;
 //    auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
@@ -42,23 +47,30 @@ void runParseSLR1Grammar(InputIterator first, InputIterator last, GrammarFactory
 
 
     cout << string(100, '*') << endl;
-    cout << "Item set number: " << itemSets.size() << endl;
+    cout << "Item set number: " << itemSets.size() << endl << endl;;
     int counter = 0;
     for(auto itemSet: itemSets)
     {
-        cout << "I" << counter ++ << endl;
+        cout << "I" << counter ++ << ": " << endl;
         for(auto item: itemSet)
         {
             cout << ItemDescriptorForOutput<Grammar<P>, decltype(nonterminalMap), decltype(terminalMap)>
                 {item, g, nonterminalMap, terminalMap} << endl;
         }
-        cout << string(10, '~') << endl;
-        for(auto item: calculateNonkernelItemSetClosure(g, itemSet))
+
+        if(outputNonkernelItem)
         {
-            cout << ItemDescriptorForOutput<Grammar<P>, decltype(nonterminalMap), decltype(terminalMap) >
-                {item, g, nonterminalMap, terminalMap} << endl;
+            cout << string(10, '~') << endl;
+            for(auto item: calculateNonkernelItemSetClosure(g, itemSet))
+            {
+                cout << ItemDescriptorForOutput<Grammar<P>, decltype(nonterminalMap), decltype(terminalMap) >
+                    {item, g, nonterminalMap, terminalMap} << endl;
+            }
+
         }
-        cout << string(50, '-') << endl;
+        cout << string(20, '-') << endl;
+        cout << endl;
+        cout << endl;
     }
 
 
@@ -76,7 +88,15 @@ void runParseSLR1Grammar(InputIterator first, InputIterator last, GrammarFactory
 
     auto actionTableOption = calculateSLR1ActionTable(g, startRule, itemSets, gotoFunction);
 
+    cout << "Is SLR(1) grammar? " << std::boolalpha << actionTableOption.hasValue() << endl;
+    if(!actionTableOption.hasValue())
+    {
+        return ;
+    }
+
     cout << string(100, '*') << "actionTable" << endl;
+
+
 
     for(auto _pair: actionTableOption.value())
     {
@@ -89,7 +109,7 @@ void runParseSLR1Grammar(InputIterator first, InputIterator last, GrammarFactory
     }
 
 
-    cout << "Is SLR(1) grammar? " << std::boolalpha << actionTableOption.hasValue() << endl;
+
 
 
 
@@ -135,27 +155,55 @@ void testParseSLR1Grammar()
     string text = "a*a";
 
     runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()));;
-
-
-
-
-
-
-
-
-
-
-
 }
 
 void testParseSLR1AmbiguousGrammar()
 {
+    OUT_FUNCTION_NAME
+    using P = NoProperty;
+
+    NonterminalProxy<char, P> S;
+
+    GrammarFactory<char, P> gf(S);
+    vector<string > nonterminalNames = {"S", "S'", };
+
+    S = 'a';
+    S = S >> '+' >> S     > '+' > '-' < '*' < '/';
+    S = S >> '-' >> S     > '+' > '-' < '*' < '/';
+    S = S >> '*' >> S     > '+' > '-' > '*' > '/';
+    S = S >> '/' >> S     > '+' > '-' > '*' > '/';
+    S = '(' >> S >> ')';
+
+
+
+
+    string text = "a+(a-a+a)/a/a*a";
+
+    runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()), true );;
 
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int main()
 {
-    testParseSLR1Grammar();
+//    testParseSLR1Grammar();
+    testParseSLR1AmbiguousGrammar();
     return 0;
 }
