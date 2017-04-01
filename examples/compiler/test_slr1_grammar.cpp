@@ -118,10 +118,18 @@ void testParseSLR1Grammar()
 
 
 
+    auto terminalToIndexMap = gf.getTerminalToIndexMap();
+
+    using TerminalIterator = TerminalIndexIterator<string::iterator, decltype(terminalToIndexMap) >;
 
 
     string text = "a*a";
-    parseSLR1Grammar(text.begin(), text.end(), gf.terminalMap, g, actionTableOption.value(), gotoFunction);
+
+    TerminalIterator begin(text.begin(), terminalToIndexMap);
+    TerminalIterator end(text.end(), terminalToIndexMap);
+
+
+    parseSLR1Grammar(begin, end,  g, actionTableOption.value(), gotoFunction, gf.getIndexToTerminalMap());
 
 
 

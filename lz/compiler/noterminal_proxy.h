@@ -28,10 +28,10 @@ struct GrammarFactory
 private:
     std::map<int, SymbolDescriptor> nonterminalMap;
 
-
-public:
     std::map<T, SymbolDescriptor> terminalMap;
     std::map<T, int> terminalToIndexMap;
+
+public:
 
     GrammarFactory(){}
     GrammarFactory(NonterminalProxy<T, P>& startSymbol);

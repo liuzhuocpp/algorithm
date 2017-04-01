@@ -369,14 +369,17 @@ calculateSLR1ActionTable(
 
 
 
-template<typename InputIterator, typename Translate, typename Grammar, typename ActionTable, typename GotoTable>
+template<typename InputIterator, typename Grammar, typename ActionTable,
+    typename GotoTable, typename IndexToTerminalMap>
 void parseSLR1Grammar(
         InputIterator first,
         InputIterator last,
-        const Translate &translate,
         const Grammar &g,
         const ActionTable& actionTable,
-        const GotoTable& gotoTable)
+        const GotoTable& gotoTable,
+        IndexToTerminalMap indexToTerminalMap
+
+        )
 {
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
@@ -390,7 +393,15 @@ void parseSLR1Grammar(
     {
 
         SymbolDescriptor input = EndTagSymbol;
-        if(first != last) input =  translate.at(*first);
+        if(first != last)
+        {
+//            input =  translate.at(*first);
+            input = lz::makeTerminal(*first);
+
+
+        }
+
+
         int u = stateStack.back();
 
         if(actionTable.count({u, input}) )
@@ -404,7 +415,7 @@ void parseSLR1Grammar(
             else if(cnt.type == ActionType::Shift)
             {
                 stateStack.push_back(cnt.itemSetId);
-                std::cout << "Shift: " << u << " " << *first << " " << cnt.itemSetId << std::endl;
+                std::cout << "Shift: " << u << " " << indexToTerminalMap[*first] << " " << cnt.itemSetId << std::endl;
                 first ++;
             }
             else if(cnt.type == ActionType::Reduce)
@@ -417,7 +428,16 @@ void parseSLR1Grammar(
                 }
                 stateStack.push_back(gotoTable.at({stateStack.back(), *symbolRange.begin()}   ) );
 
-                std::cout << "Reduce: " << u << " " << *first << std::endl;
+
+                if(first == last)
+                {
+                    std::cout << "Reduce: " << u << " " << "$" << std::endl;
+                }
+                else
+                {
+                    std::cout << "Reduce: " << u << " " << indexToTerminalMap[*first] << std::endl;
+                }
+
             }
             else
             {
