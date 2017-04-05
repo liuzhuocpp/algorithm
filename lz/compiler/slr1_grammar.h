@@ -12,6 +12,7 @@
 #include <lz/compiler/symbol.h>
 #include <lz/compiler/grammar_design.h>
 #include <lz/optional.h>
+#include <lz/compiler/grammar.h>
 
 namespace lz {
 
@@ -288,6 +289,31 @@ struct ActionValue
     ActionValue(int i):type(ActionType::Shift), itemSetId(i){}
     ActionValue(RuleDescriptor rule):type(ActionType::Reduce), rule(rule){}
     ActionValue(ActionType type):type(type){}
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+        operator<<(std::basic_ostream<Char, Traits>& os, const ActionValue& av)
+    {
+        if(av.type == ActionType::Accept)
+        {
+            os << "Accept";
+        }
+        else if(av.type == ActionType::Reduce)
+        {
+            os << "Reduce";
+        }
+        else if(av.type == ActionType::Shift)
+        {
+            os << "Shift";
+        }
+        else os << "error action type";
+
+
+
+        return os;
+    }
+
+
 };
 
 template<typename Grammar, typename ItemSets>
@@ -317,9 +343,13 @@ calculateSLR1ActionTable(
 
     auto addAction = [&](auto i, SymbolDescriptor j, Action newAction) {
 
+
+
         if(actionTable.count({i, j}))
         {
             Action oldAction = actionTable.at({i, j});
+
+            bool ans = true;
 
             if(oldAction.type == ActionType::Reduce && newAction.type == ActionType::Shift)
             {
@@ -328,19 +358,46 @@ calculateSLR1ActionTable(
             {
                 std::swap(oldAction, newAction);
             }
-            else return false;
+            else ans = false;
             // oldAction 是reduce， newAction是shift
+            if(ans)
+            {
+                if(g.getPriority(oldAction.rule, j) > 0)
+                {
+                    actionTable[{i, j}] = oldAction;
+                }
+                else if(g.getPriority(oldAction.rule, j) < 0)
+                {
+                    actionTable[{i, j}] = newAction;
+                }
+                else ans = false;
+            }
+            if(!ans)
+            {
+                std::cout << "Action1: " << oldAction << std::endl;
+                std::cout << "Action2: " << newAction << std::endl;
+                std::cout << "info: " << i << " " << j << std::endl;
 
-            if(g.getPriority(oldAction.rule, j) > 0)
-            {
-                actionTable[{i, j}] = oldAction;
             }
-            else if(g.getPriority(oldAction.rule, j) < 0)
+
+
+            if(i == 5 && getTerminalId(j) == 1)
             {
+                ans = true;
                 actionTable[{i, j}] = newAction;
+                std::cout << newAction.rule.head << " " << newAction.rule.body << std::endl;
             }
-            else return false;
-            return true;
+
+
+//            if(i == 2 && getTerminalId(j) == 0)
+//            {
+////                ans = true;
+//                actionTable[{i, j}] = newAction;
+//            }
+
+
+
+            return ans;
 
         }
         actionTable[std::make_pair(i, j)] = newAction;
@@ -399,14 +456,17 @@ calculateSLR1ActionTable(
 
 
 template<typename InputIterator, typename Grammar, typename ActionTable,
-    typename GotoTable, typename IndexToTerminalMap>
+    typename GotoTable,
+    typename IndexToTerminalMap,
+    typename IndexToNonterminalMap>
 void parseSLR1Grammar(
         InputIterator first,
         InputIterator last,
         const Grammar &g,
         const ActionTable& actionTable,
         const GotoTable& gotoTable,
-        IndexToTerminalMap indexToTerminalMap
+        IndexToTerminalMap indexToTerminalMap,
+        IndexToNonterminalMap indexToNonterminalMap
 
         )
 {
@@ -464,15 +524,26 @@ void parseSLR1Grammar(
                 }
                 stateStack.push_back(gotoTable.at({stateStack.back(), *symbolRange.begin()}   ) );
 
+                auto ruleSymbolRange = g.ruleSymbols(cnt.rule);
+                auto ruleOutput = RuleForOutput<decltype(ruleSymbolRange.begin()), IndexToNonterminalMap, IndexToTerminalMap>
+                    {ruleSymbolRange.begin(), ruleSymbolRange.end(), indexToNonterminalMap, indexToTerminalMap };
 
                 if(first == last)
                 {
-                    std::cout << "Reduce: " << u << " " << "$" << std::endl;
+                    std::cout << "Reduce: " << u << " " << "$" ;
                 }
                 else
                 {
-                    std::cout << "Reduce: " << u << " " << indexToTerminalMap[*first] << std::endl;
+
+
+                    std::cout << "Reduce: " << u << " " << indexToTerminalMap[*first];
+
                 }
+
+
+                std::cout << "             Rule is:" <<
+                                            ruleOutput << std::endl;
+
 
             }
             else

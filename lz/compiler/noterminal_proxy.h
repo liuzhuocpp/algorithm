@@ -12,7 +12,8 @@
 
 namespace lz{
 
-struct EpsilonSymbol {} eps;
+
+
 
 template<typename T, typename P>
 struct NonterminalProxy;
@@ -142,6 +143,36 @@ private:
     }
 
 
+struct EpsilonSymbol {
+
+
+    template<typename T>
+    friend Detail::UserRuleBody<T, NoProperty> operator > (EpsilonSymbol eps, T terminal)
+    {
+        Detail::UserRuleBody<T, NoProperty> ans;
+        ans.lowPriority.push_back(terminal);
+        return ans;
+    }
+
+
+
+    template<typename T>
+    friend Detail::UserRuleBody<T, NoProperty> operator < (EpsilonSymbol eps, T terminal)
+    {
+        Detail::UserRuleBody<T, NoProperty> ans;
+        ans.highPriority.push_back(terminal);
+        return ans;
+    }
+
+//    template<typename T>
+//    friend EpsilonSymbol operator < (EpsilonSymbol eps, T terminal)
+//    {
+//        eps.highPriority.push_back(terminal);
+//        return eps;
+//    }
+
+
+} eps;
 
 
 template<typename T, typename P>
