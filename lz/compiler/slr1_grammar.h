@@ -331,19 +331,6 @@ calculateSLR1ActionTable(
             }
 
 
-            if(i == 5 && getTerminalId(j) == 1)
-            {
-                ans = true;
-                actionTable[{i, j}] = newAction;
-                std::cout << newAction.rule.head << " " << newAction.rule.body << std::endl;
-            }
-
-
-//            if(i == 2 && getTerminalId(j) == 0)
-//            {
-////                ans = true;
-//                actionTable[{i, j}] = newAction;
-//            }
 
 
 

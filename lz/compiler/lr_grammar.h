@@ -34,7 +34,6 @@ void parseSLR1Grammar(
 {
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
     using RuleDescriptor = typename Grammar::RuleDescriptor;
-//    using Item = ItemDescriptor<Grammar>;
     using Action = ActionValue<RuleDescriptor>;
     using P = typename Grammar::NodeProperties;
 

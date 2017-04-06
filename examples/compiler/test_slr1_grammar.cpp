@@ -96,22 +96,14 @@ void runParseSLR1Grammar(
     }
 
     cout << string(100, '*') << "actionTable" << endl;
-
-
-
     for(auto _pair: actionTableOption.value())
     {
 
         cout << _pair.first.first << " " <<
                 SymbolForOutput<SymbolDescriptor, decltype(nonterminalMap), decltype(terminalMap)>
                     {_pair.first.second, nonterminalMap, terminalMap}
-                << " "
-                <<endl;
+                << " " <<endl;
     }
-
-
-
-
 
 
     auto terminalToIndexMap = gf.getTerminalToIndexMap();
@@ -123,79 +115,42 @@ void runParseSLR1Grammar(
     TerminalIterator begin(first, terminalToIndexMap);
     TerminalIterator end(last, terminalToIndexMap);
 
-
+    cout << endl << endl << "Begin parsing..." << endl << endl;
     parseSLR1Grammar(begin, end,  g, actionTableOption.value(), gotoFunction, gf.getIndexToTerminalMap(),
             nonterminalMap);
 
 }
 
 
-//void testParseSLR1Grammar()
-//{
-//    OUT_FUNCTION_NAME
-//
-//    using P = NoProperty;
-//
-//    NonterminalProxy<char, P> S, A, B, E, T, F;
-//
-//
-//
-//    GrammarFactory<char, P> gf(E);
-//    vector<string > nonterminalNames = {"E", "T", "F", "E'" };
-//
-//
-//
-//    E = E >> '+' >> T;
-//    E = T;
-//    T = T >> '*' >> F;
-//    T = F;
-//    F = '(' >> E >> ')';
-//    F = 'a';
-//
-//
-//
-//    string text = "a*a";
-//
-//    runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()));;
-//}
+
 
 void testParseSLR1AmbiguousGrammar()
 {
     OUT_FUNCTION_NAME
     using P = NoProperty;
 
-    NonterminalProxy<char, P> S, M, M1, M2;
+    NonterminalProxy<char, P> S;
 
     GrammarFactory<char, P> gf(S);
     vector<string > nonterminalNames = {
             "S",
-            "M",
-//            "M1",
-//            "M2",
             "S'", };
 
+
+
+    S = S >> '+' >> S     > '+' > '-' < '*' < '/';
+    S = S >> '-' >> S     > '+' > '-' < '*' < '/';
+    S = S >> '*' >> S     > '+' > '-' > '*' > '/';
+    S = S >> '/' >> S     > '+' > '-' > '*' > '/';
+    S = '-' >> S          > '+' > '-' > '*' > '/';
+    S = '+' >> S          > '+' > '-' > '*' > '/';
+    S = '(' >> S >> ')';
     S = 'a';
-    S = S >> M >>  '+' >> S > '+';
-    M = eps;
-//    M2 = eps;
 
-//    S =  S >> '+' >> S   > '+' > '-' < '*' < '/';
-//    S = S >> '-' >> S     > '+' > '-' < '*' < '/';
-//    S = S >> '*' >> S     > '+' > '-' > '*' > '/';
-//    S = S >> '/' >> S     > '+' > '-' > '*' > '/';
-//    S = '-' >> S          > '+' > '-' > '*' > '/';
-//    S = '+' >> S          > '+' > '-' > '*' > '/';
-//
-//
-//    S = '(' >> S >> ')';
+    string text;
+    text = "a+++++a-a-(a+a)/a";
 
-
-
-
-    string text = "------a+(a-a+a)/--+++++---a/a*a";
-    text = "a+a";
-
-    runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()), true );;
+    runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()), true );
 
 }
 
