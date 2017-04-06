@@ -65,7 +65,48 @@ struct TerminalIndexIterator:
 
 };
 
+enum class ActionType
+{
+   Shift, Reduce, Accept,
+};
 
+template<typename RuleDescriptor>
+struct ActionValue
+{
+    ActionType type;
+
+    int itemSetId; // 移入
+    RuleDescriptor rule; // 规约
+    ActionValue(){}
+    ActionValue(int i):type(ActionType::Shift), itemSetId(i){}
+    ActionValue(RuleDescriptor rule):type(ActionType::Reduce), rule(rule){}
+    ActionValue(ActionType type):type(type){}
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+        operator<<(std::basic_ostream<Char, Traits>& os, const ActionValue& av)
+    {
+        if(av.type == ActionType::Accept)
+        {
+            os << "Accept";
+        }
+        else if(av.type == ActionType::Reduce)
+        {
+            os << "Reduce";
+        }
+        else if(av.type == ActionType::Shift)
+        {
+            os << "Shift";
+        }
+        else os << "error action type";
+
+
+
+        return os;
+    }
+
+
+};
 
 
 

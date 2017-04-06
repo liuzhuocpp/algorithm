@@ -7,6 +7,7 @@
 
 #include <lz/compiler/grammar_design.h>
 #include <lz/compiler/slr1_grammar.h>
+#include <lz/compiler/lr_grammar.h>
 
 
 
