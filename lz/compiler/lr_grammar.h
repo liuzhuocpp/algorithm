@@ -171,6 +171,7 @@ auto parseLRGrammar(
                     {
                         P ans;
                         std::reverse(tmpStack.begin(), tmpStack.end());
+                        semanticFunc(tmpStack, ans);
                         propertyStack.push_back(ans);
                     }
 
