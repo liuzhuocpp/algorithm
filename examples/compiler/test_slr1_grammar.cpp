@@ -172,7 +172,7 @@ void testParseSLR1AmbiguousGrammar()
 
 
     string text;
-    text = "1+1+1+1";
+    text = "1+1+1+1+2+2";
 
     runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()), true );
 
