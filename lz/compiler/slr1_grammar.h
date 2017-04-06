@@ -250,13 +250,6 @@ auto makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
 
 
 
-template<typename Grammar>
-auto makeAugmentedGrammar(Grammar &g, SymbolDescriptor start)
-{
-    SymbolDescriptor newStart = g.addNonterminal();
-    std::vector<SymbolDescriptor> newRule{newStart, start};
-    return g.addRule(newRule.begin(), newRule.end());
-}
 
 
 

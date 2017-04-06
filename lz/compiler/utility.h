@@ -109,6 +109,15 @@ struct ActionValue
 };
 
 
+template<typename Grammar>
+auto makeAugmentedGrammar(Grammar &g, SymbolDescriptor start)
+{
+    SymbolDescriptor newStart = g.addNonterminal();
+    std::vector<SymbolDescriptor> newRule{newStart, start};
+    return g.addRule(newRule.begin(), newRule.end());
+}
+
+
 
 }// namesapce lz
 
