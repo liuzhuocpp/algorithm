@@ -116,8 +116,13 @@ void runParseSLR1Grammar(
     TerminalIterator end(last, terminalToIndexMap);
 
     cout << endl << endl << "Begin parsing..." << endl << endl;
-    parseSLR1Grammar(begin, end,  g, actionTableOption.value(), gotoFunction, gf.getIndexToTerminalMap(),
+    auto ans = parseLRGrammar(begin, end,  g, actionTableOption.value(), gotoFunction, gf.getIndexToTerminalMap(),
             nonterminalMap);
+
+    if constexpr(!std::is_same<P, NoProperty>::value)
+    {
+        cout << "\n\nanswer: " << ans << endl;
+    }
 
 }
 
@@ -127,7 +132,7 @@ void runParseSLR1Grammar(
 void testParseSLR1AmbiguousGrammar()
 {
     OUT_FUNCTION_NAME
-    using P = NoProperty;
+    using P = int;
 
     NonterminalProxy<char, P> S;
 
@@ -138,17 +143,36 @@ void testParseSLR1AmbiguousGrammar()
 
 
 
-    S = S >> '+' >> S     > '+' > '-' < '*' < '/';
-    S = S >> '-' >> S     > '+' > '-' < '*' < '/';
-    S = S >> '*' >> S     > '+' > '-' > '*' > '/';
-    S = S >> '/' >> S     > '+' > '-' > '*' > '/';
-    S = '-' >> S          > '+' > '-' > '*' > '/';
-    S = '+' >> S          > '+' > '-' > '*' > '/';
-    S = '(' >> S >> ')';
-    S = 'a';
+
+//    S = S >> '+' >> S     > '+' > '-' < '*' < '/';
+//    S = S >> '-' >> S     > '+' > '-' < '*' < '/';
+//    S = S >> '*' >> S     > '+' > '-' > '*' > '/';
+//    S = S >> '/' >> S     > '+' > '-' > '*' > '/';
+//    S = '-' >> S          > '+' > '-' > '*' > '/';
+//    S = '+' >> S          > '+' > '-' > '*' > '/';
+//    S = '(' >> S >> ')';
+
+    S[( [](const vector<P>& p, P& ans) {
+            ans = p[0] + p[1];
+        })]
+
+      = S >> '+' >> S > '+';
+
+    S[( [](const vector<P>& p, P& ans) {
+        ans = 1;
+        })]
+
+    = '1';
+
+    S[( [](const vector<P>& p, P& ans) {
+        ans = 2;
+        })]
+
+    = '2';
+
 
     string text;
-    text = "a+++++a-a-(a+a)/a";
+    text = "1+1+1+1";
 
     runParseSLR1Grammar(text.begin(), text.end(), gf, makeIteratorMap(nonterminalNames.begin()), true );
 
@@ -174,7 +198,6 @@ void testParseSLR1AmbiguousGrammar()
 
 int main()
 {
-//    testParseSLR1Grammar();
     testParseSLR1AmbiguousGrammar();
     return 0;
 }

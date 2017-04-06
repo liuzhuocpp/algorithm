@@ -28,13 +28,17 @@ std::vector<std::vector<std::vector<SymbolDescriptor>>>
 public:
     using NodeProperties = _NodeProperties;
     using SizeType = std::size_t;
+    using SemanticRuleFunc = lz::SemanticRuleType<NodeProperties>;
 
 
 private:
     using RuleBody = std::vector<SymbolDescriptor>;
     using RuleBodyUnion = std::vector<RuleBody>;
     using Base = std::vector<RuleBodyUnion>;
-    std::vector<SemanticRuleType<NodeProperties>> semanticRuleFuncs;
+    std::vector<SemanticRuleFunc> semanticRuleFuncs;
+
+//    using
+
     using  std::vector<std::vector<std::vector<SymbolDescriptor>>>::vector;
 public:
 
@@ -207,6 +211,7 @@ public:
 
 
 
+
     SymbolDescriptor addSemanticRuleFunc(SemanticRuleType<NodeProperties> f)
     {
         semanticRuleFuncs.push_back(f);
@@ -235,6 +240,8 @@ public:
 
     using NonterminalIterator = IntegerIterator<SymbolDescriptor>;
     using TerminalIterator = IntegerIterator<SymbolDescriptor>;
+    using SymbolIterator = IntegerIterator<SymbolDescriptor>;
+
 
     IteratorRange<NonterminalIterator> nonterminals() const
     {
@@ -248,6 +255,12 @@ public:
                 TerminalIterator(TerminalSymbolBegin + m_terminalsNumber));
     }
 
+    IteratorRange<SymbolIterator> semanticRules() const
+    {
+        return makeIteratorRange(
+            SymbolIterator(SemanticRuleSymbolBegin),
+            SymbolIterator(SemanticRuleSymbolBegin + this->semanticRuleFuncs.size()));
+    }
 
     void clear()
     {
