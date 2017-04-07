@@ -16,7 +16,7 @@
 using namespace lz;
 using namespace std;
 
-template<typename InputIterator, typename T, typename P, typename NonterminalNameMap, typename MarkNonterminalsMap, typename HasMark>
+template<typename InputIterator, typename T, typename P, typename NonterminalNameMap, typename MarkNonterminalsMap>
 void runParseSLR1Grammar(
         InputIterator first,
         InputIterator last,
@@ -27,7 +27,6 @@ void runParseSLR1Grammar(
 
         MarkNonterminalsMap markNonterminalsMap,
 
-        HasMark hasMark,
 
         bool outputNonkernelItem = true)
 {
@@ -130,7 +129,6 @@ void runParseSLR1Grammar(
             actionTableOption.value(),
             gotoFunction,
             markNonterminalsMap,
-            hasMark,
 
 
             gf.getIndexToTerminalMap(),
@@ -177,29 +175,16 @@ void testParseSLR1AmbiguousGrammar()
 
 
 
-//
-    cout << "++ " << endl;
     cout << "G: " << gf.g.actionsNumber() << endl;
-//    lz::makeNonterminal()
-//    auto newNonterminalBegin = lz::makeNonterminal(gf.g.nonterminalsNumber());
 
     auto ans = transformInteritSemanticRuleGrammar(gf.g);
     gf.g = std::get<0>(ans);
     auto markNonterminalsMap = std::get<1>(ans);
-    auto hasMark = std::get<2>(ans);
-
-
-
-    cout << "|||| " << endl;
-
-
     auto terminalMap = gf.getIndexToTerminalMap();
-
-    cout << "|||| " << endl;
 
     auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
 
-    cout << "|||| " << endl;
+
 
     cout << GrammerForOutput<decltype(gf.g),decltype(nonterminalMap), decltype(terminalMap)>
         {gf.g, nonterminalMap, terminalMap} ;
@@ -211,7 +196,7 @@ void testParseSLR1AmbiguousGrammar()
     runParseSLR1Grammar(text.begin(), text.end(), gf,
             makeIteratorMap(nonterminalNames.begin()),
             markNonterminalsMap,
-            hasMark, true);
+            true);
 
 }
 

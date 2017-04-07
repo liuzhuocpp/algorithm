@@ -46,7 +46,6 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
 
     ans.priorities = g.priorities;
     std::map<SymbolDescriptor, int> markNonterminalsMap;
-    std::set<std::pair<RuleDescriptor, typename Grammar::RuleSymbolIterator> > hasMark;
     for(RuleDescriptor rule: g.rules())
     {
         auto symbolRange = g.ruleSymbols(rule);
@@ -71,7 +70,6 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
                 ans.addRule(M, M + 2);
 
                 markNonterminalsMap[M[0]] = nonterminalsNumber ;
-                hasMark.insert(std::make_pair(rule, it));
 
                 newRule.push_back(M[0]);
             }
@@ -86,7 +84,7 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
 
 
 
-    return std::make_tuple(ans, markNonterminalsMap, hasMark);
+    return std::make_tuple(ans, markNonterminalsMap);
 
 }
 
@@ -95,7 +93,6 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
 template<typename InputIterator, typename Grammar, typename ActionTable,
     typename GotoTable,
     typename MarkNonterminalsMap, // 标记所在规则的非终结符的数目
-    typename HasMark, //
     typename IndexToTerminalMap,
     typename IndexToNonterminalMap>
 auto parseLRGrammar(
@@ -105,8 +102,6 @@ auto parseLRGrammar(
         const ActionTable& actionTable,
         const GotoTable& gotoTable,
         MarkNonterminalsMap markNonterminalsMap,
-        HasMark hasMark,
-
 
         IndexToTerminalMap indexToTerminalMap,
         IndexToNonterminalMap indexToNonterminalMap
@@ -168,7 +163,6 @@ auto parseLRGrammar(
                 if(markNonterminalsMap.count(*symbolRange.begin()))
                 {
                     int nonterminalsNumber = markNonterminalsMap[*symbolRange.begin()];
-                    std::cout << "nonterminalsNumber---: " << nonterminalsNumber << " " << propertyStack.size() <<  std::endl;
                     P ans;
                     tmpStack.assign(propertyStack.end() - nonterminalsNumber, propertyStack.end());
                     semanticFunc = g.getSemanticRuleFunc(semanticRule);
@@ -180,7 +174,6 @@ auto parseLRGrammar(
                     if(semanticRule != NullSymbol)
                     {
                         semanticFunc = g.getSemanticRuleFunc(semanticRule);
-//                        for(auto it = ++symbolRange.begin(); it != symbolRange.end(); ++ it)
                         for(auto it = --symbolRange.end(); it != symbolRange.begin(); -- it)
                         {
                             stateStack.pop_back();
@@ -195,9 +188,6 @@ auto parseLRGrammar(
                         }
                         tmpStack.push_back(propertyStack.back());
                         std::reverse(tmpStack.begin(), tmpStack.end());
-
-
-
                         P ans;
                         semanticFunc(tmpStack, ans);
                         propertyStack.push_back(ans);
