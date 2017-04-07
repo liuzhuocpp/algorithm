@@ -218,6 +218,10 @@ public:
     NonterminalProxy& operator=(T o);
     NonterminalProxy& operator=(NonterminalProxy& o);
     NonterminalProxy& operator=(EpsilonSymbol );
+
+
+    NonterminalProxy& operator=(const SemanticRuleType<P>& func);
+
 };
 
 template<typename T, typename P>
@@ -251,6 +255,7 @@ void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start
     {
         Nonterminal,
         Terminal,
+        SemanticRule,
     };
 
     template<typename T, typename P>
@@ -262,9 +267,15 @@ void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start
         UserSymbol(T terminal):
             type(UserSymbolType::Terminal), terminal(terminal) { }
 
+        template<typename Func>
+        UserSymbol(Func func):
+            type(UserSymbolType::SemanticRule), func(func) { }
+
+
         UserSymbolType type;
         NonterminalProxy<T, P> *nonterminal = nullptr;
         T terminal = T();
+        SemanticRuleType<P> func = nullptr;
 
     };
 
@@ -281,6 +292,34 @@ auto operator>>(NonterminalProxy<T, P>& a, NonterminalProxy<T, P>& b)
     Detail::UserRuleBody<T, P> ans{ &a, &b };
     return ans;
 }
+
+template<typename T, typename P>
+auto operator>>(T a, SemanticRuleType<P> b)
+{
+
+    Detail::UserRuleBody<T, P> ans{ a, b };
+    return ans;
+}
+
+
+
+template<typename Func, typename T, typename P>
+auto operator>>(Func a, NonterminalProxy<T, P>& b)
+{
+    Detail::UserRuleBody<T, P> ans{ a, &b };
+    return ans;
+}
+
+template<typename T, typename P, typename F>
+auto operator>>(NonterminalProxy<T, P>& a, F b)
+{
+    Detail::UserRuleBody<T, P> ans{ &a, b };
+    return ans;
+}
+
+
+
+
 
 template<typename T, typename P>
 auto operator>>(NonterminalProxy<T, P>& a, T b)
@@ -309,9 +348,17 @@ template<typename T, typename P>
 auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P>& b)
 {
     a.push_back(&b);
-
     return a;
 }
+
+template<typename T, typename P, typename Func>
+auto operator>>(Detail::UserRuleBody<T, P> a, Func b)
+{
+    a.push_back(b);
+    return a;
+}
+
+
 
 template<typename T>
 auto operator>>(EpsilonSymbol, T b)
@@ -326,11 +373,11 @@ std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHeadAction()
     std::vector<SymbolDescriptor> ans;
 
     ans.push_back(gf->getNonterminalAndInsert(id));
-    if(action)
-    {
-        ans.push_back(gf->g.addSemanticRuleFunc(action));
-        cleanAction();
-    }
+//    if(action)
+//    {
+//        ans.push_back(gf->g.addSemanticRuleFunc(action));
+//        cleanAction();
+//    }
     return ans;
 }
 
@@ -338,31 +385,53 @@ template<typename T, typename P>
 template<typename P2>
 NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRuleBody<T, P2>& o)
 {
+
+
     std::vector<SymbolDescriptor> rule = addRuleHeadAction();
     for(Detail::UserSymbol<T, P> ch: o)
     {
         if(ch.type == Detail::UserSymbolType::Nonterminal)
         {
             rule.push_back(gf->getNonterminalAndInsert(ch.nonterminal->id));
-            if constexpr(std::is_same<P, P2>::value)
-            {
-                if(ch.nonterminal->action)
-                {
-                    rule.push_back(gf->g.addSemanticRuleFunc(ch.nonterminal->action));
-                    ch.nonterminal->cleanAction();
-
-                }
-            }
             ch.nonterminal->gf = this->gf;
         }
         else if(ch.type == Detail::UserSymbolType::Terminal)
         {
             rule.push_back(gf->getTerminalSymbolAndInsert(ch.terminal));
         }
+        else if(ch.type == Detail::UserSymbolType::SemanticRule)
+        {
+            rule.push_back(gf->g.addSemanticRuleFunc(ch.func));
+        }
     }
 
 
-    auto rd = gf->g.addRule(rule.begin(), rule.end());
+    std::vector<SymbolDescriptor> newRule;
+
+
+    newRule.push_back(rule[0]);
+    if(isSemanticRule( rule.back()) )
+    {
+        newRule.push_back(rule.back());
+        rule.pop_back();
+    }
+    for(std::size_t i = 1; i < rule.size();)
+    {
+        if(isSemanticRule(rule[i]))
+        {
+            newRule.push_back(rule[i + 1]);
+            newRule.push_back(rule[i]);
+            i+=2;
+        }
+        else
+        {
+            newRule.push_back(rule[i]);
+            i ++;
+        }
+    }
+
+
+    auto rd = gf->g.addRule(newRule.begin(), newRule.end());
     for(T realTerminal: o.highPriority)
     {
         SymbolDescriptor terminal = gf->getTerminalSymbolAndInsert(realTerminal);
@@ -413,6 +482,17 @@ NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(EpsilonSymbol )
     gf->g.addRule(rule.begin(), rule.end());
     return *this;
 }
+
+template<typename T, typename P>
+NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const SemanticRuleType<P>& func)
+{
+    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    rule.push_back(gf->g.addSemanticRuleFunc(func));
+    gf->g.addRule(rule.begin(), rule.end());
+    return *this;
+
+}
+
 
 
 

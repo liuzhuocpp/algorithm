@@ -89,6 +89,10 @@ public:
     }
 
 
+
+
+
+
     // 假定每个非终结符都至少有一个RuleBody，否则程序将不会运行正确，有待改进
     struct RuleIterator:IteratorFacade<RuleIterator, std::forward_iterator_tag, RuleDescriptor>
     {

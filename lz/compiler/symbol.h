@@ -28,6 +28,12 @@ SymbolDescriptor makeTerminal(std::ptrdiff_t terminalId)
     return terminalId + TerminalSymbolBegin;
 }
 
+SymbolDescriptor makeNonterminal(std::ptrdiff_t nonterminalId)
+{
+    return nonterminalId;
+}
+
+
 std::ptrdiff_t getTerminalId(SymbolDescriptor s)
 {
     return s - TerminalSymbolBegin;

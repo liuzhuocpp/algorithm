@@ -26,23 +26,27 @@ auto makeAugmentedGrammar(Grammar &g, SymbolDescriptor start)
 template<typename Grammar>
 auto transformInteritSemanticRuleGrammar(const Grammar& g)
 {
+
     using RuleDescriptor = typename Grammar::RuleDescriptor;
     Grammar ans;
+
     for(auto nonterminal: g.nonterminals())
     {
-        ans.addNonterminal(nonterminal);
+        ans.addNonterminal();
     }
 
-    for(auto terminal: g.nonterminals())
+    for(auto terminal: g.terminals())
     {
-        ans.addTerminal(terminal);
+        ans.addTerminal();
     }
     for(auto semanticRule: g.semanticRules())
     {
         ans.addSemanticRuleFunc(g.getSemanticRuleFunc(semanticRule));
     }
 
-
+    ans.priorities = g.priorities;
+    std::map<SymbolDescriptor, int> markNonterminalsMap;
+    std::set<std::pair<RuleDescriptor, typename Grammar::RuleSymbolIterator> > hasMark;
     for(RuleDescriptor rule: g.rules())
     {
         auto symbolRange = g.ruleSymbols(rule);
@@ -55,28 +59,43 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
             newRule.push_back(semanticRule);
         }
 
+        int nonterminalsNumber = 1;
         for(auto it = ++symbolRange.begin(); it != symbolRange.end(); ++ it)
         {
-            semanticRule = g.calculateSemanticRule(rule, it);
-            if(semanticRule != NullSymbol)
+            if( isNonterminal(*it) && g.calculateSemanticRule(rule, it) != NullSymbol)
             {
+                semanticRule = g.calculateSemanticRule(rule, it);
                 SymbolDescriptor M[2];
                 M[0] = ans.addNonterminal();
                 M[1] = semanticRule;
                 ans.addRule(M, M + 2);
+
+                markNonterminalsMap[M[0]] = nonterminalsNumber ;
+                hasMark.insert(std::make_pair(rule, it));
+
                 newRule.push_back(M[0]);
             }
+
+            if( isNonterminal(*it) ) nonterminalsNumber ++;
+
             newRule.push_back(*it);
         }
         ans.addRule(newRule.begin(), newRule.end());
     }
-    return ans;
+
+
+
+
+    return std::make_tuple(ans, markNonterminalsMap, hasMark);
+
 }
 
 
 
 template<typename InputIterator, typename Grammar, typename ActionTable,
     typename GotoTable,
+    typename MarkNonterminalsMap, // 标记所在规则的非终结符的数目
+    typename HasMark, //
     typename IndexToTerminalMap,
     typename IndexToNonterminalMap>
 auto parseLRGrammar(
@@ -85,7 +104,10 @@ auto parseLRGrammar(
         const Grammar &g,
         const ActionTable& actionTable,
         const GotoTable& gotoTable,
-//        bool hasInheritSemanticRule,
+        MarkNonterminalsMap markNonterminalsMap,
+        HasMark hasMark,
+
+
         IndexToTerminalMap indexToTerminalMap,
         IndexToNonterminalMap indexToNonterminalMap
 
@@ -139,45 +161,54 @@ auto parseLRGrammar(
             else if(cnt.type == ActionType::Reduce)
             {
                 auto symbolRange = g.ruleSymbols(cnt.rule);
-                int r = 0;
-                std::vector<P> tmpStack;
                 auto semanticRule = g.calculateSemanticRule(cnt.rule, symbolRange.begin());
                 typename Grammar::SemanticRuleFunc semanticFunc;
-                if(semanticRule != NullSymbol)
+
+                std::vector<P> tmpStack;
+                if(markNonterminalsMap.count(*symbolRange.begin()))
                 {
+                    int nonterminalsNumber = markNonterminalsMap[*symbolRange.begin()];
+                    std::cout << "nonterminalsNumber---: " << nonterminalsNumber << " " << propertyStack.size() <<  std::endl;
+                    P ans;
+                    tmpStack.assign(propertyStack.end() - nonterminalsNumber, propertyStack.end());
                     semanticFunc = g.getSemanticRuleFunc(semanticRule);
+                    semanticFunc(tmpStack, ans);
+                    propertyStack.push_back(ans);
                 }
-                for(auto it = ++symbolRange.begin(); it != symbolRange.end(); ++ it)
+                else
                 {
-                    stateStack.pop_back();
-                    if(isNonterminal(*it))
+                    if(semanticRule != NullSymbol)
                     {
+                        semanticFunc = g.getSemanticRuleFunc(semanticRule);
+//                        for(auto it = ++symbolRange.begin(); it != symbolRange.end(); ++ it)
+                        for(auto it = --symbolRange.end(); it != symbolRange.begin(); -- it)
+                        {
+                            stateStack.pop_back();
+                            if(isNonterminal(*it))
+                            {
+                                if(!markNonterminalsMap.count(*it))
+                                {
+                                    tmpStack.push_back(propertyStack.back());
+                                }
+                                propertyStack.pop_back();
+                            }
+                        }
                         tmpStack.push_back(propertyStack.back());
-                        propertyStack.pop_back();
-                    }
-                    r++;
-                }
-                stateStack.push_back(gotoTable.at({stateStack.back(), *symbolRange.begin()}) );
-
-                if(semanticFunc)
-                {
-
-//                    if(r == 0)
-//                    {
-//                        P ans;
-//
-//                    }
-//                    else
-                    {
-                        P ans;
                         std::reverse(tmpStack.begin(), tmpStack.end());
+
+
+
+                        P ans;
                         semanticFunc(tmpStack, ans);
                         propertyStack.push_back(ans);
-                    }
 
+
+                    }
 
                 }
 
+
+                stateStack.push_back(gotoTable.at({stateStack.back(), *symbolRange.begin()}) );
 
                 auto ruleSymbolRange = g.ruleSymbols(cnt.rule);
                 auto ruleOutput = RuleForOutput<decltype(ruleSymbolRange.begin()), IndexToNonterminalMap, IndexToTerminalMap>
