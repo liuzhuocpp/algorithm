@@ -214,7 +214,7 @@ auto makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
     while(!q.empty())
     {
         std::vector<Item> cntItemSet = itemSets[q.front()];
-        std::cout << "??" << " " << q.front() << " " << cntItemSet.size() <<  std::endl;
+//        std::cout << "??" << " " << q.front() << " " << cntItemSet.size() <<  std::endl;
 
         q.pop();
 
