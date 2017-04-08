@@ -163,12 +163,12 @@ void testParseSLR1AmbiguousGrammar()
             "M5",
     };
 
-    S = 'a' >> SemanticRuleType<P>([](const vector<P> & p, P& ans) { ans = 1; } )    ;
+    S = 'a' >> SemanticRuleType<P>([](auto vit, P& ans) { ans = 1; } )    ;
 
     S = S >> '+' >>
-            [](const auto& p, P& ans) { cout << "hehe" << endl; return 0; } >>
+            [](auto vit, P& ans) { cout << "hehe" << endl; return 0; } >>
             S >>
-            [](const auto& p, P& ans) { ans = p[1] + p[2]; }  > '+';
+            [](auto vit, P& ans) { ans = vit[1] + vit[2]; }  > '+';
 
 
 
