@@ -156,7 +156,7 @@ auto parseLRGrammar(
             else if(cnt.type == ActionType::Reduce)
             {
                 auto symbolRange = g.ruleSymbols(cnt.rule);
-                auto semanticRule = g.calculateSemanticRule(cnt.rule, symbolRange.begin());
+                SymbolDescriptor semanticRule = g.calculateSemanticRule(cnt.rule, symbolRange.begin());
                 typename Grammar::SemanticRuleFunc semanticFunc;
 
                 std::vector<P> tmpStack;
@@ -171,33 +171,31 @@ auto parseLRGrammar(
                 }
                 else
                 {
+                    for(auto it = --symbolRange.end(); it != symbolRange.begin(); -- it)
+                    {
+                        stateStack.pop_back();
+                        if(isNonterminal(*it))
+                        {
+                            if(!markNonterminalsMap.count(*it))
+                            {
+                                tmpStack.push_back(propertyStack.back());
+                            }
+                            propertyStack.pop_back();
+                        }
+                    }
+
                     if(semanticRule != NullSymbol)
                     {
-                        semanticFunc = g.getSemanticRuleFunc(semanticRule);
-                        for(auto it = --symbolRange.end(); it != symbolRange.begin(); -- it)
-                        {
-                            stateStack.pop_back();
-                            if(isNonterminal(*it))
-                            {
-                                if(!markNonterminalsMap.count(*it))
-                                {
-                                    tmpStack.push_back(propertyStack.back());
-                                }
-                                propertyStack.pop_back();
-                            }
-                        }
                         tmpStack.push_back(propertyStack.back());
                         std::reverse(tmpStack.begin(), tmpStack.end());
                         P ans;
+                        semanticFunc = g.getSemanticRuleFunc(semanticRule);
                         semanticFunc(tmpStack, ans);
                         propertyStack.push_back(ans);
-
-
                     }
 
+
                 }
-
-
                 stateStack.push_back(gotoTable.at({stateStack.back(), *symbolRange.begin()}) );
 
                 auto ruleSymbolRange = g.ruleSymbols(cnt.rule);

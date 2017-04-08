@@ -303,12 +303,12 @@ auto operator>>(T a, SemanticRuleType<P> b)
 
 
 
-template<typename Func, typename T, typename P>
-auto operator>>(Func a, NonterminalProxy<T, P>& b)
-{
-    Detail::UserRuleBody<T, P> ans{ a, &b };
-    return ans;
-}
+//template<typename Func, typename T, typename P>
+//auto operator>>(Func a, NonterminalProxy<T, P>& b)
+//{
+//    Detail::UserRuleBody<T, P> ans{ a, &b };
+//    return ans;
+//}
 
 template<typename T, typename P, typename F>
 auto operator>>(NonterminalProxy<T, P>& a, F b)
@@ -344,19 +344,75 @@ auto operator>>(Detail::UserRuleBody<T, P> a, T b)
     return a;
 }
 
-template<typename T, typename P>
-auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P>& b)
+
+//template<typename T, typename P>
+//auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P>& b)
+//{
+//    a.push_back(&b);
+//    return a;
+//}
+
+template<typename T, typename P, typename P2>
+auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P2>& b)
 {
-    a.push_back(&b);
-    return a;
+    if constexpr(std::is_same<P, P2>::value)
+    {
+        a.push_back(&b);
+        return a;
+    }
+    else
+    {
+        Detail::UserRuleBody<T, P2> newA;
+        newA.highPriority = a.highPriority;
+        newA.lowPriority = a.lowPriority;
+
+        for(int i = 0; i < a.size(); ++ i)
+        {
+            newA.push_back(a[i].terminal);
+        }
+
+        newA.push_back(&b);
+        return newA;
+
+    }
 }
 
-template<typename T, typename P, typename Func>
-auto operator>>(Detail::UserRuleBody<T, P> a, Func b)
+//template<typename T, typename P, typename P2>
+//auto operator>>(Detail::UserRuleBody<T, P> a, SemanticRuleType<P2> b)
+//{
+//    if constexpr(std::is_same<P, P2>::value)
+//    {
+//        a.push_back(b);
+//        return a;
+//    }
+//    else
+//    {
+//        Detail::UserRuleBody<T, P2> newA;
+//        newA.highPriority = a.highPriority;
+//        newA.lowPriority = a.lowPriority;
+//
+//        for(int i = 0; i < a.size(); ++ i)
+//        {
+//            newA.push_back(a[i].terminal);
+//        }
+//        newA.push_back(b);
+//        return newA;
+//
+//
+//    }
+//}
+
+
+template<typename T, typename P>
+auto operator>>(Detail::UserRuleBody<T, P> a, SemanticRuleType<P> b)
 {
-    a.push_back(b);
-    return a;
+//    if constexpr(std::is_same<P, P2>::value)
+    {
+        a.push_back(b);
+        return a;
+    }
 }
+
 
 
 

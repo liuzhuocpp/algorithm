@@ -16,7 +16,7 @@
 using namespace lz;
 using namespace std;
 
-template<typename InputIterator, typename T, typename P, typename NonterminalNameMap, typename MarkNonterminalsMap>
+template<typename InputIterator, typename T, typename P, typename NonterminalNameMap>
 void runParseSLR1Grammar(
         InputIterator first,
         InputIterator last,
@@ -25,11 +25,18 @@ void runParseSLR1Grammar(
 
 
 
-        MarkNonterminalsMap markNonterminalsMap,
+//        MarkNonterminalsMap markNonterminalsMap,
 
 
         bool outputNonkernelItem = true)
 {
+
+    auto transformAns = transformInteritSemanticRuleGrammar(gf.g);
+    gf.g = std::get<0>(transformAns);
+    auto markNonterminalsMap = std::get<1>(transformAns);
+
+
+
     Grammar<P> g = gf.g;
 //    auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
 
@@ -166,37 +173,20 @@ void testParseSLR1AmbiguousGrammar()
     S = 'a' >> SemanticRuleType<P>([](auto vit, P& ans) { ans = 1; } )    ;
 
     S = S >> '+' >>
-            [](auto vit, P& ans) { cout << "hehe" << endl; return 0; } >>
+            SemanticRuleType<P>([](auto vit, P& ans) { cout << "hehe" << endl; return 0; }) >>
             S >>
-            [](auto vit, P& ans) { ans = vit[1] + vit[2]; }  > '+';
-
-
-
-
-
+            SemanticRuleType<P>([](auto vit, P& ans) { ans = vit[1] + vit[2]; })  > '+';
 
     cout << "G: " << gf.g.actionsNumber() << endl;
-
-    auto ans = transformInteritSemanticRuleGrammar(gf.g);
-    gf.g = std::get<0>(ans);
-    auto markNonterminalsMap = std::get<1>(ans);
-    auto terminalMap = gf.getIndexToTerminalMap();
-
-    auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
-
-
-
-    cout << GrammerForOutput<decltype(gf.g),decltype(nonterminalMap), decltype(terminalMap)>
-        {gf.g, nonterminalMap, terminalMap} ;
-
 
     string text;
     text = "a+a+a+a+a+a";
 
-    runParseSLR1Grammar(text.begin(), text.end(), gf,
-            makeIteratorMap(nonterminalNames.begin()),
-            markNonterminalsMap,
-            true);
+    runParseSLR1Grammar(
+        text.begin(),
+        text.end(),
+        gf,
+        makeIteratorMap(nonterminalNames.begin()) );
 
 }
 
@@ -206,6 +196,51 @@ void testParseSLR1AmbiguousGrammar()
 
 
 
+
+
+void testCalculateTypeAndWidth()
+{
+    OUT_FUNCTION_NAME
+
+
+    using P = int;
+    NonterminalProxy<char, P> T, B, C;
+
+    GrammarFactory<char, P> gf(T);
+    vector<string > nonterminalNames = {
+            "T",
+            "B",
+            "C",
+            "M",
+//            "M1",
+            "T'",
+    };
+
+    P w;
+
+    T = B >> [&](auto vit, P& o) {  w = vit[1]; } >>
+        C >> SemanticRuleType<P>([&](auto vit, P& o) { o = vit[2]; });
+    B = 'i' >> SemanticRuleType<P>([](auto vit, P&o) { o = 4; });
+    B = 'f' >> SemanticRuleType<P>([](auto vit, P&o) { o = 8; });
+
+    C = [&](auto vit, P &o) { o = w; };
+    C = eps >> '[' >> '1' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o = 1 * vit[1]; });
+    C = eps >> '[' >> '2' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o =2 * vit[1]; });
+    C = eps >> '[' >> '3' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o =3 * vit[1]; });
+
+
+
+
+    string text;
+    text = "f[2][2][3]";
+
+    runParseSLR1Grammar(
+        text.begin(),
+        text.end(),
+        gf,
+        makeIteratorMap(nonterminalNames.begin()) );
+
+}
 
 
 
@@ -221,5 +256,6 @@ void testParseSLR1AmbiguousGrammar()
 int main()
 {
     testParseSLR1AmbiguousGrammar();
+//    testCalculateTypeAndWidth();
     return 0;
 }

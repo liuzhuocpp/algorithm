@@ -308,6 +308,11 @@ calculateSLR1ActionTable(
             {
                 std::swap(oldAction, newAction);
             }
+            else if(oldAction.type == ActionType::Shift && newAction.type == ActionType::Shift)
+            {
+                return true;
+            }
+
             else ans = false;
             // oldAction 是reduce， newAction是shift
             if(ans)
