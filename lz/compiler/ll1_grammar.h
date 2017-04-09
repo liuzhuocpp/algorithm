@@ -149,9 +149,8 @@ parseLL1Grammar(
 
                 if(sInheritActoin != NullSymbol)
                 {
-                    std::vector<P> tmpStack(propertyStack.end() - nonterminalsNumber, propertyStack.end());
                     // 计算继承属性的语义规则
-                    g.getSemanticRuleFunc(sInheritActoin)(tmpStack.begin(), sp);
+                    g.getSemanticRuleFunc(sInheritActoin)(propertyStack.end() - nonterminalsNumber, sp);
                 }
                 symbolStack.pop_back(); // 开始进行非终结符展开
 
@@ -181,7 +180,7 @@ parseLL1Grammar(
                 std::reverse(symbolStack.begin() + nextRuleBodyBeginInSymbolStack, symbolStack.end());
                 if(synthesizeSemanticRule != NullSymbol)
                 {
-                    std::get<1>(symbolStack[nextRuleBodyBeginInSymbolStack - 1]) = nextNonterminalsNumber - 1;
+                    std::get<1>(symbolStack[nextRuleBodyBeginInSymbolStack - 1]) = nextNonterminalsNumber;
                 }
             }
             else
@@ -201,14 +200,13 @@ parseLL1Grammar(
         }
         else if(isSemanticRule(s))
         {
-            std::vector<P> tmpStack;
-            while(nonterminalsNumber --)
+
+            //调用计算综合属性的语义规则
+            g.getSemanticRuleFunc(s)(propertyStack.end() - nonterminalsNumber, *(propertyStack.end() - nonterminalsNumber));
+            while(--nonterminalsNumber > 0)
             {
-                tmpStack.push_back(propertyStack.back());
                 propertyStack.pop_back();
             }
-            //调用计算综合属性的语义规则
-            g.getSemanticRuleFunc(s)(tmpStack.begin(), propertyStack.back());
             symbolStack.pop_back();
         }
     }
