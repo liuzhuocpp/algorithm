@@ -23,11 +23,10 @@ template<typename T, typename P>
 struct GrammarFactory
 {
     template<typename _T, typename _P>
-    friend class NonterminalProxy;
+    friend struct NonterminalProxy;
 
     Grammar<P> g;
 private:
-    std::map<int, SymbolDescriptor> nonterminalMap;
 
     std::map<T, SymbolDescriptor> terminalMap;
     std::map<T, int> terminalToIndexMap;
@@ -51,12 +50,10 @@ public:
     }
     auto getTerminalToIndexMap()
     {
-//        terminalToIndexMap = terminalMap;
         terminalToIndexMap.clear();
         for(auto& _pair: terminalMap)
         {
             terminalToIndexMap[_pair.first] = lz::getTerminalId(_pair.second);
-//            _pair.second  = lz::getTerminalId(_pair.second);
         }
 
         ConstAssociativeMap<decltype(terminalToIndexMap)> ans(terminalToIndexMap);
@@ -68,14 +65,13 @@ private:
 
     SymbolDescriptor getNonterminalAndInsert(int nonterminalProxyId)
     {
-        if(nonterminalMap.count(nonterminalProxyId))
+        int cntId = g.nonterminalsNumber();
+        cntId --;
+        for(;cntId < nonterminalProxyId; cntId++)
         {
-            return nonterminalMap[nonterminalProxyId];
+            g.addNonterminal();
         }
-        else
-        {
-            return nonterminalMap[nonterminalProxyId] = g.addNonterminal();
-        }
+        return lz::makeNonterminal(nonterminalProxyId);
     }
 
     SymbolDescriptor getTerminalSymbolAndInsert(T ch)
@@ -125,100 +121,6 @@ private:
         }
         else return a;
     }
-
-
-
-    }
-
-
-struct EpsilonSymbol {
-
-
-
-
-} eps;
-
-
-template<typename T, typename P>
-struct NonterminalProxy
-{
-    using TerminalType = T;
-    using PropertyType = P;
-private:
-    static int counter;
-public:
-    SymbolDescriptor id;
-//    SemanticRuleType<P> action;
-    GrammarFactory<T, P>* gf;
-
-
-    NonterminalProxy(GrammarFactory<T, P>* gf = nullptr):
-         gf(gf)
-    {
-        id = counter ++;
-    }
-
-
-    NonterminalProxy(const NonterminalProxy<T, NoProperty>&other):
-        id(other.id),  gf(nullptr)
-    {
-    }
-
-
-//    template<typename F>
-//    NonterminalProxy& operator[](F f)
-//    {
-//        action = f;
-//        return *this;
-//    }
-
-    std::vector<SymbolDescriptor> addRuleHeadAction();
-//    void cleanAction()
-//    {
-//        action = nullptr;
-//    }
-
-
-    template<typename...Args>
-    NonterminalProxy<T, P>& operator=(const std::tuple<Args...>& o);
-
-    NonterminalProxy& operator=(T o);
-    NonterminalProxy& operator=(NonterminalProxy& o);
-    NonterminalProxy& operator=(EpsilonSymbol );
-
-
-    NonterminalProxy& operator=(const SemanticRuleType<P>& func);
-
-};
-
-template<typename T, typename P>
-int NonterminalProxy<T, P>::counter = 0;
-
-
-
-template<typename T, typename P>
-GrammarFactory<T, P>::GrammarFactory(NonterminalProxy<T, P>& startSymbol)
-{
-    this->connectStartNonterminal(startSymbol);
-}
-
-template<typename T, typename P>
-void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start)
-{
-    start.gf = this;
-
-    terminalMap.clear();
-    g.clear();
-
-
-}
-
-
-
-
-    namespace Detail {
-
-
     template<int i, typename Tuple, typename Func>
     void applyTuple(const Tuple& a, Func f)
     {
@@ -238,10 +140,76 @@ void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start
 
 
 
-
-
-
     }
+
+
+struct EpsilonSymbol {
+
+
+
+
+} eps;
+
+
+template<typename T, typename P>
+struct NonterminalProxy
+{
+private:
+    static int counter;
+public:
+    SymbolDescriptor id;
+
+    GrammarFactory<T, P>* gf;
+
+
+    NonterminalProxy(GrammarFactory<T, P>* gf = nullptr):
+         gf(gf)
+    {
+        id = counter ++;
+    }
+
+
+    NonterminalProxy(const NonterminalProxy<T, NoProperty>&other):
+        id(other.id),  gf(nullptr)
+    {
+    }
+
+    std::vector<SymbolDescriptor> addRuleHead();
+
+    template<typename...Args>
+    NonterminalProxy<T, P>& operator=(const std::tuple<Args...>& o);
+
+    NonterminalProxy& operator=(T o);
+    NonterminalProxy& operator=(NonterminalProxy& o);
+    NonterminalProxy& operator=(EpsilonSymbol );
+    NonterminalProxy& operator=(const SemanticRuleType<P>& func);
+
+};
+
+template<typename T, typename P>
+int NonterminalProxy<T, P>::counter = 0;
+
+
+
+template<typename T, typename P>
+GrammarFactory<T, P>::GrammarFactory(NonterminalProxy<T, P>& startSymbol)
+{
+    this->connectStartNonterminal(startSymbol);
+}
+
+template<typename T, typename P>
+void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start)
+{
+    start.gf = this;
+    terminalMap.clear();
+    g.clear();
+
+
+}
+
+
+
+
 
 
 
@@ -337,12 +305,6 @@ auto operator<(std::tuple<Args...> a, T b)
     return newA;
 }
 
-template<typename T>
-auto operator>(EpsilonSymbol, T b)
-{
-    return std::make_tuple(b);
-}
-
 
 
 
@@ -350,7 +312,7 @@ auto operator>(EpsilonSymbol, T b)
 
 
 template<typename T, typename P>
-std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHeadAction()
+std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHead()
 {
     std::vector<SymbolDescriptor> ans;
     ans.push_back(gf->getNonterminalAndInsert(id));
@@ -363,7 +325,7 @@ template<typename T, typename P>
 template<typename ...Args>
 NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const std::tuple<Args...>& o)
 {
-    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    std::vector<SymbolDescriptor> rule = addRuleHead();
     std::vector<T> highPrecedence, lowPrecedence;
 
     auto pushSymbol = [&](auto ch)
@@ -382,9 +344,6 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const std::tuple<Args.
         {
             highPrecedence = std::move(ch.first);
             lowPrecedence = std::move(ch.second);
-
-
-
         }
         else
         {
@@ -443,7 +402,7 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const std::tuple<Args.
 template<typename T, typename P>
 NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(T o)
 {
-    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    std::vector<SymbolDescriptor> rule = addRuleHead();
     rule.push_back({gf->getTerminalSymbolAndInsert(o)});
     gf->g.addRule(rule.begin(), rule.end());
     return *this;
@@ -452,15 +411,9 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(T o)
 template<typename T, typename P>
 NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(NonterminalProxy<T, P>& o)
 {
-    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    std::vector<SymbolDescriptor> rule = addRuleHead();
     rule.push_back({gf->getNonterminalAndInsert(o.id)});
-    if(o.action)
-    {
-        rule.push_back(gf->g.addSemanticRuleFunc(o.action));
-        o.cleanAction();
-    }
     o.gf = this->gf;
-
     gf->g.addRule(rule.begin(), rule.end());
     return *this;
 }
@@ -468,7 +421,7 @@ NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(NonterminalProxy<T, P
 template<typename T, typename P>
 NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(EpsilonSymbol )
 {
-    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    std::vector<SymbolDescriptor> rule = addRuleHead();
     gf->g.addRule(rule.begin(), rule.end());
     return *this;
 }
@@ -476,7 +429,7 @@ NonterminalProxy<T, P>&  NonterminalProxy<T, P>::operator=(EpsilonSymbol )
 template<typename T, typename P>
 NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const SemanticRuleType<P>& func)
 {
-    std::vector<SymbolDescriptor> rule = addRuleHeadAction();
+    std::vector<SymbolDescriptor> rule = addRuleHead();
     rule.push_back(gf->g.addSemanticRuleFunc(func));
     gf->g.addRule(rule.begin(), rule.end());
     return *this;

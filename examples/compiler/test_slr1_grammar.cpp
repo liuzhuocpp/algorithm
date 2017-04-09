@@ -223,23 +223,16 @@ void testCalculateTypeAndWidth()
 
 
 
-
-    T =
-            B >> [&](auto vit, P& o) {  w = vit[1]; }
-            >>
-        C
-        >>
-        [&](auto vit, P& o) { o = vit[2]; } ;
-
+    T = B >> [&](auto vit, P& o) {  w = vit[1]; } >> C >>
+        [&](auto vit, P& o) { o = vit[2]; };
 
 
     B = 'i' >> [](auto vit, P&o) { o = 4; };
-    B = 'f' >> SemanticRuleType<P>([](auto vit, P&o) { o = 8; });
-//
+    B = 'f' >> [](auto vit, P&o) { o = 8; };
     C = [&](auto vit, P &o) { o = w; };
-    C = eps >> '[' >> '1' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o = 1 * vit[1]; }) > 'i';
-    C = eps >> '[' >> '2' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o =2 * vit[1]; });
-    C = eps >> '[' >> '3' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o =3 * vit[1]; });
+    C = eps >> '[' >> '1' >> ']' >> C >> [](auto vit, P&o) { o = 1 * vit[1]; };
+    C = eps >> '[' >> '2' >> ']' >> C >> [](auto vit, P&o) { o = 2 * vit[1]; };
+    C = eps >> '[' >> '3' >> ']' >> C >> [](auto vit, P&o) { o = 3 * vit[1]; };
 
 
 
