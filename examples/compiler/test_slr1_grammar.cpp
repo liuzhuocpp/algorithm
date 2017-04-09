@@ -170,12 +170,13 @@ void testParseSLR1AmbiguousGrammar()
             "M5",
     };
 
-    S = 'a' >> SemanticRuleType<P>([](auto vit, P& ans) { ans = 1; } )    ;
+    S = 'a' >> [](auto vit, P& ans) { ans = 1; };
 
     S = S >> '+' >>
-            SemanticRuleType<P>([](auto vit, P& ans) { cout << "hehe" << endl; return 0; }) >>
-            S >>
-            SemanticRuleType<P>([](auto vit, P& ans) { ans = vit[1] + vit[2]; })  > '+';
+            [](auto vit, P& ans) { cout << "hehe" << endl; return 0; } >> S >>
+            [](auto vit, P& ans) { ans = vit[1] + vit[2]; }
+
+            > '+';
 
     cout << "G: " << gf.g.actionsNumber() << endl;
 
@@ -203,6 +204,8 @@ void testCalculateTypeAndWidth()
     OUT_FUNCTION_NAME
 
 
+
+
     using P = int;
     NonterminalProxy<char, P> T, B, C;
 
@@ -212,21 +215,39 @@ void testCalculateTypeAndWidth()
             "B",
             "C",
             "M",
-//            "M1",
             "T'",
     };
 
     P w;
 
-    T = B >> [&](auto vit, P& o) {  w = vit[1]; } >>
-        C >> SemanticRuleType<P>([&](auto vit, P& o) { o = vit[2]; });
-    B = 'i' >> SemanticRuleType<P>([](auto vit, P&o) { o = 4; });
-    B = 'f' >> SemanticRuleType<P>([](auto vit, P&o) { o = 8; });
 
+
+
+    T =
+            B >> [&](auto vit, P& o) {  w = vit[1]; }
+            >>
+        C
+        >>
+        [&](auto vit, P& o) { o = vit[2]; } ;
+
+
+
+    B = 'i' >> [](auto vit, P&o) { o = 4; };
+    B = 'f' >> SemanticRuleType<P>([](auto vit, P&o) { o = 8; });
+//
     C = [&](auto vit, P &o) { o = w; };
-    C = eps >> '[' >> '1' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o = 1 * vit[1]; });
+    C = eps >> '[' >> '1' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o = 1 * vit[1]; }) > 'i';
     C = eps >> '[' >> '2' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o =2 * vit[1]; });
     C = eps >> '[' >> '3' >> ']' >> C >> SemanticRuleType<P>([](auto vit, P&o) { o =3 * vit[1]; });
+
+
+
+    auto nonterminalNameMap = makeIteratorMap(nonterminalNames.begin());
+
+
+
+    auto indexToTerminalMap = gf.getIndexToTerminalMap();
+
 
 
 
@@ -238,7 +259,7 @@ void testCalculateTypeAndWidth()
         text.begin(),
         text.end(),
         gf,
-        makeIteratorMap(nonterminalNames.begin()) );
+        nonterminalNameMap );
 
 }
 
@@ -255,7 +276,7 @@ void testCalculateTypeAndWidth()
 
 int main()
 {
-    testParseSLR1AmbiguousGrammar();
-//    testCalculateTypeAndWidth();
+//    testParseSLR1AmbiguousGrammar();
+    testCalculateTypeAndWidth();
     return 0;
 }

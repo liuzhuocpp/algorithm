@@ -136,9 +136,8 @@ private:
 
             return ruleBody;
         }
-
-
     };
+
 
     }
 
@@ -146,29 +145,22 @@ private:
 struct EpsilonSymbol {
 
 
-    template<typename T>
-    friend Detail::UserRuleBody<T, NoProperty> operator > (EpsilonSymbol eps, T terminal)
-    {
-        Detail::UserRuleBody<T, NoProperty> ans;
-        ans.lowPriority.push_back(terminal);
-        return ans;
-    }
-
-
-
-    template<typename T>
-    friend Detail::UserRuleBody<T, NoProperty> operator < (EpsilonSymbol eps, T terminal)
-    {
-        Detail::UserRuleBody<T, NoProperty> ans;
-        ans.highPriority.push_back(terminal);
-        return ans;
-    }
-
 //    template<typename T>
-//    friend EpsilonSymbol operator < (EpsilonSymbol eps, T terminal)
+//    friend Detail::UserRuleBody<T, NoProperty> operator > (EpsilonSymbol eps, T terminal)
 //    {
-//        eps.highPriority.push_back(terminal);
-//        return eps;
+//        Detail::UserRuleBody<T, NoProperty> ans;
+//        ans.lowPriority.push_back(terminal);
+//        return ans;
+//    }
+//
+//
+//
+//    template<typename T>
+//    friend Detail::UserRuleBody<T, NoProperty> operator < (EpsilonSymbol eps, T terminal)
+//    {
+//        Detail::UserRuleBody<T, NoProperty> ans;
+//        ans.highPriority.push_back(terminal);
+//        return ans;
 //    }
 
 
@@ -178,6 +170,8 @@ struct EpsilonSymbol {
 template<typename T, typename P>
 struct NonterminalProxy
 {
+    using TerminalType = T;
+    using PropertyType = P;
 private:
     static int counter;
 public:
@@ -215,6 +209,10 @@ public:
 
     template<typename P2>
     NonterminalProxy& operator=(const Detail::UserRuleBody<T, P2>& urb);
+
+    template<typename...Args>
+    NonterminalProxy<T, P>& operator=(const std::tuple<Args...>& o);
+
     NonterminalProxy& operator=(T o);
     NonterminalProxy& operator=(NonterminalProxy& o);
     NonterminalProxy& operator=(EpsilonSymbol );
@@ -251,33 +249,39 @@ void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start
 
     namespace Detail {
 
-    enum class UserSymbolType
+
+    template<int i, typename Tuple, typename Func>
+    void applyTuple(const Tuple& a, Func f)
     {
-        Nonterminal,
-        Terminal,
-        SemanticRule,
+        f(std::get<i>(a));
+        if constexpr(i + 1 < std::tuple_size<Tuple>::value)
+        {
+            applyTuple<i+1>(a, f);
+        }
+    }
+
+    template<typename Tuple, typename Func>
+    void applyTuple(const Tuple& a, Func f)
+    {
+        applyTuple<0>(a, f);
+    }
+
+    template<typename Pair>
+    struct IsStdPair
+    {
+        constexpr static bool value = 0;
     };
 
-    template<typename T, typename P>
-    struct UserSymbol
+    template<typename A, typename B>
+    struct IsStdPair<std::pair<A, B>>
     {
-        UserSymbol(NonterminalProxy<T, P>* nonterminal):
-            type(UserSymbolType::Nonterminal), nonterminal(nonterminal) {}
-
-        UserSymbol(T terminal):
-            type(UserSymbolType::Terminal), terminal(terminal) { }
-
-        template<typename Func>
-        UserSymbol(Func func):
-            type(UserSymbolType::SemanticRule), func(func) { }
-
-
-        UserSymbolType type;
-        NonterminalProxy<T, P> *nonterminal = nullptr;
-        T terminal = T();
-        SemanticRuleType<P> func = nullptr;
-
+        constexpr static bool value = 1;
     };
+
+
+
+
+
 
 
     }
@@ -289,182 +293,173 @@ void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start
 template<typename T, typename P>
 auto operator>>(NonterminalProxy<T, P>& a, NonterminalProxy<T, P>& b)
 {
-    Detail::UserRuleBody<T, P> ans{ &a, &b };
-    return ans;
+    return std::make_tuple(&a, &b );
 }
-
-template<typename T, typename P>
-auto operator>>(T a, SemanticRuleType<P> b)
-{
-
-    Detail::UserRuleBody<T, P> ans{ a, b };
-    return ans;
-}
-
-
-
-//template<typename Func, typename T, typename P>
-//auto operator>>(Func a, NonterminalProxy<T, P>& b)
-//{
-//    Detail::UserRuleBody<T, P> ans{ a, &b };
-//    return ans;
-//}
-
-template<typename T, typename P, typename F>
-auto operator>>(NonterminalProxy<T, P>& a, F b)
-{
-    Detail::UserRuleBody<T, P> ans{ &a, b };
-    return ans;
-}
-
-
-
-
 
 template<typename T, typename P>
 auto operator>>(NonterminalProxy<T, P>& a, T b)
 {
-    Detail::UserRuleBody<T, P> ans{ &a, b};
 
-    return ans;
+    return std::make_tuple(&a, b);
 }
+
+
+template<typename T, typename P, typename F>
+auto operator>>(NonterminalProxy<T, P>& a, F b)
+{
+    return std::make_tuple(&a, b);
+}
+
 
 template<typename T, typename P>
 auto operator>>(T a, NonterminalProxy<T, P>& b)
 {
-    Detail::UserRuleBody<T, P>ans{a, &b };
-    return ans;
+    return std::make_tuple(a, &b);
+}
+
+template<typename Func, typename T, typename P>
+auto operator>>(Func a, NonterminalProxy<T, P>& b)
+{
+    return std::make_tuple(a, &b);
 }
 
 
-template<typename T, typename P>
-auto operator>>(Detail::UserRuleBody<T, P> a, T b)
+template<typename TerminalOrFunc1, typename TerminalOrFunc2>
+auto operator>>(TerminalOrFunc1 a, TerminalOrFunc2 b)
 {
-    a.push_back(Detail::UserSymbol<T, P>(b));
-    return a;
+    return std::make_tuple(a, b);
+}
+
+
+
+
+
+template<typename... Arg, typename Func>
+auto operator>>(std::tuple<Arg...> a, Func b)
+{
+    return std::tuple_cat(a, std::make_tuple(b));
+}
+
+
+
+template<typename... Arg, typename T, typename P>
+auto operator>>(std::tuple<Arg...> a, NonterminalProxy<T, P> & b)
+{
+    return std::tuple_cat(a, std::make_tuple(&b));
 }
 
 
 //template<typename T, typename P>
-//auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P>& b)
+//auto operator>>(Detail::UserRuleBody<T, P> a, SemanticRuleType<P> b)
 //{
-//    a.push_back(&b);
+//    a.push_back(b);
 //    return a;
+//
 //}
-
-template<typename T, typename P, typename P2>
-auto operator>>(Detail::UserRuleBody<T, P> a, NonterminalProxy<T, P2>& b)
-{
-    if constexpr(std::is_same<P, P2>::value)
-    {
-        a.push_back(&b);
-        return a;
-    }
-    else
-    {
-        Detail::UserRuleBody<T, P2> newA;
-        newA.highPriority = a.highPriority;
-        newA.lowPriority = a.lowPriority;
-
-        for(int i = 0; i < a.size(); ++ i)
-        {
-            newA.push_back(a[i].terminal);
-        }
-
-        newA.push_back(&b);
-        return newA;
-
-    }
-}
-
-//template<typename T, typename P, typename P2>
-//auto operator>>(Detail::UserRuleBody<T, P> a, SemanticRuleType<P2> b)
-//{
-//    if constexpr(std::is_same<P, P2>::value)
-//    {
-//        a.push_back(b);
-//        return a;
-//    }
-//    else
-//    {
-//        Detail::UserRuleBody<T, P2> newA;
-//        newA.highPriority = a.highPriority;
-//        newA.lowPriority = a.lowPriority;
 //
-//        for(int i = 0; i < a.size(); ++ i)
-//        {
-//            newA.push_back(a[i].terminal);
-//        }
-//        newA.push_back(b);
-//        return newA;
-//
-//
-//    }
-//}
-
-
-template<typename T, typename P>
-auto operator>>(Detail::UserRuleBody<T, P> a, SemanticRuleType<P> b)
-{
-//    if constexpr(std::is_same<P, P2>::value)
-    {
-        a.push_back(b);
-        return a;
-    }
-}
-
-
-
 
 template<typename T>
 auto operator>>(EpsilonSymbol, T b)
 {
-    return Detail::UserRuleBody<T, NoProperty>{ b };
+    return std::make_tuple(b);
 }
+
+
+template<typename T, typename ...Args>
+auto addOrCheckPriorityTerminal(std::tuple<Args...> a)
+{
+    constexpr int Size = std::tuple_size<decltype(a)>::value;
+
+    if constexpr(!Detail::IsStdPair<typename std::tuple_element_t<Size - 1, decltype(a)>>:: value)
+    {
+        return std::tuple_cat(a, std::make_tuple(std::make_pair(std::vector<T>(), std::vector<T>())));
+    }
+    else return a;
+}
+
+template<typename...Args, typename T>
+auto operator>(std::tuple<Args...> a, T b)
+{
+    auto newA = addOrCheckPriorityTerminal<T>(a);
+
+    constexpr int Size = std::tuple_size<decltype(newA)>::value;
+    auto& precedence = std::get<Size-1>(newA);
+    precedence.first.push_back(b);
+    return newA;
+}
+
+
+template<typename...Args, typename T>
+auto operator<(std::tuple<Args...> a, T b)
+{
+    auto newA = addOrCheckPriorityTerminal<T>(a);
+    constexpr int Size = std::tuple_size<decltype(newA)>::value;
+    auto& precedence = std::get<Size-1>(newA);
+    precedence.second.push_back(b);
+    return newA;
+}
+
+template<typename T>
+auto operator>(EpsilonSymbol, T b)
+{
+    return std::make_tuple(b);
+}
+
+
+
+
+
 
 
 template<typename T, typename P>
 std::vector<SymbolDescriptor> NonterminalProxy<T, P>::addRuleHeadAction()
 {
     std::vector<SymbolDescriptor> ans;
-
     ans.push_back(gf->getNonterminalAndInsert(id));
-//    if(action)
-//    {
-//        ans.push_back(gf->g.addSemanticRuleFunc(action));
-//        cleanAction();
-//    }
     return ans;
 }
 
+
+
 template<typename T, typename P>
-template<typename P2>
-NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRuleBody<T, P2>& o)
+template<typename ...Args>
+NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const std::tuple<Args...>& o)
 {
-
-
     std::vector<SymbolDescriptor> rule = addRuleHeadAction();
-    for(Detail::UserSymbol<T, P> ch: o)
+    std::vector<T> highPrecedence, lowPrecedence;
+
+    auto pushSymbol = [&, this](auto ch)
     {
-        if(ch.type == Detail::UserSymbolType::Nonterminal)
+
+        std::cout << std::is_same<decltype(ch), NonterminalProxy<T, P>* >::value << std::endl;
+        if constexpr(std::is_same<decltype(ch), T>::value)
         {
-            rule.push_back(gf->getNonterminalAndInsert(ch.nonterminal->id));
-            ch.nonterminal->gf = this->gf;
+            rule.push_back(this->gf->getTerminalSymbolAndInsert(ch));
         }
-        else if(ch.type == Detail::UserSymbolType::Terminal)
+        else if constexpr(std::is_same<decltype(ch), NonterminalProxy<T, P>* >::value)
         {
-            rule.push_back(gf->getTerminalSymbolAndInsert(ch.terminal));
+            rule.push_back(this->gf->getNonterminalAndInsert(ch->id));
+            ch->gf = this->gf;
         }
-        else if(ch.type == Detail::UserSymbolType::SemanticRule)
+        else if constexpr(Detail::IsStdPair<decltype(ch)>::value)
         {
-            rule.push_back(gf->g.addSemanticRuleFunc(ch.func));
+            highPrecedence = std::move(ch.first);
+            lowPrecedence = std::move(ch.second);
+
+
+
         }
-    }
+        else
+        {
+            rule.push_back(gf->g.addSemanticRuleFunc(ch));
+        }
+    };
+
+    Detail::applyTuple(o, pushSymbol);
+
 
 
     std::vector<SymbolDescriptor> newRule;
-
-
     newRule.push_back(rule[0]);
     if(isSemanticRule( rule.back()) )
     {
@@ -488,13 +483,15 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const Detail::UserRule
 
 
     auto rd = gf->g.addRule(newRule.begin(), newRule.end());
-    for(T realTerminal: o.highPriority)
+
+
+    for(T realTerminal: highPrecedence)
     {
         SymbolDescriptor terminal = gf->getTerminalSymbolAndInsert(realTerminal);
         gf->g.setPriority(rd, terminal, -1);
     }
 
-    for(T realTerminal: o.lowPriority)
+    for(T realTerminal: lowPrecedence)
     {
         SymbolDescriptor terminal = gf->getTerminalSymbolAndInsert(realTerminal);
         gf->g.setPriority(rd, terminal, 1);
