@@ -166,7 +166,7 @@ auto parseLRGrammar(
                     P ans;
                     tmpStack.assign(propertyStack.end() - nonterminalsNumber, propertyStack.end());
                     semanticFunc = g.getSemanticRuleFunc(semanticRule);
-                    semanticFunc(tmpStack, ans);
+                    semanticFunc(tmpStack.begin(), ans);
                     propertyStack.push_back(ans);
                 }
                 else
@@ -190,7 +190,7 @@ auto parseLRGrammar(
                         std::reverse(tmpStack.begin(), tmpStack.end());
                         P ans;
                         semanticFunc = g.getSemanticRuleFunc(semanticRule);
-                        semanticFunc(tmpStack, ans);
+                        semanticFunc(tmpStack.begin(), ans);
                         propertyStack.push_back(ans);
                     }
 

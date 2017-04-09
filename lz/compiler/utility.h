@@ -13,7 +13,7 @@
 namespace lz{
 
 template<typename P>
-using SemanticRuleType = std::function<void(const std::vector<P>&, P&)>;
+using SemanticRuleType = std::function<void(typename std::vector<P>::iterator, P&) >;
 
 
 

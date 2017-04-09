@@ -91,10 +91,10 @@ void testParseLL1Grammar()
 
     vector<string > nonterminalNames = {"S", "A", "B"};
 
-    S = '1' >> A >> [](const auto&v, P&ans){ ans = v[0] + 1;};
-    S = '2' >> A >> [](const auto&v, P&ans){ ans = v[0] + 2;};
-    A = '+' >> S >> [](const auto&v, P&ans){ ans = v[0];};
-    A = [](const auto&v, P&ans){ ans = 0 ;};
+    S = '1' >> A >> [](auto v, P&ans){ ans = v[0] + 1;};
+    S = '2' >> A >> [](auto v, P&ans){ ans = v[0] + 2;};
+    A = '+' >> S >> [](  auto v, P&ans){ ans = v[0];};
+    A = [](  auto v, P&ans){ ans = 0 ;};
 
 
     string text = "1+2+2+2+1";

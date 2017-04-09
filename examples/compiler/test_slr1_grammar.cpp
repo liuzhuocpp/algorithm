@@ -170,13 +170,13 @@ void testParseSLR1AmbiguousGrammar()
             "M5",
     };
 
-    S = '1' >> [](auto vit, P& ans) { ans = 1; };
-    S = '2' >> [](auto vit, P& ans) { ans = 2; };
+    S = '1' >> [](auto v, P& o) { o = 1; };
+    S = '2' >> [](auto v, P& o) { o = 2; };
 
-    S = S >> '+' >> S >> [](auto vit, P& ans) { ans = vit[1] + vit[2]; } > '+' > '-' < '*' < '/';
-    S = S >> '-' >> S >> [](auto vit, P& ans) { ans = vit[1] - vit[2]; } > '+' > '-' < '*' < '/';
-    S = S >> '*' >> S >> [](auto vit, P& ans) { ans = vit[1] * vit[2]; } > '+' > '-' > '*' > '/';
-    S = S >> '/' >> S >> [](auto vit, P& ans) { ans = vit[1] / vit[2]; } > '+' > '-' > '*' > '/';
+    S = S >> '+' >> S >> [](auto v, P& o) { o = v[1] + v[2]; } > '+' > '-' < '*' < '/';
+    S = S >> '-' >> S >> [](auto v, P& o) { o = v[1] - v[2]; } > '+' > '-' < '*' < '/';
+    S = S >> '*' >> S >> [](auto v, P& o) { o = v[1] * v[2]; } > '+' > '-' > '*' > '/';
+    S = S >> '/' >> S >> [](auto v, P& o) { o = v[1] / v[2]; } > '+' > '-' > '*' > '/';
 
 
     cout << "G: " << gf.g.actionsNumber() << endl;
