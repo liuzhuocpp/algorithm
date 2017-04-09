@@ -159,18 +159,17 @@ auto parseLRGrammar(
                 SymbolDescriptor semanticRule = g.calculateSemanticRule(cnt.rule, symbolRange.begin());
                 typename Grammar::SemanticRuleFunc semanticFunc;
 
-                std::vector<P> tmpStack;
                 if(markNonterminalsMap.count(*symbolRange.begin()))
                 {
                     int nonterminalsNumber = markNonterminalsMap[*symbolRange.begin()];
                     P ans;
-                    tmpStack.assign(propertyStack.end() - nonterminalsNumber, propertyStack.end());
                     semanticFunc = g.getSemanticRuleFunc(semanticRule);
-                    semanticFunc(tmpStack.begin(), ans);
+                    semanticFunc(propertyStack.end() - nonterminalsNumber, ans);
                     propertyStack.push_back(ans);
                 }
                 else
                 {
+                    std::vector<P> tmpStack;
                     for(auto it = --symbolRange.end(); it != symbolRange.begin(); -- it)
                     {
                         stateStack.pop_back();
@@ -191,6 +190,7 @@ auto parseLRGrammar(
                         P ans;
                         semanticFunc = g.getSemanticRuleFunc(semanticRule);
                         semanticFunc(tmpStack.begin(), ans);
+
                         propertyStack.push_back(ans);
                     }
 
