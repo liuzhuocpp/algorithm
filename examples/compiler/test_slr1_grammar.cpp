@@ -170,18 +170,19 @@ void testParseSLR1AmbiguousGrammar()
             "M5",
     };
 
-    S = 'a' >> [](auto vit, P& ans) { ans = 1; };
+    S = '1' >> [](auto vit, P& ans) { ans = 1; };
+    S = '2' >> [](auto vit, P& ans) { ans = 2; };
 
-    S = S >> '+' >>
-            [](auto vit, P& ans) { cout << "hehe" << endl; return 0; } >> S >>
-            [](auto vit, P& ans) { ans = vit[1] + vit[2]; }
+    S = S >> '+' >> S >> [](auto vit, P& ans) { ans = vit[1] + vit[2]; } > '+' > '-' < '*' < '/';
+    S = S >> '-' >> S >> [](auto vit, P& ans) { ans = vit[1] - vit[2]; } > '+' > '-' < '*' < '/';
+    S = S >> '*' >> S >> [](auto vit, P& ans) { ans = vit[1] * vit[2]; } > '+' > '-' > '*' > '/';
+    S = S >> '/' >> S >> [](auto vit, P& ans) { ans = vit[1] / vit[2]; } > '+' > '-' > '*' > '/';
 
-            > '+';
 
     cout << "G: " << gf.g.actionsNumber() << endl;
 
     string text;
-    text = "a+a+a+a+a+a";
+    text = "1+2/2+1+2*2-1";
 
     runParseSLR1Grammar(
         text.begin(),
@@ -276,7 +277,7 @@ void testCalculateTypeAndWidth()
 
 int main()
 {
-//    testParseSLR1AmbiguousGrammar();
-    testCalculateTypeAndWidth();
+    testParseSLR1AmbiguousGrammar();
+//    testCalculateTypeAndWidth();
     return 0;
 }

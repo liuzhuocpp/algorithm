@@ -99,44 +99,33 @@ private:
     namespace Detail {
 
 
-    template<typename T, typename P>
-    struct UserSymbol;
 
-//    template<typename T, typename P>
-//    using UserRuleBody = std::vector<UserSymbol<T, P>>;
-
-    template<typename T, typename P>
-    struct UserRuleBody: std::vector<UserSymbol<T, P>>
+    template<typename Pair>
+    struct IsStdPair
     {
-        using std::vector<UserSymbol<T, P>>::vector;
-
-        std::vector<T> lowPriority, highPriority;
-        friend UserRuleBody operator > (UserRuleBody ruleBody, T terminal)
-        {
-            ruleBody.lowPriority.push_back(terminal);
-            return ruleBody;
-        }
-
-        friend UserRuleBody operator < (UserRuleBody ruleBody, T terminal)
-        {
-            ruleBody.highPriority.push_back(terminal);
-            return ruleBody;
-        }
-
-        friend UserRuleBody operator > (UserRuleBody ruleBody, std::vector<T> terminals)
-        {
-            ruleBody.lowPriority.insert(ruleBody.lowPriority.end(), terminals.begin(), terminals.end());
-
-            return ruleBody;
-        }
-
-        friend UserRuleBody operator < (UserRuleBody ruleBody, std::vector<T> terminals)
-        {
-            ruleBody.highPriority.insert(ruleBody.highPriority.end(), terminals.begin(), terminals.end());
-
-            return ruleBody;
-        }
+        constexpr static bool value = 0;
     };
+
+    template<typename A, typename B>
+    struct IsStdPair<std::pair<A, B>>
+    {
+        constexpr static bool value = 1;
+    };
+
+
+
+    template<typename T, typename ...Args>
+    auto addOrCheckPrecedenceVector(std::tuple<Args...> a)
+    {
+        constexpr int Size = std::tuple_size<decltype(a)>::value;
+
+        if constexpr(!Detail::IsStdPair<typename std::tuple_element_t<Size - 1, decltype(a)>>:: value)
+        {
+            return std::tuple_cat(a, std::make_tuple(std::make_pair(std::vector<T>(), std::vector<T>())));
+        }
+        else return a;
+    }
+
 
 
     }
@@ -145,23 +134,6 @@ private:
 struct EpsilonSymbol {
 
 
-//    template<typename T>
-//    friend Detail::UserRuleBody<T, NoProperty> operator > (EpsilonSymbol eps, T terminal)
-//    {
-//        Detail::UserRuleBody<T, NoProperty> ans;
-//        ans.lowPriority.push_back(terminal);
-//        return ans;
-//    }
-//
-//
-//
-//    template<typename T>
-//    friend Detail::UserRuleBody<T, NoProperty> operator < (EpsilonSymbol eps, T terminal)
-//    {
-//        Detail::UserRuleBody<T, NoProperty> ans;
-//        ans.highPriority.push_back(terminal);
-//        return ans;
-//    }
 
 
 } eps;
@@ -176,39 +148,36 @@ private:
     static int counter;
 public:
     SymbolDescriptor id;
-    SemanticRuleType<P> action;
+//    SemanticRuleType<P> action;
     GrammarFactory<T, P>* gf;
 
 
-    NonterminalProxy(SemanticRuleType<P> func = SemanticRuleType<P>(), GrammarFactory<T, P>* gf = nullptr):
-         action(func), gf(gf)
+    NonterminalProxy(GrammarFactory<T, P>* gf = nullptr):
+         gf(gf)
     {
         id = counter ++;
     }
 
 
     NonterminalProxy(const NonterminalProxy<T, NoProperty>&other):
-        id(other.id), action(SemanticRuleType<P>()), gf(nullptr)
+        id(other.id),  gf(nullptr)
     {
     }
 
 
-    template<typename F>
-    NonterminalProxy& operator[](F f)
-    {
-        action = f;
-        return *this;
-    }
+//    template<typename F>
+//    NonterminalProxy& operator[](F f)
+//    {
+//        action = f;
+//        return *this;
+//    }
 
     std::vector<SymbolDescriptor> addRuleHeadAction();
-    void cleanAction()
-    {
-        action = nullptr;
-    }
+//    void cleanAction()
+//    {
+//        action = nullptr;
+//    }
 
-
-    template<typename P2>
-    NonterminalProxy& operator=(const Detail::UserRuleBody<T, P2>& urb);
 
     template<typename...Args>
     NonterminalProxy<T, P>& operator=(const std::tuple<Args...>& o);
@@ -265,18 +234,6 @@ void GrammarFactory<T, P>::connectStartNonterminal(NonterminalProxy<T, P>& start
     {
         applyTuple<0>(a, f);
     }
-
-    template<typename Pair>
-    struct IsStdPair
-    {
-        constexpr static bool value = 0;
-    };
-
-    template<typename A, typename B>
-    struct IsStdPair<std::pair<A, B>>
-    {
-        constexpr static bool value = 1;
-    };
 
 
 
@@ -349,14 +306,6 @@ auto operator>>(std::tuple<Arg...> a, NonterminalProxy<T, P> & b)
 }
 
 
-//template<typename T, typename P>
-//auto operator>>(Detail::UserRuleBody<T, P> a, SemanticRuleType<P> b)
-//{
-//    a.push_back(b);
-//    return a;
-//
-//}
-//
 
 template<typename T>
 auto operator>>(EpsilonSymbol, T b)
@@ -365,26 +314,15 @@ auto operator>>(EpsilonSymbol, T b)
 }
 
 
-template<typename T, typename ...Args>
-auto addOrCheckPriorityTerminal(std::tuple<Args...> a)
-{
-    constexpr int Size = std::tuple_size<decltype(a)>::value;
-
-    if constexpr(!Detail::IsStdPair<typename std::tuple_element_t<Size - 1, decltype(a)>>:: value)
-    {
-        return std::tuple_cat(a, std::make_tuple(std::make_pair(std::vector<T>(), std::vector<T>())));
-    }
-    else return a;
-}
 
 template<typename...Args, typename T>
 auto operator>(std::tuple<Args...> a, T b)
 {
-    auto newA = addOrCheckPriorityTerminal<T>(a);
+    auto newA = Detail::addOrCheckPrecedenceVector<T>(a);
 
     constexpr int Size = std::tuple_size<decltype(newA)>::value;
     auto& precedence = std::get<Size-1>(newA);
-    precedence.first.push_back(b);
+    precedence.second.push_back(b);
     return newA;
 }
 
@@ -392,10 +330,10 @@ auto operator>(std::tuple<Args...> a, T b)
 template<typename...Args, typename T>
 auto operator<(std::tuple<Args...> a, T b)
 {
-    auto newA = addOrCheckPriorityTerminal<T>(a);
+    auto newA = Detail::addOrCheckPrecedenceVector<T>(a);
     constexpr int Size = std::tuple_size<decltype(newA)>::value;
     auto& precedence = std::get<Size-1>(newA);
-    precedence.second.push_back(b);
+    precedence.first.push_back(b);
     return newA;
 }
 
@@ -428,10 +366,9 @@ NonterminalProxy<T, P>& NonterminalProxy<T, P>::operator=(const std::tuple<Args.
     std::vector<SymbolDescriptor> rule = addRuleHeadAction();
     std::vector<T> highPrecedence, lowPrecedence;
 
-    auto pushSymbol = [&, this](auto ch)
+    auto pushSymbol = [&](auto ch)
     {
 
-        std::cout << std::is_same<decltype(ch), NonterminalProxy<T, P>* >::value << std::endl;
         if constexpr(std::is_same<decltype(ch), T>::value)
         {
             rule.push_back(this->gf->getTerminalSymbolAndInsert(ch));
