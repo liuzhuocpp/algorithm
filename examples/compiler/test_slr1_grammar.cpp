@@ -16,38 +16,37 @@
 using namespace lz;
 using namespace std;
 
-template<typename InputIterator, typename T, typename P, typename NonterminalNameMap>
-void runParseSLR1Grammar(
+template<typename InputIterator, typename P, typename IndexToNonterminalMap,
+    typename IndexToTerminalMap, typename TerminalToIndexMap >
+auto runParseSLR1Grammar(
         InputIterator first,
         InputIterator last,
-        GrammarFactory<T, P> &gf,
-        NonterminalNameMap nonterminalMap,
-
-
-
-//        MarkNonterminalsMap markNonterminalsMap,
-
+//        GrammarFactory<T, P> &gf,
+        Grammar<P> g,
+        IndexToNonterminalMap indexToNonterminalMap,
+        IndexToTerminalMap indexToTerminalMap,
+        TerminalToIndexMap terminalToIndexMap,
 
         bool outputNonkernelItem = true)
 {
 
-    auto transformAns = transformInteritSemanticRuleGrammar(gf.g);
-    gf.g = std::get<0>(transformAns);
+    auto transformAns = transformInteritSemanticRuleGrammar(g);
+    g = std::get<0>(transformAns);
     auto markNonterminalsMap = std::get<1>(transformAns);
 
 
 
-    Grammar<P> g = gf.g;
+//    Grammar<P> g = gf.g;
 //    auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
 
-    auto terminalMap = gf.getIndexToTerminalMap();
+//    auto terminalMap = gf.getIndexToTerminalMap();
 
 
     auto startRule = makeAugmentedGrammar(g, 0);
     cout << "startRule " << startRule.head << " " << startRule.body << endl;
 
-    cout << GrammerForOutput<decltype(g),decltype(nonterminalMap), decltype(terminalMap)>
-        {g, nonterminalMap, terminalMap} ;
+    cout << GrammerForOutput<decltype(g), decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
+        {g, indexToNonterminalMap, indexToTerminalMap} ;
 
 
     auto result = makeItemSets(g, startRule);
@@ -68,8 +67,8 @@ void runParseSLR1Grammar(
         cout << "I" << counter ++ << ": " << endl;
         for(auto item: itemSet)
         {
-            cout << ItemDescriptorForOutput<Grammar<P>, decltype(nonterminalMap), decltype(terminalMap)>
-                {item, g, nonterminalMap, terminalMap} << endl;
+            cout << ItemDescriptorForOutput<Grammar<P>, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
+                {item, g, indexToNonterminalMap, indexToTerminalMap} << endl;
         }
 
         if(outputNonkernelItem)
@@ -77,8 +76,8 @@ void runParseSLR1Grammar(
             cout << string(10, '~') << endl;
             for(auto item: calculateNonkernelItemSetClosure(g, itemSet))
             {
-                cout << ItemDescriptorForOutput<Grammar<P>, decltype(nonterminalMap), decltype(terminalMap) >
-                    {item, g, nonterminalMap, terminalMap} << endl;
+                cout << ItemDescriptorForOutput<Grammar<P>, decltype(indexToNonterminalMap), decltype(indexToTerminalMap) >
+                    {item, g, indexToNonterminalMap, indexToTerminalMap} << endl;
             }
 
         }
@@ -94,8 +93,8 @@ void runParseSLR1Grammar(
     {
         cout << _pair.first.first
             << " "
-            << SymbolForOutput<SymbolDescriptor, decltype(nonterminalMap), decltype(terminalMap)>
-                {_pair.first.second, nonterminalMap, terminalMap} << " "
+            << SymbolForOutput<SymbolDescriptor, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
+                {_pair.first.second, indexToNonterminalMap, indexToTerminalMap} << " "
             << _pair.second << endl;
     }
 
@@ -105,7 +104,7 @@ void runParseSLR1Grammar(
     cout << "Is SLR(1) grammar? " << std::boolalpha << actionTableOption.hasValue() << endl;
     if(!actionTableOption.hasValue())
     {
-        return ;
+        return P();
     }
 
     cout << string(100, '*') << "actionTable" << endl;
@@ -113,13 +112,10 @@ void runParseSLR1Grammar(
     {
 
         cout << _pair.first.first << " " <<
-                SymbolForOutput<SymbolDescriptor, decltype(nonterminalMap), decltype(terminalMap)>
-                    {_pair.first.second, nonterminalMap, terminalMap}
+                SymbolForOutput<SymbolDescriptor, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
+                    {_pair.first.second, indexToNonterminalMap, indexToTerminalMap}
                 << " " <<endl;
     }
-
-
-    auto terminalToIndexMap = gf.getTerminalToIndexMap();
 
     using TerminalIterator = TerminalIndexIterator<InputIterator, decltype(terminalToIndexMap) >;
 
@@ -138,14 +134,15 @@ void runParseSLR1Grammar(
             markNonterminalsMap,
 
 
-            gf.getIndexToTerminalMap(),
-            nonterminalMap);
+            indexToTerminalMap,
+            indexToNonterminalMap);
 
     if constexpr(!std::is_same<P, NoProperty>::value)
     {
         cout << "\n\nanswer is: " << ans << endl;
     }
 
+    return ans;
 }
 
 
@@ -187,11 +184,16 @@ void testParseSLR1AmbiguousGrammar()
     text = "1+2/2+1+2*2-1";
     text = "++2+++2";
 
-    runParseSLR1Grammar(
+    P ans = runParseSLR1Grammar(
         text.begin(),
         text.end(),
-        gf,
-        makeIteratorMap(nonterminalNames.begin()) );
+        gf.g,
+        makeIteratorMap(nonterminalNames.begin()),
+        gf.getIndexToTerminalMap(),
+        gf.getTerminalToIndexMap());
+
+
+    assert(ans == 6);
 
 }
 
@@ -252,11 +254,22 @@ void testCalculateTypeAndWidth()
     string text;
     text = "f[2][2][3]";
 
-    runParseSLR1Grammar(
+//    runParseSLR1Grammar(
+//        text.begin(),
+//        text.end(),
+//        gf,
+//        nonterminalNameMap );
+
+
+    P ans = runParseSLR1Grammar(
         text.begin(),
         text.end(),
-        gf,
-        nonterminalNameMap );
+        gf.g,
+        makeIteratorMap(nonterminalNames.begin()),
+        gf.getIndexToTerminalMap(),
+        gf.getTerminalToIndexMap());
+
+    assert(ans == 96);
 
 }
 
