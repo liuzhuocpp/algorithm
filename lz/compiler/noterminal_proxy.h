@@ -27,8 +27,9 @@ struct GrammarFactory
 
     Grammar<P> g;
 private:
-
     std::map<T, SymbolDescriptor> terminalMap;
+    std::map<int, SymbolDescriptor> nonterminalMap;
+
     std::map<T, int> terminalToIndexMap;
 
 public:
@@ -62,16 +63,17 @@ public:
     }
 private:
 
-
+    //nonterminalProxyId仅仅作为一种标识，并不一定是从0开始的连续的id
     SymbolDescriptor getNonterminalAndInsert(int nonterminalProxyId)
     {
-        int cntId = g.nonterminalsNumber();
-        cntId --;
-        for(;cntId < nonterminalProxyId; cntId++)
+        if(nonterminalMap.count(nonterminalProxyId))
         {
-            g.addNonterminal();
+            return nonterminalMap.at(nonterminalProxyId);
         }
-        return lz::makeNonterminal(nonterminalProxyId);
+        else
+        {
+            return nonterminalMap[nonterminalProxyId] = g.addNonterminal();
+        }
     }
 
     SymbolDescriptor getTerminalSymbolAndInsert(T ch)

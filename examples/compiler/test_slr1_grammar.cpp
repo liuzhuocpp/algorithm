@@ -177,12 +177,15 @@ void testParseSLR1AmbiguousGrammar()
     S = S >> '-' >> S >> [](auto v, P& o) { o = v[1] - v[2]; } > '+' > '-' < '*' < '/';
     S = S >> '*' >> S >> [](auto v, P& o) { o = v[1] * v[2]; } > '+' > '-' > '*' > '/';
     S = S >> '/' >> S >> [](auto v, P& o) { o = v[1] / v[2]; } > '+' > '-' > '*' > '/';
+//    S = '-' >> S >> [](auto v, P& o) { o = - v[2]; } > '+' > '-' > '*' > '/';
+    S = eps >> '+' >> '+' >> S >> [](auto v, P& o) { o = 1+v[1]; } > '+' > '-' > '*' > '/';
 
 
     cout << "G: " << gf.g.actionsNumber() << endl;
 
     string text;
     text = "1+2/2+1+2*2-1";
+    text = "++2+++2";
 
     runParseSLR1Grammar(
         text.begin(),
@@ -271,6 +274,6 @@ void testCalculateTypeAndWidth()
 int main()
 {
     testParseSLR1AmbiguousGrammar();
-//    testCalculateTypeAndWidth();
+    testCalculateTypeAndWidth();
     return 0;
 }
