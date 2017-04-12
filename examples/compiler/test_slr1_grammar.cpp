@@ -21,7 +21,6 @@ template<typename InputIterator, typename P, typename IndexToNonterminalMap,
 auto runParseSLR1Grammar(
         InputIterator first,
         InputIterator last,
-//        GrammarFactory<T, P> &gf,
         Grammar<P> g,
         IndexToNonterminalMap indexToNonterminalMap,
         IndexToTerminalMap indexToTerminalMap,
@@ -30,92 +29,14 @@ auto runParseSLR1Grammar(
         bool outputNonkernelItem = true)
 {
 
-    auto transformAns = transformInteritSemanticRuleGrammar(g);
-    g = std::get<0>(transformAns);
-    auto markNonterminalsMap = std::get<1>(transformAns);
 
 
+    auto newGrammarAndData = extendGrammarAndConstructActionAndGoto(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
 
-//    Grammar<P> g = gf.g;
-//    auto nonterminalMap = makeIteratorMap(nonterminalNames.begin());
-
-//    auto terminalMap = gf.getIndexToTerminalMap();
-
-
-    auto startRule = makeAugmentedGrammar(g, 0);
-    cout << "startRule " << startRule.head << " " << startRule.body << endl;
-
-    cout << GrammerForOutput<decltype(g), decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
-        {g, indexToNonterminalMap, indexToTerminalMap} ;
-
-
-    auto result = makeItemSets(g, startRule);
-
-    auto itemSets = get<0>(result);
-    auto itemSetToId = get<1>(result);
-    auto gotoFunction = get<2>(result);
-
-
-
-
-
-    cout << string(100, '*') << endl;
-    cout << "Item set number: " << itemSets.size() << endl << endl;;
-    int counter = 0;
-    for(auto itemSet: itemSets)
-    {
-        cout << "I" << counter ++ << ": " << endl;
-        for(auto item: itemSet)
-        {
-            cout << ItemDescriptorForOutput<Grammar<P>, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
-                {item, g, indexToNonterminalMap, indexToTerminalMap} << endl;
-        }
-
-        if(outputNonkernelItem)
-        {
-            cout << string(10, '~') << endl;
-            for(auto item: calculateNonkernelItemSetClosure(g, itemSet))
-            {
-                cout << ItemDescriptorForOutput<Grammar<P>, decltype(indexToNonterminalMap), decltype(indexToTerminalMap) >
-                    {item, g, indexToNonterminalMap, indexToTerminalMap} << endl;
-            }
-
-        }
-        cout << string(20, '-') << endl;
-        cout << endl;
-        cout << endl;
-    }
-
-
-    cout << string(100, '*') << "gotoFunction" << endl;
-
-    for(auto _pair: gotoFunction)
-    {
-        cout << _pair.first.first
-            << " "
-            << SymbolForOutput<SymbolDescriptor, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
-                {_pair.first.second, indexToNonterminalMap, indexToTerminalMap} << " "
-            << _pair.second << endl;
-    }
-
-
-    auto actionTableOption = calculateSLR1ActionTable(g, startRule, itemSets, gotoFunction);
-
-    cout << "Is SLR(1) grammar? " << std::boolalpha << actionTableOption.hasValue() << endl;
-    if(!actionTableOption.hasValue())
-    {
-        return P();
-    }
-
-    cout << string(100, '*') << "actionTable" << endl;
-    for(auto _pair: actionTableOption.value())
-    {
-
-        cout << _pair.first.first << " " <<
-                SymbolForOutput<SymbolDescriptor, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
-                    {_pair.first.second, indexToNonterminalMap, indexToTerminalMap}
-                << " " <<endl;
-    }
+    auto newG = std::get<0>(newGrammarAndData);
+    auto actionTableOption = std::get<1>(newGrammarAndData);
+    auto gotoFunction = std::get<2>(newGrammarAndData);
+    auto markNonterminalsMap = std::get<3>(newGrammarAndData);
 
     using TerminalIterator = TerminalIndexIterator<InputIterator, decltype(terminalToIndexMap) >;
 
@@ -128,7 +49,7 @@ auto runParseSLR1Grammar(
     auto ans = parseLRGrammar(
             begin,
             end,
-            g,
+            newG,
             actionTableOption.value(),
             gotoFunction,
             markNonterminalsMap,

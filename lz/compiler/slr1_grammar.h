@@ -398,6 +398,91 @@ calculateSLR1ActionTable(
 
 
 
+template<typename Grammar, typename IndexToNonterminalMap, typename IndexToTerminalMap, typename TerminalToIndexMap>
+auto extendGrammarAndConstructActionGotoMark(
+    Grammar g,
+    IndexToNonterminalMap indexToNonterminalMap,
+    IndexToTerminalMap indexToTerminalMap,
+    TerminalToIndexMap terminalToIndexMap,
+    typename Grammar::SymbolDescriptor startSymbol = 0,
+    bool outputNonkernelItem = true )
+{
+    using P = typename Grammar::NodeProperties;
+
+    auto transformAns = transformInteritSemanticRuleGrammar(g);
+    g = std::get<0>(transformAns);
+    auto markNonterminalsMap = std::get<1>(transformAns);
+
+
+    auto startRule = makeAugmentedGrammar(g, startSymbol);
+
+    std::cout << GrammerForOutput<decltype(g), decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
+        {g, indexToNonterminalMap, indexToTerminalMap} ;
+
+
+    auto result = makeItemSets(g, startRule);
+
+    auto itemSets = std::get<0>(result);
+    auto gotoFunction = std::get<2>(result);
+
+    std::cout << std::string(100, '*') << std::endl;
+    std::cout << "Item set number: " << itemSets.size() << "\n\n";
+    int counter = 0;
+    for(auto itemSet: itemSets)
+    {
+        std::cout << "I" << counter ++ << ": " << std::endl;
+        for(auto item: itemSet)
+        {
+            std::cout << ItemDescriptorForOutput<Grammar, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
+                {item, g, indexToNonterminalMap, indexToTerminalMap} << std::endl;
+        }
+
+        if(outputNonkernelItem)
+        {
+            std::cout << std::string(10, '~') << std::endl;
+            for(auto item: calculateNonkernelItemSetClosure(g, itemSet))
+            {
+                std::cout << ItemDescriptorForOutput<Grammar, decltype(indexToNonterminalMap), decltype(indexToTerminalMap) >
+                    {item, g, indexToNonterminalMap, indexToTerminalMap} << std::endl;
+            }
+
+        }
+        std::cout << std::string(20, '-') << std::string(3, '\n');
+    }
+
+
+    std::cout << std::string(100, '*') << "gotoFunction" << std::endl;
+
+    for(auto _pair: gotoFunction)
+    {
+        std::cout << _pair.first.first
+            << " "
+            << SymbolForOutput<SymbolDescriptor, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
+                {_pair.first.second, indexToNonterminalMap, indexToTerminalMap} << " "
+            << _pair.second << std::endl;
+    }
+
+
+    auto actionTableOption = calculateSLR1ActionTable(g, startRule, itemSets, gotoFunction);
+
+    std::cout << "Is SLR(1) grammar? " << std::boolalpha << actionTableOption.hasValue() << std::endl;
+    if(actionTableOption.hasValue())
+    {
+        std::cout << std::string(100, '*') << " actionTable" << std::endl;
+        for(auto _pair: actionTableOption.value())
+        {
+
+            std::cout << _pair.first.first << " " <<
+                    SymbolForOutput<SymbolDescriptor, decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
+                        {_pair.first.second, indexToNonterminalMap, indexToTerminalMap}
+                    << " " << std::endl;
+        }
+    }
+
+
+    return std::make_tuple(g, actionTableOption, gotoFunction, markNonterminalsMap);
+
+}
 
 
 
