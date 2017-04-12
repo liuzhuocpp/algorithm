@@ -27,11 +27,11 @@ auto runParseSLR1Grammar(
         TerminalToIndexMap terminalToIndexMap,
         bool outputNonkernelItem = true)
 {
-    auto newGrammarAndData = extendGrammarAndConstructActionGotoMark(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
-    auto newG = std::get<0>(newGrammarAndData);
-    auto actionTableOption = std::get<1>(newGrammarAndData);
-    auto gotoFunction = std::get<2>(newGrammarAndData);
-    auto markNonterminalsMap = std::get<3>(newGrammarAndData);
+
+    auto [newG, actionTableOption, gotoFunction, markNonterminalsMap]
+           = extendGrammarAndConstructActionGotoMark(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
+
+
     using TerminalIterator = TerminalIndexIterator<InputIterator, decltype(terminalToIndexMap) >;
 
     TerminalIterator begin(first, terminalToIndexMap);
