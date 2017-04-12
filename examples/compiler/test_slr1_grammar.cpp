@@ -21,31 +21,22 @@ template<typename InputIterator, typename P, typename IndexToNonterminalMap,
 auto runParseSLR1Grammar(
         InputIterator first,
         InputIterator last,
-        Grammar<P> g,
+        const Grammar<P>& g,
         IndexToNonterminalMap indexToNonterminalMap,
         IndexToTerminalMap indexToTerminalMap,
         TerminalToIndexMap terminalToIndexMap,
-
         bool outputNonkernelItem = true)
 {
-
-
-
-    auto newGrammarAndData = extendGrammarAndConstructActionAndGoto(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
-
+    auto newGrammarAndData = extendGrammarAndConstructActionGotoMark(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
     auto newG = std::get<0>(newGrammarAndData);
     auto actionTableOption = std::get<1>(newGrammarAndData);
     auto gotoFunction = std::get<2>(newGrammarAndData);
     auto markNonterminalsMap = std::get<3>(newGrammarAndData);
-
     using TerminalIterator = TerminalIndexIterator<InputIterator, decltype(terminalToIndexMap) >;
-
-
 
     TerminalIterator begin(first, terminalToIndexMap);
     TerminalIterator end(last, terminalToIndexMap);
-
-    cout << endl << endl << "Begin parsing..." << endl << endl;
+    cout << string(2, '\n') << "Begin parsing..." << endl << endl;
     auto ans = parseLRGrammar(
             begin,
             end,
@@ -53,8 +44,6 @@ auto runParseSLR1Grammar(
             actionTableOption.value(),
             gotoFunction,
             markNonterminalsMap,
-
-
             indexToTerminalMap,
             indexToNonterminalMap);
 
@@ -79,13 +68,8 @@ void testParseSLR1AmbiguousGrammar()
     GrammarFactory<char, P> gf(S);
     vector<string > nonterminalNames = {
             "S",
-
             "M",
             "S'",
-            "M2",
-            "M3",
-            "M4",
-            "M5",
     };
 
     S = '1' >> [](auto v, P& o) { o = 1; };
@@ -95,7 +79,6 @@ void testParseSLR1AmbiguousGrammar()
     S = S >> '-' >> S >> [](auto v, P& o) { o = v[1] - v[2]; } > '+' > '-' < '*' < '/';
     S = S >> '*' >> S >> [](auto v, P& o) { o = v[1] * v[2]; } > '+' > '-' > '*' > '/';
     S = S >> '/' >> S >> [](auto v, P& o) { o = v[1] / v[2]; } > '+' > '-' > '*' > '/';
-//    S = '-' >> S >> [](auto v, P& o) { o = - v[2]; } > '+' > '-' > '*' > '/';
     S = eps >> '+' >> '+' >> S >> [](auto v, P& o) { o = 1+v[1]; } > '+' > '-' > '*' > '/';
 
 
@@ -113,9 +96,7 @@ void testParseSLR1AmbiguousGrammar()
         gf.getIndexToTerminalMap(),
         gf.getTerminalToIndexMap());
 
-
     assert(ans == 6);
-
 }
 
 
@@ -129,9 +110,6 @@ void testParseSLR1AmbiguousGrammar()
 void testCalculateTypeAndWidth()
 {
     OUT_FUNCTION_NAME
-
-
-
 
     using P = int;
     NonterminalProxy<char, P> T, B, C;
@@ -147,8 +125,6 @@ void testCalculateTypeAndWidth()
 
     P w;
 
-
-
     T = B >> [&](auto vit, P& o) {  w = vit[1]; } >> C >>
         [&](auto vit, P& o) { o = vit[2]; };
 
@@ -160,28 +136,13 @@ void testCalculateTypeAndWidth()
     C = eps >> '[' >> '2' >> ']' >> C >> [](auto vit, P&o) { o = 2 * vit[1]; };
     C = eps >> '[' >> '3' >> ']' >> C >> [](auto vit, P&o) { o = 3 * vit[1]; };
 
-
-
     auto nonterminalNameMap = makeIteratorMap(nonterminalNames.begin());
-
-
-
     auto indexToTerminalMap = gf.getIndexToTerminalMap();
-
-
 
 
 
     string text;
     text = "f[2][2][3]";
-
-//    runParseSLR1Grammar(
-//        text.begin(),
-//        text.end(),
-//        gf,
-//        nonterminalNameMap );
-
-
     P ans = runParseSLR1Grammar(
         text.begin(),
         text.end(),
@@ -191,17 +152,7 @@ void testCalculateTypeAndWidth()
         gf.getTerminalToIndexMap());
 
     assert(ans == 96);
-
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -211,3 +162,10 @@ int main()
     testCalculateTypeAndWidth();
     return 0;
 }
+
+
+
+
+
+
+
