@@ -43,6 +43,10 @@ namespace lz {
             i = alg->data[i].next;
             return *this;
         }
+        DiffType index() const
+        {
+            return i;
+        }
 
         friend bool operator==(LocalIterator a, LocalIterator b)
         {
