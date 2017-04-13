@@ -5,6 +5,7 @@
 #include <lz/compiler/nodeterministic_finite_automaton.h>
 #include <lz/depth_first_search.h>
 #include <lz/compiler/simulate_nfa.h>
+#include <lz/compiler/regex.h>
 using namespace lz;
 using namespace std;
 
@@ -25,7 +26,7 @@ int main()
     text =("k");
     cout << simulateNFA(nfa, text.begin(), text.end()) << endl;
 
-    text =("cc");
+    text =("c");
     cout << simulateNFA(nfa, text.begin(), text.end()) << endl;
 
     text =("dkk");

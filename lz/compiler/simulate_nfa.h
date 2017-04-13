@@ -42,16 +42,6 @@ calucateEmptyStringClosure(
             }
         }
     }
-//    return answer;
-
-//    breadthFirstSearch(nfa, (
-//            BreadthFirstSearchKeywords::startVertex = s,
-//            BreadthFirstSearchKeywords::discoverVertex = [&](Vertex u)
-//            {
-//                answer.push_back(u);
-//            }
-//            ));
-
 
 }
 
@@ -106,12 +96,6 @@ auto moveStates(
 
 }
 
-//
-//namespace SimulateNFAKeywords
-//{
-//
-//}
-
 
 template<typename NFA, typename Iterator>
 bool simulateNFA(const NFA &nfa, Iterator first, Iterator last)
@@ -120,21 +104,14 @@ bool simulateNFA(const NFA &nfa, Iterator first, Iterator last)
 
     std::vector<Vertex> states;
 
-//    std::cout << "FFF" << "\n";
-
     auto n = verticesNumber(nfa);
     std::vector<bool> flag(n, 0);
     auto edgeMap = edgePropertyMap(nfa, NFAEdgeTag());
     calucateEmptyStringClosure(nfa, nfa.start, edgeMap, flag, states);
-//    std::cout << "FFF~~~~~~~`" << "\n";
-//    std::cout <<  states << "\n";
     for(;first != last; ++ first)
     {
-//        std::cout << "FFF" << "\n";
         states = moveStates(nfa, states, edgeMap, *first);
-//        std::cout << "FFF" << "\n";
         states = calucateEmptyStringClosure(nfa, states, edgeMap);
-//        std::cout << "FFF" << "\n";
     }
 
     return std::any_of(states.begin(), states.end(), [&](auto i){ return i == nfa.end; } );
