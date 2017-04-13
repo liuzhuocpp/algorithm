@@ -125,9 +125,16 @@ auto calculateIndexMarker(const IndexMap& indexMap, std::size_t n)
 
 
 
+struct EmptyFunction
+{
+    template<typename ...Args>
+    void operator()(Args ...)
+    {
 
+    }
+}emptyFunction;
 
-auto emptyFunction = [](auto...) {};
+//auto emptyFunction = [](auto...) {};
 
 
 struct NoProperty {

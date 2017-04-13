@@ -298,9 +298,6 @@ struct GraphTraits< NFA<T> >
     template<typename Tag>
     using ConstVertexPropertyMap = typename NFA<T>::template ConstVertexPropertyMap<Tag>;
 
-
-
-
 };
 
 

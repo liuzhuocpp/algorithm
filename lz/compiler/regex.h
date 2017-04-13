@@ -8,9 +8,12 @@
 #ifndef LZ_COMPILER_REGEX_H_
 #define LZ_COMPILER_REGEX_H_
 
+#include <lz/utility.h>
 
 
 namespace lz {
+
+
 
 
 
@@ -108,9 +111,9 @@ void pushOperator(std::vector<NFAFragment>& valueStack, std::vector<T> &operator
 }
 
 
-template<typename Iterator>
+template<typename Iterator, typename Func = EmptyFunction>
 auto
-analyzeRegex(Iterator first, Iterator last)
+parseRegex(Iterator first, Iterator last, Func func = Func())
 {
     Iterator copyFirst = first;
     auto n = last - first;

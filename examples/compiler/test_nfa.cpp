@@ -14,7 +14,7 @@ int main()
 {
     string s = "a*b|c|dj*kk";
 
-    NFA<char> nfa = analyzeRegex(s.begin(), s.end());
+    NFA<char> nfa = parseRegex(s.begin(), s.end());
 
     string text;
     text =("aaaaaaaaaaaaaaaab");
