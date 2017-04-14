@@ -173,11 +173,12 @@ parseRegex( NFA &nfa, const String & input)
 
 
 template<typename NFA>
-auto parseMultiRegex(NFA& nfa, const std::vector<std::pair<std::string, std::function<void(std::string)>>>& regexAndFuncs)
+auto parseMultiRegex(NFA& nfa,
+    const std::vector<std::pair<std::string, std::function<void(std::string::iterator, std::string::iterator)>>>& regexAndFuncs)
 {
     using Vertex = typename GraphTraits<NFA>::VertexDescriptor;
     Vertex realStart = addVertex(nfa);
-    std::map<Vertex, std::function<void(std::string)>> vertexToFunc;
+    std::map<Vertex, std::function<void(std::string::iterator, std::string::iterator)>> vertexToFunc;
     for(auto regexAndFunc: regexAndFuncs)
     {
         auto [start, end] = parseRegex( nfa, std::get<0>(regexAndFunc));

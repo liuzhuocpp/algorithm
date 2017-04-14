@@ -26,16 +26,21 @@ int main()
     NFA nfa;
 
     auto [start, vertexToFunc] = parseMultiRegex(nfa, {
-            {"a*b", [](string x) {
+            {"a*b", [](auto first, auto last) {
 
-                cout << x << endl;
+                cout << string(first, last) << endl;
 
             }},
-            {"c", [](string x) {
-                cout << x << endl;
+
+            {"c", [](auto first, auto last) {
+
+                cout << string(first, last) << endl;
             }},
-            {"dj*kk", [](string x) {
-                cout << x << endl;
+
+            {"dj*kk", [](auto first, auto last) {
+
+                cout << string(first, last) << endl;
+
             }},
 
     });

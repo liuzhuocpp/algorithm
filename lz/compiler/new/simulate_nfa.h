@@ -123,7 +123,9 @@ auto simulateNFA(Iterator first, Iterator last, const NFA &nfa,
                 if(vertexToFunc.count(i))
                 {
                     auto nextFirst = first;
-                    vertexToFunc[i](std::string(firstCopy, ++nextFirst));
+//                    vertexToFunc[i](std::string(firstCopy, ++nextFirst));
+                    vertexToFunc[i](firstCopy, ++nextFirst);
+
                     return true;
                 }
                 else return false;
