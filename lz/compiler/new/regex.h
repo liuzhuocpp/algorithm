@@ -171,7 +171,7 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
 
     for(;first != last; ++ first)
     {
-        auto needConnect = [&]() {
+        auto needCat = [&]() {
             if(first != copyFirst)
             {
                 if(first[-1] != '|' && first[-1] != '(')
@@ -197,7 +197,7 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
         }
         else if(*first == '(')
         {
-            if(needConnect())
+            if(needCat())
             {
                 pushOperator(valueStack, operatorStack, nfa, '.');
             }
@@ -210,7 +210,7 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
         }
         else if(*first == '[')
         {
-            if(needConnect())
+            if(needCat())
             {
                 pushOperator(valueStack, operatorStack, nfa, '.');
             }
@@ -255,7 +255,7 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
         }
         else
         {
-            if(needConnect())
+            if(needCat())
             {
                 pushOperator(valueStack, operatorStack, nfa, '.');
             }
