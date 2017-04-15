@@ -171,6 +171,22 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
 
     for(;first != last; ++ first)
     {
+        auto needConnect = [&]() {
+            if(first != copyFirst)
+            {
+                if(first[-1] != '|' && first[-1] != '(')
+                {
+                    return true;
+                }
+                else if(first - 2 >= copyFirst && first[-2] == '\\')
+                {
+                    return true;
+                }
+            }
+            return false;
+
+        };
+
         if(*first == '|')
         {
             pushOperator(valueStack, operatorStack, nfa, '|');
@@ -181,7 +197,7 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
         }
         else if(*first == '(')
         {
-            if(first != copyFirst && *(first - 1) != '|' && *(first - 1) != '(')
+            if(needConnect())
             {
                 pushOperator(valueStack, operatorStack, nfa, '.');
             }
@@ -194,7 +210,7 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
         }
         else if(*first == '[')
         {
-            if(first != copyFirst && *(first - 1) != '|' && *(first - 1) != '(')
+            if(needConnect())
             {
                 pushOperator(valueStack, operatorStack, nfa, '.');
             }
@@ -239,9 +255,15 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
         }
         else
         {
-            if(first != copyFirst && *(first - 1) != '|' && *(first - 1) != '(')
+            if(needConnect())
             {
                 pushOperator(valueStack, operatorStack, nfa, '.');
+            }
+
+            if(*first == '\\' )
+            {
+                assert(first != last);
+                 ++ first;
             }
 
             Vertex start = addVertex(nfa);
