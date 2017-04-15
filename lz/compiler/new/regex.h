@@ -117,25 +117,19 @@ void pushOperator(std::vector<NFAFragment>& valueStack, std::vector<T> &operator
 {
     if(op == '(')
     {
-//        std::cout << "FFFF" << std::endl;
         operatorStack.push_back(op);
         return ;
     }
 
     if(op == ')')
     {
-//        std::cout << "ddddd" << std::endl;
         while(!operatorStack.empty() && operatorStack.back() != '(')
         {
-//            std::cout << "eeee   " << operatorStack.back() << std::endl;
             popOperator(valueStack, operatorStack, nfa);
-//            std::cout << "eeeessss" << std::endl;
         }
-//        std::cout << "eeeewwwww" << std::endl;
         operatorStack.pop_back();
         return ;
     }
-//    std::cout << "ffff" << std::endl;
 
 
     while(!operatorStack.empty() &&
@@ -151,6 +145,15 @@ void pushOperator(std::vector<NFAFragment>& valueStack, std::vector<T> &operator
 
 }
 
+int getType(char ch)
+{
+    if(ch >= 'A' && ch <= 'Z') return 0;
+    if(ch >= 'a' && ch <= 'z') return 1;
+    if(ch >= '0' && ch <= '9') return 2;
+    assert(0);
+    return -1;
+
+}
 
 template<typename NFA, typename Iterator>
 auto
@@ -188,6 +191,51 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
         else if(*first == ')')
         {
             pushOperator(valueStack, operatorStack, nfa, ')');
+        }
+        else if(*first == '[')
+        {
+            if(first != copyFirst && *(first - 1) != '|' && *(first - 1) != '(')
+            {
+                pushOperator(valueStack, operatorStack, nfa, '.');
+            }
+
+
+
+            auto rightBracket = ++first;
+            for(;rightBracket != last && *rightBracket != ']'; rightBracket++)
+            {
+            }
+
+            if(rightBracket == last)
+            {
+                assert(0);
+                break;
+            }
+            assert((rightBracket - first) % 3 == 0);
+
+            Vertex realStart = addVertex(nfa);
+            Vertex realEnd = addVertex(nfa);
+
+            for(;first != rightBracket; first += 3)
+            {
+                assert(getType(first[0]) == getType(first[2]));
+                assert(first[1] == '-');
+                assert(first[0] < first[2]);
+
+                for(T ch = first[0]; ch <= first[2]; ++ ch)
+                {
+                    Vertex start = addVertex(nfa);
+                    Vertex end = addVertex(nfa);
+                    addEdge(nfa, start, end, ch);
+                    addEdge(nfa, realStart, start, Detail::epsilon<T>);
+                    addEdge(nfa, end, realEnd, Detail::epsilon<T>);
+                }
+            }
+            valueStack.push_back(NFAFragment(realStart, realEnd));
+
+            first = rightBracket;
+
+
         }
         else
         {

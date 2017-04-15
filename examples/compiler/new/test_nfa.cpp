@@ -27,29 +27,30 @@ int main()
 
     auto [start, vertexToFunc] = parseMultiRegex(nfa, {
 
-            {"(_|a|b|c)(_|a|b|c|0|1|2)*", [](auto first, auto last) {
+            {"(_|[a-zA-Z])(_|[a-zA-Z0-9])*", [](auto first, auto last) {
 
-                cout << string(first, last) << endl;
+                cout << "this is identifier:" << string(first, last) << endl;
 
             }},
 
             {"+", [](auto first, auto last) {
 
-                cout << string(first, last) << endl;
+                cout << "this is +:" << string(first, last) << endl;
             }},
 
             {"-", [](auto first, auto last) {
 
-                cout << string(first, last) << endl;
+                cout << "this is -:" << string(first, last) << endl;
+
+            }},
+
+            {"([0-9][0-9]*)", [](auto first, auto last) {
+
+                cout << "this is number:" << string(first, last) << endl;
 
             }},
 
 
-            {"(xyz)*", [](auto first, auto last) {
-
-                cout << string(first, last) << endl;
-
-            }},
 
 
     });
@@ -71,6 +72,8 @@ int main()
     text = "aaaaaaaabdjjjjjjjjjjjjjjjjkkccxyzxyz";
     text = "xyzxyzxyz   xyz";
     text = "    _abc   a +   _   a0 aaa1     ";
+
+    text = "+ +  1231230981098  01111 1231212309800000     + + - abcxyz int double fload   while if  else  long long  aaaaa   aaaa  a00000000 a000000 aa00000000";
 //    text = "abaaaabbbbbab    ababa   ab";
     auto textBegin = text.begin();
     for(string::iterator cntEnd;textBegin != text.end(); textBegin = cntEnd)
