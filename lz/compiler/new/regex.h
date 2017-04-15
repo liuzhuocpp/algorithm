@@ -60,8 +60,23 @@ void popOperator(
 
     if(stackOp == '*')
     {
+//        newStart = addVertex(nfa);
+//        newEnd = addVertex(nfa);
+
+
         NFAFragment frag = valueStack.back();
+
+        addEdge(nfa, frag.start, frag.end, Detail::epsilon<T>);
         addEdge(nfa, frag.end, frag.start, Detail::epsilon<T>);
+
+//        valueStack.pop_back();
+
+//        addEdge(nfa, newStart, frag.start, Detail::epsilon<T>);
+//        addEdge(nfa, frag.end, newEnd, Detail::epsilon<T>);
+//        addEdge(nfa, newEnd, newStart, Detail::epsilon<T>);
+
+//        valueStack.push_back(NFAFragment{newStart, newEnd});
+
     }
     else if(stackOp == '.')
     {
@@ -100,10 +115,34 @@ template<typename T, typename NFA>
 void pushOperator(std::vector<NFAFragment>& valueStack, std::vector<T> &operatorStack,
     NFA &nfa, T op)
 {
+    if(op == '(')
+    {
+//        std::cout << "FFFF" << std::endl;
+        operatorStack.push_back(op);
+        return ;
+    }
+
+    if(op == ')')
+    {
+//        std::cout << "ddddd" << std::endl;
+        while(!operatorStack.empty() && operatorStack.back() != '(')
+        {
+//            std::cout << "eeee   " << operatorStack.back() << std::endl;
+            popOperator(valueStack, operatorStack, nfa);
+//            std::cout << "eeeessss" << std::endl;
+        }
+//        std::cout << "eeeewwwww" << std::endl;
+        operatorStack.pop_back();
+        return ;
+    }
+//    std::cout << "ffff" << std::endl;
+
 
     while(!operatorStack.empty() &&
-        getPriority(operatorStack.back()) >= getPriority(op) )
+        operatorStack.back() != '(' &&
+        (getPriority(operatorStack.back()) >= getPriority(op) ))
     {
+//        std::cout << "ggg" << std::endl;
         popOperator(valueStack, operatorStack, nfa);
     }
 
@@ -137,9 +176,22 @@ parseRegex(NFA &nfa, Iterator first, Iterator last)
         {
             pushOperator(valueStack, operatorStack, nfa, '*');
         }
+        else if(*first == '(')
+        {
+            if(first != copyFirst && *(first - 1) != '|' && *(first - 1) != '(')
+            {
+                pushOperator(valueStack, operatorStack, nfa, '.');
+            }
+
+            pushOperator(valueStack, operatorStack, nfa, '(');
+        }
+        else if(*first == ')')
+        {
+            pushOperator(valueStack, operatorStack, nfa, ')');
+        }
         else
         {
-            if(first != copyFirst && *(first - 1) != '|')
+            if(first != copyFirst && *(first - 1) != '|' && *(first - 1) != '(')
             {
                 pushOperator(valueStack, operatorStack, nfa, '.');
             }

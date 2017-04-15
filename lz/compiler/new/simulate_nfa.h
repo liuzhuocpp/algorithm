@@ -113,30 +113,39 @@ auto simulateNFA(Iterator first, Iterator last, const NFA &nfa,
 
     calucateEmptyStringClosure(nfa, start, edgeMap, flag, states);
     auto firstCopy = first;
+    auto ret = last;
+    StateId retStateId;
     for(;first != last; ++ first)
     {
         states = moveStates(nfa, states, edgeMap, *first);
+        if(states.empty()) break;
         states = calucateEmptyStringClosure(nfa, states, edgeMap);
 
         auto ans = std::find_if(states.begin(), states.end(), [&](auto i) {
 
                 if(vertexToFunc.count(i))
                 {
-                    auto nextFirst = first;
-//                    vertexToFunc[i](std::string(firstCopy, ++nextFirst));
-                    vertexToFunc[i](firstCopy, ++nextFirst);
-
+                    ret = first;
+                    retStateId = i;
                     return true;
                 }
                 else return false;
         });
-
-        if(ans != states.end())
-        {
-            return first;
-        }
     }
-    return last;
+
+
+
+    if(ret != last)
+    {
+        ++ret;
+//        std::cout << "kkkkkjjj " <<  (firstCopy == ret) << endl;
+        vertexToFunc[retStateId](firstCopy, ret);
+    }
+    else
+    {
+        ret = firstCopy;
+    }
+    return ret;
 
 
 

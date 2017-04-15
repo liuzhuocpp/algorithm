@@ -26,22 +26,31 @@ int main()
     NFA nfa;
 
     auto [start, vertexToFunc] = parseMultiRegex(nfa, {
-            {"a*b", [](auto first, auto last) {
+
+            {"(_|a|b|c)(_|a|b|c|0|1|2)*", [](auto first, auto last) {
 
                 cout << string(first, last) << endl;
 
             }},
 
-            {"c", [](auto first, auto last) {
+            {"+", [](auto first, auto last) {
 
                 cout << string(first, last) << endl;
             }},
 
-            {"dj*kk", [](auto first, auto last) {
+            {"-", [](auto first, auto last) {
 
                 cout << string(first, last) << endl;
 
             }},
+
+
+            {"(xyz)*", [](auto first, auto last) {
+
+                cout << string(first, last) << endl;
+
+            }},
+
 
     });
 
@@ -56,17 +65,30 @@ int main()
 //        cout << endl;
 //    }
 
+
+
     string text;
-    text = "aaaaaaaabdjjjjjjjjjjjjjjjjkkcc";
+    text = "aaaaaaaabdjjjjjjjjjjjjjjjjkkccxyzxyz";
+    text = "xyzxyzxyz   xyz";
+    text = "    _abc   a +   _   a0 aaa1     ";
+//    text = "abaaaabbbbbab    ababa   ab";
     auto textBegin = text.begin();
-    for(string::iterator cntEnd;textBegin != text.end(); textBegin = ++cntEnd)
+    for(string::iterator cntEnd;textBegin != text.end(); textBegin = cntEnd)
     {
         cntEnd = simulateNFA(textBegin, text.end(), nfa, start, vertexToFunc);
 
-//        cout << (cntEnd != text.end()) << endl;
-
-
+        if(cntEnd == textBegin)
+        {
+            cntEnd ++;
+        }
+        cout << "****************" << endl;
     }
+
+
+
+
+
+
 //
 //    auto ans = simulateNFA(text.begin(), text.end(), nfa, start, vertexToFunc);
 //
