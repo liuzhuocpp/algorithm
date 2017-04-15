@@ -33,6 +33,43 @@ int main()
 
             }},
 
+
+            {"&", [](auto first, auto last) {
+
+                cout << "this is &:" << string(first, last) << endl;
+            }},
+
+            {"&&", [](auto first, auto last) {
+
+                cout << "this is &&:" << string(first, last) << endl;
+            }},
+
+            {"&&&&*", [](auto first, auto last) {
+
+                cout << "this is more three &:" << string(first, last) << endl;
+            }},
+
+
+
+            {"([0-9][0-9]*)", [](auto first, auto last) {
+
+                cout << "this is number:" << string(first, last) << endl;
+
+            }},
+
+            {"  *", [](auto first, auto last) {
+
+                cout << "this is space:" << string(first, last) << endl;
+
+            }},
+
+            {"\n\n*", [](auto first, auto last) {
+
+                cout << "this is newline:" << string(first, last) << endl;
+
+            }},
+
+
             {"+", [](auto first, auto last) {
 
                 cout << "this is +:" << string(first, last) << endl;
@@ -44,11 +81,24 @@ int main()
 
             }},
 
-            {"([0-9][0-9]*)", [](auto first, auto last) {
 
-                cout << "this is number:" << string(first, last) << endl;
+//            {"*", [](auto first, auto last) {
+//
+//                cout << "this is *:" << string(first, last) << endl;
+//            }},
 
-            }},
+//            {"/", [](auto first, auto last) {
+//
+//                cout << "this is divide:" << string(first, last) << endl;
+//
+//            }},
+
+//            {"///*", [](auto first, auto last) {
+//
+//                cout << "this is comment:" << string(first, last) << endl;
+//
+//            }},
+
 
 
 
@@ -73,7 +123,7 @@ int main()
     text = "xyzxyzxyz   xyz";
     text = "    _abc   a +   _   a0 aaa1     ";
 
-    text = "+ +  1231230981098  01111 1231212309800000     + + - abcxyz int double fload   while if  else  long long  aaaaa   aaaa  a00000000 a000000 aa00000000";
+    text = "++ && && & &&&&&&&&  1231230981098  01111 1231212309800000  \n\n   + + - abcxyz int double fload   while if  else  long long  aaaaa   aaaa  a00000000 a000000 aa00000000";
 //    text = "abaaaabbbbbab    ababa   ab";
     auto textBegin = text.begin();
     for(string::iterator cntEnd;textBegin != text.end(); textBegin = cntEnd)
@@ -82,9 +132,10 @@ int main()
 
         if(cntEnd == textBegin)
         {
+            cout << "Unrecognized " << endl;
             cntEnd ++;
         }
-        cout << "****************" << endl;
+//        cout << "****************" << endl;
     }
 
 
