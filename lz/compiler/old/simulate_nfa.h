@@ -24,7 +24,6 @@ calucateEmptyStringClosure(
     std::vector<typename GraphTraits<NFA>::VertexDescriptor> &answer)
 {
     using Vertex = typename GraphTraits<NFA>::VertexDescriptor;
-    using EdgeWeight = typename MapTraits<EdgePropertyMap>::ValueType;
     std::vector<Vertex> buffer;
 
     buffer.push_back(s);
@@ -36,7 +35,7 @@ calucateEmptyStringClosure(
         for(auto e: outEdges(nfa, u))
         {
             Vertex to = target(nfa, e);
-            if(!flag[to] && edgeMap[e] == Detail::epsilon<EdgeWeight>)
+            if(!flag[to] && edgeMap[e] == nullptr)
             {
                 flag[to] = 1;
                 buffer.push_back(to);
@@ -86,7 +85,7 @@ auto moveStates(
         {
 
             Vertex to = target(nfa, e);
-            if(edgeMap[e] == a && !flag[to])
+            if(edgeMap[e] != nullptr && *edgeMap[e] == a && !flag[to])
             {
                 flag[to] = 1;
                 answer.push_back(to);
@@ -98,10 +97,8 @@ auto moveStates(
 }
 
 
-template<typename Iterator, typename NFA, typename VertexToFunc>
-auto simulateNFA(Iterator first, Iterator last, const NFA &nfa,
-        typename GraphTraits<NFA>::VertexDescriptor start,
-        VertexToFunc vertexToFunc)
+template<typename NFA, typename Iterator>
+bool simulateNFA(const NFA &nfa, Iterator first, Iterator last)
 {
     using Vertex = typename GraphTraits<NFA>::VertexDescriptor;
 
@@ -109,43 +106,15 @@ auto simulateNFA(Iterator first, Iterator last, const NFA &nfa,
 
     auto n = verticesNumber(nfa);
     std::vector<bool> flag(n, 0);
-    auto edgeMap = edgePropertyMap(nfa, edgeWeightTag);
-
-    calucateEmptyStringClosure(nfa, start, edgeMap, flag, states);
-    auto firstCopy = first;
-    auto ret = last;
-    StateId retStateId;
+    auto edgeMap = edgePropertyMap(nfa, NFAEdgeTag());
+    calucateEmptyStringClosure(nfa, nfa.start, edgeMap, flag, states);
     for(;first != last; ++ first)
     {
         states = moveStates(nfa, states, edgeMap, *first);
-        if(states.empty()) break;
         states = calucateEmptyStringClosure(nfa, states, edgeMap);
-
-        auto ans = std::find_if(states.begin(), states.end(), [&](auto i) {
-
-                if(vertexToFunc.count(i))
-                {
-                    ret = first;
-                    retStateId = i;
-                    return true;
-                }
-                else return false;
-        });
     }
 
-
-
-    if(ret != last)
-    {
-        ++ret;
-//        std::cout << "kkkkkjjj " <<  (firstCopy == ret) << endl;
-        vertexToFunc[retStateId](firstCopy, ret);
-    }
-    else
-    {
-        ret = firstCopy;
-    }
-    return ret;
+    return std::any_of(states.begin(), states.end(), [&](auto i){ return i == nfa.end; } );
 
 
 
