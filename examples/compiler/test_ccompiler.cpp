@@ -69,6 +69,32 @@ struct LexicalSymbol
 
 
     };
+
+    constexpr static const char* regexs[] = {
+        "(_|[a-zA-Z])(_|[a-zA-Z0-9])*",
+        "([0-9][0-9]*)",
+        R"(\+)",
+        R"(\-)",
+        R"(\*)",
+        R"(\/)",
+        R"(\&)",
+        R"(\&\&)",
+        R"(\|)",
+        R"(\|\|)",
+        R"(\!)",
+        R"(\()",
+        R"(\))",
+        R"(\[)",
+        R"(\])",
+        R"(\{)",
+        R"(\})",
+        R"(\;)",
+        R"(\=)",
+        R"(\=\=)",
+
+
+    };
+
     Type type;
     string value;
 
@@ -104,128 +130,42 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
     vector<LexicalSymbol> ans;
     NFA nfa;
 
+    std::vector<std::pair<std::string, std::function<void(std::string::iterator, std::string::iterator)>>>
+            regexAndFuncs;
+
+    auto func = [&](auto first, auto last) {
+        ans.push_back(LexicalSymbol(LexicalSymbol::Type::Identifier, string(first, last)));
+    };
+
+    for(unsigned i: irange(static_cast<unsigned>(LexicalSymbol::Type::End) ) )
+    {
+        regexAndFuncs.push_back(std::make_pair(LexicalSymbol::regexs[i], func));
+    }
+
+    regexAndFuncs.push_back({"&&&&*", [&](auto first, auto last) {
+        assert(0);
+    }});
+    regexAndFuncs.push_back({R"(\|\|\|\|*)", [&](auto first, auto last) {
+        assert(0);
+    }});
+
+    regexAndFuncs.push_back({R"(\=\=\=\=*)", [&](auto first, auto last) {
+        assert(0);
+    }});
+
+    regexAndFuncs.push_back({"  *", [&](auto first, auto last) {
+
+    }});
+
+    regexAndFuncs.push_back({"\n\n*", [&](auto first, auto last) {
+    }});
+
+
+
+
     auto startAndVertexToFunc =
-//    auto [start, vertexToFunc] =
-            parseMultiRegex(nfa, {
 
-            {"(_|[a-zA-Z])(_|[a-zA-Z0-9])*", [&](auto first, auto last) {
-
-                ans.push_back(LexicalSymbol(LexicalSymbol::Type::Identifier, string(first, last)));
-
-            }},
-
-            {"([0-9][0-9]*)", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol(LexicalSymbol::Type::Integer, string(first, last)));
-            }},
-
-            {"\\+", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::Plus);
-            }},
-
-            {"-", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::Minus);
-            }},
-
-
-            {"\\*", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::Asterisk);
-
-
-
-            }},
-
-            {"/", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::Slash);
-            }},
-
-
-            {"&", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::Ampersand);
-
-            }},
-
-            {"&&", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::DoubleAmpersand);
-            }},
-
-            {"&&&&*", [&](auto first, auto last) {
-                assert(0);
-//                ans.push_back(LexicalSymbol::Type::Plus);
-            }},
-
-
-            {R"(\|)", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::VerticalBar);
-            }},
-
-            {R"(\|\|)", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::DoubleVerticalBar);
-            }},
-
-            {R"(\|\|\|\|*)", [&](auto first, auto last) {
-                assert(0);
-            }},
-
-            {"!", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::DoubleVerticalBar);
-            }},
-
-            {"\\(", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::LeftParenthese);
-            }},
-
-            {"\\)", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::RightParenthese);
-            }},
-
-            {"\\[", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::LeftSquareBracket);
-            }},
-
-            {"\\]", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::RightSquareBracket);
-            }},
-
-            {"\\{", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::LeftBrace);
-            }},
-
-            {"\\}", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::RightBrace);
-            }},
-
-            {"\\;", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::Semicolon);
-            }},
-
-            {R"(\=)", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::AssignMark);
-            }},
-
-            {R"(\=\=)", [&](auto first, auto last) {
-                ans.push_back(LexicalSymbol::Type::EqualMark);
-            }},
-
-            {R"(\=\=\=\=*)", [&](auto first, auto last) {
-                assert(0);
-//                ans.push_back(LexicalSymbol::Type::Semicolon);
-            }},
-
-
-
-
-
-            {"  *", [&](auto first, auto last) {
-
-            }},
-
-            {"\n\n*", [&](auto first, auto last) {
-            }},
-
-
-
-
-    });
+            parseMultiRegex(nfa, regexAndFuncs);
 
 
     auto start = std::get<0>(startAndVertexToFunc);
