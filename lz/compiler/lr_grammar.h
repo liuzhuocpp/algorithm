@@ -93,7 +93,7 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
 
 template<typename InputIterator, typename Grammar, typename ActionTable,
     typename GotoTable,
-    typename MarkNonterminalsMap, // 标记所在规则的非终结符的数目
+    typename MarkNonterminalsMap, // 标记所在规则的非终结符和终结符号的数目
     typename IndexToTerminalMap,
     typename IndexToNonterminalMap>
 auto parseLRGrammar(
@@ -152,7 +152,7 @@ auto parseLRGrammar(
                     std::cout << "Shift: " << u << " " << indexToTerminalMap[*first] << " " << cnt.itemSetId << std::endl;
                 }
 //                propertyStack.push_back(toProperties(*first));
-                propertyStack.push_back(static_cast<P>(*first));
+                propertyStack.push_back(static_cast<P>(*first)); // need be improved
 
                 first ++;
             }
