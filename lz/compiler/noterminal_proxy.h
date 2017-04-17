@@ -172,23 +172,28 @@ public:
 
         auto pushSymbol = [&](auto ch)
         {
-            if constexpr(std::is_same<decltype(ch), T>::value)
-            {
-                rule.push_back(this->gf->getTerminalSymbolAndInsert(ch));
-            }
-            else if constexpr(std::is_same<decltype(ch), NonterminalProxy<T, P>* >::value)
+            if constexpr(std::is_same<decltype(ch), NonterminalProxy<T, P>* >::value)
             {
                 rule.push_back(this->gf->getNonterminalAndInsert(ch->id));
                 ch->gf = this->gf;
+            }
+            else if constexpr(std::is_convertible<decltype(ch), T>::value)
+            {
+                rule.push_back(this->gf->getTerminalSymbolAndInsert(ch));
             }
             else if constexpr(Detail::IsStdPair<decltype(ch)>::value)
             {
                 highPrecedence = std::move(ch.first);
                 lowPrecedence = std::move(ch.second);
             }
-            else
+            else if constexpr(std::is_convertible<decltype(ch), SemanticRuleType<P> >::value)
             {
                 rule.push_back(gf->g.addSemanticRuleFunc(ch));
+            }
+            else
+            {
+                assert(false);
+//                static_assert(false);
             }
         };
         Detail::applyTuple(o, pushSymbol);
