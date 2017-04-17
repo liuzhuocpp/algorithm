@@ -58,7 +58,7 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
             newRule.push_back(semanticRule);
         }
 
-        int nonterminalsNumber = 1;
+        int nonterminalsAndTerminalsNumber = 1;
         for(auto it = ++symbolRange.begin(); it != symbolRange.end(); ++ it)
         {
             if( isNonterminal(*it) && g.calculateSemanticRule(rule, it) != NullSymbol)
@@ -69,12 +69,13 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
                 M[1] = semanticRule;
                 ans.addRule(M, M + 2);
 
-                markNonterminalsMap[M[0]] = nonterminalsNumber ;
+                markNonterminalsMap[M[0]] = nonterminalsAndTerminalsNumber ;
 
                 newRule.push_back(M[0]);
             }
 
-            if( isNonterminal(*it) ) nonterminalsNumber ++;
+//            if( isNonterminal(*it) )
+                nonterminalsAndTerminalsNumber ++;
 
             newRule.push_back(*it);
         }
@@ -150,6 +151,8 @@ auto parseLRGrammar(
                 {
                     std::cout << "Shift: " << u << " " << indexToTerminalMap[*first] << " " << cnt.itemSetId << std::endl;
                 }
+//                propertyStack.push_back(toProperties(*first));
+                propertyStack.push_back(static_cast<P>(*first));
 
                 first ++;
             }
@@ -161,10 +164,10 @@ auto parseLRGrammar(
 
                 if(markNonterminalsMap.count(*symbolRange.begin()))
                 {
-                    int nonterminalsNumber = markNonterminalsMap[*symbolRange.begin()];
+                    int nonterminalsAndTerminalsNumber = markNonterminalsMap[*symbolRange.begin()];
                     P ans;
                     semanticFunc = g.getSemanticRuleFunc(semanticRule);
-                    semanticFunc(propertyStack.end() - nonterminalsNumber, ans);
+                    semanticFunc(propertyStack.end() - nonterminalsAndTerminalsNumber, ans);
                     propertyStack.push_back(ans);
                 }
                 else
@@ -173,14 +176,16 @@ auto parseLRGrammar(
                     for(auto it = --symbolRange.end(); it != symbolRange.begin(); -- it)
                     {
                         stateStack.pop_back();
-                        if(isNonterminal(*it))
-                        {
+
+
+//                        if(isNonterminal(*it))
+//                        {
                             if(!markNonterminalsMap.count(*it))
                             {
                                 tmpStack.push_back(propertyStack.back());
                             }
-                            propertyStack.pop_back();
-                        }
+//                        }
+                        propertyStack.pop_back();
                     }
 
                     if(semanticRule != NullSymbol)

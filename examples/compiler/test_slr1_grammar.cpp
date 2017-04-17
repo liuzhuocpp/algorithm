@@ -75,18 +75,18 @@ void testParseSLR1AmbiguousGrammar()
     S = '1' >> [](auto v, P& o) { o = 1; };
     S = '2' >> [](auto v, P& o) { o = 2; };
 
-    S = S >> '+' >> S >> [](auto v, P& o) { o = v[1] + v[2]; } > '+' > '-' < '*' < '/';
-    S = S >> '-' >> S >> [](auto v, P& o) { o = v[1] - v[2]; } > '+' > '-' < '*' < '/';
-    S = S >> '*' >> S >> [](auto v, P& o) { o = v[1] * v[2]; } > '+' > '-' > '*' > '/';
-    S = S >> '/' >> S >> [](auto v, P& o) { o = v[1] / v[2]; } > '+' > '-' > '*' > '/';
-    S = eps >> '+' >> '+' >> S >> [](auto v, P& o) { o = 1+v[1]; } > '+' > '-' > '*' > '/';
+    S = S >> '+' >> S >> [](auto v, P& o) { o = v[1] + v[3]; } > '+' > '-' < '*' < '/';
+    S = S >> '-' >> S >> [](auto v, P& o) { o = v[1] - v[3]; } > '+' > '-' < '*' < '/';
+    S = S >> '*' >> S >> [](auto v, P& o) { o = v[1] * v[3]; } > '+' > '-' > '*' > '/';
+    S = S >> '/' >> S >> [](auto v, P& o) { o = v[1] / v[3]; } > '+' > '-' > '*' > '/';
+    S = eps >> '+' >> '+' >> S >> [](auto v, P& o) { o = 1+v[3]; } > '+' > '-' > '*' > '/';
 
 
     cout << "G: " << gf.g.actionsNumber() << endl;
 
     string text;
-    text = "1+2/2+1+2*2-1";
-    text = "++2+++2";
+    text = "1+2/2+1+2*2-1+++1";
+//    text = "++2+++2";
 
     P ans = runParseSLR1Grammar(
         text.begin(),
@@ -96,7 +96,7 @@ void testParseSLR1AmbiguousGrammar()
         gf.getIndexToTerminalMap(),
         gf.getTerminalToIndexMap());
 
-    assert(ans == 6);
+    assert(ans == 8);
 }
 
 
@@ -132,9 +132,9 @@ void testCalculateTypeAndWidth()
     B = 'i' >> [](auto vit, P&o) { o = 4; };
     B = 'f' >> [](auto vit, P&o) { o = 8; };
     C = [&](auto vit, P &o) { o = w; };
-    C = eps >> '[' >> '1' >> ']' >> C >> [](auto vit, P&o) { o = 1 * vit[1]; };
-    C = eps >> '[' >> '2' >> ']' >> C >> [](auto vit, P&o) { o = 2 * vit[1]; };
-    C = eps >> '[' >> '3' >> ']' >> C >> [](auto vit, P&o) { o = 3 * vit[1]; };
+    C = eps >> '[' >> '1' >> ']' >> C >> [](auto vit, P&o) { o = 1 * vit[4]; };
+    C = eps >> '[' >> '2' >> ']' >> C >> [](auto vit, P&o) { o = 2 * vit[4]; };
+    C = eps >> '[' >> '3' >> ']' >> C >> [](auto vit, P&o) { o = 3 * vit[4]; };
 
     auto nonterminalNameMap = makeIteratorMap(nonterminalNames.begin());
     auto indexToTerminalMap = gf.getIndexToTerminalMap();
