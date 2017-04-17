@@ -183,8 +183,16 @@ public:
             }
             else if constexpr(Detail::IsStdPair<decltype(ch)>::value)
             {
-                highPrecedence = std::move(ch.first);
-                lowPrecedence = std::move(ch.second);
+                for(auto t: ch.first) {
+                    highPrecedence.push_back(t);
+                }
+
+                for(auto t: ch.second) {
+                    lowPrecedence.push_back(t);
+                }
+
+//                highPrecedence = std::move(ch.first);
+//                lowPrecedence = std::move(ch.second);
             }
             else if constexpr(std::is_convertible<decltype(ch), SemanticRuleType<P> >::value)
             {

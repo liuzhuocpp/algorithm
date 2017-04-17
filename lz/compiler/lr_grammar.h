@@ -94,6 +94,7 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
 template<typename InputIterator, typename Grammar, typename ActionTable,
     typename GotoTable,
     typename MarkNonterminalsMap, // 标记所在规则的非终结符和终结符号的数目
+    typename TerminalToIndexMap,
     typename IndexToTerminalMap,
     typename IndexToNonterminalMap>
 auto parseLRGrammar(
@@ -103,6 +104,8 @@ auto parseLRGrammar(
         const ActionTable& actionTable,
         const GotoTable& gotoTable,
         MarkNonterminalsMap markNonterminalsMap,
+
+        TerminalToIndexMap terminalToIndexMap,
 
         IndexToTerminalMap indexToTerminalMap,
         IndexToNonterminalMap indexToNonterminalMap
@@ -123,9 +126,13 @@ auto parseLRGrammar(
     {
 
         SymbolDescriptor input = EndTagSymbol;
+        std::size_t inputId = 0;
+
+//        terminalToIndexMap[*first];
         if(first != last)
         {
-            input = lz::makeTerminal(*first);
+            inputId = terminalToIndexMap[*first];
+            input = lz::makeTerminal(inputId);
         }
 
 
@@ -149,9 +156,9 @@ auto parseLRGrammar(
                 }
                 else
                 {
-                    std::cout << "Shift: " << u << " " << indexToTerminalMap[*first] << " " << cnt.itemSetId << std::endl;
+                    std::cout << "Shift: " << u << " " << indexToTerminalMap[inputId] << " " << cnt.itemSetId << std::endl;
                 }
-//                propertyStack.push_back(toProperties(*first));
+
                 propertyStack.push_back(static_cast<P>(*first)); // need be improved
 
                 first ++;
@@ -213,7 +220,7 @@ auto parseLRGrammar(
                 }
                 else
                 {
-                    std::cout << "Reduce: " << u << " " << indexToTerminalMap[*first];
+                    std::cout << "Reduce: " << u << " " << indexToTerminalMap[inputId];
                 }
                 std::cout << "             Rule is:" << ruleOutput << std::endl;
             }
