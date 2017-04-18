@@ -137,9 +137,9 @@ auto parseLRGrammar(
 
 
         int u = stateStack.back();
-
         if(actionTable.count({u, input}) )
         {
+
             Action cnt = actionTable.at({u, input});
             if(cnt.type == ActionType::Accept)
             {
@@ -148,6 +148,7 @@ auto parseLRGrammar(
             }
             else if(cnt.type == ActionType::Shift)
             {
+
                 stateStack.push_back(cnt.itemSetId);
 
                 if(first == last)
@@ -165,10 +166,10 @@ auto parseLRGrammar(
             }
             else if(cnt.type == ActionType::Reduce)
             {
+
                 auto symbolRange = g.ruleSymbols(cnt.rule);
                 SymbolDescriptor semanticRule = g.calculateSemanticRule(cnt.rule, symbolRange.begin());
                 typename Grammar::SemanticRuleFunc semanticFunc;
-
                 if(markNonterminalsMap.count(*symbolRange.begin()))
                 {
                     int nonterminalsAndTerminalsNumber = markNonterminalsMap[*symbolRange.begin()];
@@ -205,9 +206,12 @@ auto parseLRGrammar(
 
                         propertyStack.push_back(ans);
                     }
+                    else
+                        propertyStack.push_back(P());
 
 
                 }
+
                 stateStack.push_back(gotoTable.at({stateStack.back(), *symbolRange.begin()}) );
 
                 auto ruleSymbolRange = g.ruleSymbols(cnt.rule);

@@ -9,6 +9,9 @@
 #define LZ_COMPILER_C_LEXICAL_ANALYZE_H_
 
 
+#include <lz/compiler/regex.h>
+#include <lz/compiler/simulate_nfa.h>
+
 
 namespace lz {
 
@@ -56,6 +59,10 @@ struct LexicalSymbol
         For,
 
     };
+    friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
+    {
+        return a.type < b.type;
+    }
 
     static const
     std::map<std::string, Type> keywordToType;
@@ -153,6 +160,10 @@ struct LexicalSymbol
             assert(0);
         }
     }
+    LexicalSymbol(const char * s):LexicalSymbol(std::string(s))
+    {
+
+    }
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
@@ -171,7 +182,8 @@ struct LexicalSymbol
 
         if(ls.type == Type::Identifier || ls.type == Type::Integer)
         {
-            os << " : " << ls.value;
+
+            os << "(" << ls.value << ")";
         }
         return os;
 
