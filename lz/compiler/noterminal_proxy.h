@@ -8,7 +8,7 @@
 #ifndef LZ_COMPILER_NOTERMINAL_PROXY_H_
 #define LZ_COMPILER_NOTERMINAL_PROXY_H_
 
-
+#include <lz/compiler/grammar.h> // can be not use it
 
 namespace lz {
 
