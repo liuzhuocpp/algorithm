@@ -196,12 +196,22 @@ void grammarAnalyze(InputIterator first, InputIterator last)
         [&](auto v, P&o) {
 
             solveArithmeticOperator("+", v, o);
-        } > "+" > "-";
+        } > "+" > "-" < "*" < "/";
 
     operateExpression = operateExpression >> "-" >> operateExpression >>
         [&](auto v, P&o) {
             solveArithmeticOperator("-", v, o);
-        } > "+" > "-";
+        } > "+" > "-" < "*" < "/";
+
+    operateExpression = operateExpression >> "*" >> operateExpression >>
+        [&](auto v, P&o) {
+            solveArithmeticOperator("*", v, o);
+        } > "+" > "-" > "*" > "/";
+
+    operateExpression = operateExpression >> "/" >> operateExpression >>
+        [&](auto v, P&o) {
+            solveArithmeticOperator("/", v, o);
+        } > "+" > "-" > "*" > "/";
 
     operateExpression = LexicalSymbol::Type::Integer >>
         [&](auto v, P&o) {

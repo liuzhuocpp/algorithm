@@ -12,16 +12,15 @@
     float ahhaha;
     int apple;
     int top;
+    int _a;
     
     
     a = 333;
     a = 333 + top + 23 - 22 - apple;
     
-    ls = 0;
     
-    aaa = 0;
-    
-    
+    apple = 1212;
+    _a = a / 2 / 3 * 3 - 3 / 2;
     
     
     
