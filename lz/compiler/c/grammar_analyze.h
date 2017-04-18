@@ -58,6 +58,15 @@ int getTemporaryVariableIndex()
     return temporaryVariable++;
 }
 
+std::string getTemporaryVariableName()
+{
+    return "t" + std::to_string(getTemporaryVariableIndex());
+}
+std::string getVariableName(int i)
+{
+    return "a" + std::to_string(i);
+}
+
 int insertIdentifierTable(Identifier::Type type, std::string name)
 {
     if(identifierTable.count(name))
@@ -108,6 +117,8 @@ void grammarAnalyze(InputIterator first, InputIterator last)
     };
 
     std::ofstream outText ("out.txt", std::ofstream::out);
+    std::ofstream errorOfstream ("error.txt", std::ofstream::out);
+
     auto generateCode = [&](std::string op, std::string arg1, std::string arg2, std::string res)
     {
         outText << op << " " << arg1 << " " << arg2 << " " << res << std::endl;;
@@ -116,9 +127,32 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
     identifierTable.clear();
-
     using P = Properties;
     using T = LexicalSymbol;
+
+
+    auto solveArithmeticOperator = [&](std::string op, auto v, P &o) {
+        o.addr = getTemporaryVariableName();
+        generateCode(op, v[1].addr, v[3].addr, o.addr);
+    };
+
+    auto checkVariableDeclare = [&](std::string variable) {
+        auto it = identifierTable.find(variable);
+        if(it == identifierTable.end())
+        {
+            errorOfstream << "\"" << variable << "\" was not declare \n";
+            return -1;
+        }
+        else
+            return it->second;
+    };
+
+
+
+
+
+
+
 
 
     NonterminalProxy<T, P> program, declare, expression, subexpression, operateExpression;
@@ -131,89 +165,61 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
     declare = eps >> "int" >> LexicalSymbol::Type::Identifier >> ";" >>
         [&](auto v, P& o) {
-            std::string identifierName = v[2].addr;
-            insertIdentifierTable(Identifier::Type::Int, identifierName);
-    };
+            insertIdentifierTable(Identifier::Type::Int, v[2].addr);
+        };
 
 
     declare = eps >> "float" >> LexicalSymbol::Type::Identifier >> ";" >>
         [&](auto v, P&o) {
-        std::string identifierName = v[2].addr;
-        insertIdentifierTable(Identifier::Type::Float, identifierName);
-    };
+            insertIdentifierTable(Identifier::Type::Float, v[2].addr);
+        };
 
     expression = subexpression >> ";";
 
     subexpression = eps >> LexicalSymbol::Type::Identifier >> "=" >> subexpression >>
         [&](auto v, P&o) {
 
-        std::string name = v[1].addr;
-        if(identifierTable.count(Identifier(name)))
-        {
-            int identifierId = identifierTable[Identifier(name)];
-            generateCode("=", "a"+std::to_string(identifierId), v[3].addr, "");
-        }
-        else
-        {
-            cout << "\"" << name << "\" was not declare \n";
-        }
+            if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
+            {
+                generateCode("=", getVariableName(checkId), v[3].addr, "");
+            }
 
+        };
 
-    };
     subexpression = operateExpression >>
         [&](auto v, P&o) {
-        o.addr = v[1].addr;
-    };
+            o.addr = v[1].addr;
+        };
 
 
     operateExpression = operateExpression >> "+" >> operateExpression >>
         [&](auto v, P&o) {
-        int newTempIndex = getTemporaryVariableIndex();
-        o.addr = "t"+std::to_string(newTempIndex);
-        generateCode("+", v[1].addr, v[3].addr, o.addr) ;
 
-
-    } > "+" > "-";
+            solveArithmeticOperator("+", v, o);
+        } > "+" > "-";
 
     operateExpression = operateExpression >> "-" >> operateExpression >>
         [&](auto v, P&o) {
-
-        int newTempIndex = getTemporaryVariableIndex();
-        o.addr = "t"+std::to_string(newTempIndex);
-        generateCode("-", v[1].addr, v[3].addr, o.addr) ;
-
-
-    } > "+" > "-";
+            solveArithmeticOperator("-", v, o);
+        } > "+" > "-";
 
     operateExpression = LexicalSymbol::Type::Integer >>
         [&](auto v, P&o) {
-
-
             o.addr = v[1].addr;
+        };
 
+    operateExpression = LexicalSymbol::Type::Identifier >>
+        [&](auto v, P&o) {
+            std::string name = v[1].addr;
+
+            if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
+            {
+                o.addr = getVariableName(checkId);
+            }
 
 
         };
-    operateExpression = LexicalSymbol::Type::Identifier >>
-            [&](auto v, P&o) {
-                std::string name = v[1].addr;
 
-                if(identifierTable.count(Identifier(name)))
-                {
-                    o.addr = "a" + std::to_string(identifierTable[Identifier(name)]);
-                }
-                else
-                {
-                    cout << "\"" << name << "\" was not declare \n";
-
-                }
-
-
-
-
-
-            };
-;
 
 
 
@@ -255,7 +261,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
     outText.clear();
-
+    errorOfstream.clear();
 
 }
 
