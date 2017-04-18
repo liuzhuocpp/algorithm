@@ -11,3 +11,8 @@
 / 3 2 t7
 - t6 t7 t8
 = a8 t8 
+plus a0  t9
+minus 2  t10
++ t9 t10 t11
+/ t11 a1 t12
+= a8 t12 

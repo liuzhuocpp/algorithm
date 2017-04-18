@@ -213,6 +213,25 @@ void grammarAnalyze(InputIterator first, InputIterator last)
             solveArithmeticOperator("/", v, o);
         } > "+" > "-" > "*" > "/";
 
+    operateExpression = "+" >> operateExpression  >>
+        [&](auto v, P&o) {
+            o.addr = getTemporaryVariableName();
+            generateCode("plus", v[2].addr, "", o.addr);
+
+        } > "+" > "-" > "*" > "/";
+
+    operateExpression = "-" >> operateExpression >>
+        [&](auto v, P&o) {
+            o.addr = getTemporaryVariableName();
+            generateCode("minus", v[2].addr, "", o.addr);
+        } > "+" > "-" > "*" > "/";
+
+    operateExpression = "(" >> operateExpression >> ")"  >>
+        [&](auto v, P&o) {
+            o.addr = v[2].addr;
+        };
+
+
     operateExpression = LexicalSymbol::Type::Integer >>
         [&](auto v, P&o) {
             o.addr = v[1].addr;
@@ -226,8 +245,6 @@ void grammarAnalyze(InputIterator first, InputIterator last)
             {
                 o.addr = getVariableName(checkId);
             }
-
-
         };
 
 
