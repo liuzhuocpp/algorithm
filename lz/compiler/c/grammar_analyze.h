@@ -51,20 +51,24 @@ struct Identifier
 
 std::map<Identifier, int> identifierTable;
 
-int getTemporaryVariableIndex()
-{
-    static int temporaryVariable = 0;
-
-    return temporaryVariable++;
-}
 
 std::string getTemporaryVariableName()
 {
-    return "t" + std::to_string(getTemporaryVariableIndex());
+    static int tempId = 0;
+
+    return "$" + std::to_string(tempId++);
 }
 std::string getVariableName(int i)
 {
-    return "a" + std::to_string(i);
+    for(auto it : identifierTable)
+    {
+        if(it.second == i) return it.first.name; // 目前先返回变量的真实的identifier，便于debug
+
+    }
+    assert(0);
+    return "";
+
+//    return "a" + std::to_string(i);
 }
 
 int insertIdentifierTable(Identifier::Type type, std::string name)
