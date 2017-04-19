@@ -117,14 +117,10 @@ void testParseSLR1AmbiguousGrammar()
 
 
 
-    NonterminalProxy<Terminal, P> S;
+    NonterminalProxy<Terminal, P>
+        LZ_NONTERMINAL_PROXY(S);
 
     GrammarFactory<Terminal, P> gf(S);
-    vector<string > nonterminalNames = {
-            "S",
-            "M",
-            "S'",
-    };
 
 
 
@@ -167,7 +163,7 @@ void testParseSLR1AmbiguousGrammar()
         terminalText.begin(),
         terminalText.end(),
         gf.g,
-        makeIteratorMap(nonterminalNames.begin()),
+        gf.getIndexToNonterminalMap(),
         gf.getIndexToTerminalMap(),
         gf.getTerminalToIndexMap());
 
@@ -187,16 +183,19 @@ void testCalculateTypeAndWidth()
     OUT_FUNCTION_NAME
 
     using P = int;
-    NonterminalProxy<char, P> T, B, C;
+    NonterminalProxy<char, P>
+        LZ_NONTERMINAL_PROXY(T),
+        LZ_NONTERMINAL_PROXY(B),
+        LZ_NONTERMINAL_PROXY(C);
 
     GrammarFactory<char, P> gf(T);
-    vector<string > nonterminalNames = {
-            "T",
-            "B",
-            "C",
-            "M",
-            "T'",
-    };
+//    vector<string > nonterminalNames = {
+//            "T",
+//            "B",
+//            "C",
+//            "M",
+//            "T'",
+//    };
 
     P w;
 
@@ -211,8 +210,8 @@ void testCalculateTypeAndWidth()
     C = eps >> '[' >> '2' >> ']' >> C >> [](auto vit, P&o) { o = 2 * vit[4]; };
     C = eps >> '[' >> '3' >> ']' >> C >> [](auto vit, P&o) { o = 3 * vit[4]; };
 
-    auto nonterminalNameMap = makeIteratorMap(nonterminalNames.begin());
-    auto indexToTerminalMap = gf.getIndexToTerminalMap();
+//    auto nonterminalNameMap = makeIteratorMap(nonterminalNames.begin());
+//    auto indexToTerminalMap = gf.getIndexToTerminalMap();
 
 
 
@@ -222,7 +221,8 @@ void testCalculateTypeAndWidth()
         text.begin(),
         text.end(),
         gf.g,
-        makeIteratorMap(nonterminalNames.begin()),
+//        makeIteratorMap(nonterminalNames.begin()),
+        gf.getIndexToNonterminalMap(),
         gf.getIndexToTerminalMap(),
         gf.getTerminalToIndexMap());
 
