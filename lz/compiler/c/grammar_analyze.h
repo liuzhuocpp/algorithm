@@ -9,13 +9,17 @@
 #define LZ_COMPILER_C_GRAMMAR_ANALYZE_H_
 
 
-#include <lz/compiler/c/lexical_analyze.h>
+
+#include <lz/utility.h>
 
 
 #include <lz/compiler/noterminal_proxy.h>
 #include <lz/compiler/grammar.h>
 #include <lz/compiler/slr1_grammar.h>
 #include <lz/compiler/lr_grammar.h>
+
+
+#include <lz/compiler/c/lexical_analyze.h>
 
 namespace lz {
 
@@ -110,15 +114,6 @@ struct Properties
 template<typename InputIterator>
 void grammarAnalyze(InputIterator first, InputIterator last)
 {
-    std::vector<std::string > nonterminalNames = {
-            "program",
-            "declare",
-            "expression",
-            "subexpression",
-            "operateExpression",
-
-            "program'",
-    };
 
     std::ofstream outText ("out.txt", std::ofstream::out);
     std::ofstream errorOfstream ("error.txt", std::ofstream::out);
@@ -131,6 +126,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
     identifierTable.clear();
+
     using P = Properties;
     using T = LexicalSymbol;
 
@@ -157,9 +153,17 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
 
+#define LZ_DEFINE_NONTERMINAL_PROXY(x) x(LZ_TO_STR(x))
+
+    NonterminalProxy<T, P>
+        LZ_DEFINE_NONTERMINAL_PROXY(program),
+        LZ_DEFINE_NONTERMINAL_PROXY(declare),
+        LZ_DEFINE_NONTERMINAL_PROXY(expression),
+        LZ_DEFINE_NONTERMINAL_PROXY(subexpression),
+        LZ_DEFINE_NONTERMINAL_PROXY(operateExpression);
 
 
-    NonterminalProxy<T, P> program, declare, expression, subexpression, operateExpression;
+
     GrammarFactory<T, P> gf(program);
 
     program = declare >> program;
@@ -257,11 +261,13 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
     Grammar<P> g = gf.g;
-    auto indexToNonterminalMap = makeIteratorMap(nonterminalNames.begin());
+    auto indexToNonterminalMap = gf.getIndexToNonterminalMap();
     auto indexToTerminalMap =  gf.getIndexToTerminalMap();
     auto terminalToIndexMap =  gf.getTerminalToIndexMap();
 
-//    std::cout << "HAHA" << std::endl;
+
+
+
 //    std::cout << GrammerForOutput<decltype(g), decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
 //        {g, indexToNonterminalMap, indexToTerminalMap} ;
 

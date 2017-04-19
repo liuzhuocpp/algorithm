@@ -8,6 +8,11 @@
 #include "lz/map.h"
 // some little and mess functions
 
+
+
+#define LZ_TO_STR(x) (#x)
+
+
 namespace lz {
 
 
@@ -215,6 +220,11 @@ struct LessThanComparableFacade
 		return !(a < b);
 	}
 };
+
+
+
+
+
 
 
 

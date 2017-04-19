@@ -79,8 +79,12 @@ struct GrammarFactory
 
     Grammar<P> g;
 private:
+    std::map<int, SymbolDescriptor> nonterminalMap; // from nonterminalProxyId to SymbolDescriptor
+    std::map<int, std::string> indexToNonterminalMap;
+
     std::map<T, SymbolDescriptor> terminalMap;
-    std::map<int, SymbolDescriptor> nonterminalMap;
+
+
     std::map<T, int> terminalToIndexMap;
 public:
 
@@ -102,6 +106,18 @@ public:
         }
         return ans;
     }
+    auto getIndexToNonterminalMap() const
+    {
+//        SharedArrayMap<std::string> ans(indexToNonterminalMap.size());
+        VectorMap<std::string> ans(indexToNonterminalMap.size());
+
+        for(auto p: indexToNonterminalMap)
+        {
+            ans[getNonterminalId(p.first)] = p.second;
+        }
+        return ans;
+
+    }
     auto getTerminalToIndexMap()
     {
         terminalToIndexMap.clear();
@@ -114,6 +130,7 @@ public:
         return ans;
 
     }
+
 private:
 
     //nonterminalProxyId仅仅作为一种标识，并不一定是从0开始的连续的id
@@ -150,17 +167,34 @@ private:
     static int counter;
     SymbolDescriptor id;
     GrammarFactory<T, P>* gf;
+    std::string name;
 public:
-    NonterminalProxy(GrammarFactory<T, P>* gf = nullptr):
-         gf(gf)
+//    NonterminalProxy(GrammarFactory<T, P>* gf = nullptr, std::string name = ""):
+//          gf(gf), name(name)
+//    {
+//        id = counter ++;
+//    }
+
+    NonterminalProxy(std::string name = ""):
+              gf(nullptr), name(name)
     {
         id = counter ++;
     }
 
+
+
     std::vector<SymbolDescriptor> addRuleHead()
     {
+        assert(gf != nullptr);
+
         std::vector<SymbolDescriptor> ans;
         ans.push_back(gf->getNonterminalAndInsert(id));
+
+
+        gf->indexToNonterminalMap.insert(std::make_pair(
+            getNonterminalId(gf->nonterminalMap[this->id]), this->name));
+
+
         return ans;
     }
 

@@ -408,13 +408,27 @@ auto extendGrammarAndConstructActionGotoMark(
     bool outputNonkernelItem = true )
 {
     using P = typename Grammar::NodeProperties;
+    using SymbolDescriptor = typename Grammar::SymbolDescriptor;
+
+    auto startRule = makeAugmentedGrammar(g, startSymbol);
+    SymbolDescriptor newStartSymbol = *g.ruleSymbols(startRule).begin();
+
+    indexToNonterminalMap[getNonterminalId(newStartSymbol)] = indexToNonterminalMap[getNonterminalId(startSymbol)] + "'";
 
     auto transformAns = transformInteritSemanticRuleGrammar(g);
     g = std::get<0>(transformAns);
     auto markNonterminalsMap = std::get<1>(transformAns);
 
+    int markCounter = 0;
+    for(auto mark: markNonterminalsMap)
+    {
+        indexToNonterminalMap[getNonterminalId(mark.first)] ="M" + std::to_string(markCounter ++);
+    }
 
-    auto startRule = makeAugmentedGrammar(g, startSymbol);
+
+
+
+
 
     std::cout << GrammerForOutput<decltype(g), decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
         {g, indexToNonterminalMap, indexToTerminalMap} ;

@@ -16,6 +16,7 @@
 //#include <iostream>
 #include <memory>
 #include <type_traits>
+#include <vector>
 namespace lz {
 
 //using std::cout;
@@ -240,7 +241,36 @@ private:
 
 
 
+template<typename T>
+struct VectorMap: public MapFacade<typename std::vector<T>::difference_type, T>
+{
+    VectorMap(typename std::vector<T>::size_type n = 0, T val = T()): vec(new std::vector<T>(n, val))
+    {
 
+    }
+    typename std::vector<T>::reference operator[](typename std::vector<T>::difference_type i)
+    {
+        if(i >= vec->size()) vec->resize(i + 1);
+        return (*vec)[i];
+    }
+
+    typename std::vector<T>::const_reference operator[](typename std::vector<T>::difference_type i) const
+    {
+//        if(i >= vec->size()) vec->resize(i + 1);
+        return (*vec)[i];
+    }
+
+    std::vector<T>& storage()
+    {
+        return *vec;
+    }
+    const std::vector<T>& storage() const
+    {
+        return *vec;
+    }
+private:
+    std::shared_ptr<std::vector<T> > vec;
+};
 
 
 
