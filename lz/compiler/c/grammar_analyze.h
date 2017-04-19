@@ -153,14 +153,13 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
 
-#define LZ_DEFINE_NONTERMINAL_PROXY(x) x(LZ_TO_STR(x))
 
     NonterminalProxy<T, P>
-        LZ_DEFINE_NONTERMINAL_PROXY(program),
-        LZ_DEFINE_NONTERMINAL_PROXY(declare),
-        LZ_DEFINE_NONTERMINAL_PROXY(expression),
-        LZ_DEFINE_NONTERMINAL_PROXY(subexpression),
-        LZ_DEFINE_NONTERMINAL_PROXY(operateExpression);
+        LZ_NONTERMINAL_PROXY(program),
+        LZ_NONTERMINAL_PROXY(declare),
+        LZ_NONTERMINAL_PROXY(expression),
+        LZ_NONTERMINAL_PROXY(subexpression),
+        LZ_NONTERMINAL_PROXY(operateExpression);
 
 
 

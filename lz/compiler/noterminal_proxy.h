@@ -10,6 +10,10 @@
 
 #include <lz/compiler/grammar.h> // can be not use it
 
+
+#define LZ_NONTERMINAL_PROXY(x) x(LZ_TO_STR(x))
+
+
 namespace lz {
 
     namespace Detail {
