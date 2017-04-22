@@ -128,7 +128,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
         };
     arrayDeclare = eps >> "[" >> LexicalSymbol::Type::Integer >> "]" >> arrayDeclare >>
         [&](PIt v, P& o) {
-            o.arrayDimensions = v[2].arrayDimensions;
+            o.arrayDimensions = v[4].arrayDimensions;
             o.arrayDimensions.push_back(std::stoi(v[1].addr));
         };
 
