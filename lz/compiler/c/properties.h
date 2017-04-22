@@ -18,7 +18,7 @@ struct Properties
 {
     std::string addr;// 若以a开头，后边的数字表示identifierTable中的下表；若是以t开头则表示临时变量；还有可能是从 LexicalSymbol 得到
     Type type;
-
+    std::vector<int> arrayDimensions;
     Properties() = default;
     Properties(LexicalSymbol t)
     {

@@ -68,6 +68,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
     using P = Properties;
     using T = LexicalSymbol;
+    using PIt = std::vector<P>::iterator;
 
 
     auto solveArithmeticOperator = [&](std::string op, auto v, P &o) {
@@ -96,10 +97,13 @@ void grammarAnalyze(InputIterator first, InputIterator last)
     NonterminalProxy<T, P>
         LZ_NONTERMINAL_PROXY(program),
         LZ_NONTERMINAL_PROXY(declare),
+        LZ_NONTERMINAL_PROXY(typeDeclare),
+        LZ_NONTERMINAL_PROXY(arrayDeclare),
+        LZ_NONTERMINAL_PROXY(baseTypeDeclare),
+
         LZ_NONTERMINAL_PROXY(statement),
+
         LZ_NONTERMINAL_PROXY(expression),
-//        LZ_NONTERMINAL_PROXY(subexpression),
-        LZ_NONTERMINAL_PROXY(baseType),
         LZ_NONTERMINAL_PROXY(operateExpression);
 
 
@@ -111,17 +115,33 @@ void grammarAnalyze(InputIterator first, InputIterator last)
     program = declare;
     program = statement;
 
-    declare = baseType >> LexicalSymbol::Type::Identifier >> ";" >>
+    declare = typeDeclare >> LexicalSymbol::Type::Identifier >> ";" >>
         [&](auto v, P& o) {
             insertIdentifierTable(v[1].type, v[2].addr);
         };
+    typeDeclare = baseTypeDeclare >> arrayDeclare >>
+        [&](PIt v, P &o)
+        {
+            o.type.category = v[1].type.category;
+            o.type.arrayDimensions = v[2].arrayDimensions;
+        };
+    arrayDeclare = eps >> "[" >> LexicalSymbol::Type::Integer >> "]" >> arrayDeclare >>
+        [&](PIt v, P& o) {
+            o.arrayDimensions = v[2].arrayDimensions;
+            o.arrayDimensions.push_back(std::stoi(v[1].addr));
+        };
 
-    baseType = "int" >>
-        [&](auto v, P&o) {
+    arrayDeclare = eps >>
+        [&](PIt v, P &o) {
+            o.arrayDimensions = {};
+        };
+
+    baseTypeDeclare = "int" >>
+        [&](PIt v, P&o) {
             o.type = Type::Category::Int;
         };
 
-    baseType = "float" >>
+    baseTypeDeclare = "float" >>
         [&](auto v, P&o) {
             o.type = Type::Category::Float;
         };
