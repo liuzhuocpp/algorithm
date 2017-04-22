@@ -103,8 +103,9 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
         LZ_NONTERMINAL_PROXY(statement),
 
-        LZ_NONTERMINAL_PROXY(expression),
-        LZ_NONTERMINAL_PROXY(operateExpression);
+        LZ_NONTERMINAL_PROXY(expression)
+//        LZ_NONTERMINAL_PROXY(operateExpression)
+        ;
 
 
 
@@ -159,60 +160,60 @@ void grammarAnalyze(InputIterator first, InputIterator last)
                 generateCode("=", getVariableName(checkId), v[3].addr, "");
             }
 
-        };
+        } < "+" < "-" < "*" < "/";
 
-    expression = operateExpression >>
-        [&](auto v, P&o) {
-            o.addr = v[1].addr;
-        };
+//    expression = operateExpression >>
+//        [&](auto v, P&o) {
+//            o.addr = v[1].addr;
+//        };
 
 
-    operateExpression = operateExpression >> "+" >> operateExpression >>
+    expression = expression >> "+" >> expression >>
         [&](auto v, P&o) {
 
             solveArithmeticOperator("+", v, o);
         } > "+" > "-" < "*" < "/";
 
-    operateExpression = operateExpression >> "-" >> operateExpression >>
+    expression = expression >> "-" >> expression >>
         [&](auto v, P&o) {
             solveArithmeticOperator("-", v, o);
         } > "+" > "-" < "*" < "/";
 
-    operateExpression = operateExpression >> "*" >> operateExpression >>
+    expression = expression >> "*" >> expression >>
         [&](auto v, P&o) {
             solveArithmeticOperator("*", v, o);
         } > "+" > "-" > "*" > "/";
 
-    operateExpression = operateExpression >> "/" >> operateExpression >>
+    expression = expression >> "/" >> expression >>
         [&](auto v, P&o) {
             solveArithmeticOperator("/", v, o);
         } > "+" > "-" > "*" > "/";
 
-    operateExpression = "+" >> operateExpression  >>
+    expression = "+" >> expression  >>
         [&](auto v, P&o) {
             o.addr = getTemporaryVariableName();
             generateCode("plus", v[2].addr, "", o.addr);
 
         } > "+" > "-" > "*" > "/";
 
-    operateExpression = "-" >> operateExpression >>
+    expression = "-" >> expression >>
         [&](auto v, P&o) {
             o.addr = getTemporaryVariableName();
             generateCode("minus", v[2].addr, "", o.addr);
         } > "+" > "-" > "*" > "/";
 
-    operateExpression = "(" >> operateExpression >> ")"  >>
+    expression = "(" >> expression >> ")"  >>
         [&](auto v, P&o) {
             o.addr = v[2].addr;
         };
 
 
-    operateExpression = LexicalSymbol::Type::Integer >>
+    expression = LexicalSymbol::Type::Integer >>
         [&](auto v, P&o) {
             o.addr = v[1].addr;
         };
 
-    operateExpression = LexicalSymbol::Type::Identifier >>
+    expression = LexicalSymbol::Type::Identifier >>
         [&](auto v, P&o) {
             std::string name = v[1].addr;
 
