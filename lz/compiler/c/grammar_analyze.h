@@ -20,40 +20,11 @@
 
 
 #include <lz/compiler/c/lexical_analyze.h>
+#include <lz/compiler/c/identifier.h>
+#include <lz/compiler/c/properties.h>
 
 namespace lz {
 
-struct Identifier
-{
-    enum class Type
-    {
-        Int,
-        Float,
-        Double,
-        Unknown,
-    };
-
-    Type type; // int, float, double, ... 等基础类型
-    std::string name; // 名字不可能相同，暂时不考虑作用域
-    friend bool operator<(const Identifier &a, const Identifier &b)
-    {
-        return a.name < b.name;
-    }
-
-    Identifier() = default;
-    Identifier(Type type, std::string name):
-        type(type), name(name) {}
-
-    Identifier(std::string name):
-            type(Type::Unknown), name(name)
-    {
-
-    }
-
-};
-
-
-std::map<Identifier, int> identifierTable;
 
 
 std::string getTemporaryVariableName()
@@ -75,38 +46,6 @@ std::string getVariableName(int i)
 //    return "a" + std::to_string(i);
 }
 
-int insertIdentifierTable(Identifier::Type type, std::string name)
-{
-    if(identifierTable.count(name))
-    {
-        std::cout << "conflicting declaration:" << name << endl;
-        assert(0);
-        return -1;
-    }
-    else
-    {
-        int addr = identifierTable.size();
-
-        identifierTable.insert(std::make_pair(
-            Identifier(Identifier::Type::Int, name),
-            addr ) );
-        return addr;
-    }
-
-}
-struct Properties
-{
-    std::string addr;// 若以a开头，后边的数字表示identifierTable中的下表；若是以t开头则表示临时变量；还有可能是从 LexicalSymbol 得到
-
-
-    Properties() = default;
-    Properties(LexicalSymbol t)
-    {
-        addr = t.value;
-
-    }
-
-};
 
 
 
@@ -157,8 +96,10 @@ void grammarAnalyze(InputIterator first, InputIterator last)
     NonterminalProxy<T, P>
         LZ_NONTERMINAL_PROXY(program),
         LZ_NONTERMINAL_PROXY(declare),
+        LZ_NONTERMINAL_PROXY(statement),
         LZ_NONTERMINAL_PROXY(expression),
-        LZ_NONTERMINAL_PROXY(subexpression),
+//        LZ_NONTERMINAL_PROXY(subexpression),
+        LZ_NONTERMINAL_PROXY(baseType),
         LZ_NONTERMINAL_PROXY(operateExpression);
 
 
@@ -166,24 +107,31 @@ void grammarAnalyze(InputIterator first, InputIterator last)
     GrammarFactory<T, P> gf(program);
 
     program = declare >> program;
-    program = expression >> program;
+    program = statement >> program;
     program = declare;
-    program = expression;
+    program = statement;
 
-    declare = eps >> "int" >> LexicalSymbol::Type::Identifier >> ";" >>
+    declare = baseType >> LexicalSymbol::Type::Identifier >> ";" >>
         [&](auto v, P& o) {
-            insertIdentifierTable(Identifier::Type::Int, v[2].addr);
+            insertIdentifierTable(v[1].type, v[2].addr);
         };
 
-
-    declare = eps >> "float" >> LexicalSymbol::Type::Identifier >> ";" >>
+    baseType = "int" >>
         [&](auto v, P&o) {
-            insertIdentifierTable(Identifier::Type::Float, v[2].addr);
+            o.type = Type::Category::Int;
         };
 
-    expression = subexpression >> ";";
+    baseType = "float" >>
+        [&](auto v, P&o) {
+            o.type = Type::Category::Float;
+        };
 
-    subexpression = eps >> LexicalSymbol::Type::Identifier >> "=" >> subexpression >>
+    statement = expression >> ";";
+
+
+//    expression = subexpression >> ";";
+
+    expression = eps >> LexicalSymbol::Type::Identifier >> "=" >> expression >>
         [&](auto v, P&o) {
 
             if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
@@ -193,7 +141,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
         };
 
-    subexpression = operateExpression >>
+    expression = operateExpression >>
         [&](auto v, P&o) {
             o.addr = v[1].addr;
         };
