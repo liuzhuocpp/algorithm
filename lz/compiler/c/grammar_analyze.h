@@ -157,7 +157,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
             if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
             {
-                generateCode("=", getVariableName(checkId), v[3].addr, "");
+                generateCode("=", v[3].addr, "", getVariableName(checkId));
             }
 
         } < "+" < "-" < "*" < "/";
