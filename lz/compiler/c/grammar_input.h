@@ -107,15 +107,6 @@ struct GrammarInput
         statement = expression >> ";";
 
 
-        expression = eps >> Lex::Identifier >> "=" >> expression >>
-            [&](PIT v, P&o) {
-
-                if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
-                {
-                    generateCode("=", v[3].addr, "", getVariableName(checkId));
-                }
-
-            } < "+" < "-" < "*" < "/";
 
 
         expression = expression >> "+" >> expression >>
@@ -174,6 +165,15 @@ struct GrammarInput
             };
 
 
+        expression = eps >> Lex::Identifier >> "=" >> expression >>
+            [&](PIT v, P&o) {
+
+                if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
+                {
+                    generateCode("=", v[3].addr, "", getVariableName(checkId));
+                }
+
+            } < "+" < "-" < "*" < "/";
 
         expression = arrayExpression >>
             [&](PIT v, P &o){
@@ -182,6 +182,20 @@ struct GrammarInput
                 generateCode("=[]", v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
             };
+
+
+        expression = arrayExpression >> "=" >> expression >>
+            [&](PIT v, P&o) {
+
+                generateCode("[]=", v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
+
+                std::string tmp = getTemporaryVariableName();
+                generateCode("=[]", v[1].addr, v[1].arrayOffsetAddr, tmp);
+
+                o.addr = tmp;
+
+            }< "+" < "-" < "*" < "/";
+
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
