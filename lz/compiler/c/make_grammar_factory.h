@@ -128,9 +128,6 @@ auto makeGrammarFactory(const GenerateCode& generateCode, ErrorOfstream& errorOf
 
     statement = expression >> ";";
 
-
-//    expression = subexpression >> ";";
-
     expression = eps >> LexicalSymbol::Type::Identifier >> "=" >> expression >>
         [=](auto v, P&o) {
 
@@ -141,14 +138,9 @@ auto makeGrammarFactory(const GenerateCode& generateCode, ErrorOfstream& errorOf
 
         } < "+" < "-" < "*" < "/";
 
-//    expression = operateExpression >>
-//        [&](auto v, P&o) {
-//            o.addr = v[1].addr;
-//        };
-
 
     expression = expression >> "+" >> expression >>
-        [=](auto v, P&o) {
+        [=](auto v, P&o) { // 因为使用了solveArithmeticOperator 是局部变量
 
             solveArithmeticOperator("+", v, o);
         } > "+" > "-" < "*" < "/";
