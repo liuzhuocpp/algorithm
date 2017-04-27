@@ -45,28 +45,31 @@ struct Identifier
 
 };
 
-
-std::map<Identifier, int> identifierTable;
-
-int insertIdentifierTable(Type type, std::string name)
+struct IdentifierTable: std::map<Identifier, int>
 {
-    if(identifierTable.count(name))
+    int insertIdentifier(Type type, std::string name)
     {
-        std::cout << "conflicting declaration:" << name << endl;
-        assert(0);
-        return -1;
-    }
-    else
-    {
-        int addr = identifierTable.size();
+        if(count(name))
+        {
+            std::cout << "conflicting declaration:" << name << endl;
+            assert(0);
+            return -1;
+        }
+        else
+        {
+            int addr = size();
 
-        identifierTable.insert(std::make_pair(
-            Identifier(Type::Category::Int, name),
-            addr ) );
-        return addr;
+            insert(std::make_pair(
+                Identifier(Type::Category::Int, name),
+                addr ) );
+            return addr;
+        }
+
     }
 
-}
+};
+
+
 
 } // namespace lz
 

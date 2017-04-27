@@ -43,9 +43,9 @@ void grammarAnalyze(InputIterator first, InputIterator last)
     };
 
 
-
-    identifierTable.clear();
-    auto gf = makeGrammarFactory(generateCode, errorOfstream);
+    IdentifierTable identifierTable;
+//    identifierTable.clear();
+    auto gf = makeGrammarFactory(identifierTable, generateCode, errorOfstream);
 
 
 

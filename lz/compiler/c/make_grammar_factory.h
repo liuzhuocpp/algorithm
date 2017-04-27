@@ -27,23 +27,11 @@ std::string getTemporaryVariableName()
 
     return "$" + std::to_string(tempId++);
 }
-std::string getVariableName(int i)
-{
-    for(auto it : identifierTable)
-    {
-        if(it.second == i) return it.first.name; // 目前先返回变量的真实的identifier，便于debug
-
-    }
-    assert(0);
-    return "";
-
-//    return "a" + std::to_string(i);
-}
 
 
 
 template<typename GenerateCode, typename ErrorOfstream>
-auto makeGrammarFactory(const GenerateCode& generateCode, ErrorOfstream& errorOfstream)
+auto makeGrammarFactory(IdentifierTable &identifierTable, const GenerateCode& generateCode, ErrorOfstream& errorOfstream)
 {
     using P = Properties;
     using T = LexicalSymbol;
@@ -67,6 +55,15 @@ auto makeGrammarFactory(const GenerateCode& generateCode, ErrorOfstream& errorOf
     };
 
 
+    auto getVariableName = [&](int i)->std::string
+    {
+        for(auto it : identifierTable)
+        {
+            if(it.second == i) return it.first.name; // 目前先返回变量的真实的identifier，便于debug
+        }
+        assert(0);
+        return "";
+    };
 
 
 
@@ -97,7 +94,7 @@ auto makeGrammarFactory(const GenerateCode& generateCode, ErrorOfstream& errorOf
 
     declare = typeDeclare >> LexicalSymbol::Type::Identifier >> ";" >>
         [&](auto v, P& o) {
-            insertIdentifierTable(v[1].type, v[2].addr);
+            identifierTable.insertIdentifier(v[1].type, v[2].addr);
         };
     typeDeclare = baseTypeDeclare >> arrayDeclare >>
         [&](PIt v, P &o)
