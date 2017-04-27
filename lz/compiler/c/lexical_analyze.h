@@ -15,11 +15,9 @@
 
 namespace lz {
 
+    namespace LexicalSymbolTypes {
 
-
-struct LexicalSymbol
-{
-    enum  Type: unsigned
+    enum Type: unsigned
     {
         Identifier,
         Integer,
@@ -61,6 +59,13 @@ struct LexicalSymbol
         For,
 
     };
+
+
+    } //LexicalSymbols
+
+struct LexicalSymbol
+{
+    using Type = LexicalSymbolTypes::Type;
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
         return a.type < b.type;
