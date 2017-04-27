@@ -57,16 +57,19 @@ struct GrammarInput
 
 
     GrammarInput(IdentifierTable &identifierTable, GenerateCode& generateCode, ErrorOfstream& errorOfstream):
-        identifierTable(identifierTable),generateCode(generateCode), errorOfstream(errorOfstream)
+        identifierTable(identifierTable),generateCode(generateCode), errorOfstream(errorOfstream),
+        gf(program)
     {
-        gf.connectStartNonterminal(program);
+
+
+        using Lex = LexicalSymbol::Type;
 
         program = declare >> program;
         program = statement >> program;
         program = declare;
         program = statement;
 
-        declare = typeDeclare >> LexicalSymbol::Type::Identifier >> ";" >>
+        declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
                 identifierTable.insertIdentifier(v[1].type, v[2].addr);
             };
@@ -76,7 +79,7 @@ struct GrammarInput
                 o.type.category = v[1].type.category;
                 o.type.arrayDimensions = v[2].arrayDimensions;
             };
-        arrayDeclare = eps >> "[" >> LexicalSymbol::Type::Integer >> "]" >> arrayDeclare >>
+        arrayDeclare = eps >> "[" >> Lex::Integer >> "]" >> arrayDeclare >>
             [&](PIT v, P& o) {
                 o.arrayDimensions = v[4].arrayDimensions;
                 o.arrayDimensions.push_back(std::stoi(v[1].addr));
@@ -87,19 +90,19 @@ struct GrammarInput
                 o.arrayDimensions = {};
             };
 
-        baseTypeDeclare = "int" >>
+        baseTypeDeclare = Lex::Int >>
             [&](PIT v, P&o) {
                 o.type = Type::Category::Int;
             };
 
-        baseTypeDeclare = "float" >>
+        baseTypeDeclare = Lex::Float >>
             [&](PIT v, P&o) {
                 o.type = Type::Category::Float;
             };
 
         statement = expression >> ";";
 
-        expression = eps >> LexicalSymbol::Type::Identifier >> "=" >> expression >>
+        expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
 
                 if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
