@@ -15,9 +15,11 @@
 
 namespace lz {
 
+
+
 struct LexicalSymbol
 {
-    enum class Type: unsigned
+    enum  Type: unsigned
     {
         Identifier,
         Integer,
