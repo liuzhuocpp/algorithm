@@ -18,7 +18,7 @@ namespace lz {
 
 struct LexicalSymbol
 {
-    enum class Type: unsigned
+    enum class Category: unsigned
     {
         Identifier,
         Integer,
@@ -67,10 +67,10 @@ struct LexicalSymbol
     }
 
     static const
-    std::map<std::string, Type> keywordToType;
+    std::map<std::string, Category> keywordToType;
 
     static const
-    std::map<Type, pair<std::string, std::string> > namesAndRegexs;
+    std::map<Category, pair<std::string, std::string> > namesAndRegexs;
 
     constexpr static const char* names[] = {
         "identifier",
@@ -122,12 +122,12 @@ struct LexicalSymbol
 
     };
 
-    Type type;
+    Category type;
     std::string value;
 
-    LexicalSymbol(Type type, std::string value):type(type), value(value){}
+    LexicalSymbol(Category type, std::string value):type(type), value(value){}
     LexicalSymbol() = default;
-    LexicalSymbol(Type type): type(type){}
+    LexicalSymbol(Category type): type(type){}
     LexicalSymbol(std::string s)
     {
         if(s[0] == '_' || islower(s[0]) || isupper(s[0]))
@@ -139,23 +139,23 @@ struct LexicalSymbol
             }
             else
             {
-                type = Type::Identifier;
+                type = Category::Identifier;
                 value = s;
             }
 
         }
         else if(isdigit(s[0]))
         {
-            type = Type::Integer;
+            type = Category::Integer;
             value = s;
         }
         else
         {
-            for(int i = static_cast<int>(Type::Integer) + 1; i < static_cast<int>(Type::End); ++ i)
+            for(int i = static_cast<int>(Category::Integer) + 1; i < static_cast<int>(Category::End); ++ i)
             {
                 if(s == names[i])
                 {
-                    type = static_cast<Type>(i);
+                    type = static_cast<Category>(i);
                     return ;
                 }
             }
@@ -182,7 +182,7 @@ struct LexicalSymbol
 
 //        os << names[static_cast<unsigned>(ls.type)];
 
-        if(ls.type == Type::Identifier || ls.type == Type::Integer)
+        if(ls.type == Category::Identifier || ls.type == Category::Integer)
         {
 
             os << "(" << ls.value << ")";
@@ -192,39 +192,39 @@ struct LexicalSymbol
     }
 };
 
-const std::map<LexicalSymbol::Type, std::pair<std::string, std::string> > LexicalSymbol::namesAndRegexs =
+const std::map<LexicalSymbol::Category, std::pair<std::string, std::string> > LexicalSymbol::namesAndRegexs =
 {
-        { Type::Identifier, {"identifier", "(_|[a-zA-Z])(_|[a-zA-Z0-9])*", }},
-        { Type::Integer, {"integer", "([0-9][0-9]*)", }},
-        { Type::Plus, {"+", R"(\+)", }},
-        { Type::Minus, {"-", R"(\-)", }},
-        { Type::Asterisk, {"*", R"(\*)", }},
-        { Type::Slash, {"/", R"(\/)", }},
-        { Type::Ampersand, {"&", R"(\&)", }},
-        { Type::DoubleAmpersand, {"&&", R"(\&\&)", }},
-        { Type::VerticalBar, {"|", R"(\|)", }},
-        { Type::DoubleVerticalBar, {"||", R"(\|\|)", }},
-        { Type::ExclamationMark, {"!", R"(\!)", }},
-        { Type::LeftParenthese, {"(", R"(\()", }},
-        { Type::RightParenthese, {")", R"(\))", }},
-        { Type::LeftSquareBracket, {"[", R"(\[)", }},
-        { Type::RightSquareBracket, {"]", R"(\])", }},
-        { Type::LeftBrace, {"{", R"(\{)", }},
-        { Type::RightBrace, {"}", R"(\})", }},
-        { Type::Semicolon, {";", R"(\;)", }},
-        { Type::AssignMark, {"=", R"(\=)", }},
-        { Type::EqualMark, {"==", R"(\=\=)", }},
+        { Category::Identifier, {"identifier", "(_|[a-zA-Z])(_|[a-zA-Z0-9])*", }},
+        { Category::Integer, {"integer", "([0-9][0-9]*)", }},
+        { Category::Plus, {"+", R"(\+)", }},
+        { Category::Minus, {"-", R"(\-)", }},
+        { Category::Asterisk, {"*", R"(\*)", }},
+        { Category::Slash, {"/", R"(\/)", }},
+        { Category::Ampersand, {"&", R"(\&)", }},
+        { Category::DoubleAmpersand, {"&&", R"(\&\&)", }},
+        { Category::VerticalBar, {"|", R"(\|)", }},
+        { Category::DoubleVerticalBar, {"||", R"(\|\|)", }},
+        { Category::ExclamationMark, {"!", R"(\!)", }},
+        { Category::LeftParenthese, {"(", R"(\()", }},
+        { Category::RightParenthese, {")", R"(\))", }},
+        { Category::LeftSquareBracket, {"[", R"(\[)", }},
+        { Category::RightSquareBracket, {"]", R"(\])", }},
+        { Category::LeftBrace, {"{", R"(\{)", }},
+        { Category::RightBrace, {"}", R"(\})", }},
+        { Category::Semicolon, {";", R"(\;)", }},
+        { Category::AssignMark, {"=", R"(\=)", }},
+        { Category::EqualMark, {"==", R"(\=\=)", }},
 };
 
-const std::map<std::string, LexicalSymbol::Type> LexicalSymbol::keywordToType =
+const std::map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
 {
-    {"while", Type::While},
-    {"if", Type::If},
-    {"int", Type::Int},
-    {"float", Type::Float},
-    {"double", Type::Double},
-    {"return", Type::Return},
-    {"for", Type::For},
+    {"while", Category::While},
+    {"if", Category::If},
+    {"int", Category::Int},
+    {"float", Category::Float},
+    {"double", Category::Double},
+    {"return", Category::Return},
+    {"for", Category::For},
 
 
 };
@@ -247,7 +247,7 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
         ans.push_back(LexicalSymbol(std::string(first, last)));
     };
 
-    for(unsigned i: irange(static_cast<unsigned>(LexicalSymbol::Type::End) ) )
+    for(unsigned i: irange(static_cast<unsigned>(LexicalSymbol::Category::End) ) )
     {
         regexAndFuncs.push_back(std::make_pair(LexicalSymbol::regexs[i], func));
     }

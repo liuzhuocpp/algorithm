@@ -62,7 +62,7 @@ struct GrammarInput
     {
 
 
-        using Lex = LexicalSymbol::Type;
+        using Lex = LexicalSymbol::Category;
 
         program = declare >> program;
         program = statement >> program;
@@ -153,12 +153,12 @@ struct GrammarInput
             };
 
 
-        expression = LexicalSymbol::Type::Integer >>
+        expression = LexicalSymbol::Category::Integer >>
             [&](PIT v, P&o) {
                 o.addr = v[1].addr;
             };
 
-        expression = LexicalSymbol::Type::Identifier >>
+        expression = LexicalSymbol::Category::Identifier >>
             [&](PIT v, P&o) {
                 std::string name = v[1].addr;
 
