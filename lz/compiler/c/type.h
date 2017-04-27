@@ -23,7 +23,7 @@ struct Type
         Float,
         Double,
 
-        Array,
+//        Array,
 //        Struct,
         Unknown,
     };
@@ -55,7 +55,26 @@ public:
 
     Category category;
 
-    std::vector<int> arrayDimensions; // for Array Type;
+    std::vector<int> arrayDimensions;
+    int getWidth() const
+    {
+        int ans = 1; // 暂时先设为1
+        for(auto x: arrayDimensions)
+        {
+            ans *= x;
+        }
+        return ans;
+
+    }
+
+    Type subArray() const
+    {
+        Type ans(this->category);
+        ans.arrayDimensions.assign(this->arrayDimensions.begin() + 1, this->arrayDimensions.end());
+        return ans;
+    }
+
+
 
     Type(Category cat = Category::Unknown):
         category(cat){}
@@ -68,6 +87,26 @@ public:
         return category;
     }
 
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os,
+               const Type&  id)
+    {
+
+        os << "Type(";
+
+
+        if(id.category == Category::Float) os << "float" ;
+        else if(id.category == Category::Int) os << "int";
+        else if(id.category == Category::Double) os << "double";
+        else os << "unknown";
+
+        if(!id.arrayDimensions.empty())
+        os << id.arrayDimensions << ")";
+
+
+        return os;
+    }
 
 
 

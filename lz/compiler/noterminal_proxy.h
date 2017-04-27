@@ -185,7 +185,7 @@ public:
         id = counter ++;
     }
 
-    NonterminalProxy(const char* name = ""):
+    NonterminalProxy(const char* name):
               gf(nullptr), name(name)
     {
         id = counter ++;

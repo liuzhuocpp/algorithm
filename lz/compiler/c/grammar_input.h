@@ -45,7 +45,10 @@ struct GrammarInput
 
         LZ_NONTERMINAL_PROXY(statement),
 
-        LZ_NONTERMINAL_PROXY(expression)
+        LZ_NONTERMINAL_PROXY(expression),
+        LZ_NONTERMINAL_PROXY(arrayExpression)
+
+
         ;
 
     GrammarFactory<T, P> gf;
@@ -79,10 +82,11 @@ struct GrammarInput
                 o.type.category = v[1].type.category;
                 o.type.arrayDimensions = v[2].arrayDimensions;
             };
+
         arrayDeclare = eps >> "[" >> Lex::Integer >> "]" >> arrayDeclare >>
             [&](PIT v, P& o) {
-                o.arrayDimensions = v[4].arrayDimensions;
-                o.arrayDimensions.push_back(std::stoi(v[1].addr));
+                o.arrayDimensions.push_back(std::stoi(v[2].addr));
+                o.arrayDimensions.insert(o.arrayDimensions.end(), v[4].arrayDimensions.begin(), v[4].arrayDimensions.end());
             };
 
         arrayDeclare = eps >>
@@ -101,6 +105,7 @@ struct GrammarInput
             };
 
         statement = expression >> ";";
+
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
@@ -167,6 +172,49 @@ struct GrammarInput
                     o.addr = getVariableName(checkId);
                 }
             };
+
+
+
+        expression = arrayExpression >>
+            [&](PIT v, P &o){
+
+                std::string tmp = getTemporaryVariableName();
+                generateCode("=[]", v[1].addr, v[1].arrayOffsetAddr, tmp);
+                o.addr = tmp;
+            };
+
+        arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
+            [&](PIT v, P &o){
+                std::string arrayName = v[1].addr;
+                o.addr = arrayName; // 数组名称
+
+
+                auto it = identifierTable.find(arrayName);
+                if(it == identifierTable.end())
+                {
+                    errorOfstream << "\"" << arrayName << "\" was not declare \n";
+                    return ;
+                }
+
+                std::string tmp = getTemporaryVariableName();
+                o.type = it->first.type.subArray();
+                generateCode("*", v[3].addr, std::to_string(o.type.getWidth()), tmp);
+                o.arrayOffsetAddr = tmp;
+
+            };
+
+        arrayExpression = arrayExpression >> "[" >> expression >> "]" >>
+            [&](PIT v, P &o) {
+                o.type = v[1].type.subArray();
+                o.addr = v[1].addr;
+                std::string tmp1 = getTemporaryVariableName();
+                std::string tmp2 = getTemporaryVariableName();
+                generateCode("*", v[3].addr, std::to_string(o.type.getWidth()) , tmp1);
+                generateCode("+", v[1].arrayOffsetAddr, tmp1 , tmp2);
+                o.arrayOffsetAddr = tmp2;
+
+            };
+
 
     }
 

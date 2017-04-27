@@ -56,10 +56,17 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
 
+
+//    return ;
+
+
     auto g = gf.g;
     auto indexToNonterminalMap = gf.getIndexToNonterminalMap();
     auto indexToTerminalMap =  gf.getIndexToTerminalMap();
     auto terminalToIndexMap =  gf.getTerminalToIndexMap();
+
+
+
 
 
 
@@ -90,6 +97,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
 
+    std::cout << "RI:" << identifierTable << std::endl;
 
 
 

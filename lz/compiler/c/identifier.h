@@ -42,6 +42,20 @@ struct Identifier
     }
 
 
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os,
+               const Identifier&  id)
+    {
+
+        os << "Identifier("  << id.type << " " << id.name << ")";
+
+
+        return os;
+    }
+
+
+
 
 };
 
@@ -60,7 +74,7 @@ struct IdentifierTable: std::map<Identifier, int>
             int addr = size();
 
             insert(std::make_pair(
-                Identifier(Type::Category::Int, name),
+                Identifier(type, name),
                 addr ) );
             return addr;
         }

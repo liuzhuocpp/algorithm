@@ -67,6 +67,19 @@ operator<<(std::basic_ostream<Char, Traits>& os,
     return os << "]";
 }
 
+
+
+
+template <class Char, class Traits, typename T1, typename T2>
+std::basic_ostream<Char, Traits>&
+operator<<(std::basic_ostream<Char, Traits>& os,
+           const std::pair<T1, T2>&  _pair)
+{
+    os << "std::pair(" << _pair.first << ", " << _pair.second << ")";
+    return os;
+}
+
+
 #define OUT_FUNCTION_NAME cout << "\n\n"<< __FUNCTION__ << " ------------------------------------------------" << endl;
 //template<typename IteratorRange>
 //void out(IteratorRange range)
