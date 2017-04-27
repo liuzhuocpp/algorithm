@@ -10,6 +10,7 @@
 
 
 
+#include <lz/compiler/c/grammar_input.h>
 #include <lz/utility.h>
 
 
@@ -21,7 +22,6 @@
 //
 //#include <lz/compiler/c/lexical_analyze.h>
 //#include <lz/compiler/c/identifier.h>
-#include <lz/compiler/c/make_grammar_factory.h>
 
 namespace lz {
 
@@ -45,9 +45,12 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
     IdentifierTable identifierTable;
 //    identifierTable.clear();
-    auto gf = makeGrammarFactory(identifierTable, generateCode, errorOfstream);
+    auto gf = GrammarInput<decltype(generateCode), decltype(errorOfstream)>
+        (identifierTable, generateCode, errorOfstream).gf;
 
+//    auto gf = makeGrammarFactory(identifierTable, generateCode, errorOfstream);
 
+//    auto gf = cgf.gf;
 
 
 
