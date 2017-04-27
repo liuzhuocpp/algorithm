@@ -153,12 +153,12 @@ struct GrammarInput
             };
 
 
-        expression = LexicalSymbol::Category::Integer >>
+        expression = Lex::Integer >>
             [&](PIT v, P&o) {
                 o.addr = v[1].addr;
             };
 
-        expression = LexicalSymbol::Category::Identifier >>
+        expression = Lex::Identifier >>
             [&](PIT v, P&o) {
                 std::string name = v[1].addr;
 
