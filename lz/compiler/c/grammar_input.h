@@ -51,9 +51,9 @@ struct GrammarInput
     GrammarFactory<T, P> gf;
 
 
-    IdentifierTable &identifierTable;
-    GenerateCode&generateCode;
-    ErrorOfstream& errorOfstream;
+    IdentifierTable &identifierTable; // must be reference , otherwise error!
+    GenerateCode&generateCode;// must be reference , otherwise error!
+    ErrorOfstream& errorOfstream;// must be reference , otherwise error!
 
 
     GrammarInput(IdentifierTable &identifierTable, GenerateCode& generateCode, ErrorOfstream& errorOfstream):
