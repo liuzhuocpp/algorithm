@@ -46,17 +46,19 @@ void grammarAnalyze(InputIterator first, InputIterator last, OutStream& outText,
         codeTable.push_back({op, arg1, arg2, res});
     };
 
+    std::cout << "FFFF" << std::endl;
 
     IdentifierTable identifierTable;
     auto gf = GrammarInput<decltype(generateCode), decltype(errorOfstream)>
         (identifierTable, generateCode, errorOfstream).gf;
 
-
+    std::cout << "FFFF" << std::endl;
     auto g = gf.g;
     auto indexToNonterminalMap = gf.getIndexToNonterminalMap();
     auto indexToTerminalMap =  gf.getIndexToTerminalMap();
     auto terminalToIndexMap =  gf.getTerminalToIndexMap();
 
+    std::cout << "FFFF3333" << std::endl;
 
 
 
@@ -71,7 +73,7 @@ void grammarAnalyze(InputIterator first, InputIterator last, OutStream& outText,
            = extendGrammarAndConstructActionGotoMark(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
 
 
-
+    std::cout << "FFF888888888" << std::endl;
 
 
 

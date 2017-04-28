@@ -38,8 +38,10 @@ struct GrammarInput
         LZ_NONTERMINAL_PROXY(baseTypeDeclare),
 
         LZ_NONTERMINAL_PROXY(statement),
+        LZ_NONTERMINAL_PROXY(statementList),
 
         LZ_NONTERMINAL_PROXY(expression),
+        LZ_NONTERMINAL_PROXY(condition),
         LZ_NONTERMINAL_PROXY(arrayExpression)
 
 
@@ -95,6 +97,16 @@ struct GrammarInput
 
         statement = expression >> ";";
 
+
+        statement = "{" >> statementList >> "}";
+
+//        statementList = eps;
+
+//
+//
+//        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >> ";";
+//
+//        statementList = statement >> statementList;
 
 
 

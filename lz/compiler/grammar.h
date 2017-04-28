@@ -106,7 +106,8 @@ public:
         RuleIterator& operator++()
         {
             rd.body++;
-            if(rd.body == (*g)[rd.head].size())
+            while(rd.head < g->nonterminalsNumber() &&
+                rd.body == (*g)[rd.head].size())
             {
                 rd.head ++;
                 rd.body = 0;
