@@ -97,7 +97,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
 
 
 
-    std::cout << "RI:" << identifierTable << std::endl;
+    std::cout << "identifierTable: \n" << newLineRangeSplitter  << identifierTable << std::endl;
 
 
 

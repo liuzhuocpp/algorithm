@@ -41,6 +41,47 @@ bool isEqual(const std::vector<T> &a, const std::vector<T> &b)
 }
 
 
+int rangeSplitterIndex()
+{
+    static int i = std::ios_base::xalloc();
+    return i;
+}
+
+
+template <class Char, class Traits>
+std::basic_ostream<Char, Traits>&
+commaRangeSplitter(std::basic_ostream<Char, Traits>& os)
+{
+    os.iword(rangeSplitterIndex()) = 0; // =0 表示以逗号分割
+    return os;
+}
+
+template <class Char, class Traits>
+std::basic_ostream<Char, Traits>&
+newLineRangeSplitter(std::basic_ostream<Char, Traits>& os)
+{
+    os.iword(rangeSplitterIndex()) = 1; // =1 表示以\n分割
+    return os;
+}
+
+template <class Char, class Traits>
+auto currentRangeSplitter(std::basic_ostream<Char, Traits>& os)
+{
+    switch(os.iword(rangeSplitterIndex()))
+    {
+    case 0:
+        return commaRangeSplitter<Char, Traits>;
+        break;
+    case 1:
+        return newLineRangeSplitter<Char, Traits>;
+        break;
+    default:
+        assert(0);
+    }
+
+    return commaRangeSplitter<Char, Traits>; // never run to this;
+}
+
 template <class Char, class Traits, typename IteratorRange>
 std::basic_ostream<Char, Traits>&
 operator<<(std::basic_ostream<Char, Traits>& os,
@@ -60,7 +101,23 @@ operator<<(std::basic_ostream<Char, Traits>& os,
         {
             break;
         }
-        os << *first << ",";
+        os << *first;
+
+        // 判断rangeSpliter：
+        switch(os.iword(rangeSplitterIndex()))
+        {
+        case 0:
+            os << ",";
+            break;
+        case 1:
+            os << "\n";
+            break;
+        case 2:
+        default:
+            os << ",";
+        }
+
+
         ++first;
     }
     os << *first;

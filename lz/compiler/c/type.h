@@ -81,7 +81,12 @@ public:
         else os << "unknown";
 
         if(!id.arrayDimensions.empty())
-        os << id.arrayDimensions << ")";
+        {
+            auto cnt = currentRangeSplitter(os);
+            os <<commaRangeSplitter << id.arrayDimensions << cnt;
+
+        }
+        os << ")";
 
 
         return os;
