@@ -25,8 +25,7 @@ string getOutFileName(string number)
 
 string getErrorFileName(string number)
 {
-    return number + "\\error.txt";
-//    return "error" + number + ".txt";
+    return number + "\\z_error.txt"; // 为了使得这个文件在文件夹的最后
 }
 
 
@@ -70,6 +69,9 @@ void solve(const string& fileName)
 
     grammarAnalyze(ans.begin(), ans.end(), outStream, errorOfstream);
 
+    outStream.clear();
+    errorOfstream.clear();
+
 }
 
 
@@ -82,19 +84,14 @@ bool isFileExist(const string &fileName)
 int main()
 {
 
-    vector<string> inFiles = {
-//            "in.txt",
-            "0\\in.txt",
-    };
 
-    cout << isFileExist("0\\in.txt") << endl;
-    cout << isFileExist("1\\in.txt") << endl;
+    for(int i = 0; ; ++ i)
+    {
+        string fileName = to_string(i) + "\\in.txt";
+        if(!isFileExist(fileName)) break;
 
-//
-//    for(string fileName: inFiles)
-//    {
-//        solve(fileName.c_str());
-//    }
+        solve(fileName.c_str());
+    }
 
 
 
