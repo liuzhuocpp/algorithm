@@ -76,22 +76,16 @@ struct GrammarInput
             [&](PIT v, P& o) {
                 identifierTable.insertIdentifier(v[1].type, v[2].addr);
             };
-        typeDeclare = baseTypeDeclare >> arrayDeclare >>
-            [&](PIT v, P &o)
-            {
-                o.type.category = v[1].type.category;
-                o.type.arrayDimensions = v[2].arrayDimensions;
-            };
 
-        arrayDeclare = eps >> "[" >> Lex::Integer >> "]" >> arrayDeclare >>
+        typeDeclare = baseTypeDeclare >>
             [&](PIT v, P& o) {
-                o.arrayDimensions.push_back(std::stoi(v[2].addr));
-                o.arrayDimensions.insert(o.arrayDimensions.end(), v[4].arrayDimensions.begin(), v[4].arrayDimensions.end());
+                o.type.category = v[1].type.category;
             };
 
-        arrayDeclare = eps >>
-            [&](PIT v, P &o) {
-                o.arrayDimensions = {};
+        typeDeclare = typeDeclare >> "[" >> Lex::Integer >> "]" >>
+            [&](PIT v, P& o) {
+                o.type = v[1].type;
+                o.type.arrayDimensions.push_back(std::stoi(v[3].addr));
             };
 
         baseTypeDeclare = Lex::Int >>

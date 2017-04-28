@@ -16,7 +16,6 @@ namespace lz {
 
 struct Type
 {
-//private:
     enum class Category
     {
         Int,
@@ -29,26 +28,6 @@ struct Type
     };
 
 public:
-
-    bool isInt() const
-    {
-        return category == Category::Int;
-    }
-
-    bool isFloat() const
-    {
-        return category == Category::Float;
-    }
-
-    bool isDouble() const
-    {
-        return category == Category::Double;
-    }
-
-    bool isArray() const
-    {
-        return !arrayDimensions.empty();
-    }
 
 
 

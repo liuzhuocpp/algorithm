@@ -16,14 +16,15 @@ namespace lz {
 
 struct Properties
 {
-    std::string addr;// 若以a开头，后边的数字表示identifierTable中的下表；若是以t开头则表示临时变量；还有可能是从 LexicalSymbol 得到，
-        // for declear,  expression
-    Type type; // addr 的类型， for declear
-    std::vector<int> arrayDimensions; // for array declare
+    // 若以a开头，后边的数字表示identifierTable中的下表；若是以t开头则表示临时变量；还有可能是从 LexicalSymbol 得到，
+    // for expression
+    std::string addr;
+
+    Type type; // 类型， for declare and arrayExpression
+//    std::vector<int> arrayDimensions; // for array declare
 
     std::string arrayOffsetAddr; // 是一个地址，和addr表示的一样
 
-//    std::vector<std::string> arrayExpression; // for array expression;
 
 
 
