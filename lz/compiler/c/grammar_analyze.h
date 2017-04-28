@@ -33,11 +33,11 @@ namespace lz {
 
 
 
-template<typename InputIterator>
-void grammarAnalyze(InputIterator first, InputIterator last)
+template<typename InputIterator, typename OutStream, typename ErrorStream>
+void grammarAnalyze(InputIterator first, InputIterator last, OutStream& outText, ErrorStream &errorOfstream )
 {
 
-    std::ofstream errorOfstream ("error.txt", std::ofstream::out);
+//    std::ofstream errorOfstream ("error.txt", std::ofstream::out);
 
     IRTable codeTable;
     auto generateCode = [&](std::string op, std::string arg1, std::string arg2, std::string res)
@@ -91,7 +91,7 @@ void grammarAnalyze(InputIterator first, InputIterator last)
     std::cout << "identifierTable: \n" << newLineRangeSplitter  << identifierTable << std::endl;
 
 
-    std::ofstream outText ("out.txt", std::ofstream::out);
+//    std::ofstream outText ("out.txt", std::ofstream::out);
     outText << codeTable;
 
 //    outText.clear();
