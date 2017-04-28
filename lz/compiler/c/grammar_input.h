@@ -40,7 +40,6 @@ struct GrammarInput
         LZ_NONTERMINAL_PROXY(program),
         LZ_NONTERMINAL_PROXY(declare),
         LZ_NONTERMINAL_PROXY(typeDeclare),
-        LZ_NONTERMINAL_PROXY(arrayDeclare),
         LZ_NONTERMINAL_PROXY(baseTypeDeclare),
 
         LZ_NONTERMINAL_PROXY(statement),
@@ -69,8 +68,9 @@ struct GrammarInput
 
         program = declare >> program;
         program = statement >> program;
-        program = declare;
-        program = statement;
+        program = eps;
+//        program = declare;
+//        program = statement;
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
