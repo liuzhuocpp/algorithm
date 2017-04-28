@@ -20,21 +20,22 @@ using namespace std;
 
 string getOutFileName(string number)
 {
-    return "out" + number + ".txt";
+    return number + "\\out.txt";
 }
 
 string getErrorFileName(string number)
 {
-    return "error" + number + ".txt";
+    return number + "\\error.txt";
+//    return "error" + number + ".txt";
 }
 
 
 
 
-void solve(const string fileName)
+void solve(const string& fileName)
 {
 
-    regex fileNumberRegex(R"(in([0-9]*)\.txt)");
+    regex fileNumberRegex(R"(([0-9]*)\\in\.txt)");
 
 
 
@@ -72,20 +73,28 @@ void solve(const string fileName)
 }
 
 
+bool isFileExist(const string &fileName)
+{
+    std::ifstream infile(fileName);
+    return infile.good();
+}
 
 int main()
 {
 
     vector<string> inFiles = {
-            "in.txt",
+//            "in.txt",
+            "0\\in.txt",
     };
 
+    cout << isFileExist("0\\in.txt") << endl;
+    cout << isFileExist("1\\in.txt") << endl;
 
-
-    for(string fileName: inFiles)
-    {
-        solve(fileName.c_str());
-    }
+//
+//    for(string fileName: inFiles)
+//    {
+//        solve(fileName.c_str());
+//    }
 
 
 
