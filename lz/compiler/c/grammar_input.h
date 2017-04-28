@@ -147,9 +147,9 @@ struct GrammarInput
             [&](PIT v, P&o) {
                 std::string name = v[1].addr;
 
-                if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
+                if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable.end())
                 {
-                    o.addr = getVariableName(checkId);
+                    o.addr = getVariableName(checkIt);
                 }
             };
 
@@ -157,9 +157,9 @@ struct GrammarInput
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
 
-                if(auto checkId = checkVariableDeclare(v[1].addr); checkId != -1)
+                if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable.end())
                 {
-                    generateCode("=", v[3].addr, "", getVariableName(checkId));
+                    generateCode("=", v[3].addr, "", getVariableName(checkIt));
                 }
 
             } < "+" < "-" < "*" < "/";
@@ -231,26 +231,27 @@ struct GrammarInput
         generateCode(op, v[1].addr, v[3].addr, o.addr);
     };
 
-    int checkVariableDeclare (std::string variable) {
+    auto checkVariableDeclare (std::string variable) {
         auto it = identifierTable.find(variable);
         if(it == identifierTable.end())
         {
             errorOfstream << "\"" << variable << "\" was not declare \n";
-            return -1;
+            return identifierTable.end();
         }
         else
-            return it->second;
+            return it;
     };
 
 
-    std::string getVariableName (int i)
+    std::string getVariableName (IdentifierTable::iterator it)
     {
-        for(auto it : identifierTable)
-        {
-            if(it.second == i) return it.first.name; // 目前先返回变量的真实的identifier，便于debug
-        }
-        assert(0);
-        return "";
+        return it->first.name; // 目前先返回变量的真实的identifier，便于debug
+//        for(auto it : identifierTable)
+//        {
+//            if(it.second == i) return it.first.name; // 目前先返回变量的真实的identifier，便于debug
+//        }
+//        assert(0);
+//        return "";
     };
 
 
