@@ -17,16 +17,11 @@
 #include <lz/compiler/c/lexical_analyze.h>
 #include <lz/compiler/c/identifier.h>
 #include <lz/compiler/c/properties.h>
+#include <lz/compiler/c/utility.h>
 
 
 namespace lz {
 
-std::string getTemporaryVariableName()
-{
-    static int tempId = 0;
-
-    return "$" + std::to_string(tempId++);
-}
 
 
 template<typename GenerateCode, typename ErrorOfstream>

@@ -38,6 +38,7 @@ void grammarAnalyze(InputIterator first, InputIterator last, OutStream& outText,
 {
 
 //    std::ofstream errorOfstream ("error.txt", std::ofstream::out);
+    TemporaryVariableNumberGenerator::reset();
 
     IRTable codeTable;
     auto generateCode = [&](std::string op, std::string arg1, std::string arg2, std::string res)
