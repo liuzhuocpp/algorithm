@@ -191,13 +191,8 @@ struct GrammarInput
                 std::string arrayName = v[1].addr;
                 o.addr = arrayName; // 数组名称
 
-
-                auto it = identifierTable.find(arrayName);
-                if(it == identifierTable.end())
-                {
-                    errorOfstream << "\"" << arrayName << "\" was not declare \n";
-                    return ;
-                }
+                auto it = checkVariableDeclare(arrayName);
+                if(it == identifierTable.end()) return ;
 
                 std::string tmp = getTemporaryVariableName();
                 o.type = it->first.type.subArray();
