@@ -10,7 +10,7 @@
 
 
 
-#include <lz/compiler/c/grammar_input.h>
+
 #include <lz/utility.h>
 
 
@@ -18,6 +18,9 @@
 #include <lz/compiler/grammar.h>
 #include <lz/compiler/slr1_grammar.h>
 #include <lz/compiler/lr_grammar.h>
+
+#include <lz/compiler/c/grammar_input.h>
+#include <lz/compiler/c/intermediate_representation.h>
 //
 //
 //#include <lz/compiler/c/lexical_analyze.h>
@@ -34,30 +37,18 @@ template<typename InputIterator>
 void grammarAnalyze(InputIterator first, InputIterator last)
 {
 
-    std::ofstream outText ("out.txt", std::ofstream::out);
     std::ofstream errorOfstream ("error.txt", std::ofstream::out);
 
+    IRTable codeTable;
     auto generateCode = [&](std::string op, std::string arg1, std::string arg2, std::string res)
     {
-        outText << op << " " << arg1 << " " << arg2 << " " << res << std::endl;;
+        codeTable.push_back({op, arg1, arg2, res});
     };
 
 
     IdentifierTable identifierTable;
-//    identifierTable.clear();
     auto gf = GrammarInput<decltype(generateCode), decltype(errorOfstream)>
         (identifierTable, generateCode, errorOfstream).gf;
-
-//    auto gf = makeGrammarFactory(identifierTable, generateCode, errorOfstream);
-
-//    auto gf = cgf.gf;
-
-
-
-
-
-
-//    return ;
 
 
     auto g = gf.g;
@@ -100,9 +91,11 @@ void grammarAnalyze(InputIterator first, InputIterator last)
     std::cout << "identifierTable: \n" << newLineRangeSplitter  << identifierTable << std::endl;
 
 
+    std::ofstream outText ("out.txt", std::ofstream::out);
+    outText << codeTable;
 
-    outText.clear();
-    errorOfstream.clear();
+//    outText.clear();
+//    errorOfstream.clear();
 
 }
 

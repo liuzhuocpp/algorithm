@@ -25,7 +25,7 @@ struct IntermediateRepresentation
     operator<<(std::basic_ostream<Char, Traits>& os,
                const IntermediateRepresentation& IR)
     {
-        os << op << " " << arg1 << " " << arg2 << " " << res;
+        os << IR.op << " " << IR.arg1 << " " << IR.arg2 << " " << IR.res;
         return os;
     }
 
@@ -46,7 +46,8 @@ struct IRTable: std::vector<IntermediateRepresentation>
         int maxWidth = 0;
         for(auto IR: table)
         {
-            maxWidth = std::max(maxWidth, std::to_string(IR.label).size());
+            if(IR.label != -1)
+            maxWidth = std::max(maxWidth, (int)std::to_string(IR.label).size());
         }
 
         for(auto IR: table)
