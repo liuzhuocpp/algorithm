@@ -49,11 +49,11 @@ void solve(const string& fileName)
 
     string fileNumber = match[1];
 
-    freopen(fileName.c_str(), "r", stdin);
-
+//    freopen(fileName.c_str(), "r", stdin); //用这个不好使，不知道为啥
+    std::ifstream fileIn(fileName);
 
     string text, tmpText;
-    while(getline(cin, tmpText))
+    while(getline(fileIn, tmpText))
     {
         text += tmpText + "\n";
     }
@@ -93,6 +93,9 @@ int main()
         solve(fileName.c_str());
     }
 
+
+//    solve("0\\in.txt");
+//    solve("1\\in.txt");
 
 
 
