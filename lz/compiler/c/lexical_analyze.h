@@ -51,13 +51,28 @@ struct LexicalSymbol
 
         End,
 
+
+
+
+
+
         While,
         If,
+        Else,
+        For,
+        Break,
+        Continue,
+        Return,
+
+        True,
+        False,
+
+
+
         Int,
         Float,
         Double,
-        Return,
-        For,
+
 
     };
 ;
@@ -220,12 +235,21 @@ const std::map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToTyp
 {
     {"while", Category::While},
     {"if", Category::If},
+    {"else", Category::Else},
+
+    {"for", Category::For},
+    {"Break", Category::Break},
+    {"Continue", Category::Continue},
+    {"return", Category::Return},
+
+
+    {"True", Category::True},
+    {"False", Category::False},
+
+
     {"int", Category::Int},
     {"float", Category::Float},
     {"double", Category::Double},
-    {"return", Category::Return},
-    {"for", Category::For},
-
 
 };
 
