@@ -55,7 +55,7 @@ struct IRTable: std::vector<IntermediateRepresentation>
             if(maxWidth != 0)
             {
                 auto label = std::to_string(IR.label);
-                os << "L" << label << ":" << std::string(maxWidth - label.size(), ' ');
+                os << "L" << label << ":" << std::string(maxWidth - label.size() + 2, ' ');
             }
 
             os << IR << std::endl;

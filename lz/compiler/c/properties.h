@@ -23,6 +23,10 @@ struct Properties
     std::string arrayOffsetAddr; // 是一个地址，和addr表示的一样
 
 
+    std::list<int> trueList, falseList; // for condition
+    int cntLabel; // for conditionMark
+
+
 
 
     Properties() = default;

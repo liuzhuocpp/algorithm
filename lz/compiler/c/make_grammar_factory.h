@@ -41,6 +41,7 @@ struct GrammarInput
 
         LZ_NONTERMINAL_PROXY(statement),
         LZ_NONTERMINAL_PROXY(statementList),
+        LZ_NONTERMINAL_PROXY(conditionMark),
 
         LZ_NONTERMINAL_PROXY(expression),
         LZ_NONTERMINAL_PROXY(condition),
@@ -103,23 +104,53 @@ struct GrammarInput
 //        statement = ";";
 //        statement = "{" >> statementList >> "}";
 
-        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement
-
-                > Lex::Else;
-        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >> Lex::Else >> statement ;
+        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >>
+            [&](PIT v, P&o) {
 
 
-        condition = expression >> ">" >> expression;
-        condition = expression >> ">=" >> expression;
-        condition = expression >> "<" >> expression;
-        condition = expression >> "<=" >> expression;
-        condition = expression >> "==" >> expression;
-        condition = expression >> "!=" >> expression;
+
+            } > Lex::Else;
+
+        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >> Lex::Else >> statement >>
+            [&](PIT v, P&o) {
+
+            } ;
 
 
-        condition = condition >> "||" >> condition < "&&" > "||";
-        condition = condition >> "&&" >> condition > "&&" > "||";
-        condition = "!" >>  condition                   > "&&" > "||";
+
+        condition = expression >> "<" >> expression >>
+            [&](PIT v, P&o) {
+                o.trueList.push_back(nextLabel());
+                generateCode("if<", v[1].addr, v[2].addr, "-");
+                o.falseList.push_back(nextLabel());
+                generateCode("goto", "", "", "-");
+            };
+//        condition = expression >> "<=" >> expression;
+//        condition = expression >> ">" >> expression;
+//        condition = expression >> ">=" >> expression;
+//        condition = expression >> "==" >> expression;
+//        condition = expression >> "!=" >> expression;
+
+
+        condition = condition >> "||" >> conditionMark >>  condition >>
+            [&](PIT v, P&o) {
+
+            }  < "&&" > "||";
+
+        condition = condition >> "&&" >> conditionMark >> condition >>
+            [&](PIT v, P&o) {
+
+            }  > "&&" > "||";
+
+        condition = "!" >>  condition >>
+            [&](PIT v, P&o) {
+
+            } > "&&" > "||";
+
+        conditionMark = eps >>
+            [&](PIT v, P&o) {
+                o.cntLabel = nextLabel();
+            };
 
 
 
@@ -285,7 +316,22 @@ struct GrammarInput
     static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
     {
         global_codeTable->push_back({op, arg1, arg2, res});
+        global_codeTable->back().label = global_codeTable->size() - 1;
     };
+
+    static int nextLabel()
+    {
+        return global_codeTable->size();
+    }
+
+
+    static void backPatch(const std::list<int>&a1, int label)
+    {
+        for(auto x: a1)
+        {
+            (*global_codeTable)[x].res = std::to_string(label);
+        }
+    }
 
 
 
