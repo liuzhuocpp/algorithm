@@ -44,7 +44,7 @@ struct LexicalSymbol
     }
 
     static const
-    std::map<std::string, Category> keywordToType;
+    std::unordered_map<std::string, Category> keywordToType;
 
 //    static const
 //    std::map<Category, pair<std::string, std::string> > namesAndRegexs;
@@ -154,6 +154,9 @@ struct LexicalSymbol
     }
 
 private:
+    // Can use this to improve it
+    // http://stackoverflow.com/questions/40945727/convert-a-string-to-uppercase-at-compile-time
+
     static std::string lowerFirstChar(std::string s)
     {
 
@@ -164,7 +167,7 @@ private:
 
 
 
-const std::map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
+const std::unordered_map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
 {
 
 #define X(keyword) {LexicalSymbol::lowerFirstChar(#keyword), Category::keyword},
