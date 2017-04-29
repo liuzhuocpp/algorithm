@@ -5,8 +5,8 @@
  *      Author: LZ
  */
 
-#ifndef LZ_COMPILER_C_GRAMMAR_INPUT_H_
-#define LZ_COMPILER_C_GRAMMAR_INPUT_H_
+#ifndef LZ_COMPILER_C_MAKE_GRAMMAR_FACTORY_H_
+#define LZ_COMPILER_C_MAKE_GRAMMAR_FACTORY_H_
 
 #include <lz/compiler/noterminal_proxy.h>
 #include <lz/compiler/grammar.h>
@@ -24,8 +24,9 @@
 namespace lz {
 
 
+// this is private
 
-template<typename GenerateCode, typename ErrorOfstream>
+template<typename ErrorOfstream>
 struct GrammarInput
 {
     using P = Properties;
@@ -49,17 +50,19 @@ struct GrammarInput
         ;
 
     GrammarFactory<T, P> gf;
-
-
-    IdentifierTable &identifierTable; // must be reference , otherwise error!
-    IRTable &codeTable;// must be reference , otherwise error!
-    ErrorOfstream& errorOfstream;// must be reference , otherwise error!
+    // I think use the global variable is very ugly.
+    static IdentifierTable* global_identifierTable;
+    static IRTable* global_codeTable;
+    static ErrorOfstream* global_errorOfstream;
 
 
     GrammarInput(IdentifierTable &identifierTable, IRTable& codeTable, ErrorOfstream& errorOfstream):
-        identifierTable(identifierTable),codeTable(codeTable), errorOfstream(errorOfstream),
+
         gf(program)
     {
+        global_identifierTable = &identifierTable;
+        global_codeTable = &codeTable;
+        global_errorOfstream = &errorOfstream;
 
 
         using Lex = LexicalSymbol::Category;
@@ -185,9 +188,12 @@ struct GrammarInput
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
+//                std::cout << "operator=+++++++++++" << std::endl;
 
                 if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable.end())
                 {
+//                    std::cout << "009((((((((((((((((=+++++++++++" << std::endl;
+//                    generateCode("=", v[3].addr, "", "SS");
                     generateCode("=", v[3].addr, "", getVariableName(checkIt));
                 }
 
@@ -249,44 +255,72 @@ struct GrammarInput
 
 
 
-
-    void solveArithmeticOperator (std::string op, PIT v, P &o) {
+    // bellow function must be static,
+    // otherwise, when GrammarInput is destoryed, the bellow calls will be error
+    static void solveArithmeticOperator (std::string op, PIT v, P &o)
+    {
         o.addr = getTemporaryVariableName();
         generateCode(op, v[1].addr, v[3].addr, o.addr);
     };
 
-    auto checkVariableDeclare (std::string variable) {
-        auto it = identifierTable.find(variable);
-        if(it == identifierTable.end())
+    static auto checkVariableDeclare ( std::string variable)
+    {
+        auto it = global_identifierTable->find(variable);
+        if(it == global_identifierTable->end())
         {
-            errorOfstream << "\"" << variable << "\" was not declare \n";
-            return identifierTable.end();
+            (*global_errorOfstream) << "\"" << variable << "\" was not declare \n";
+            return global_identifierTable->end();
         }
         else
             return it;
     };
 
 
-    std::string getVariableName (IdentifierTable::iterator it)
+    static std::string getVariableName (IdentifierTable::iterator it)
     {
         return it->first.name; // 目前先返回变量的真实的identifier，便于debug
-//        for(auto it : identifierTable)
-//        {
-//            if(it.second == i) return it.first.name; // 目前先返回变量的真实的identifier，便于debug
-//        }
-//        assert(0);
-//        return "";
     };
 
 
-    void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
+    static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
     {
-        codeTable.push_back({op, arg1, arg2, res});
+        global_codeTable->push_back({op, arg1, arg2, res});
     };
 
 
 
 };
+
+
+template<typename E>
+IdentifierTable* GrammarInput<E>::global_identifierTable=  nullptr;
+
+
+template<typename E>
+IRTable* GrammarInput<E>::global_codeTable=  nullptr;
+
+
+template<typename E>
+E* GrammarInput<E>::global_errorOfstream =  nullptr;
+
+
+
+template<typename ErrorOfstream>
+auto makeGrammarFactory(
+    IdentifierTable &identifierTable,
+    IRTable &codeTable,
+    ErrorOfstream &errorOfstream)
+{
+    return  GrammarInput<ErrorOfstream>
+       (identifierTable, codeTable, errorOfstream).gf;
+
+}
+
+
+
+
+
+
 
 
 
@@ -301,4 +335,4 @@ struct GrammarInput
 
 
 
-#endif /* LZ_COMPILER_C_GRAMMAR_INPUT_H_ */
+#endif /* LZ_COMPILER_C_MAKE_GRAMMAR_FACTORY_H_ */

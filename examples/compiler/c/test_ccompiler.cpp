@@ -31,6 +31,12 @@ string getErrorFileName(string number)
 
 
 
+std::ofstream outStream , errorOfstream;
+
+GrammarParser<decltype(outStream), decltype(errorOfstream)>
+    grammarParser{outStream, errorOfstream};
+
+
 void solve(const string& fileName)
 {
 
@@ -49,7 +55,7 @@ void solve(const string& fileName)
 
     string fileNumber = match[1];
 
-//    freopen(fileName.c_str(), "r", stdin); //用这个不好使，不知道为啥
+//    freopen(fileName.c_str(), "r", stdin); //用这个不好使，不知道为啥, 可能是其他地方有异常
     std::ifstream fileIn(fileName);
 
     string text, tmpText;
@@ -63,16 +69,20 @@ void solve(const string& fileName)
         cout << x << endl;
     }
 
+    outStream.open(getOutFileName(fileNumber), std::ofstream::out);
+    errorOfstream .open(getErrorFileName(fileNumber), std::ofstream::out);
 
-    std::ofstream outStream (getOutFileName(fileNumber), std::ofstream::out);
-    std::ofstream errorOfstream (getErrorFileName(fileNumber), std::ofstream::out);
 
-    grammarAnalyze(ans.begin(), ans.end(), outStream, errorOfstream);
+    grammarParser.parse(ans.begin(), ans.end());
 
-    outStream.clear();
-    errorOfstream.clear();
+    outStream.close();
+    errorOfstream.close();
 
 }
+
+
+
+
 
 
 bool isFileExist(const string &fileName)
@@ -83,16 +93,18 @@ bool isFileExist(const string &fileName)
 
 int main()
 {
+    grammarParser.construct();
+    vector<int> test;
 
-
-    for(int i = 0; ; ++ i)
+    for(int i = 0;
+            ; ++ i)
     {
         string fileName = to_string(i) + "\\in.txt";
         if(!isFileExist(fileName)) break;
 
         solve(fileName.c_str());
     }
-
+//
 
 //    solve("0\\in.txt");
 //    solve("1\\in.txt");
