@@ -1,0 +1,34 @@
+
+
+        X(Plus, "+")
+        X(Minus, "-")
+        X(Asterisk, "*")
+        X(Slash, "/")
+
+        X(Ampersand, "&")
+        X(DoubleAmpersand, "&&")
+
+        X(VerticalBar, "|")
+        X(DoubleVerticalBar, "||")
+
+        X(Exclamation, "!")
+
+
+        X(LeftParenthese, "(")
+        X(RightParenthese, ")")
+        X(LeftSquareBracket, "[")
+        X(RightSquareBracket, "]")
+        X(LeftBrace, "{")
+        X(RightBrace, "}")
+
+        X(Semicolon, ";")
+
+        X(AssignMark, "=")
+        X(Equal, "==")
+
+
+        X(NotEqual, "!=")
+        X(Less, "<")
+        X(LessEqual, "<=")
+        X(More, ">")
+        X(MoreEqual, ">=")

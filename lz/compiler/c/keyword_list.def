@@ -1,0 +1,17 @@
+
+        X(While)
+        X(If)
+        X(Else)
+        X(For)
+        X(Break)
+        X(Continue)
+        X(Return)
+
+        X(True)
+        X(False)
+
+
+
+        X(Int)
+        X(Float)
+        X(Double)

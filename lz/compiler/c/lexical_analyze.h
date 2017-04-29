@@ -18,73 +18,26 @@ namespace lz {
 
 struct LexicalSymbol
 {
+
     enum class Category: unsigned
     {
         Identifier,
         Integer,
 
-        Plus,
-        Minus,
-        Asterisk,
-        Slash,
-
-        Ampersand,
-        DoubleAmpersand,
-
-        VerticalBar,
-        DoubleVerticalBar,
-
-        ExclamationMark,
-
-
-        LeftParenthese,
-        RightParenthese,
-        LeftSquareBracket,
-        RightSquareBracket,
-        LeftBrace,
-        RightBrace,
-
-        Semicolon,
-
-        AssignMark,
-        Equal,
-
-
-        NotEqual,
-        Less,
-        LessEqual,
-        More,
-        MoreEqual,
-
-
+#define X(name, punctuation) name,
+#include <lz/compiler/c/punctuation_list.def>
+#undef X
 
         End,
 
 
-
-
-
-
-        While,
-        If,
-        Else,
-        For,
-        Break,
-        Continue,
-        Return,
-
-        True,
-        False,
-
-
-
-        Int,
-        Float,
-        Double,
+#define X(name) name,
+#include <lz/compiler/c/keyword_list.def>
+#undef X
 
 
     };
-;
+
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
         return a.type < b.type;
@@ -93,8 +46,8 @@ struct LexicalSymbol
     static const
     std::map<std::string, Category> keywordToType;
 
-    static const
-    std::map<Category, pair<std::string, std::string> > namesAndRegexs;
+//    static const
+//    std::map<Category, pair<std::string, std::string> > namesAndRegexs;
 
 
     Category type;
@@ -128,7 +81,9 @@ struct LexicalSymbol
         {
             for(int i = static_cast<int>(Category::Integer) + 1; i < static_cast<int>(Category::End); ++ i)
             {
-                if(s == namesAndRegexs.at(static_cast<Category>(i)).first)
+                if(s == names[i]
+//                        namesAndRegexs.at(static_cast<Category>(i)).first
+                        )
                 {
                     type = static_cast<Category>(i);
                     return ;
@@ -142,17 +97,51 @@ struct LexicalSymbol
 
     }
 
+    static constexpr const char * names[] = {
+            "Identifier",
+            "Integer",
+
+#define X(punctuationName, punctuation) punctuation,
+#include <lz/compiler/c/punctuation_list.def>
+#undef X
+            "end",
+
+#define X(keyword) #keyword,
+#include <lz/compiler/c/keyword_list.def>
+#undef X
+
+
+    };
+
+
+    static std::string regex(Category category)
+    {
+        if(category == Category::Identifier)
+        {
+            return "(_|[a-zA-Z])(_|[a-zA-Z0-9])*";
+        }
+        else if(category == Category::Integer)
+        {
+            return "([0-9][0-9]*)";
+        }
+        std::string ans;
+        const char * name = names[static_cast<unsigned>(category)];
+        for(int i = 0; name[i] != '\0'; ++ i)
+        {
+            ans.push_back('\\');
+            ans.push_back(name[i]);
+
+        }
+        return ans;
+    }
+
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
     operator<<(std::basic_ostream<Char, Traits>& os,
                const LexicalSymbol&  ls)
     {
-        if(namesAndRegexs.count(ls.type))
-            os << namesAndRegexs.at(ls.type).first;
-        else
-        {
-            os << ls.value;
-        }
+        os << names[static_cast<int>(ls.type)];
+
 
 
         if(ls.type == Category::Identifier || ls.type == Category::Integer)
@@ -163,65 +152,25 @@ struct LexicalSymbol
         return os;
 
     }
+
+private:
+    static std::string lowerFirstChar(std::string s)
+    {
+
+        s[0] = std::tolower(s[0]);
+        return s;
+    }
 };
 
-const std::map<LexicalSymbol::Category, std::pair<std::string, std::string> > LexicalSymbol::namesAndRegexs =
-{
-        { Category::Identifier, {"identifier", "(_|[a-zA-Z])(_|[a-zA-Z0-9])*", }},
-        { Category::Integer, {"integer", "([0-9][0-9]*)", }},
-        { Category::Plus, {"+", R"(\+)", }},
-        { Category::Minus, {"-", R"(\-)", }},
-        { Category::Asterisk, {"*", R"(\*)", }},
-        { Category::Slash, {"/", R"(\/)", }},
-        { Category::Ampersand, {"&", R"(\&)", }},
-        { Category::DoubleAmpersand, {"&&", R"(\&\&)", }},
-        { Category::VerticalBar, {"|", R"(\|)", }},
-        { Category::DoubleVerticalBar, {"||", R"(\|\|)", }},
-        { Category::ExclamationMark, {"!", R"(\!)", }},
-        { Category::LeftParenthese, {"(", R"(\()", }},
-        { Category::RightParenthese, {")", R"(\))", }},
-        { Category::LeftSquareBracket, {"[", R"(\[)", }},
-        { Category::RightSquareBracket, {"]", R"(\])", }},
-        { Category::LeftBrace, {"{", R"(\{)", }},
-        { Category::RightBrace, {"}", R"(\})", }},
-        { Category::Semicolon, {";", R"(\;)", }},
-        { Category::AssignMark, {"=", R"(\=)", }},
-        { Category::Equal, {"==", R"(\=\=)", }},
 
-
-        { Category::NotEqual, {"!=",  R"(\!\=)", }},
-
-        { Category::Less, {"<",  R"(\<)",}},
-
-        { Category::LessEqual, {"<=", R"(\<\=)", }},
-
-        { Category::More, {">", R"(\>)",}},
-
-        { Category::MoreEqual, {">=", R"(\>\=)", }},
-
-
-
-};
 
 const std::map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
 {
-    {"while", Category::While},
-    {"if", Category::If},
-    {"else", Category::Else},
 
-    {"for", Category::For},
-    {"Break", Category::Break},
-    {"Continue", Category::Continue},
-    {"return", Category::Return},
+#define X(keyword) {LexicalSymbol::lowerFirstChar(#keyword), Category::keyword},
+#include <lz/compiler/c/keyword_list.def>
+#undef X
 
-
-    {"True", Category::True},
-    {"False", Category::False},
-
-
-    {"int", Category::Int},
-    {"float", Category::Float},
-    {"double", Category::Double},
 
 };
 
@@ -245,7 +194,11 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
 
     for(unsigned i: irange(static_cast<unsigned>(LexicalSymbol::Category::End) ) )
     {
-        regexAndFuncs.push_back(std::make_pair(LexicalSymbol::namesAndRegexs.at(static_cast<LexicalSymbol::Category>(i)).second, func));
+        regexAndFuncs.push_back(
+            std::make_pair(
+                LexicalSymbol::regex(static_cast<LexicalSymbol::Category>(i)),
+                func)
+        );
     }
 
     regexAndFuncs.push_back({"&&&&*", [&](auto first, auto last) {
