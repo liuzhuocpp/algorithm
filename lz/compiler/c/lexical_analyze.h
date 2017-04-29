@@ -96,74 +96,6 @@ struct LexicalSymbol
     static const
     std::map<Category, pair<std::string, std::string> > namesAndRegexs;
 
-//    constexpr static const char* names[] = {
-//        "identifier",
-//        "integer",
-//        "+",
-//        "-",
-//        "*",
-//        "/",
-//        "&",
-//        "&&",
-//        "|",
-//        "||",
-//        "!",
-//        "(",
-//        ")",
-//        "[",
-//        "]",
-//        "{",
-//        "}",
-//        ";",
-//        "=",
-//        "==",
-//
-//
-//
-//        "!=",
-//        "<",
-//        "<=",
-//        ">",
-//        ">=",
-//
-//
-//
-//    };
-//
-//    constexpr static const char* regexs[] = {
-//        "(_|[a-zA-Z])(_|[a-zA-Z0-9])*",
-//        "([0-9][0-9]*)",
-//        R"(\+)",
-//        R"(\-)",
-//        R"(\*)",
-//        R"(\/)",
-//        R"(\&)",
-//        R"(\&\&)",
-//        R"(\|)",
-//        R"(\|\|)",
-//        R"(\!)",
-//        R"(\()",
-//        R"(\))",
-//        R"(\[)",
-//        R"(\])",
-//        R"(\{)",
-//        R"(\})",
-//        R"(\;)",
-//        R"(\=)",
-//        R"(\=\=)",
-//
-//
-//        R"(\!\=)",
-//        R"(\<)",
-//        R"(\<\=)",
-//        R"(\>)",
-//        R"(\>\=)",
-//
-//
-//
-//
-//
-//    };
 
     Category type;
     std::string value;
@@ -223,8 +155,6 @@ struct LexicalSymbol
         }
 
 
-//        os << names[static_cast<unsigned>(ls.type)];
-
         if(ls.type == Category::Identifier || ls.type == Category::Integer)
         {
 
@@ -270,17 +200,6 @@ const std::map<LexicalSymbol::Category, std::pair<std::string, std::string> > Le
         { Category::MoreEqual, {">=", R"(\>\=)", }},
 
 
-//        NotEqual,
-//        Less,
-//        LessEqual,
-//        More,
-//        MoreEqual,
-//
-//        R"(\!\=)",
-//        R"(\<)",
-//        R"(\<\=)",
-//        R"(\>)",
-//        R"(\>\=)",
 
 };
 
@@ -377,6 +296,77 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
 } // namespace lz
 
 
+
+
+
+//    constexpr static const char* names[] = {
+//        "identifier",
+//        "integer",
+//        "+",
+//        "-",
+//        "*",
+//        "/",
+//        "&",
+//        "&&",
+//        "|",
+//        "||",
+//        "!",
+//        "(",
+//        ")",
+//        "[",
+//        "]",
+//        "{",
+//        "}",
+//        ";",
+//        "=",
+//        "==",
+//
+//
+//
+//        "!=",
+//        "<",
+//        "<=",
+//        ">",
+//        ">=",
+//
+//
+//
+//    };
+//
+//    constexpr static const char* regexs[] = {
+//        "(_|[a-zA-Z])(_|[a-zA-Z0-9])*",
+//        "([0-9][0-9]*)",
+//        R"(\+)",
+//        R"(\-)",
+//        R"(\*)",
+//        R"(\/)",
+//        R"(\&)",
+//        R"(\&\&)",
+//        R"(\|)",
+//        R"(\|\|)",
+//        R"(\!)",
+//        R"(\()",
+//        R"(\))",
+//        R"(\[)",
+//        R"(\])",
+//        R"(\{)",
+//        R"(\})",
+//        R"(\;)",
+//        R"(\=)",
+//        R"(\=\=)",
+//
+//
+//        R"(\!\=)",
+//        R"(\<)",
+//        R"(\<\=)",
+//        R"(\>)",
+//        R"(\>\=)",
+//
+//
+//
+//
+//
+//    };
 
 
 
