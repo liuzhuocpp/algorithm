@@ -97,6 +97,8 @@ int main()
     vector<int> test;
 
     for(int i = 0;
+
+//            i < 2
             ; ++ i)
     {
         string fileName = to_string(i) + "\\in.txt";

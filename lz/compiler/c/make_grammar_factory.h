@@ -104,24 +104,25 @@ struct GrammarInput
 //        statement = ";";
 //        statement = "{" >> statementList >> "}";
 
-        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >>
+        statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
-
+                backPatch(v[3].trueList, v[5].cntLabel);
+                o.nextList = merge(v[3].falseList, v[5].nextList);
 
 
             } > Lex::Else;
 
-        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >> Lex::Else >> statement >>
-            [&](PIT v, P&o) {
-
-            } ;
+//        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >> Lex::Else >> statement >>
+//            [&](PIT v, P&o) {
+//
+//            } ;
 
 
 
         condition = expression >> "<" >> expression >>
             [&](PIT v, P&o) {
                 o.trueList.push_back(nextLabel());
-                generateCode("if<", v[1].addr, v[2].addr, "-");
+                generateCode("if<", v[1].addr, v[3].addr, "-");
                 o.falseList.push_back(nextLabel());
                 generateCode("goto", "", "", "-");
             };
@@ -134,18 +135,21 @@ struct GrammarInput
 
         condition = condition >> "||" >> conditionMark >>  condition >>
             [&](PIT v, P&o) {
+                backPatch(v[1].falseList, v[3].cntLabel);
+                o.trueList = merge(v[1].trueList, v[4].trueList);
+                o.falseList = v[4].falseList;
 
             }  < "&&" > "||";
 
-        condition = condition >> "&&" >> conditionMark >> condition >>
-            [&](PIT v, P&o) {
-
-            }  > "&&" > "||";
-
-        condition = "!" >>  condition >>
-            [&](PIT v, P&o) {
-
-            } > "&&" > "||";
+//        condition = condition >> "&&" >> conditionMark >> condition >>
+//            [&](PIT v, P&o) {
+//
+//            }  > "&&" > "||";
+//
+//        condition = "!" >>  condition >>
+//            [&](PIT v, P&o) {
+//
+//            } > "&&" > "||";
 
         conditionMark = eps >>
             [&](PIT v, P&o) {
@@ -329,8 +333,20 @@ struct GrammarInput
     {
         for(auto x: a1)
         {
-            (*global_codeTable)[x].res = std::to_string(label);
+            (*global_codeTable)[x].res = "L" + std::to_string(label);
         }
+    }
+
+    // can be improve
+    static std::list<int> merge(std::list<int>&a1, std::list<int>&a2)
+    {
+        a1.splice(a1.end(), a2);
+        return a1;
+    }
+
+    static std::list<int> makeList(int label)
+    {
+        return std::list<int>{label};
     }
 
 
