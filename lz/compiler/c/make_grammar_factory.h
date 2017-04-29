@@ -141,15 +141,28 @@ struct GrammarInput
 
             }  < "&&" > "||";
 
-//        condition = condition >> "&&" >> conditionMark >> condition >>
-//            [&](PIT v, P&o) {
-//
-//            }  > "&&" > "||";
-//
-//        condition = "!" >>  condition >>
-//            [&](PIT v, P&o) {
-//
-//            } > "&&" > "||";
+        condition = condition >> "&&" >> conditionMark >> condition >>
+            [&](PIT v, P&o) {
+                backPatch(v[1].trueList, v[3].cntLabel);
+                o.trueList = v[4].trueList;
+                o.falseList = merge(v[1].falseList, v[4].falseList);
+
+            }  > "&&" > "||";
+
+        condition = "!" >>  condition >>
+            [&](PIT v, P&o) {
+                o.trueList = v[2].falseList;
+                o.falseList = v[2].trueList;
+
+            } > "&&" > "||";
+
+        condition = "(" >>  condition >> ")" >>
+            [&](PIT v, P&o) {
+                o.trueList = v[2].trueList;
+                o.falseList = v[2].falseList;
+
+            } > "&&" > "||";
+
 
         conditionMark = eps >>
             [&](PIT v, P&o) {
