@@ -40,15 +40,15 @@ void grammarAnalyze(InputIterator first, InputIterator last, OutStream& outText,
     TemporaryVariableNumberGenerator::reset();
 
     IRTable codeTable;
-    auto generateCode = [&](std::string op, std::string arg1, std::string arg2, std::string res)
-    {
-        codeTable.push_back({op, arg1, arg2, res});
-    };
+//    auto generateCode = [&](std::string op, std::string arg1, std::string arg2, std::string res)
+//    {
+//        codeTable.push_back({op, arg1, arg2, res});
+//    };
 
 
     IdentifierTable identifierTable;
-    auto gf = GrammarInput<decltype(generateCode), decltype(errorOfstream)>
-        (identifierTable, generateCode, errorOfstream).gf;
+    auto gf = GrammarInput<decltype(codeTable), decltype(errorOfstream)>
+        (identifierTable, codeTable, errorOfstream).gf;
 
 
     auto g = gf.g;

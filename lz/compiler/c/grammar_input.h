@@ -18,6 +18,7 @@
 #include <lz/compiler/c/identifier.h>
 #include <lz/compiler/c/properties.h>
 #include <lz/compiler/c/utility.h>
+#include <lz/compiler/c/intermediate_representation.h>
 
 
 namespace lz {
@@ -51,12 +52,12 @@ struct GrammarInput
 
 
     IdentifierTable &identifierTable; // must be reference , otherwise error!
-    GenerateCode&generateCode;// must be reference , otherwise error!
+    IRTable &codeTable;// must be reference , otherwise error!
     ErrorOfstream& errorOfstream;// must be reference , otherwise error!
 
 
-    GrammarInput(IdentifierTable &identifierTable, GenerateCode& generateCode, ErrorOfstream& errorOfstream):
-        identifierTable(identifierTable),generateCode(generateCode), errorOfstream(errorOfstream),
+    GrammarInput(IdentifierTable &identifierTable, IRTable& codeTable, ErrorOfstream& errorOfstream):
+        identifierTable(identifierTable),codeTable(codeTable), errorOfstream(errorOfstream),
         gf(program)
     {
 
@@ -96,24 +97,34 @@ struct GrammarInput
             };
 
         statement = expression >> ";";
+//        statement = ";";
+//        statement = "{" >> statementList >> "}";
 
+        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement
 
-        statement = "{" >> statementList >> "}";
-        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement  > Lex::Else;
+                > Lex::Else;
         statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >> Lex::Else >> statement ;
-        statementList = statement >> statementList;
-        statementList = eps;
+
+
         condition = expression >> ">" >> expression;
         condition = expression >> ">=" >> expression;
         condition = expression >> "<" >> expression;
         condition = expression >> "<=" >> expression;
         condition = expression >> "==" >> expression;
         condition = expression >> "!=" >> expression;
+
+
         condition = condition >> "||" >> condition < "&&" > "||";
         condition = condition >> "&&" >> condition > "&&" > "||";
         condition = "!" >>  condition                   > "&&" > "||";
-        condition = Lex::True;
-        condition = Lex::False;
+
+
+
+//        statementList = statement >> statementList;
+//        statementList = eps;
+
+//        condition = Lex::True;
+//        condition = Lex::False;
 
 
         expression = expression >> "+" >> expression >>
@@ -268,6 +279,10 @@ struct GrammarInput
     };
 
 
+    void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
+    {
+        codeTable.push_back({op, arg1, arg2, res});
+    };
 
 
 
