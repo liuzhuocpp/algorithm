@@ -47,7 +47,16 @@ struct LexicalSymbol
         Semicolon,
 
         AssignMark,
-        EqualMark,
+        Equal,
+
+
+        NotEqual,
+        Less,
+        LessEqual,
+        More,
+        MoreEqual,
+
+
 
         End,
 
@@ -87,55 +96,74 @@ struct LexicalSymbol
     static const
     std::map<Category, pair<std::string, std::string> > namesAndRegexs;
 
-    constexpr static const char* names[] = {
-        "identifier",
-        "integer",
-        "+",
-        "-",
-        "*",
-        "/",
-        "&",
-        "&&",
-        "|",
-        "||",
-        "!",
-        "(",
-        ")",
-        "[",
-        "]",
-        "{",
-        "}",
-        ";",
-        "=",
-        "=="
-
-
-    };
-
-    constexpr static const char* regexs[] = {
-        "(_|[a-zA-Z])(_|[a-zA-Z0-9])*",
-        "([0-9][0-9]*)",
-        R"(\+)",
-        R"(\-)",
-        R"(\*)",
-        R"(\/)",
-        R"(\&)",
-        R"(\&\&)",
-        R"(\|)",
-        R"(\|\|)",
-        R"(\!)",
-        R"(\()",
-        R"(\))",
-        R"(\[)",
-        R"(\])",
-        R"(\{)",
-        R"(\})",
-        R"(\;)",
-        R"(\=)",
-        R"(\=\=)",
-
-
-    };
+//    constexpr static const char* names[] = {
+//        "identifier",
+//        "integer",
+//        "+",
+//        "-",
+//        "*",
+//        "/",
+//        "&",
+//        "&&",
+//        "|",
+//        "||",
+//        "!",
+//        "(",
+//        ")",
+//        "[",
+//        "]",
+//        "{",
+//        "}",
+//        ";",
+//        "=",
+//        "==",
+//
+//
+//
+//        "!=",
+//        "<",
+//        "<=",
+//        ">",
+//        ">=",
+//
+//
+//
+//    };
+//
+//    constexpr static const char* regexs[] = {
+//        "(_|[a-zA-Z])(_|[a-zA-Z0-9])*",
+//        "([0-9][0-9]*)",
+//        R"(\+)",
+//        R"(\-)",
+//        R"(\*)",
+//        R"(\/)",
+//        R"(\&)",
+//        R"(\&\&)",
+//        R"(\|)",
+//        R"(\|\|)",
+//        R"(\!)",
+//        R"(\()",
+//        R"(\))",
+//        R"(\[)",
+//        R"(\])",
+//        R"(\{)",
+//        R"(\})",
+//        R"(\;)",
+//        R"(\=)",
+//        R"(\=\=)",
+//
+//
+//        R"(\!\=)",
+//        R"(\<)",
+//        R"(\<\=)",
+//        R"(\>)",
+//        R"(\>\=)",
+//
+//
+//
+//
+//
+//    };
 
     Category type;
     std::string value;
@@ -168,7 +196,7 @@ struct LexicalSymbol
         {
             for(int i = static_cast<int>(Category::Integer) + 1; i < static_cast<int>(Category::End); ++ i)
             {
-                if(s == names[i])
+                if(s == namesAndRegexs.at(static_cast<Category>(i)).first)
                 {
                     type = static_cast<Category>(i);
                     return ;
@@ -228,7 +256,32 @@ const std::map<LexicalSymbol::Category, std::pair<std::string, std::string> > Le
         { Category::RightBrace, {"}", R"(\})", }},
         { Category::Semicolon, {";", R"(\;)", }},
         { Category::AssignMark, {"=", R"(\=)", }},
-        { Category::EqualMark, {"==", R"(\=\=)", }},
+        { Category::Equal, {"==", R"(\=\=)", }},
+
+
+        { Category::NotEqual, {"!=",  R"(\!\=)", }},
+
+        { Category::Less, {"<",  R"(\<)",}},
+
+        { Category::LessEqual, {"<=", R"(\<\=)", }},
+
+        { Category::More, {">", R"(\>)",}},
+
+        { Category::MoreEqual, {">=", R"(\>\=)", }},
+
+
+//        NotEqual,
+//        Less,
+//        LessEqual,
+//        More,
+//        MoreEqual,
+//
+//        R"(\!\=)",
+//        R"(\<)",
+//        R"(\<\=)",
+//        R"(\>)",
+//        R"(\>\=)",
+
 };
 
 const std::map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
@@ -273,7 +326,7 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
 
     for(unsigned i: irange(static_cast<unsigned>(LexicalSymbol::Category::End) ) )
     {
-        regexAndFuncs.push_back(std::make_pair(LexicalSymbol::regexs[i], func));
+        regexAndFuncs.push_back(std::make_pair(LexicalSymbol::namesAndRegexs.at(static_cast<LexicalSymbol::Category>(i)).second, func));
     }
 
     regexAndFuncs.push_back({"&&&&*", [&](auto first, auto last) {

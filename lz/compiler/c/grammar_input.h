@@ -99,19 +99,21 @@ struct GrammarInput
 
 
         statement = "{" >> statementList >> "}";
-
         statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement  > Lex::Else;
         statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >> Lex::Else >> statement ;
-
         statementList = statement >> statementList;
         statementList = eps;
-
+        condition = expression >> ">" >> expression;
+        condition = expression >> ">=" >> expression;
+        condition = expression >> "<" >> expression;
+        condition = expression >> "<=" >> expression;
+        condition = expression >> "==" >> expression;
+        condition = expression >> "!=" >> expression;
         condition = condition >> "||" >> condition < "&&" > "||";
         condition = condition >> "&&" >> condition > "&&" > "||";
-        condition = "!" >>  condition > "&&" > "||";
-
-
+        condition = "!" >>  condition                   > "&&" > "||";
         condition = Lex::True;
+        condition = Lex::False;
 
 
         expression = expression >> "+" >> expression >>
