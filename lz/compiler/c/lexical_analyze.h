@@ -255,6 +255,43 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //    constexpr static const char* names[] = {
 //        "identifier",
 //        "integer",
