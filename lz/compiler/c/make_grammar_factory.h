@@ -110,12 +110,12 @@ struct GrammarInput
                 o.nextList = merge(v[3].falseList, v[5].nextList);
 
 
-            } > Lex::Else;
+            } < Lex::Else;
 
-//        statement = eps >> Lex::If >> "(" >> condition >> ")" >> statement >> Lex::Else >> statement >>
-//            [&](PIT v, P&o) {
-//
-//            } ;
+        statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >> Lex::Else >> statement >>
+            [&](PIT v, P&o) {
+
+            } < Lex::If;
 
 
 

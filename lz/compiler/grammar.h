@@ -492,6 +492,33 @@ struct RuleForOutput
 
 
 
+
+template<typename Grammar, typename NonterminalMap, typename TerminalMap>
+struct GrammarRuleForOutput
+{
+
+    const Grammar& g;
+    typename GrammarTraits<Grammar>::RuleDescriptor rd;
+
+    NonterminalMap nonterminalMap;
+    TerminalMap terminalMap;
+
+    int leftTotalWidth = -1;
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+        operator<<(std::basic_ostream<Char, Traits>& os, const GrammarRuleForOutput& gro)
+    {
+        auto [first, last] = gro.g.ruleSymbols(gro.rd);
+        os << RuleForOutput<decltype(first), NonterminalMap, TerminalMap>
+        {first, last, gro.nonterminalMap, gro.terminalMap, gro.leftTotalWidth};
+
+        return os;
+    }
+
+};
+
+
 template<typename Grammar, typename NonterminalMap, typename TerminalMap>
 struct GrammerForOutput
 {

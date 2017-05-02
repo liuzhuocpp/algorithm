@@ -266,13 +266,16 @@ auto makeItemSets(const Grammar& g, typename Grammar::RuleDescriptor startRule)
 
 
 
-template<typename Grammar, typename ItemSets>
+template<typename Grammar, typename ItemSets, typename IndexToNonterminalMap, typename IndexToTerminalMap>
+
 auto
 calculateSLR1ActionTable(
     const Grammar& g,
     typename Grammar::RuleDescriptor startRule,
     const ItemSets& itemSets,
-    const std::map<std::pair<int, SymbolDescriptor>, int>& gotoFunction )
+    const std::map<std::pair<int, SymbolDescriptor>, int>& gotoFunction,
+    IndexToNonterminalMap indexToNonterminalMap,
+    IndexToTerminalMap indexToTerminalMap)
 {
 
     using RuleSymbolIterator = typename Grammar::RuleSymbolIterator;
@@ -313,7 +316,11 @@ calculateSLR1ActionTable(
                 return true;
             }
 
-            else ans = false;
+            else
+            {
+                if(oldAction.rule == newAction.rule) return true;
+                ans = false;
+            }
             // oldAction 是reduce， newAction是shift
             if(ans)
             {
@@ -329,9 +336,26 @@ calculateSLR1ActionTable(
             }
             if(!ans)
             {
-                std::cout << "Action1: " << oldAction << std::endl;
-                std::cout << "Action2: " << newAction << std::endl;
-                std::cout << "info: " << i << " " << j << std::endl;
+                std::cout << "confict type: " << oldAction << " " << newAction <<  std::endl;
+
+                std::cout << "confict content: " << std::endl;
+                std::cout << GrammarRuleForOutput<Grammar,IndexToNonterminalMap, IndexToTerminalMap > {
+                    g, oldAction.rule, indexToNonterminalMap, indexToTerminalMap } << std::endl;
+
+                if(newAction.type == ActionType::Shift) // 移入规约冲突
+                {
+                    std::cout << "terminal: " << indexToTerminalMap[lz::getTerminalId(j)];
+                }
+                if(newAction.type == ActionType::Reduce) // 移入规约冲突
+                {
+                    std::cout << GrammarRuleForOutput<Grammar,IndexToNonterminalMap, IndexToTerminalMap > {
+                        g, newAction.rule, indexToNonterminalMap, indexToTerminalMap } << std::endl;
+                }
+
+                std::cout << "\n\n";
+
+//                std::cout << "info: " << i << " " << j << std::endl;
+                assert(0);
 
             }
 
@@ -477,7 +501,10 @@ auto extendGrammarAndConstructActionGotoMark(
     }
 
 
-    auto actionTableOption = calculateSLR1ActionTable(g, startRule, itemSets, gotoFunction);
+    auto actionTableOption = calculateSLR1ActionTable(g, startRule, itemSets, gotoFunction,
+
+            indexToNonterminalMap,
+            indexToTerminalMap);
 
     std::cout << "Is SLR(1) grammar? " << std::boolalpha << actionTableOption.hasValue() << std::endl;
     if(actionTableOption.hasValue())
