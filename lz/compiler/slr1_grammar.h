@@ -336,7 +336,8 @@ calculateSLR1ActionTable(
             }
             if(!ans)
             {
-                std::cout << "confict type: " << oldAction << " " << newAction <<  std::endl;
+                std::cout << "confict (" << oldAction << " " << newAction << ") occur, when terminal is "
+                    <<indexToTerminalMap[lz::getTerminalId(j)] <<  std::endl;
 
                 std::cout << "confict content: " << std::endl;
                 std::cout << GrammarRuleForOutput<Grammar,IndexToNonterminalMap, IndexToTerminalMap > {
@@ -344,7 +345,7 @@ calculateSLR1ActionTable(
 
                 if(newAction.type == ActionType::Shift) // 移入规约冲突
                 {
-                    std::cout << "terminal: " << indexToTerminalMap[lz::getTerminalId(j)];
+//                    std::cout << "terminal: " << indexToTerminalMap[lz::getTerminalId(j)];
                 }
                 if(newAction.type == ActionType::Reduce) // 规约规约冲突
                 {

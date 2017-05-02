@@ -1,0 +1,25 @@
+L0:   if< a 1111 L2
+L1:   goto   L5
+L2:   + a b $0
+L3:   = $0  c
+L4:   goto   L14
+L5:   if< a 3333 L7
+L6:   goto   L10
+L7:   - a b $1
+L8:   = $1  c
+L9:   goto   L14
+L10:  if< a 77777 L12
+L11:  goto   L14
+L12:  / a b $2
+L13:  = $2  c
+L14:  * a b $3
+L15:  = $3  c
+L16:  = 999999  apple
+L17:  if< a 222 L19
+L18:  goto   L22
+L19:  * a b $4
+L20:  = $4  apple
+L21:  goto   L24
+L22:  / a b $5
+L23:  = $5  apple
+L24:  = 188888111  k

@@ -41,7 +41,11 @@ struct GrammarInput
 
         LZ_NONTERMINAL_PROXY(statement),
         LZ_NONTERMINAL_PROXY(statementList),
+
         LZ_NONTERMINAL_PROXY(conditionMark),
+//        LZ_NONTERMINAL_PROXY(ifElseMark),
+        LZ_NONTERMINAL_PROXY(elseSymbol),
+
 
         LZ_NONTERMINAL_PROXY(expression),
         LZ_NONTERMINAL_PROXY(condition),
@@ -68,11 +72,19 @@ struct GrammarInput
 
         using Lex = LexicalSymbol::Category;
 
-        program = declare >> program;
-        program = statement >> program;
+        program = declare >> program >>
+                [&](PIT v, P& o) {
+                o.nextList = v[2].nextList;
+            };
+
+        program = statement >> conditionMark >>  program >>
+            [&](PIT v, P& o) {
+                backPatch(v[1].nextList, v[2].cntLabel);
+                o.nextList = v[3].nextList;
+
+            };
+
         program = eps;
-//        program = declare;
-//        program = statement;
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
@@ -101,8 +113,8 @@ struct GrammarInput
             };
 
         statement = expression >> ";";
-//        statement = ";";
-//        statement = "{" >> statementList >> "}";
+        statement = ";";
+        statement = "{" >> statementList >> "}";
 
         statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
@@ -112,11 +124,27 @@ struct GrammarInput
 
             } < Lex::Else;
 
-        statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >> Lex::Else >> statement >>
+        statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >> elseSymbol >> conditionMark >> statement >>
             [&](PIT v, P&o) {
+                backPatch(v[3].trueList, v[5].cntLabel);
+                backPatch(v[3].falseList, v[8].cntLabel);
 
-            } < Lex::If;
+                splice(o.nextList, v[6].nextList);
+                splice(o.nextList, v[7].nextList);
+                splice(o.nextList, v[9].nextList);
 
+
+            };
+        statementList =  statement >> conditionMark >>  statementList >>
+            [&](PIT v, P&o) {
+                backPatch(v[1].nextList, v[2].cntLabel);
+                o.nextList = v[3].nextList;
+            };
+
+        statementList =  eps >>
+            [&](PIT v, P&o) {
+                o.nextList =  {};
+            };
 
 
         condition = expression >> "<" >> expression >>
@@ -169,7 +197,12 @@ struct GrammarInput
                 o.cntLabel = nextLabel();
             };
 
+        elseSymbol = Lex::Else >>
+            [&](PIT v, P&o) {
+                o.nextList.push_back(nextLabel());
+                generateCode("goto", "", "", "-");
 
+            };
 
 //        statementList = statement >> statementList;
 //        statementList = eps;
@@ -356,6 +389,13 @@ struct GrammarInput
         a1.splice(a1.end(), a2);
         return a1;
     }
+
+    static void splice(std::list<int>&a1, std::list<int>&a2)
+    {
+        a1.splice(a1.end(), a2);
+    }
+
+
 
     static std::list<int> makeList(int label)
     {
