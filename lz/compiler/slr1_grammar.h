@@ -346,7 +346,7 @@ calculateSLR1ActionTable(
                 {
                     std::cout << "terminal: " << indexToTerminalMap[lz::getTerminalId(j)];
                 }
-                if(newAction.type == ActionType::Reduce) // 移入规约冲突
+                if(newAction.type == ActionType::Reduce) // 规约规约冲突
                 {
                     std::cout << GrammarRuleForOutput<Grammar,IndexToNonterminalMap, IndexToTerminalMap > {
                         g, newAction.rule, indexToNonterminalMap, indexToTerminalMap } << std::endl;
