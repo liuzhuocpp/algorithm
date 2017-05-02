@@ -65,10 +65,10 @@ struct GrammarInput
 
         gf(program)
     {
-        global_identifierTable = &identifierTable;
-        global_codeTable = &codeTable;
-        global_errorOfstream = &errorOfstream;
-
+//        global_identifierTable = &identifierTable;
+//        global_codeTable = &codeTable;
+//        global_errorOfstream = &errorOfstream;
+//
 
         using Lex = LexicalSymbol::Category;
 
@@ -426,6 +426,13 @@ auto makeGrammarFactory(
     IRTable &codeTable,
     ErrorOfstream &errorOfstream)
 {
+
+    GrammarInput<ErrorOfstream>::global_identifierTable = &identifierTable;
+    GrammarInput<ErrorOfstream>::global_codeTable = &codeTable;
+    GrammarInput<ErrorOfstream>::global_errorOfstream = &errorOfstream;
+
+
+
     return  GrammarInput<ErrorOfstream>
        (identifierTable, codeTable, errorOfstream).gf;
 
