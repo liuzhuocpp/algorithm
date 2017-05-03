@@ -194,11 +194,6 @@ struct GrammarInput
 
             };
 
-//        statementList = statement >> statementList;
-//        statementList = eps;
-
-//        condition = Lex::True;
-//        condition = Lex::False;
 
 
         expression = expression >> "+" >> expression >> solveArithmeticOperator
@@ -213,20 +208,13 @@ struct GrammarInput
         expression = expression >> "/" >> expression >> solveArithmeticOperator
             > "+" > "-" > "*" > "/";
 
-        expression = "+" >> expression  >>
-            [&](PIT v, P&o) {
-                o.addr = getTemporaryVariableName();
-                generateCode("plus", v[2].addr, "", o.addr);
+        expression = "+" >> expression  >> solveUnaryPlusOrMinusOperator
+            > "+" > "-" > "*" > "/";
 
-            } > "+" > "-" > "*" > "/";
+        expression = "-" >> expression >> solveUnaryPlusOrMinusOperator
+            > "+" > "-" > "*" > "/";
 
-        expression = "-" >> expression >>
-            [&](PIT v, P&o) {
-                o.addr = getTemporaryVariableName();
-                generateCode("minus", v[2].addr, "", o.addr);
-            } > "+" > "-" > "*" > "/";
-
-        expression = "(" >> expression >> ")"  >>
+        expression = "(" >> expression >> ")" >>
             [&](PIT v, P&o) {
                 o.addr = v[2].addr;
             };
@@ -388,6 +376,19 @@ struct GrammarInput
         o.falseList.push_back(nextLabel());
         generateCode("goto", "", "", "-");
 
+    }
+
+    static void solveUnaryPlusOrMinusOperator(PIT v, P &o)
+    {
+        o.addr = getTemporaryVariableName();
+        std::string op = v[1].addr;
+        std::string ansOp;
+        if(op == "+")
+            ansOp = "plus";
+        else if(op == "-")
+            ansOp = "minus";
+        else assert(0);
+        generateCode(ansOp, v[2].addr, "", o.addr);
     }
 
 };
