@@ -1,24 +1,31 @@
 L0:   if== a 1111 L2
-L1:   goto   L5
-L2:   + a b $0
-L3:   = $0  c
-L4:   goto   L24
-L5:   if!= a 3333 L7
-L6:   goto   L10
-L7:   - a b $1
-L8:   = $1  c
-L9:   goto   L24
-L10:  if>= a 77777 L12
-L11:  goto   L15
-L12:  / a b $2
-L13:  = $2  c
-L14:  goto   L24
-L15:  if<= a 88888 L17
-L16:  goto   L20
-L17:  * a b $3
-L18:  = $3  c
-L19:  goto   L24
-L20:  if> a 99999 L22
-L21:  goto   L24
-L22:  minus a  $4
-L23:  = $4  c
+L1:   goto   L11
+L2:   if== a 22222 L4
+L3:   goto   L6
+L4:   + c 10000111 $0
+L5:   = $0  c
+L6:   + a b $1
+L7:   = $1  c
+L8:   plus c  $2
+L9:   = $2  c
+L10:  goto   L31
+L11:  if!= a 3333 L13
+L12:  goto   L16
+L13:  - a b $3
+L14:  = $3  c
+L15:  goto   L31
+L16:  if>= a 77777 L18
+L17:  goto   L21
+L18:  / a b $4
+L19:  = $4  c
+L20:  goto   L31
+L21:  if<= a 88888 L23
+L22:  goto   L26
+L23:  * a b $5
+L24:  = $5  c
+L25:  goto   L31
+L26:  if> a 99999 L28
+L27:  goto   L31
+L28:  minus a  $6
+L29:  = $6  c
+L30:  goto   L31

@@ -114,7 +114,7 @@ struct GrammarInput
         statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
                 backPatch(v[3].trueList, v[5].cntLabel);
-                o.nextList = merge(v[3].falseList, v[5].nextList);
+                o.nextList = merge(v[3].falseList, v[6].nextList);
 
 
             } < Lex::Else;
