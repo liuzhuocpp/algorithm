@@ -250,12 +250,8 @@ struct GrammarInput
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
-//                std::cout << "operator=+++++++++++" << std::endl;
-
                 if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable.end())
                 {
-//                    std::cout << "009((((((((((((((((=+++++++++++" << std::endl;
-//                    generateCode("=", v[3].addr, "", "SS");
                     generateCode("=", v[3].addr, "", getVariableName(checkIt));
                 }
 
