@@ -68,7 +68,7 @@ struct GrammarInput
         using Lex = LexicalSymbol::Category;
 
         program = declare >> program >>
-                [&](PIT v, P& o) {
+            [&](PIT v, P& o) {
                 o.nextList = v[2].nextList;
             };
 
