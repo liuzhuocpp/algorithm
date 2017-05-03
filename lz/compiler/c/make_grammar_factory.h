@@ -201,26 +201,17 @@ struct GrammarInput
 //        condition = Lex::False;
 
 
-        expression = expression >> "+" >> expression >>
-            [&](PIT v, P&o) { // 因为使用了solveArithmeticOperator 是局部变量
+        expression = expression >> "+" >> expression >> solveArithmeticOperator
+             > "+" > "-" < "*" < "/";
 
-                solveArithmeticOperator("+", v, o);
-            } > "+" > "-" < "*" < "/";
+        expression = expression >> "-" >> expression >> solveArithmeticOperator
+            > "+" > "-" < "*" < "/";
 
-        expression = expression >> "-" >> expression >>
-            [&](PIT v, P&o) {
-                solveArithmeticOperator("-", v, o);
-            } > "+" > "-" < "*" < "/";
+        expression = expression >> "*" >> expression >> solveArithmeticOperator
+            > "+" > "-" > "*" > "/";
 
-        expression = expression >> "*" >> expression >>
-            [&](PIT v, P&o) {
-                solveArithmeticOperator("*", v, o);
-            } > "+" > "-" > "*" > "/";
-
-        expression = expression >> "/" >> expression >>
-            [&](PIT v, P&o) {
-                solveArithmeticOperator("/", v, o);
-            } > "+" > "-" > "*" > "/";
+        expression = expression >> "/" >> expression >> solveArithmeticOperator
+            > "+" > "-" > "*" > "/";
 
         expression = "+" >> expression  >>
             [&](PIT v, P&o) {
@@ -326,12 +317,12 @@ struct GrammarInput
 
 
 
-    // bellow function must be static,
+    // Bellow function must be static,
     // otherwise, when GrammarInput is destoryed, the bellow calls will be error
-    static void solveArithmeticOperator (std::string op, PIT v, P &o)
+    static void solveArithmeticOperator (PIT v, P &o)
     {
         o.addr = getTemporaryVariableName();
-        generateCode(op, v[1].addr, v[3].addr, o.addr);
+        generateCode(v[2].addr, v[1].addr, v[3].addr, o.addr);
     };
 
     static auto checkVariableDeclare ( std::string variable)
