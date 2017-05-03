@@ -143,12 +143,12 @@ struct GrammarInput
 
 
         condition = expression >> "<" >> expression >> solveRelationalOperator;
+        condition = expression >> ">" >> expression >> solveRelationalOperator;
 
-//        condition = expression >> "<=" >> expression;
-//        condition = expression >> ">" >> expression;
-//        condition = expression >> ">=" >> expression;
-//        condition = expression >> "==" >> expression;
-//        condition = expression >> "!=" >> expression;
+        condition = expression >> "<=" >> expression >> solveRelationalOperator;
+        condition = expression >> ">=" >> expression >> solveRelationalOperator;
+        condition = expression >> "==" >> expression >> solveRelationalOperator;
+        condition = expression >> "!=" >> expression >> solveRelationalOperator;
 
 
         condition = condition >> "||" >> conditionMark >>  condition >>
