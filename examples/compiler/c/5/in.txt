@@ -17,7 +17,7 @@
     }
     else if(a != 3333)
     {
-        c  = a - b;
+        c  = a = a - b;
     }
     else if(a >= 77777)
     {

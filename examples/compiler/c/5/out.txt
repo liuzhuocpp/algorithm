@@ -8,24 +8,25 @@ L6:   + a b $1
 L7:   = $1  c
 L8:   plus c  $2
 L9:   = $2  c
-L10:  goto   L31
+L10:  goto   L32
 L11:  if!= a 3333 L13
-L12:  goto   L16
+L12:  goto   L17
 L13:  - a b $3
-L14:  = $3  c
-L15:  goto   L31
-L16:  if>= a 77777 L18
-L17:  goto   L21
-L18:  / a b $4
-L19:  = $4  c
-L20:  goto   L31
-L21:  if<= a 88888 L23
-L22:  goto   L26
-L23:  * a b $5
-L24:  = $5  c
-L25:  goto   L31
-L26:  if> a 99999 L28
-L27:  goto   L31
-L28:  minus a  $6
-L29:  = $6  c
-L30:  goto   L31
+L14:  = $3  a
+L15:  = a  c
+L16:  goto   L32
+L17:  if>= a 77777 L19
+L18:  goto   L22
+L19:  / a b $4
+L20:  = $4  c
+L21:  goto   L32
+L22:  if<= a 88888 L24
+L23:  goto   L27
+L24:  * a b $5
+L25:  = $5  c
+L26:  goto   L32
+L27:  if> a 99999 L29
+L28:  goto   L32
+L29:  minus a  $6
+L30:  = $6  c
+L31:  goto   L32

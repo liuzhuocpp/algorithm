@@ -253,7 +253,9 @@ struct GrammarInput
                 if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable.end())
                 {
                     generateCode("=", v[3].addr, "", getVariableName(checkIt));
+                    o.addr = v[1].addr;
                 }
+
 
             } < "+" < "-" < "*" < "/";
 
