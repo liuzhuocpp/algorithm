@@ -43,7 +43,6 @@ struct GrammarInput
         LZ_NONTERMINAL_PROXY(statementList),
 
         LZ_NONTERMINAL_PROXY(conditionMark),
-//        LZ_NONTERMINAL_PROXY(ifElseMark),
         LZ_NONTERMINAL_PROXY(elseSymbol),
 
 
@@ -65,10 +64,6 @@ struct GrammarInput
 
         gf(program)
     {
-//        global_identifierTable = &identifierTable;
-//        global_codeTable = &codeTable;
-//        global_errorOfstream = &errorOfstream;
-//
 
         using Lex = LexicalSymbol::Category;
 
@@ -147,13 +142,8 @@ struct GrammarInput
             };
 
 
-        condition = expression >> "<" >> expression >>
-            [&](PIT v, P&o) {
-                o.trueList.push_back(nextLabel());
-                generateCode("if<", v[1].addr, v[3].addr, "-");
-                o.falseList.push_back(nextLabel());
-                generateCode("goto", "", "", "-");
-            };
+        condition = expression >> "<" >> expression >> solveRelationalOperator;
+
 //        condition = expression >> "<=" >> expression;
 //        condition = expression >> ">" >> expression;
 //        condition = expression >> ">=" >> expression;
@@ -402,7 +392,14 @@ struct GrammarInput
         return std::list<int>{label};
     }
 
+    static void solveRelationalOperator(PIT v, P &o)
+    {
+        o.trueList.push_back(nextLabel());
+        generateCode("if" + v[2].addr, v[1].addr, v[3].addr, "-");
+        o.falseList.push_back(nextLabel());
+        generateCode("goto", "", "", "-");
 
+    }
 
 };
 

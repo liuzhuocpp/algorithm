@@ -53,6 +53,14 @@ struct LexicalSymbol
     Category type;
     std::string value;
 
+    std::string getValue() const
+    {
+        if(type == Category::Identifier || type == Category::Integer)
+            return value;
+        else
+            return names[static_cast<unsigned>(type)];
+    }
+
     LexicalSymbol(Category type, std::string value):type(type), value(value){}
     LexicalSymbol() = default;
     LexicalSymbol(Category type): type(type){}
