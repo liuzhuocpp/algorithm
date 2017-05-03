@@ -33,7 +33,7 @@ struct Properties
     Properties() = default;
     Properties(LexicalSymbol t)
     {
-        addr = t.getValue();
+        addr = t.value();
 
     }
 

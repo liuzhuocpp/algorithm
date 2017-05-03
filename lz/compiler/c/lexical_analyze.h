@@ -40,7 +40,7 @@ struct LexicalSymbol
 
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
-        return a.type < b.type;
+        return a.m_category < b.m_category;
     }
 
     static const
@@ -49,41 +49,45 @@ struct LexicalSymbol
 //    static const
 //    std::map<Category, pair<std::string, std::string> > namesAndRegexs;
 
-
-    Category type;
-    std::string value;
-
-    std::string getValue() const
+private:
+    Category m_category;
+    std::string m_value;
+public:
+    Category category() const
     {
-        if(type == Category::Identifier || type == Category::Integer)
-            return value;
+        return m_category;
+    }
+    std::string value() const
+    {
+        if(m_category == Category::Identifier || m_category == Category::Integer)
+            return m_value;
         else
-            return names[static_cast<unsigned>(type)];
+            return names[static_cast<unsigned>(m_category)];
     }
 
-    LexicalSymbol(Category type, std::string value):type(type), value(value){}
+    LexicalSymbol(Category type, std::string value):m_category(type), m_value(value){}
     LexicalSymbol() = default;
-    LexicalSymbol(Category type): type(type){}
+    LexicalSymbol(Category type): m_category(type){}
     LexicalSymbol(std::string s)
     {
         if(s[0] == '_' || islower(s[0]) || isupper(s[0]))
         {
             if(keywordToType.count(s))
             {
-                type = keywordToType.at(s);
-                value = s; // can be improved
+                m_category = keywordToType.at(s);
+                m_value = s; // can be improved
             }
             else
             {
-                type = Category::Identifier;
-                value = s;
+                m_category = Category::Identifier;
+                m_value = s;
             }
 
         }
         else if(isdigit(s[0]))
         {
-            type = Category::Integer;
-            value = s;
+            m_category = Category::Integer;
+            m_value = s;
         }
         else
         {
@@ -93,7 +97,7 @@ struct LexicalSymbol
 //                        namesAndRegexs.at(static_cast<Category>(i)).first
                         )
                 {
-                    type = static_cast<Category>(i);
+                    m_category = static_cast<Category>(i);
                     return ;
                 }
             }
@@ -148,14 +152,14 @@ struct LexicalSymbol
     operator<<(std::basic_ostream<Char, Traits>& os,
                const LexicalSymbol&  ls)
     {
-        os << names[static_cast<int>(ls.type)];
+        os << names[static_cast<int>(ls.m_category)];
 
 
 
-        if(ls.type == Category::Identifier || ls.type == Category::Integer)
+        if(ls.m_category == Category::Identifier || ls.m_category == Category::Integer)
         {
 
-            os << "(" << ls.value << ")";
+            os << "(" << ls.m_value << ")";
         }
         return os;
 
