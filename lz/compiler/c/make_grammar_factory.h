@@ -127,9 +127,21 @@ struct GrammarInput
                 splice(o.nextList, v[6].nextList);
                 splice(o.nextList, v[7].nextList);
                 splice(o.nextList, v[9].nextList);
+            };
+
+        statement = eps >> Lex::While >> "(" >> conditionMark >>  condition >> ")" >> conditionMark >> statement >>
+            [&](PIT v, P&o) {
+
+                backPatch(v[4].trueList, v[6].cntLabel);
+
+                splice(o.nextList, v[4].falseList);
+                splice(o.nextList, v[7].nextList);
+
+                generateCode("goto", "", "", "L" + std::to_string(v[3].cntLabel));
 
 
             };
+
         statementList =  statement >> conditionMark >>  statementList >>
             [&](PIT v, P&o) {
                 backPatch(v[1].nextList, v[2].cntLabel);

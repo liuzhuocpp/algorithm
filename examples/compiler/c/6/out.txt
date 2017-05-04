@@ -1,0 +1,16 @@
+L0:   if> a 0 L2
+L1:   goto   L14
+L2:   if== a 11111 L4
+L3:   goto   L7
+L4:   + c 1000 $0
+L5:   = $0  c
+L6:   goto   L13
+L7:   if== a 2222 L9
+L8:   goto   L12
+L9:   - c 333333 $1
+L10:  = $1  c
+L11:  goto   L13
+L12:  = 55555555  c
+L13:  goto   L0
+L14:  + c 100333333 $2
+L15:  = $2  c
