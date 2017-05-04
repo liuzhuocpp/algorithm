@@ -15,7 +15,7 @@ namespace lz {
 struct IntermediateRepresentation
 {
     std::string op, arg1, arg2, res;
-    int label = -1;// 可选的label, -1 表示无label， label是自增的
+//    int label = -1;// 可选的label, -1 表示无label， label是自增的
     IntermediateRepresentation() = default;
     IntermediateRepresentation(std::string op, std::string arg1, std::string arg2, std::string res):
         op(op), arg1(arg1), arg2(arg2), res(res){}
@@ -35,6 +35,7 @@ struct IRTable: std::vector<IntermediateRepresentation>
 {
     using std::vector<IntermediateRepresentation>::vector;
 
+    std::set<int> labels;
 
 
 
@@ -44,21 +45,35 @@ struct IRTable: std::vector<IntermediateRepresentation>
                const IRTable& table)
     {
         int maxWidth = 0;
-        for(auto IR: table)
+//        for(auto IR: table)
+        for(auto i : lz::irange(table.size()))
         {
-            if(IR.label != -1)
-            maxWidth = std::max(maxWidth, (int)std::to_string(IR.label).size());
+//            if(IR.label != -1)
+            if(table.labels.count(i))
+                maxWidth = std::max(maxWidth, (int)std::to_string(i).size());
         }
 
-        for(auto IR: table)
+        constexpr const int paddingSpaceNumber = 3;
+//        for(auto IR: table)
+        for(auto i : lz::irange(table.size()))
         {
-            if(maxWidth != 0)
-            {
-                auto label = std::to_string(IR.label);
-                os << "L" << label << ":" << std::string(maxWidth - label.size() + 2, ' ');
-            }
 
-            os << IR << std::endl;
+            if(!table.labels.count(i))
+            {
+
+                os << std::string(maxWidth + 2, ' '); // 2 for L :
+            }
+            else
+            {
+                std::string labelString = std::to_string(i);
+
+                os << "L" << labelString << ":" << std::string(maxWidth - labelString.size(), ' ');
+            }
+            os  << std::string(paddingSpaceNumber, ' ') <<  table[i] << std::endl;
+        }
+        if(table.labels.count(table.size()))
+        {
+            os << "L" << table.size() << ":\n";
         }
 
         return os;

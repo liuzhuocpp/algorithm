@@ -135,9 +135,16 @@ struct GrammarInput
                 backPatch(v[4].trueList, v[6].cntLabel);
 
                 splice(o.nextList, v[4].falseList);
-                splice(o.nextList, v[7].nextList);
+//                splice(o.nextList, v[7].nextList);
+
+                backPatch(v[7].nextList, nextLabel());
+
 
                 generateCode("goto", "", "", "L" + std::to_string(v[3].cntLabel));
+
+                int label = v[3].cntLabel;
+                codeTable.labels.insert(v[3].cntLabel);
+//                codeTable[label].label = label;
 
 
             };
@@ -345,7 +352,7 @@ struct GrammarInput
     static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
     {
         global_codeTable->push_back({op, arg1, arg2, res});
-        global_codeTable->back().label = global_codeTable->size() - 1;
+//        global_codeTable->back().label = global_codeTable->size() - 1;
     };
 
     static int nextLabel()
@@ -356,9 +363,18 @@ struct GrammarInput
 
     static void backPatch(const std::list<int>&a1, int label)
     {
+//        if(label == 6)
+//        {
+//            assert(0);
+//        }
+
+        if(!a1.empty())
+            global_codeTable->labels.insert(label);
         for(auto x: a1)
         {
             (*global_codeTable)[x].res = "L" + std::to_string(label);
+
+
         }
     }
 

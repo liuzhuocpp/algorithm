@@ -1,8 +1,9 @@
-L0:  if< a 111111 L2
-L1:  goto   L6
-L2:  if< b 3333 L4
-L3:  goto   L8
-L4:  if< c 9999 L6
-L5:  goto   L8
-L6:  + a b $0
-L7:  = $0  c
+      if< a 111111 L2
+      goto   L6
+L2:   if< b 3333 L4
+      goto   L8
+L4:   if< c 9999 L6
+      goto   L8
+L6:   + a b $0
+      = $0  c
+L8:
