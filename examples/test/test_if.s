@@ -1,13 +1,13 @@
 	.text
-	.def	 _Z1fi;
+	.def	 f;
 	.scl	2;
 	.type	32;
 	.endef
-	.globl	_Z1fi
+	.globl	f
 	.p2align	4, 0x90
-_Z1fi:                                  # @_Z1fi
+f:                                      # @f
 .Lcfi0:
-.seh_proc _Z1fi
+.seh_proc f
 # BB#0:                                 # %entry
 	pushq	%rax
 .Lcfi1:
