@@ -25,7 +25,7 @@ struct Properties
 
     std::list<int> trueList, falseList; // for condition
     std::list<int> nextList; // for condition
-    int cntLabel; // for conditionMark
+    int cntInstructionIndex; // for conditionMark
 
 
 

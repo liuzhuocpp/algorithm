@@ -74,7 +74,7 @@ struct GrammarInput
 
         program = statement >> conditionMark >>  program >>
             [&](PIT v, P& o) {
-                backPatch(v[1].nextList, v[2].cntLabel);
+                backPatch(v[1].nextList, v[2].cntInstructionIndex);
                 o.nextList = v[3].nextList;
 
             };
@@ -113,7 +113,7 @@ struct GrammarInput
 
         statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
-                backPatch(v[3].trueList, v[5].cntLabel);
+                backPatch(v[3].trueList, v[5].cntInstructionIndex);
                 o.nextList = merge(v[3].falseList, v[6].nextList);
 
 
@@ -121,8 +121,8 @@ struct GrammarInput
 
         statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >> elseSymbol >> conditionMark >> statement >>
             [&](PIT v, P&o) {
-                backPatch(v[3].trueList, v[5].cntLabel);
-                backPatch(v[3].falseList, v[8].cntLabel);
+                backPatch(v[3].trueList, v[5].cntInstructionIndex);
+                backPatch(v[3].falseList, v[8].cntInstructionIndex);
 
                 splice(o.nextList, v[6].nextList);
                 splice(o.nextList, v[7].nextList);
@@ -132,20 +132,20 @@ struct GrammarInput
         statement = eps >> Lex::While >> "(" >> conditionMark >>  condition >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
 
-                backPatch(v[4].trueList, v[6].cntLabel);
+                backPatch(v[4].trueList, v[6].cntInstructionIndex);
 
                 splice(o.nextList, v[4].falseList);
 
                 backPatch(v[7].nextList, nextInstructionIndex());
 
-                generateGotoCode(v[3].cntLabel);
+                generateGotoCode(v[3].cntInstructionIndex);
 
 
             };
 
         statementList =  statement >> conditionMark >>  statementList >>
             [&](PIT v, P&o) {
-                backPatch(v[1].nextList, v[2].cntLabel);
+                backPatch(v[1].nextList, v[2].cntInstructionIndex);
                 o.nextList = v[3].nextList;
             };
 
@@ -166,7 +166,7 @@ struct GrammarInput
 
         condition = condition >> "||" >> conditionMark >>  condition >>
             [&](PIT v, P&o) {
-                backPatch(v[1].falseList, v[3].cntLabel);
+                backPatch(v[1].falseList, v[3].cntInstructionIndex);
                 o.trueList = merge(v[1].trueList, v[4].trueList);
                 o.falseList = v[4].falseList;
 
@@ -174,7 +174,7 @@ struct GrammarInput
 
         condition = condition >> "&&" >> conditionMark >> condition >>
             [&](PIT v, P&o) {
-                backPatch(v[1].trueList, v[3].cntLabel);
+                backPatch(v[1].trueList, v[3].cntInstructionIndex);
                 o.trueList = v[4].trueList;
                 o.falseList = merge(v[1].falseList, v[4].falseList);
 
@@ -197,7 +197,7 @@ struct GrammarInput
 
         conditionMark = eps >>
             [&](PIT v, P&o) {
-                o.cntLabel = nextInstructionIndex();
+                o.cntInstructionIndex = nextInstructionIndex();
             };
 
         elseSymbol = Lex::Else >>
