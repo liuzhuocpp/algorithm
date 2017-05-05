@@ -136,7 +136,7 @@ struct GrammarInput
 
                 splice(o.nextList, v[4].falseList);
 
-                backPatch(v[7].nextList, nextLabel());
+                backPatch(v[7].nextList, nextInstructionIndex());
 
                 generateGotoCode(v[3].cntLabel);
 
@@ -197,12 +197,12 @@ struct GrammarInput
 
         conditionMark = eps >>
             [&](PIT v, P&o) {
-                o.cntLabel = nextLabel();
+                o.cntLabel = nextInstructionIndex();
             };
 
         elseSymbol = Lex::Else >>
             [&](PIT v, P&o) {
-                o.nextList.push_back(nextLabel());
+                o.nextList.push_back(nextInstructionIndex());
                 generateCode("goto", "", "", "-");
 
             };
@@ -356,9 +356,9 @@ struct GrammarInput
 
     }
 
-    static int nextLabel()
+    static int nextInstructionIndex()
     {
-        return global_codeTable->size();
+        return global_codeTable->nextInstructionIndex();
     }
 
 
@@ -400,9 +400,9 @@ struct GrammarInput
 
     static void solveRelationalOperator(PIT v, P &o)
     {
-        o.trueList.push_back(nextLabel());
+        o.trueList.push_back(nextInstructionIndex());
         generateCode("if" + v[2].addr, v[1].addr, v[3].addr, "-");
-        o.falseList.push_back(nextLabel());
+        o.falseList.push_back(nextInstructionIndex());
         generateCode("goto", "", "", "-");
 
     }

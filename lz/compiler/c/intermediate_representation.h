@@ -37,6 +37,10 @@ struct IRTable: std::vector<IntermediateRepresentation>
 
     std::set<int> labels;
 
+    int nextInstructionIndex() const
+    {
+        return size();
+    }
 
 
     template <class Char, class Traits>
@@ -45,16 +49,13 @@ struct IRTable: std::vector<IntermediateRepresentation>
                const IRTable& table)
     {
         int maxWidth = 0;
-//        for(auto IR: table)
         for(auto i : lz::irange(table.size()))
         {
-//            if(IR.label != -1)
             if(table.labels.count(i))
                 maxWidth = std::max(maxWidth, (int)std::to_string(i).size());
         }
 
         constexpr const int paddingSpaceNumber = 3;
-//        for(auto IR: table)
         for(auto i : lz::irange(table.size()))
         {
 
