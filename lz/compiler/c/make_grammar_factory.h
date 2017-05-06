@@ -54,11 +54,6 @@ struct GrammarInput
         ;
 
     GrammarFactory<T, P> gf;
-    // I think use the global variable is very ugly.
-    static IdentifierTable* global_identifierTable;
-    static ThreeAddressCode* global_codeTable;
-    static ErrorOfstream* global_errorOfstream;
-
 
     GrammarInput(IdentifierTable &identifierTable, ThreeAddressCode& codeTable, ErrorOfstream& errorOfstream):
 
@@ -124,9 +119,9 @@ struct GrammarInput
                 backPatch(v[3].trueList, v[5].cntInstructionIndex);
                 backPatch(v[3].falseList, v[8].cntInstructionIndex);
 
-                splice(o.nextList, v[6].nextList);
-                splice(o.nextList, v[7].nextList);
-                splice(o.nextList, v[9].nextList);
+                merge(o.nextList, v[6].nextList);
+                merge(o.nextList, v[7].nextList);
+                merge(o.nextList, v[9].nextList);
             };
 
         statement = eps >> Lex::While >> "(" >> conditionMark >>  condition >> ")" >> conditionMark >> statement >>
@@ -134,7 +129,7 @@ struct GrammarInput
 
                 backPatch(v[4].trueList, v[6].cntInstructionIndex);
 
-                splice(o.nextList, v[4].falseList);
+                merge(o.nextList, v[4].falseList);
 
                 backPatch(v[7].nextList, nextInstructionIndex());
 
@@ -313,6 +308,23 @@ struct GrammarInput
     }
 
 
+    // I think use the global variable is very ugly.
+    static IdentifierTable* global_identifierTable;
+    static ThreeAddressCode* global_codeTable;
+    static ErrorOfstream* global_errorOfstream;
+
+    static IdentifierTable& identifierTable()
+    {
+        return *global_identifierTable;
+    }
+    static ThreeAddressCode& codeTable()
+    {
+        return *global_codeTable;
+    }
+    static ErrorOfstream& errorOfstream()
+    {
+        return *global_errorOfstream;
+    }
 
 
 
@@ -346,16 +358,11 @@ struct GrammarInput
     static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
     {
         global_codeTable->generateCode(op, arg1, arg2, res);
-//        global_codeTable->push_back({op, arg1, arg2, res});
     };
 
     static void generateGotoCode(int label)
     {
         global_codeTable->generateGotoCode(label);
-
-//        generateCode("goto", "", "", "L" + std::to_string(label));
-//
-//        global_codeTable->labels.insert(label);
 
     }
 
@@ -367,21 +374,7 @@ struct GrammarInput
 
     static void backPatch(const std::list<int> & a, int instructionId)
     {
-
-        global_codeTable->backPatch(a.begin(), a.end(), instructionId);
-//        if(label == 6)
-//        {
-//            assert(0);
-//        }
-
-//        if(!a1.empty())
-//            global_codeTable->labels.insert(label);
-//        for(auto x: a1)
-//        {
-//            (*global_codeTable)[x].res = "L" + std::to_string(label);
-//
-//
-//        }
+        codeTable().backPatch(a.begin(), a.end(), instructionId);
     }
 
     // can be improve
@@ -391,17 +384,7 @@ struct GrammarInput
         return a1;
     }
 
-    static void splice(std::list<int>&a1, std::list<int>&a2)
-    {
-        a1.splice(a1.end(), a2);
-    }
 
-
-
-    static std::list<int> makeList(int label)
-    {
-        return std::list<int>{label};
-    }
 
     static void solveRelationalOperator(PIT v, P &o)
     {
