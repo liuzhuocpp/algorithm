@@ -1,0 +1,24 @@
+
+    X(If, "if")
+    X(IfLess, "if<")
+    X(IfMore, "if>")
+    X(IfLessEqual, "if<=")
+    X(IfMoreEqual, "if>=")
+    X(IfEqual, "if==")
+    X(IfNotEqual, "if!=")
+    X(Goto, "goto")
+
+    X(Plus, "+")
+    X(Minus, "-")
+    X(Multiply, "*")
+    X(Divide, "/")
+    X(Assign, "=")
+    
+    X(UnaryPlus, "plus")
+    X(UnaryMinus, "minus")
+    
+
+    X(ReadArray, "=[]")
+    X(WriteArray, "[]=")
+
+
