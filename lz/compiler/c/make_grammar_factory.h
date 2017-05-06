@@ -17,7 +17,7 @@
 #include <lz/compiler/c/lexical_analyze.h>
 #include <lz/compiler/c/identifier.h>
 #include <lz/compiler/c/properties.h>
-#include <lz/compiler/c/three_address_instruction.h>
+#include <lz/compiler/c/three_address_code.h>
 #include <lz/compiler/c/utility.h>
 
 

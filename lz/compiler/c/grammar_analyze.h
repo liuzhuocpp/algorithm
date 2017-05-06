@@ -20,7 +20,7 @@
 #include <lz/compiler/lr_grammar.h>
 
 #include <lz/compiler/c/make_grammar_factory.h>
-#include <lz/compiler/c/three_address_instruction.h>
+#include <lz/compiler/c/three_address_code.h>
 //
 //
 //#include <lz/compiler/c/lexical_analyze.h>
