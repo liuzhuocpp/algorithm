@@ -237,23 +237,23 @@ struct GrammarInput
 
         expression = Lex::Identifier >>
             [&](PIT v, P&o) {
-                std::string name = v[1].addr;
 
-                if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable().end())
-                {
+                checkVariableDeclare(v[1].addr, [&](auto checkIt){
                     o.addr = getVariableName(checkIt);
-                }
+                });
+
+
             };
 
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
 
-                if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable().end())
-                {
+                checkVariableDeclare(v[1].addr, [&](auto checkIt){
                     generateCode(InstructionCategory::Assign, v[3].addr, "", getVariableName(checkIt));
                     o.addr = v[1].addr;
-                }
+                });
+
 
 
             } < "+" < "-" < "*" < "/";
@@ -282,16 +282,15 @@ struct GrammarInput
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
-                std::string arrayName = v[1].addr;
-                o.addr = arrayName; // 数组名称
+                o.addr = v[1].addr; // 数组名称
 
-                auto it = checkVariableDeclare(arrayName);
-                if(it == identifierTable().end()) return ;
+                checkVariableDeclare(o.addr, [&](auto checkIt){
+                    std::string tmp = getTemporaryVariableName();
+                    o.type = checkIt->first.type.subArray();
+                    generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(o.type.getWidth()), tmp);
+                    o.arrayOffsetAddr = tmp;
+                });
 
-                std::string tmp = getTemporaryVariableName();
-                o.type = it->first.type.subArray();
-                generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(o.type.getWidth()), tmp);
-                o.arrayOffsetAddr = tmp;
 
             };
 
@@ -331,17 +330,21 @@ struct GrammarInput
         generateCode(ThreeAddressInstruction::toCategory(v[2].addr), v[1].addr, v[3].addr, o.addr);
     };
 
-    static auto checkVariableDeclare ( std::string variable)
+
+    template<typename Callback>
+    static void checkVariableDeclare ( std::string variable, Callback callback)
     {
         auto it = identifierTable().find(variable);
         if(it == identifierTable().end())
         {
             errorOfstream() << "\"" << variable << "\" was not declare \n";
-            return identifierTable().end();
         }
         else
-            return it;
+        {
+            callback(it);
+        }
     };
+
 
 
 
