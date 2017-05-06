@@ -345,14 +345,17 @@ struct GrammarInput
 
     static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
     {
-        global_codeTable->push_back({op, arg1, arg2, res});
+        global_codeTable->generateCode(op, arg1, arg2, res);
+//        global_codeTable->push_back({op, arg1, arg2, res});
     };
 
     static void generateGotoCode(int label)
     {
-        generateCode("goto", "", "", "L" + std::to_string(label));
+        global_codeTable->generateGotoCode(label);
 
-        global_codeTable->labels.insert(label);
+//        generateCode("goto", "", "", "L" + std::to_string(label));
+//
+//        global_codeTable->labels.insert(label);
 
     }
 
@@ -362,21 +365,23 @@ struct GrammarInput
     }
 
 
-    static void backPatch(const std::list<int>&a1, int label)
+    static void backPatch(const std::list<int> & a, int label)
     {
+
+        global_codeTable->backPatchLabel(a.begin(), a.end(), label);
 //        if(label == 6)
 //        {
 //            assert(0);
 //        }
 
-        if(!a1.empty())
-            global_codeTable->labels.insert(label);
-        for(auto x: a1)
-        {
-            (*global_codeTable)[x].res = "L" + std::to_string(label);
-
-
-        }
+//        if(!a1.empty())
+//            global_codeTable->labels.insert(label);
+//        for(auto x: a1)
+//        {
+//            (*global_codeTable)[x].res = "L" + std::to_string(label);
+//
+//
+//        }
     }
 
     // can be improve

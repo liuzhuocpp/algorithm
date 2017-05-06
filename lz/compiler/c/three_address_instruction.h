@@ -17,8 +17,8 @@ struct ThreeAddressInstruction
     std::string op, arg1, arg2, res;
 //    int label = -1;// 可选的label, -1 表示无label， label是自增的
     ThreeAddressInstruction() = default;
-    ThreeAddressInstruction(std::string op, std::string arg1, std::string arg2, std::string res):
-        op(op), arg1(arg1), arg2(arg2), res(res){}
+//    ThreeAddressInstruction(std::string op, std::string arg1, std::string arg2, std::string res):
+//        op(op), arg1(arg1), arg2(arg2), res(res){}
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
@@ -46,6 +46,32 @@ struct ThreeAddressCode: std::vector<ThreeAddressInstruction>
         return size();
     }
 
+    void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
+    {
+        this->push_back({op, arg1, arg2, res});
+    };
+
+    template<typename Iterator>
+    void backPatchLabel(Iterator first, Iterator last, int instructionId)
+    {
+        if(first != last)
+            this->labels.insert(instructionId);
+        for(;first != last; first ++)
+        {
+            (*this)[*first].res = "L" + std::to_string(instructionId);
+
+
+        }
+
+    }
+
+
+    void generateGotoCode(int label)
+    {
+        generateCode("goto", "", "", "L" + std::to_string(label));
+
+        labels.insert(label);
+    }
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
