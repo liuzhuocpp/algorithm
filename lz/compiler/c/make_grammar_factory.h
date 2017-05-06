@@ -55,7 +55,7 @@ struct GrammarInput
 
     GrammarFactory<T, P> gf;
 
-    GrammarInput(IdentifierTable &identifierTable, ThreeAddressCode& codeTable, ErrorOfstream& errorOfstream):
+    GrammarInput():
 
         gf(program)
     {
@@ -78,7 +78,7 @@ struct GrammarInput
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
-                identifierTable.insertIdentifier(v[1].type, v[2].addr);
+                identifierTable().insertIdentifier(v[1].type, v[2].addr);
             };
 
         typeDeclare = baseTypeDeclare >>
@@ -237,7 +237,7 @@ struct GrammarInput
             [&](PIT v, P&o) {
                 std::string name = v[1].addr;
 
-                if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable.end())
+                if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable().end())
                 {
                     o.addr = getVariableName(checkIt);
                 }
@@ -246,7 +246,7 @@ struct GrammarInput
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
-                if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable.end())
+                if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable().end())
                 {
                     generateCode("=", v[3].addr, "", getVariableName(checkIt));
                     o.addr = v[1].addr;
@@ -283,7 +283,7 @@ struct GrammarInput
                 o.addr = arrayName; // 数组名称
 
                 auto it = checkVariableDeclare(arrayName);
-                if(it == identifierTable.end()) return ;
+                if(it == identifierTable().end()) return ;
 
                 std::string tmp = getTemporaryVariableName();
                 o.type = it->first.type.subArray();
@@ -436,7 +436,7 @@ auto makeGrammarFactory(
 
 
     return  GrammarInput<ErrorOfstream>
-       (identifierTable, codeTable, errorOfstream).gf;
+       ().gf;
 
 }
 
