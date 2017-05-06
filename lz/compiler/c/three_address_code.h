@@ -47,19 +47,6 @@ public:
 
     ThreeAddressInstruction() = default;
 
-    ThreeAddressInstruction(std::string op, std::string arg1, std::string arg2, std::string res):
-        m_arg1(arg1), m_arg2(arg2), m_res(res)
-    {
-        if(auto it = NameToCategory.find(op); it != NameToCategory.end())
-        {
-            category = it->second;
-        }
-        else
-        {
-            assert(0);
-        }
-    }
-
 
     ThreeAddressInstruction(Category op, std::string arg1, std::string arg2, std::string res):
             category(op), m_arg1(arg1), m_arg2(arg2), m_res(res)
@@ -136,10 +123,6 @@ public:
         return size();
     }
 
-    void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
-    {
-        emplace_back(op, arg1, arg2, res);
-    };
 
     void generateCode(Category cate, std::string arg1, std::string arg2, std::string res)
     {

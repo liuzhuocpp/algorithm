@@ -328,9 +328,7 @@ struct GrammarInput
     {
         o.addr = getTemporaryVariableName();
 
-
-
-        generateCode(v[2].addr, v[1].addr, v[3].addr, o.addr);
+        generateCode(ThreeAddressInstruction::toCategory(v[2].addr), v[1].addr, v[3].addr, o.addr);
     };
 
     static auto checkVariableDeclare ( std::string variable)
@@ -353,10 +351,10 @@ struct GrammarInput
     };
 
 
-    static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
-    {
-        codeTable().generateCode(op, arg1, arg2, res);
-    };
+//    static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
+//    {
+//        codeTable().generateCode(op, arg1, arg2, res);
+//    };
 
     static void generateCode(InstructionCategory op, std::string arg1, std::string arg2, std::string res)
     {
@@ -388,15 +386,11 @@ struct GrammarInput
         codeTable().backPatch(a.begin(), a.end(), instructionId);
     }
 
-    // can be improve
     static std::list<int> merge(std::list<int>&a1, std::list<int>&a2)
     {
         a1.splice(a1.end(), a2);
         return a1;
     }
-
-//    using InstructionCategory = ThreeAddressInstruction::Category;
-
 
     static void solveRelationalOperator(PIT v, P &o)
     {
@@ -413,7 +407,7 @@ struct GrammarInput
     {
         o.addr = getTemporaryVariableName();
         std::string op = v[1].addr;
-//        std::string ansOp;
+
         InstructionCategory ansOp;
         if(op == "+")
             ansOp = InstructionCategory::UnaryPlus;
