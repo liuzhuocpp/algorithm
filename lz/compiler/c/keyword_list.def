@@ -11,7 +11,9 @@
         X(False)
 
 
-
+        X(Bool)
         X(Int)
         X(Float)
         X(Double)
+        
+        
