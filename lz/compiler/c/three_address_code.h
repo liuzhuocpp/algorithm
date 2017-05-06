@@ -107,7 +107,7 @@ public:
 
     void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
     {
-        this->push_back(ThreeAddressInstruction(op, arg1, arg2, res));
+        emplace_back(op, arg1, arg2, res);
     };
 
     template<typename Iterator>
