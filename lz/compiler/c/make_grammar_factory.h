@@ -350,12 +350,6 @@ struct GrammarInput
         return it->first.name; // 目前先返回变量的真实的identifier，便于debug
     };
 
-
-//    static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
-//    {
-//        codeTable().generateCode(op, arg1, arg2, res);
-//    };
-
     static void generateCode(InstructionCategory op, std::string arg1, std::string arg2, std::string res)
     {
         codeTable().generateCode(op, arg1, arg2, res);

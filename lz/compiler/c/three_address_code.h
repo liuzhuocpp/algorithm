@@ -112,6 +112,11 @@ struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 private:
     std::set<int> labels;
     using Category = ThreeAddressInstruction::Category;
+
+    void _generateCode(Category cate, std::string arg1, std::string arg2, std::string res)
+    {
+        emplace_back(cate, arg1, arg2, res);
+    };
 public:
     void clear() // must add this！
     {
@@ -126,7 +131,12 @@ public:
 
     void generateCode(Category cate, std::string arg1, std::string arg2, std::string res)
     {
-        emplace_back(cate, arg1, arg2, res);
+        if(cate == Category::Goto) // I know this ugly, but I have not known how to do better now.
+        {
+            std::cout << "Please use generateGotoCode()\n";
+            assert(0);
+        }
+        _generateCode(cate, arg1, arg2, res);
     };
 
 
@@ -146,11 +156,11 @@ public:
 
     void generateGotoCode()
     {
-        generateCode(Category::Goto, "", "", "-");
+        _generateCode(Category::Goto, "", "", "-");
     }
     void generateGotoCode(int label)
     {
-        generateCode(Category::Goto, "", "", "L" + std::to_string(label));
+        _generateCode(Category::Goto, "", "", "L" + std::to_string(label));
         labels.insert(label);
     }
 
