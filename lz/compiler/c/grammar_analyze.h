@@ -122,7 +122,7 @@ struct GrammarParser
     std::tuple_element_t<3, ExtendedTuple> markNonterminalsMap;
 
     IdentifierTable identifierTable;
-    IRTable codeTable;
+    ThreeAddressCode codeTable;
     void construct()
     {
 //         gf = GrammarInput<ErrorStream>

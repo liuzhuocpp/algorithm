@@ -31,7 +31,7 @@ struct ThreeAddressInstruction
 
 };
 
-struct IRTable: std::vector<ThreeAddressInstruction>
+struct ThreeAddressCode: std::vector<ThreeAddressInstruction>
 {
     using std::vector<ThreeAddressInstruction>::vector;
 
@@ -50,7 +50,7 @@ struct IRTable: std::vector<ThreeAddressInstruction>
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
     operator<<(std::basic_ostream<Char, Traits>& os,
-               const IRTable& table)
+               const ThreeAddressCode& table)
     {
         int maxWidth = 0;
         for(auto i : lz::irange(table.size()))

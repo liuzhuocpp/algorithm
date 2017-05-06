@@ -56,11 +56,11 @@ struct GrammarInput
     GrammarFactory<T, P> gf;
     // I think use the global variable is very ugly.
     static IdentifierTable* global_identifierTable;
-    static IRTable* global_codeTable;
+    static ThreeAddressCode* global_codeTable;
     static ErrorOfstream* global_errorOfstream;
 
 
-    GrammarInput(IdentifierTable &identifierTable, IRTable& codeTable, ErrorOfstream& errorOfstream):
+    GrammarInput(IdentifierTable &identifierTable, ThreeAddressCode& codeTable, ErrorOfstream& errorOfstream):
 
         gf(program)
     {
@@ -428,7 +428,7 @@ IdentifierTable* GrammarInput<E>::global_identifierTable=  nullptr;
 
 
 template<typename E>
-IRTable* GrammarInput<E>::global_codeTable=  nullptr;
+ThreeAddressCode* GrammarInput<E>::global_codeTable=  nullptr;
 
 
 template<typename E>
@@ -439,7 +439,7 @@ E* GrammarInput<E>::global_errorOfstream =  nullptr;
 template<typename ErrorOfstream>
 auto makeGrammarFactory(
     IdentifierTable &identifierTable,
-    IRTable &codeTable,
+    ThreeAddressCode &codeTable,
     ErrorOfstream &errorOfstream)
 {
 
