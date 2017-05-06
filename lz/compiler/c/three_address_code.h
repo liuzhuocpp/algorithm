@@ -14,7 +14,7 @@ namespace lz {
 
 struct ThreeAddressInstruction
 {
-    enum class Category
+    enum class Category:unsigned
     {
 #define X(cat, name) cat,
 #include <lz/compiler/c/instruction.def>
@@ -59,7 +59,13 @@ public:
         {
             assert(0);
         }
+    }
 
+
+    ThreeAddressInstruction(Category op, std::string arg1, std::string arg2, std::string res):
+            category(op), m_arg1(arg1), m_arg2(arg2), m_res(res)
+    {
+        if(category >= Category::Unknown) assert(0);
     }
 
     template <class Char, class Traits>
@@ -94,6 +100,7 @@ struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 
 private:
     std::set<int> labels;
+    using Category = ThreeAddressInstruction::Category;
 public:
     void clear() // must add this！
     {
@@ -109,6 +116,12 @@ public:
     {
         emplace_back(op, arg1, arg2, res);
     };
+
+    void generateCode(Category cate, std::string arg1, std::string arg2, std::string res)
+    {
+        emplace_back(cate, arg1, arg2, res);
+    };
+
 
     template<typename Iterator>
     void backPatch(Iterator first, Iterator last, int instructionId)
@@ -126,11 +139,11 @@ public:
 
     void generateGotoCode()
     {
-        generateCode("goto", "", "", "-");
+        generateCode(Category::Goto, "", "", "-");
     }
     void generateGotoCode(int label)
     {
-        generateCode("goto", "", "", "L" + std::to_string(label));
+        generateCode(Category::Goto, "", "", "L" + std::to_string(label));
         labels.insert(label);
     }
 
