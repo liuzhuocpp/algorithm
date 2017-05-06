@@ -52,7 +52,7 @@ struct ThreeAddressCode: std::vector<ThreeAddressInstruction>
     };
 
     template<typename Iterator>
-    void backPatchLabel(Iterator first, Iterator last, int instructionId)
+    void backPatch(Iterator first, Iterator last, int instructionId)
     {
         if(first != last)
             this->labels.insert(instructionId);

@@ -365,10 +365,10 @@ struct GrammarInput
     }
 
 
-    static void backPatch(const std::list<int> & a, int label)
+    static void backPatch(const std::list<int> & a, int instructionId)
     {
 
-        global_codeTable->backPatchLabel(a.begin(), a.end(), label);
+        global_codeTable->backPatch(a.begin(), a.end(), instructionId);
 //        if(label == 6)
 //        {
 //            assert(0);
