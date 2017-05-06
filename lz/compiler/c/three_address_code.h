@@ -137,7 +137,7 @@ public:
             assert(0);
         }
         _generateCode(cate, arg1, arg2, res);
-    };
+    }
 
 
     template<typename Iterator>

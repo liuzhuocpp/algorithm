@@ -229,7 +229,6 @@ struct GrammarInput
                 o.addr = v[2].addr;
             };
 
-
         expression = Lex::Integer >>
             [&](PIT v, P&o) {
                 o.addr = v[1].addr;
@@ -241,10 +240,7 @@ struct GrammarInput
                 checkVariableDeclare(v[1].addr, [&](auto checkIt){
                     o.addr = getVariableName(checkIt);
                 });
-
-
             };
-
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
@@ -253,9 +249,6 @@ struct GrammarInput
                     generateCode(InstructionCategory::Assign, v[3].addr, "", getVariableName(checkIt));
                     o.addr = v[1].addr;
                 });
-
-
-
             } < "+" < "-" < "*" < "/";
 
         expression = arrayExpression >>
@@ -266,19 +259,14 @@ struct GrammarInput
                 o.addr = tmp;
             };
 
-
         expression = arrayExpression >> "=" >> expression >>
             [&](PIT v, P&o) {
 
                 generateCode(InstructionCategory::WriteArray, v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
-
                 std::string tmp = getTemporaryVariableName();
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
-
                 o.addr = tmp;
-
             }< "+" < "-" < "*" < "/";
-
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
@@ -290,8 +278,6 @@ struct GrammarInput
                     generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(o.type.getWidth()), tmp);
                     o.arrayOffsetAddr = tmp;
                 });
-
-
             };
 
         arrayExpression = arrayExpression >> "[" >> expression >> "]" >>
