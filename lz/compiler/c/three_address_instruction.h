@@ -31,11 +31,13 @@ struct ThreeAddressInstruction
 
 };
 
-struct ThreeAddressCode: std::vector<ThreeAddressInstruction>
+struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 {
     using std::vector<ThreeAddressInstruction>::vector;
 
+private:
     std::set<int> labels;
+public:
     void clear() // must add this！
     {
         std::vector<ThreeAddressInstruction>::clear();
