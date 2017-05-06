@@ -338,11 +338,11 @@ struct GrammarInput
 
     static auto checkVariableDeclare ( std::string variable)
     {
-        auto it = global_identifierTable->find(variable);
-        if(it == global_identifierTable->end())
+        auto it = identifierTable().find(variable);
+        if(it == identifierTable().end())
         {
-            (*global_errorOfstream) << "\"" << variable << "\" was not declare \n";
-            return global_identifierTable->end();
+            errorOfstream() << "\"" << variable << "\" was not declare \n";
+            return identifierTable().end();
         }
         else
             return it;
@@ -357,18 +357,18 @@ struct GrammarInput
 
     static void generateCode(std::string op, std::string arg1, std::string arg2, std::string res)
     {
-        global_codeTable->generateCode(op, arg1, arg2, res);
+        codeTable().generateCode(op, arg1, arg2, res);
     };
 
     static void generateGotoCode(int label)
     {
-        global_codeTable->generateGotoCode(label);
+        codeTable().generateGotoCode(label);
 
     }
 
     static int nextInstructionIndex()
     {
-        return global_codeTable->nextInstructionIndex();
+        return codeTable().nextInstructionIndex();
     }
 
 
