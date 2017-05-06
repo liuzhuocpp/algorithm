@@ -19,8 +19,8 @@
 #include <lz/compiler/slr1_grammar.h>
 #include <lz/compiler/lr_grammar.h>
 
-#include <lz/compiler/c/intermediate_representation.h>
 #include <lz/compiler/c/make_grammar_factory.h>
+#include <lz/compiler/c/three_address_instruction.h>
 //
 //
 //#include <lz/compiler/c/lexical_analyze.h>
