@@ -42,6 +42,7 @@ add_subdirectory(jump_pointers_level_ancestor)
 add_subdirectory(ladder_level_ancestor)
 add_subdirectory(big_integer)
 add_subdirectory(compiler)
+add_subdirectory(multi_range_index_descriptor)
 
 
 
