@@ -36,7 +36,11 @@ struct IRTable: std::vector<IntermediateRepresentation>
     using std::vector<IntermediateRepresentation>::vector;
 
     std::set<int> labels;
-
+    void clear() // must add this！
+    {
+        std::vector<IntermediateRepresentation>::clear();
+        labels.clear();
+    }
     int nextInstructionIndex() const
     {
         return size();

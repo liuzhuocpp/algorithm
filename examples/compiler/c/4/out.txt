@@ -2,11 +2,11 @@
        goto   L5
 L2:    + a b $0
        = $0  c
-L4:    goto   L14
+       goto   L14
 L5:    if< a 3333 L7
-L6:    goto   L10
+       goto   L10
 L7:    - a b $1
-L8:    = $1  c
+       = $1  c
        goto   L14
 L10:   if< a 77777 L12
        goto   L14

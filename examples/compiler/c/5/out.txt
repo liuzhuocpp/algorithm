@@ -3,16 +3,16 @@
 L2:    if== a 22222 L4
        goto   L6
 L4:    + c 10000111 $0
-L5:    = $0  c
+       = $0  c
 L6:    + a b $1
-L7:    = $1  c
-L8:    plus c  $2
+       = $1  c
+       plus c  $2
        = $2  c
-L10:   goto   L32
+       goto   L32
 L11:   if!= a 3333 L13
-L12:   goto   L17
+       goto   L17
 L13:   - a b $3
-L14:   = $3  a
+       = $3  a
        = a  c
        goto   L32
 L17:   if>= a 77777 L19
