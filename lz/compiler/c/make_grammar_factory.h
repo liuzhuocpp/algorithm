@@ -32,6 +32,8 @@ struct GrammarInput
     using P = Properties;
     using T = LexicalSymbol;
     using PIT = std::vector<P>::iterator;
+    using InstructionCategory = ThreeAddressInstruction::Category;
+
 
     NonterminalProxy<T, P>
         LZ_NONTERMINAL_PROXY(program),
@@ -246,9 +248,10 @@ struct GrammarInput
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
+
                 if(auto checkIt = checkVariableDeclare(v[1].addr); checkIt != identifierTable().end())
                 {
-                    generateCode("=", v[3].addr, "", getVariableName(checkIt));
+                    generateCode(InstructionCategory::Assign, v[3].addr, "", getVariableName(checkIt));
                     o.addr = v[1].addr;
                 }
 
@@ -259,7 +262,7 @@ struct GrammarInput
             [&](PIT v, P &o){
 
                 std::string tmp = getTemporaryVariableName();
-                generateCode("=[]", v[1].addr, v[1].arrayOffsetAddr, tmp);
+                generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
             };
 
@@ -267,10 +270,10 @@ struct GrammarInput
         expression = arrayExpression >> "=" >> expression >>
             [&](PIT v, P&o) {
 
-                generateCode("[]=", v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
+                generateCode(InstructionCategory::WriteArray, v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
 
                 std::string tmp = getTemporaryVariableName();
-                generateCode("=[]", v[1].addr, v[1].arrayOffsetAddr, tmp);
+                generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
 
                 o.addr = tmp;
 
@@ -287,7 +290,7 @@ struct GrammarInput
 
                 std::string tmp = getTemporaryVariableName();
                 o.type = it->first.type.subArray();
-                generateCode("*", v[3].addr, std::to_string(o.type.getWidth()), tmp);
+                generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(o.type.getWidth()), tmp);
                 o.arrayOffsetAddr = tmp;
 
             };
@@ -298,8 +301,8 @@ struct GrammarInput
                 o.addr = v[1].addr;
                 std::string tmp1 = getTemporaryVariableName();
                 std::string tmp2 = getTemporaryVariableName();
-                generateCode("*", v[3].addr, std::to_string(o.type.getWidth()) , tmp1);
-                generateCode("+", v[1].arrayOffsetAddr, tmp1 , tmp2);
+                generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(o.type.getWidth()) , tmp1);
+                generateCode(InstructionCategory::Plus, v[1].arrayOffsetAddr, tmp1 , tmp2);
                 o.arrayOffsetAddr = tmp2;
 
             };
@@ -324,6 +327,9 @@ struct GrammarInput
     static void solveArithmeticOperator (PIT v, P &o)
     {
         o.addr = getTemporaryVariableName();
+
+
+
         generateCode(v[2].addr, v[1].addr, v[3].addr, o.addr);
     };
 
@@ -340,6 +346,7 @@ struct GrammarInput
     };
 
 
+
     static std::string getVariableName (IdentifierTable::iterator it)
     {
         return it->first.name; // 目前先返回变量的真实的identifier，便于debug
@@ -350,6 +357,12 @@ struct GrammarInput
     {
         codeTable().generateCode(op, arg1, arg2, res);
     };
+
+    static void generateCode(InstructionCategory op, std::string arg1, std::string arg2, std::string res)
+    {
+        codeTable().generateCode(op, arg1, arg2, res);
+    };
+
 
     static void generateGotoCode(int label)
     {
@@ -382,12 +395,15 @@ struct GrammarInput
         return a1;
     }
 
+//    using InstructionCategory = ThreeAddressInstruction::Category;
 
 
     static void solveRelationalOperator(PIT v, P &o)
     {
         o.trueList.push_back(nextInstructionIndex());
-        generateCode("if" + v[2].addr, v[1].addr, v[3].addr, "-");
+
+
+        generateCode(ThreeAddressInstruction::toIfRel(v[2].addr), v[1].addr, v[3].addr, "-");
         o.falseList.push_back(nextInstructionIndex());
         generateGotoCode();
 
@@ -397,11 +413,12 @@ struct GrammarInput
     {
         o.addr = getTemporaryVariableName();
         std::string op = v[1].addr;
-        std::string ansOp;
+//        std::string ansOp;
+        InstructionCategory ansOp;
         if(op == "+")
-            ansOp = "plus";
+            ansOp = InstructionCategory::UnaryPlus;
         else if(op == "-")
-            ansOp = "minus";
+            ansOp = InstructionCategory::UnaryMinus;
         else assert(0);
         generateCode(ansOp, v[2].addr, "", o.addr);
     }

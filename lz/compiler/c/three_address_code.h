@@ -38,7 +38,6 @@ struct ThreeAddressInstruction
 private:
     Category category = Category::Unknown;
     std::string  m_arg1, m_arg2, m_res;
-//    arg1()
 public:
     std::string& result()
     {
@@ -76,6 +75,31 @@ public:
         os << IR.Names[static_cast<unsigned>(IR.category)] << " " << IR.m_arg1 << " " << IR.m_arg2 << " " << IR.m_res;
         return os;
     }
+
+    static Category toIfRel(const std::string& rel)
+    {
+        auto it = NameToCategory.find("if" + rel);
+        if(it != NameToCategory.end()) return it->second;
+        return Category::Unknown;
+    }
+
+    static Category toCategory(const std::string& cate)
+    {
+        auto it = NameToCategory.find(cate);
+        if(it != NameToCategory.end()) return it->second;
+        return Category::Unknown;
+    }
+
+
+    static bool isIfRel(Category cate)
+    {
+        return cate >= Category::IfLess && cate <= Category::IfNotEqual;
+    }
+
+
+
+
+
 
 };
 
