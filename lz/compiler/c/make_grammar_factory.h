@@ -187,7 +187,7 @@ struct GrammarInput
                 o.trueList = v[2].trueList;
                 o.falseList = v[2].falseList;
 
-            } > "&&" > "||";
+            };
 
 
         conditionMark = eps >>
@@ -198,7 +198,7 @@ struct GrammarInput
         elseSymbol = Lex::Else >>
             [&](PIT v, P&o) {
                 o.nextList.push_back(nextInstructionIndex());
-                generateCode("goto", "", "", "-");
+                generateGotoCode();
 
             };
 
@@ -313,18 +313,9 @@ struct GrammarInput
     static ThreeAddressCode* global_codeTable;
     static ErrorOfstream* global_errorOfstream;
 
-    static IdentifierTable& identifierTable()
-    {
-        return *global_identifierTable;
-    }
-    static ThreeAddressCode& codeTable()
-    {
-        return *global_codeTable;
-    }
-    static ErrorOfstream& errorOfstream()
-    {
-        return *global_errorOfstream;
-    }
+    static IdentifierTable& identifierTable() { return *global_identifierTable; }
+    static ThreeAddressCode& codeTable() { return *global_codeTable; }
+    static ErrorOfstream& errorOfstream() { return *global_errorOfstream; }
 
 
 
@@ -366,6 +357,13 @@ struct GrammarInput
 
     }
 
+    static void generateGotoCode()
+    {
+        codeTable().generateGotoCode();
+
+    }
+
+
     static int nextInstructionIndex()
     {
         return codeTable().nextInstructionIndex();
@@ -391,7 +389,7 @@ struct GrammarInput
         o.trueList.push_back(nextInstructionIndex());
         generateCode("if" + v[2].addr, v[1].addr, v[3].addr, "-");
         o.falseList.push_back(nextInstructionIndex());
-        generateCode("goto", "", "", "-");
+        generateGotoCode();
 
     }
 

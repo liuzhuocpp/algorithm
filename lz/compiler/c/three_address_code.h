@@ -124,11 +124,13 @@ public:
 
     }
 
-
+    void generateGotoCode()
+    {
+        generateCode("goto", "", "", "-");
+    }
     void generateGotoCode(int label)
     {
         generateCode("goto", "", "", "L" + std::to_string(label));
-
         labels.insert(label);
     }
 
