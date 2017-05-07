@@ -31,10 +31,11 @@ public:
 
 
 
-
+private:
     Category category;
 
     std::vector<int> arrayDimensions;
+public:
     int getWidth() const
     {
         int ans = 1; // 暂时先设为1
@@ -44,6 +45,11 @@ public:
         }
         return ans;
 
+    }
+
+    void addDimension(int x)
+    {
+        arrayDimensions.push_back(x);
     }
 
     Type subArray() const

@@ -85,13 +85,13 @@ struct GrammarInput
 
         typeDeclare = baseTypeDeclare >>
             [&](PIT v, P& o) {
-                o.type.category = v[1].type.category;
+                o.type = v[1].type;
             };
 
         typeDeclare = typeDeclare >> "[" >> Lex::Integer >> "]" >>
             [&](PIT v, P& o) {
                 o.type = v[1].type;
-                o.type.arrayDimensions.push_back(std::stoi(v[3].addr));
+                o.type.addDimension(std::stoi(v[3].addr));
             };
 
         baseTypeDeclare = Lex::Int >>
