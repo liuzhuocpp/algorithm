@@ -105,8 +105,8 @@ public:
 
         if(!id.arrayDimensions.empty())
         {
-            auto cnt = currentRangeSplitter(os);
-            os <<commaRangeSplitter << id.arrayDimensions << cnt;
+            auto cntRangeSplitter = currentRangeSplitter(os);
+            os <<commaRangeSplitter << id.arrayDimensions << cntRangeSplitter;
 
         }
         os << ")";
