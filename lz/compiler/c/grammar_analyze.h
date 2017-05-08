@@ -181,7 +181,7 @@ struct GrammarParser
 
 
 
-        std::cout << "identifierTable: \n" << newLineRangeSplitter  << identifierTable << std::endl;
+//        std::cout << "identifierTable: \n" << newLineRangeSplitter  << identifierTable << std::endl;
 
 ////        std::cout << "code Table: " << codeTable << std::endl;
 //

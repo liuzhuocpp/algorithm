@@ -96,9 +96,11 @@ int main()
     grammarParser.construct();
     vector<int> test;
 
-    for(int i = 0;
+    for(int
+            i = 0
+            ;
 
-//            i < 2
+//            i == 1
             ; ++ i)
     {
         string fileName = to_string(i) + "\\in.txt";

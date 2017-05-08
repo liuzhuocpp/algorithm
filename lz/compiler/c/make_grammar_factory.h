@@ -80,7 +80,9 @@ struct GrammarInput
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
-                identifierTable().insertIdentifier(v[1].type, v[2].addr);
+//                typeTable().insert()
+                identifierTable().insert(v[2].addr, v[1].type);
+//                identifierTable().insertIdentifier(v[1].type, v[2].addr);
             };
 
         typeDeclare = baseTypeDeclare >>
@@ -90,18 +92,23 @@ struct GrammarInput
 
         typeDeclare = typeDeclare >> "[" >> Lex::Integer >> "]" >>
             [&](PIT v, P& o) {
-                o.type = v[1].type;
-                o.type.addDimension(std::stoi(v[3].addr));
+                if(v[1].type.category() != TypeCategory::Array)
+                {
+                    o.type = typeTable().insert(TypeCategory::Array);
+                    typeTable().arrayBaseType(o.type) = v[1].type;
+                }
+                else o.type = v[1].type;
+                typeTable().arrayDimensions(o.type).push_back(std::stoi(v[3].addr));
             };
 
         baseTypeDeclare = Lex::Int >>
             [&](PIT v, P&o) {
-                o.type = Type::Category::Int;
+                o.type = TypeCategory::Int;
             };
 
         baseTypeDeclare = Lex::Float >>
             [&](PIT v, P&o) {
-                o.type = Type::Category::Float;
+                o.type = TypeCategory::Float;
             };
 
         statement = expression >> ";";
@@ -270,23 +277,43 @@ struct GrammarInput
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
-                o.addr = v[1].addr; // 数组名称
 
-                checkVariableDeclare(o.addr, [&](auto checkIt){
+                checkVariableDeclare(v[1].addr, [&](int identifierId) {
+                    o.addr = v[1].addr; // 数组名称
+
+                    o.type = identifierTable().type(identifierId);
+                    o.cntArrayDimensionId = 0;
+
+
+
+
+                    const std::vector<int>& dimensions = typeTable().arrayDimensions(o.type);
+                    std::cout << "dimensions size:&&&&&&&&&&&" << dimensions << std::endl;
                     std::string tmp = getTemporaryVariableName();
-                    o.type = checkIt->first.type.subArray();
-                    generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(o.type.getWidth()), tmp);
+
+//                    int typeWidth = 1; // 当前所有baseType 长度都为1
+                    generateCode(InstructionCategory::Multiply, v[3].addr,
+                        std::to_string(calProduct(dimensions.begin() + o.cntArrayDimensionId + 1, dimensions.end()  )),
+                        tmp);
                     o.arrayOffsetAddr = tmp;
                 });
             };
 
         arrayExpression = arrayExpression >> "[" >> expression >> "]" >>
             [&](PIT v, P &o) {
-                o.type = v[1].type.subArray();
                 o.addr = v[1].addr;
+                o.type = v[1].type;
+                o.cntArrayDimensionId = v[1].cntArrayDimensionId + 1;
+//                int typeWidth = 1; // 当前所有baseType 长度都为1
+
+                const std::vector<int>& dimensions = typeTable().arrayDimensions(o.type);
+//                int product = 1; // cnt is 1
+//                for(int i = 0; i < o.cntArrayDimensionId; ++ i) product *= dimensions[i];
+
                 std::string tmp1 = getTemporaryVariableName();
                 std::string tmp2 = getTemporaryVariableName();
-                generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(o.type.getWidth()) , tmp1);
+                generateCode(InstructionCategory::Multiply, v[3].addr,
+                    std::to_string(calProduct(dimensions.begin() + o.cntArrayDimensionId + 1, dimensions.end()  ) ) , tmp1);
                 generateCode(InstructionCategory::Plus, v[1].arrayOffsetAddr, tmp1 , tmp2);
                 o.arrayOffsetAddr = tmp2;
 
@@ -302,6 +329,7 @@ struct GrammarInput
     static ErrorOfstream* global_errorOfstream;
 
     static IdentifierTable& identifierTable() { return *global_identifierTable; }
+    static TypeTable& typeTable() { return global_identifierTable->typeTable; }
     static ThreeAddressCode& codeTable() { return *global_codeTable; }
     static ErrorOfstream& errorOfstream() { return *global_errorOfstream; }
 
@@ -320,8 +348,8 @@ struct GrammarInput
     template<typename Callback>
     static void checkVariableDeclare ( std::string variable, Callback callback)
     {
-        auto it = identifierTable().find(variable);
-        if(it == identifierTable().end())
+        int it = identifierTable().find(variable);
+        if(it == -1)
         {
             errorOfstream() << "\"" << variable << "\" was not declare \n";
         }
@@ -334,9 +362,10 @@ struct GrammarInput
 
 
 
-    static std::string getVariableName (IdentifierTable::iterator it)
+    static std::string getVariableName (int i)
     {
-        return it->first.name; // 目前先返回变量的真实的identifier，便于debug
+        return identifierTable().identifier(i);
+//        return it->first.name; // 目前先返回变量的真实的identifier，便于debug
     };
 
     static void generateCode(InstructionCategory op, std::string arg1, std::string arg2, std::string res)
@@ -398,6 +427,19 @@ struct GrammarInput
             ansOp = InstructionCategory::UnaryMinus;
         else assert(0);
         generateCode(ansOp, v[2].addr, "", o.addr);
+    }
+
+    template<typename Iterator>
+    static int calProduct(Iterator first, Iterator last)
+    {
+        int sum = 1;
+        while(first < last)
+        {
+            sum *= *first;
+            first++;
+        }
+        return sum;
+
     }
 
 };
