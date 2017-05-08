@@ -31,7 +31,7 @@ struct GrammarParser
 {
     GrammarParser(OutStream &outStream, ErrorStream &errorOfstream):
         outStream(outStream), errorOfstream(errorOfstream){}
-
+private:
     OutStream &outStream;
 
     ErrorStream &errorOfstream;
@@ -56,6 +56,7 @@ struct GrammarParser
 
     IdentifierTable identifierTable;
     ThreeAddressCode codeTable;
+public:
     void construct()
     {
         gf = makeGrammarFactory(identifierTable, codeTable, errorOfstream);
