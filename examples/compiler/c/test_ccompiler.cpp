@@ -34,7 +34,7 @@ string getErrorFileName(string number)
 std::ofstream outStream , errorOfstream;
 
 GrammarParser<decltype(outStream), decltype(errorOfstream)>
-    grammarParser{outStream, errorOfstream};
+    grammarParser(outStream, errorOfstream);
 
 
 void solve(const string& fileName)

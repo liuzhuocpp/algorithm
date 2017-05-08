@@ -21,10 +21,7 @@
 
 #include <lz/compiler/c/make_grammar_factory.h>
 #include <lz/compiler/c/three_address_code.h>
-//
-//
-//#include <lz/compiler/c/lexical_analyze.h>
-//#include <lz/compiler/c/identifier.h>
+
 
 namespace lz {
 
@@ -32,8 +29,11 @@ namespace lz {
 template<typename OutStream, typename ErrorStream>
 struct GrammarParser
 {
+    GrammarParser(OutStream &outStream, ErrorStream &errorOfstream):
+        outStream(outStream), errorOfstream(errorOfstream){}
 
-    OutStream& outStream;
+    OutStream &outStream;
+
     ErrorStream &errorOfstream;
 
     using P = Properties;
