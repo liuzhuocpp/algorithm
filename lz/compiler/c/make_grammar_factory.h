@@ -280,18 +280,11 @@ struct GrammarInput
 
                 checkVariableDeclare(v[1].addr, [&](int identifierId) {
                     o.addr = v[1].addr; // 数组名称
-
                     o.type = identifierTable().type(identifierId);
                     o.cntArrayDimensionId = 0;
 
-
-
-
                     const std::vector<int>& dimensions = typeTable().arrayDimensions(o.type);
-                    std::cout << "dimensions size:&&&&&&&&&&&" << dimensions << std::endl;
                     std::string tmp = getTemporaryVariableName();
-
-//                    int typeWidth = 1; // 当前所有baseType 长度都为1
                     generateCode(InstructionCategory::Multiply, v[3].addr,
                         std::to_string(calProduct(dimensions.begin() + o.cntArrayDimensionId + 1, dimensions.end()  )),
                         tmp);
@@ -304,12 +297,7 @@ struct GrammarInput
                 o.addr = v[1].addr;
                 o.type = v[1].type;
                 o.cntArrayDimensionId = v[1].cntArrayDimensionId + 1;
-//                int typeWidth = 1; // 当前所有baseType 长度都为1
-
                 const std::vector<int>& dimensions = typeTable().arrayDimensions(o.type);
-//                int product = 1; // cnt is 1
-//                for(int i = 0; i < o.cntArrayDimensionId; ++ i) product *= dimensions[i];
-
                 std::string tmp1 = getTemporaryVariableName();
                 std::string tmp2 = getTemporaryVariableName();
                 generateCode(InstructionCategory::Multiply, v[3].addr,
