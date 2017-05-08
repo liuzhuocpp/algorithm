@@ -29,73 +29,6 @@
 namespace lz {
 
 
-//template<typename InputIterator, typename ErrorStream>
-//auto constructGrammar(IdentifierTable& identifierTable, IRTable & codeTable, ErrorStream &errorOfstream)
-//{
-//    auto gf = GrammarInput<decltype(codeTable), decltype(errorOfstream)>
-//        (identifierTable, codeTable, errorOfstream).gf;
-//
-//
-//    auto g = gf.g;
-//    auto indexToNonterminalMap = gf.getIndexToNonterminalMap();
-//    auto indexToTerminalMap =  gf.getIndexToTerminalMap();
-//    auto terminalToIndexMap =  gf.getTerminalToIndexMap();
-//
-//
-//
-//
-//
-//
-//
-////    std::cout << GrammerForOutput<decltype(g), decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
-////        {g, indexToNonterminalMap, indexToTerminalMap} ;
-//
-//
-//   auto ans = extendGrammarAndConstructActionGotoMark(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
-//   return std::tuple_cat( ans,
-//           terminalToIndexMap,
-//           indexToTerminalMap,
-//           indexToNonterminalMap);
-//
-//
-//}
-//
-//template<typename InputIterator,
-//    typename G,
-//    typename ActionTableOptional,
-//    typename Goto,
-//    typename MarkNonterminalsMap,
-//    typename TerminalToIndexMap,
-//    typename IndexToTerminalMap,
-//    typename IndexToNonterminalMap
-//
-//    >
-//
-//void grammarAnalyze(
-//    InputIterator first,
-//    InputIterator last,
-//    G g,
-//    ActionTableOptional actionTableOption,
-//    Goto gotoFunction,
-//    MarkNonterminalsMap markNonterminalsMap,
-//    TerminalToIndexMap terminalToIndexMap,
-//    IndexToTerminalMap indexToTerminalMap,
-//    IndexToNonterminalMap indexToNonterminalMap   )
-//{
-//    cout << std::string(2, '\n') << "Begin parsing...\n\n";
-//    auto ans = parseLRGrammar(
-//            first,
-//            last,
-//            g,
-//            actionTableOption.value(),
-//            gotoFunction,
-//            markNonterminalsMap,
-//            terminalToIndexMap,
-//            indexToTerminalMap,
-//            indexToNonterminalMap);
-//
-//}
-
 template<typename OutStream, typename ErrorStream>
 struct GrammarParser
 {
@@ -125,32 +58,23 @@ struct GrammarParser
     ThreeAddressCode codeTable;
     void construct()
     {
-//         gf = GrammarInput<ErrorStream>
-//            (identifierTable, codeTable, errorOfstream).gf;
-         gf = makeGrammarFactory(identifierTable, codeTable, errorOfstream);
+        gf = makeGrammarFactory(identifierTable, codeTable, errorOfstream);
 
-//        auto tmp_g = gf.g;
         indexToNonterminalMap = gf.getIndexToNonterminalMap();
         indexToTerminalMap =  gf.getIndexToTerminalMap();
         terminalToIndexMap =  gf.getTerminalToIndexMap();
 
-//        std::cout << "IIIIIIII" << terminalToIndexMap[LexicalSymbol::Category::Int] << std::endl;
 
         auto ansTuple = extendGrammarAndConstructActionGotoMark(
             gf.g,
             indexToNonterminalMap,
             indexToTerminalMap,
             terminalToIndexMap);
-
-//        std::cout << "yyyyyyyyyyyyy" << terminalToIndexMap[LexicalSymbol::Category::Int] << std::endl;
-
-
         g = std::get<0>(ansTuple);
         actionTableOption = std::get<1>(ansTuple);
         gotoFunction = std::get<2>(ansTuple);
         markNonterminalsMap = std::get<3>(ansTuple);
 
-//        std::cout << "iooooooooooooooo" << terminalToIndexMap[LexicalSymbol::Category::Int] << std::endl;
 
     }
 
@@ -159,7 +83,6 @@ struct GrammarParser
     {
 
 
-//        std::cout << "IIIIIIII" << terminalToIndexMap[LexicalSymbol::Category::Int] << std::endl;
 
 
         TemporaryVariableNumberGenerator::reset();
@@ -181,15 +104,6 @@ struct GrammarParser
 
 
 
-//        std::cout << "identifierTable: \n" << newLineRangeSplitter  << identifierTable << std::endl;
-
-////        std::cout << "code Table: " << codeTable << std::endl;
-//
-//
-//        std::cout << "code in grammar parasr : " << codeTable.size() <<
-//                " " <<
-//                codeTable <<  " " << (std::size_t)&codeTable <<  std::endl;
-////        outStream << "JJJooooooooooooJ" << std::endl;
 
         outStream << codeTable;
 
@@ -197,78 +111,19 @@ struct GrammarParser
     }
 
 
-
-
-    //    auto [newG, actionTableOption, gotoFunction, markNonterminalsMap]
-    //           = extendGrammarAndConstructActionGotoMark(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
-
 private:
 
 
 };
 
 
-//template<typename InputIterator, typename OutStream, typename ErrorStream>
-//void grammarAnalyze(InputIterator first, InputIterator last, OutStream& outText, ErrorStream &errorOfstream )
-//{
-//
-//    TemporaryVariableNumberGenerator::reset();
-//
-//    IRTable codeTable;
-//
-//
-//    IdentifierTable identifierTable;
-//
-//    auto gf = GrammarInput<decltype(codeTable), decltype(errorOfstream)>
-//        (identifierTable, codeTable, errorOfstream).gf;
-//
-//
-//    auto g = gf.g;
-//    auto indexToNonterminalMap = gf.getIndexToNonterminalMap();
-//    auto indexToTerminalMap =  gf.getIndexToTerminalMap();
-//    auto terminalToIndexMap =  gf.getTerminalToIndexMap();
-//
-//
-//
-//
-//
-//
-//
-////    std::cout << GrammerForOutput<decltype(g), decltype(indexToNonterminalMap), decltype(indexToTerminalMap)>
-////        {g, indexToNonterminalMap, indexToTerminalMap} ;
-//
-//
-//    auto [newG, actionTableOption, gotoFunction, markNonterminalsMap]
-//           = extendGrammarAndConstructActionGotoMark(g, indexToNonterminalMap, indexToTerminalMap, terminalToIndexMap);
-//
-//
-//
-//
-//
-//    cout << std::string(2, '\n') << "Begin parsing...\n\n";
-//    auto ans = parseLRGrammar(
-//            first,
-//            last,
-//            newG,
-//            actionTableOption.value(),
-//            gotoFunction,
-//            markNonterminalsMap,
-//            terminalToIndexMap,
-//            indexToTerminalMap,
-//            indexToNonterminalMap);
-//
-//
-//
-//    std::cout << "identifierTable: \n" << newLineRangeSplitter  << identifierTable << std::endl;
-//
-//
-////    std::ofstream outText ("out.txt", std::ofstream::out);
-//    outText << codeTable;
-//
-////    outText.clear();
-////    errorOfstream.clear();
-//
-//}
+
+
+
+
+
+
+
 
 } // namespace lz
 
