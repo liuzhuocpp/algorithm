@@ -273,6 +273,36 @@ private:
 };
 
 
+template<typename UniquePairAssociativeContainer>
+struct SharedConstAssociativeMap:
+    MapFacade<
+    typename UniquePairAssociativeContainer::key_type,
+    typename UniquePairAssociativeContainer::mapped_type>
+{
+    using Container = UniquePairAssociativeContainer;
+public:
+    SharedConstAssociativeMap()
+    {}
+
+    SharedConstAssociativeMap(const Container &associativeContainer ) :
+        associativeContainer(new Container(associativeContainer))
+    {}
+
+    SharedConstAssociativeMap(Container &&associativeContainer ) :
+            associativeContainer(new Container(std::forward<Container>(associativeContainer)))
+    {}
+
+
+    template<typename KeyType>
+    decltype(auto) operator[](KeyType && key) const
+    {
+        return associativeContainer->at(key);
+    }
+private:
+    std::shared_ptr<const UniquePairAssociativeContainer> associativeContainer;
+//    const UniquePairAssociativeContainer * associativeContainer = nullptr;
+
+};
 
 } // namespace lz
 

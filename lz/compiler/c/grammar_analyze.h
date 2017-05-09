@@ -40,7 +40,7 @@ private:
     using T = LexicalSymbol;
 
     using GF = GrammarFactory<T, P>;
-    decltype(GF()) gf;
+//    decltype(GF()) gf;
     decltype(GF().g) g;
     decltype(GF().getIndexToNonterminalMap()) indexToNonterminalMap;
     decltype(GF().getIndexToTerminalMap()) indexToTerminalMap;
@@ -59,7 +59,7 @@ private:
 public:
     void construct()
     {
-        gf = makeGrammarFactory(identifierTable, codeTable, errorOfstream);
+        GF gf = makeGrammarFactory(identifierTable, codeTable, errorOfstream);
 
         indexToNonterminalMap = gf.getIndexToNonterminalMap();
         indexToTerminalMap =  gf.getIndexToTerminalMap();

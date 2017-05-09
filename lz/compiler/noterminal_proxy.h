@@ -89,7 +89,7 @@ private:
     std::map<T, SymbolDescriptor> terminalMap;
 
 
-    std::map<T, int> terminalToIndexMap;
+//    std::map<T, int> terminalToIndexMap;
 public:
 
     GrammarFactory(){}
@@ -124,13 +124,14 @@ public:
     }
     auto getTerminalToIndexMap()
     {
-        terminalToIndexMap.clear();
+        std::map<T, int> terminalToIndexMap;
         for(auto& _pair: terminalMap)
         {
             terminalToIndexMap[_pair.first] = lz::getTerminalId(_pair.second);
         }
 
-        ConstAssociativeMap<decltype(terminalToIndexMap)> ans(terminalToIndexMap);
+        SharedConstAssociativeMap<decltype(terminalToIndexMap)> ans(std::move(terminalToIndexMap));
+//        ConstAssociativeMap<decltype(terminalToIndexMap)> ans(terminalToIndexMap);
         return ans;
 
     }
