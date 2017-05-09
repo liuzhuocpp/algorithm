@@ -31,6 +31,7 @@ struct GrammarParser
 {
     GrammarParser(OutStream &outStream, ErrorStream &errorOfstream):
         m_outStream(outStream), m_errorOfstream(errorOfstream){}
+
     OutStream& outStream()
     {
         return m_outStream;
@@ -49,7 +50,10 @@ struct GrammarParser
     {
         return m_codeTable;
     }
-
+    TypeTable& typeTable()
+    {
+        return m_typeTable;
+    }
 
 
 private:
@@ -58,6 +62,8 @@ private:
 
     IdentifierTable m_identifierTable;
     ThreeAddressCode m_codeTable;
+    TypeTable m_typeTable;
+
 
     using P = Properties;
     using T = LexicalSymbol;
@@ -109,6 +115,8 @@ public:
         TemporaryVariableNumberGenerator::reset();
         m_identifierTable.clear();
         m_codeTable.clear();
+        m_typeTable.clear();
+
         cout << std::string(2, '\n') << "Begin parsing...\n\n";
 
 

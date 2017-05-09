@@ -32,7 +32,6 @@ enum class TypeCategory
 struct TypeTable;
 
 struct Type
-//        : public EqualityComparableFacade<Type>
 {
     friend TypeTable;
 private:
@@ -53,12 +52,6 @@ public:
         return m_category;
     }
 
-//    friend bool operator==(const Type &a, const Type &b)
-//    {
-//        return a.m_category == b.m_category && a.index == b.index;
-//    }
-
-
 };
 
 
@@ -66,7 +59,6 @@ public:
 struct TypeTable
 {
 private:
-//    std::vector<Type> typeVector;
 
     std::vector<std::pair<Type, std::vector<int>> > arrayVector;
 
@@ -102,29 +94,24 @@ public:
 
     void clear()
     {
-//        typeVector.clear();
         structVector.clear();
         arrayVector.clear();
         structNameVector.clear();
     }
 
-    int getWidth(Type t) const
-    {
-        int ans = 1; // 暂时先设为1
-
-        for(auto x: arrayDimensions(t))
-        {
-            ans *= x;
-        }
-        return ans;
-
-    }
-
-
-//    Type type(int i) const
+//    int getWidth(Type t) const
 //    {
-//        return typeVector[i];
+//        int ans = 1; // 暂时先设为1
+//
+//        for(auto x: arrayDimensions(t))
+//        {
+//            ans *= x;
+//        }
+//        return ans;
+//
 //    }
+
+
 
     Type arrayBaseType(Type i) const
     {
@@ -199,7 +186,7 @@ public:
 
 struct IdentifierTable
 {
-    TypeTable typeTable;
+//    TypeTable typeTable;
 private:
 
     std::map<std::string, int> identifierToId;
@@ -211,7 +198,7 @@ public:
         identifierToId.clear();
         identifierAndTypes.clear();
 
-        typeTable.clear();
+//        typeTable.clear();
     }
     int insert(std::string identifierName, Type t)
     {
@@ -225,7 +212,6 @@ public:
         int newId = identifierToId.size();
         identifierToId[identifierName] = newId;
 
-//        Type newType = typeTable.insert(category);
 
         identifierAndTypes.push_back(std::make_pair(identifierName, t));
 
@@ -269,64 +255,6 @@ public:
     {
         return identifierAndTypes[i].second;
     }
-
-//    Type arrayBaseType(int i) const
-//    {
-//        assert(category(i) ==  TypeCategory::Array);
-//        return typeTable.arrayBaseType(type(i));
-//
-//    }
-
-//    const std::vector<int>& arrayDimensions(int i) const
-//    {
-//        assert(category(i) ==  TypeCategory::Array);
-//
-//        return typeTable.arrayDimensions(type(i));
-////        return arrayVector[type(i).index].second;
-//    }
-//
-//    const std::vector<std::pair<int, Type>>& structNameMembers(int i) const
-//    {
-//        assert(category(i) == TypeCategory::StructName);
-//
-//
-//        return typeTable.structNameMembers(type(i));
-////        return structNameVector[i];
-//    }
-
-//    // struct 对应的structName的index
-//    int structIndex(int i)
-//    {
-//        assert(category(i) == TypeCategory::Struct);
-//        typeTable.structIndex(type(i));
-//        return type(i).index;
-//    }
-//
-//    void setArray(int i, Type arrayBaseType, const std::vector<int>& arrayDimensions)
-//    {
-//        assert(category(i) ==  TypeCategory::Array);
-//        assert(i >= 0 && i < arrayVector.size());
-//
-//        arrayVector[i] = {arrayBaseType, arrayDimensions};
-//    }
-//
-//    void setStructName(int i, const std::vector<std::pair<int, Type> > & structNameMembers)
-//    {
-//        assert(category(i) == TypeCategory::StructName);
-//        assert(i >= 0 && i < structNameVector.size());
-//
-//        structNameVector[type(i).index] = structNameMembers;
-//    }
-//
-//    void setStruct(int i, const std::string& structName)
-//    {
-//        assert(category(i) == TypeCategory::Struct);
-//        assert(identifierToId.count(structName));
-//
-//        int structNameId = identifierToId[structName];
-//        type(i).index = structNameId;
-//    }
-
 
 
 

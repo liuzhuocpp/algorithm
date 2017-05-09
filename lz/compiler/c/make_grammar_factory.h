@@ -80,9 +80,7 @@ struct GrammarInput
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
-//                typeTable().insert()
                 identifierTable().insert(v[2].addr, v[1].type);
-//                identifierTable().insertIdentifier(v[1].type, v[2].addr);
             };
 
         typeDeclare = baseTypeDeclare >>
@@ -312,12 +310,10 @@ struct GrammarInput
 
 
     // I think use the global variable is very ugly.
-//    static IdentifierTable* global_identifierTable;
-//    static ThreeAddressCode* global_codeTable;
     static GrammarParser* global_grammarParser;
 
     static IdentifierTable& identifierTable() { return global_grammarParser->identifierTable(); }
-    static TypeTable& typeTable() { return identifierTable().typeTable; }
+    static TypeTable& typeTable() { return global_grammarParser->typeTable(); }
     static ThreeAddressCode& codeTable() { return global_grammarParser->codeTable(); }
     static auto& errorOfstream() { return global_grammarParser->errorOfstream(); }
 
@@ -433,14 +429,6 @@ struct GrammarInput
 };
 
 
-//template<typename E>
-//IdentifierTable* GrammarInput<E>::global_identifierTable=  nullptr;
-//
-//
-//template<typename E>
-//ThreeAddressCode* GrammarInput<E>::global_codeTable=  nullptr;
-
-
 template<typename GrammarParser>
 GrammarParser* GrammarInput<GrammarParser>::global_grammarParser =  nullptr;
 
@@ -448,21 +436,14 @@ GrammarParser* GrammarInput<GrammarParser>::global_grammarParser =  nullptr;
 
 template<typename GrammarParser>
 auto makeGrammarFactory(
-        GrammarParser& grammarParser
-//    IdentifierTable &identifierTable,
-//    ThreeAddressCode &codeTable,
-//    ErrorOfstream &errorOfstream
-    )
+        GrammarParser& grammarParser )
 {
 
-//    GrammarInput<ErrorOfstream>::global_identifierTable = &identifierTable;
-//    GrammarInput<ErrorOfstream>::global_codeTable = &codeTable;
     GrammarInput<GrammarParser>::global_grammarParser = &grammarParser;
 
 
 
-    return  GrammarInput<GrammarParser>
-       ().gf;
+    return  GrammarInput<GrammarParser> ().gf;
 
 }
 
