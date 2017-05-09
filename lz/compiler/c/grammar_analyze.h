@@ -30,17 +30,39 @@ template<typename OutStream, typename ErrorStream>
 struct GrammarParser
 {
     GrammarParser(OutStream &outStream, ErrorStream &errorOfstream):
-        outStream(outStream), errorOfstream(errorOfstream){}
-private:
-    OutStream &outStream;
+        m_outStream(outStream), m_errorOfstream(errorOfstream){}
+    OutStream& outStream()
+    {
+        return m_outStream;
+    }
 
-    ErrorStream &errorOfstream;
+    ErrorStream& errorOfstream()
+    {
+        return m_errorOfstream;
+    }
+
+    IdentifierTable& identifierTable()
+    {
+        return m_identifierTable;
+    }
+    ThreeAddressCode& codeTable()
+    {
+        return m_codeTable;
+    }
+
+
+
+private:
+    OutStream &m_outStream;
+    ErrorStream &m_errorOfstream;
+
+    IdentifierTable m_identifierTable;
+    ThreeAddressCode m_codeTable;
 
     using P = Properties;
     using T = LexicalSymbol;
 
     using GF = GrammarFactory<T, P>;
-//    decltype(GF()) gf;
     decltype(GF().g) g;
     decltype(GF().getIndexToNonterminalMap()) indexToNonterminalMap;
     decltype(GF().getIndexToTerminalMap()) indexToTerminalMap;
@@ -54,12 +76,10 @@ private:
     std::tuple_element_t<2, ExtendedTuple> gotoFunction;
     std::tuple_element_t<3, ExtendedTuple> markNonterminalsMap;
 
-    IdentifierTable identifierTable;
-    ThreeAddressCode codeTable;
 public:
     void construct()
     {
-        GF gf = makeGrammarFactory(identifierTable, codeTable, errorOfstream);
+        GF gf = makeGrammarFactory(*this);
 
         indexToNonterminalMap = gf.getIndexToNonterminalMap();
         indexToTerminalMap =  gf.getIndexToTerminalMap();
@@ -87,8 +107,8 @@ public:
 
 
         TemporaryVariableNumberGenerator::reset();
-        identifierTable.clear();
-        codeTable.clear();
+        m_identifierTable.clear();
+        m_codeTable.clear();
         cout << std::string(2, '\n') << "Begin parsing...\n\n";
 
 
@@ -106,7 +126,7 @@ public:
 
 
 
-        outStream << codeTable;
+        m_outStream << m_codeTable;
 
 
     }

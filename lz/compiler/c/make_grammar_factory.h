@@ -26,7 +26,7 @@ namespace lz {
 
 // this is private
 
-template<typename ErrorOfstream>
+template<typename GrammarParser>
 struct GrammarInput
 {
     using P = Properties;
@@ -312,14 +312,14 @@ struct GrammarInput
 
 
     // I think use the global variable is very ugly.
-    static IdentifierTable* global_identifierTable;
-    static ThreeAddressCode* global_codeTable;
-    static ErrorOfstream* global_errorOfstream;
+//    static IdentifierTable* global_identifierTable;
+//    static ThreeAddressCode* global_codeTable;
+    static GrammarParser* global_grammarParser;
 
-    static IdentifierTable& identifierTable() { return *global_identifierTable; }
-    static TypeTable& typeTable() { return global_identifierTable->typeTable; }
-    static ThreeAddressCode& codeTable() { return *global_codeTable; }
-    static ErrorOfstream& errorOfstream() { return *global_errorOfstream; }
+    static IdentifierTable& identifierTable() { return global_grammarParser->identifierTable(); }
+    static TypeTable& typeTable() { return identifierTable().typeTable; }
+    static ThreeAddressCode& codeTable() { return global_grammarParser->codeTable(); }
+    static auto& errorOfstream() { return global_grammarParser->errorOfstream(); }
 
 
 
@@ -433,33 +433,35 @@ struct GrammarInput
 };
 
 
-template<typename E>
-IdentifierTable* GrammarInput<E>::global_identifierTable=  nullptr;
+//template<typename E>
+//IdentifierTable* GrammarInput<E>::global_identifierTable=  nullptr;
+//
+//
+//template<typename E>
+//ThreeAddressCode* GrammarInput<E>::global_codeTable=  nullptr;
 
 
-template<typename E>
-ThreeAddressCode* GrammarInput<E>::global_codeTable=  nullptr;
-
-
-template<typename E>
-E* GrammarInput<E>::global_errorOfstream =  nullptr;
+template<typename GrammarParser>
+GrammarParser* GrammarInput<GrammarParser>::global_grammarParser =  nullptr;
 
 
 
-template<typename ErrorOfstream>
+template<typename GrammarParser>
 auto makeGrammarFactory(
-    IdentifierTable &identifierTable,
-    ThreeAddressCode &codeTable,
-    ErrorOfstream &errorOfstream)
+        GrammarParser& grammarParser
+//    IdentifierTable &identifierTable,
+//    ThreeAddressCode &codeTable,
+//    ErrorOfstream &errorOfstream
+    )
 {
 
-    GrammarInput<ErrorOfstream>::global_identifierTable = &identifierTable;
-    GrammarInput<ErrorOfstream>::global_codeTable = &codeTable;
-    GrammarInput<ErrorOfstream>::global_errorOfstream = &errorOfstream;
+//    GrammarInput<ErrorOfstream>::global_identifierTable = &identifierTable;
+//    GrammarInput<ErrorOfstream>::global_codeTable = &codeTable;
+    GrammarInput<GrammarParser>::global_grammarParser = &grammarParser;
 
 
 
-    return  GrammarInput<ErrorOfstream>
+    return  GrammarInput<GrammarParser>
        ().gf;
 
 }
