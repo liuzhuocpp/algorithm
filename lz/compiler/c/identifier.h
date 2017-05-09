@@ -22,7 +22,7 @@ struct IdentifierTable
 private:
 
     std::map<std::string, int> identifierToId;
-    std::vector<std::pair<std::string, Type>> identifierAndTypes;
+    std::vector<std::pair<std::string, TypeDescriptor>> identifierAndTypes;
 
 public:
     void clear()
@@ -31,7 +31,7 @@ public:
         identifierAndTypes.clear();
 
     }
-    int insert(std::string identifierName, Type t)
+    int insert(std::string identifierName, TypeDescriptor t)
     {
         if(identifierToId.count(identifierName))
         {
@@ -77,12 +77,12 @@ public:
         return identifierAndTypes[i].first;
     }
 
-    const Type& type(int i) const
+    const TypeDescriptor& type(int i) const
     {
         return identifierAndTypes[i].second;
     }
 
-    Type& type(int i)
+    TypeDescriptor& type(int i)
     {
         return identifierAndTypes[i].second;
     }

@@ -21,7 +21,7 @@ struct Properties
     // for expression
     std::string addr;
 
-    Type type; // 类型， for declare and arrayExpression
+    TypeDescriptor type; // 类型， for declare and arrayExpression
 
 
     std::string arrayOffsetAddr; // 是一个地址，和addr表示的一样

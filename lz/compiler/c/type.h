@@ -12,7 +12,6 @@
 
 namespace lz {
 
-
 enum class TypeCategory
 {
     Int,
@@ -27,9 +26,38 @@ enum class TypeCategory
     Unknown,
 };
 
+
+
+//
+//struct NewType
+//{
+//    TypeCategory m_category;
+//
+//    // for Array
+//    NewType *arrayBaseType;
+//    std::vector<int> arrayDimensions;
+//
+//    // for StructName
+//    std::vector<NewType> structNameVector;
+//
+//};
+//
+
+
+
+
+
+
+
+
+
+
+
+
+
 struct TypeTable;
 
-struct Type
+struct TypeDescriptor
 {
     friend TypeTable;
 private:
@@ -42,8 +70,8 @@ private:
     int index = -1;
 
 public:
-    Type() {}
-    Type(TypeCategory category):m_category(category){}
+    TypeDescriptor() {}
+    TypeDescriptor(TypeCategory category):m_category(category){}
 
     TypeCategory category() const
     {
@@ -69,17 +97,17 @@ struct TypeTable
 {
 private:
 
-    std::vector<std::pair<Type, std::vector<int>> > arrayVector;
+    std::vector<std::pair<TypeDescriptor, std::vector<int>> > arrayVector;
 
     // every pair is identifier index and corresponding type
-    std::vector<std::vector<std::pair<int, Type> > > structNameVector;
+    std::vector<std::vector<std::pair<int, TypeDescriptor> > > structNameVector;
 
 
 
 public:
-    Type insert(TypeCategory category)
+    TypeDescriptor insert(TypeCategory category)
     {
-        Type newType = Type(category);
+        TypeDescriptor newType = TypeDescriptor(category);
 
         switch(category)
         {
@@ -98,35 +126,58 @@ public:
         return newType;
     }
 
+    bool typeEqual(TypeDescriptor a, TypeDescriptor b)
+    {
+        if(a.m_category != b.m_category) return false;
+        auto category = a.m_category;
+        if(category == TypeCategory::Array)
+        {
+            return typeEqual(arrayBaseType(a), arrayBaseType(b)) &&
+                arrayDimensions(a) == arrayDimensions(b);
+        }
+        else if(category == TypeCategory::StructName)
+        {
+            return false;
+        }
+        else if(category == TypeCategory::Struct)
+        {
+            return a.index == b.index;
+        }
+        else // 其余是base type
+        {
+            return true;
+        }
+
+
+
+
+    }
+
     void clear()
     {
         arrayVector.clear();
         structNameVector.clear();
     }
 
-
-
-
-
-    Type arrayBaseType(Type i) const
+    TypeDescriptor arrayBaseType(TypeDescriptor i) const
     {
         return arrayVector[i.index].first;
     }
 
-    Type& arrayBaseType(Type i)
+    TypeDescriptor& arrayBaseType(TypeDescriptor i)
     {
         return arrayVector[i.index].first;
     }
 
 
-    const std::vector<int>& arrayDimensions(Type i) const
+    const std::vector<int>& arrayDimensions(TypeDescriptor i) const
     {
         assert(i.category() ==  TypeCategory::Array);
 
         return arrayVector[i.index].second;
     }
 
-    std::vector<int>& arrayDimensions(Type i)
+    std::vector<int>& arrayDimensions(TypeDescriptor i)
     {
         assert(i.category() ==  TypeCategory::Array);
 
@@ -134,12 +185,12 @@ public:
     }
 
 
-    void addArrayDimension(Type i, int n)
+    void addArrayDimension(TypeDescriptor i, int n)
     {
         arrayVector[i.index].second.push_back(n);
     }
 
-    const std::vector<std::pair<int, Type>>& structNameMembers(Type i) const
+    const std::vector<std::pair<int, TypeDescriptor>>& structNameMembers(TypeDescriptor i) const
     {
         assert(i.category() == TypeCategory::StructName);
 
@@ -147,7 +198,7 @@ public:
     }
 
 
-    void setArray(Type i, Type arrayBaseType, const std::vector<int>& arrayDimensions)
+    void setArray(TypeDescriptor i, TypeDescriptor arrayBaseType, const std::vector<int>& arrayDimensions)
     {
         assert(i.category() ==  TypeCategory::Array);
         assert(i.index >= 0 && i.index < arrayVector.size());
@@ -155,7 +206,7 @@ public:
         arrayVector[i.index] = {arrayBaseType, arrayDimensions};
     }
 
-    void setStructName(Type i, const std::vector<std::pair<int, Type> > & structNameMembers)
+    void setStructName(TypeDescriptor i, const std::vector<std::pair<int, TypeDescriptor> > & structNameMembers)
     {
         assert(i.category() == TypeCategory::StructName);
         assert(i.index >= 0 && i.index < structNameVector.size());
