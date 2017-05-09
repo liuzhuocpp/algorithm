@@ -3,9 +3,8 @@
 
 
 
-#include <lz/compiler/c/grammar_analyze.h>
-
 #include <direct.h>
+#include <lz/compiler/c/grammar_parser.h>
 
 
 

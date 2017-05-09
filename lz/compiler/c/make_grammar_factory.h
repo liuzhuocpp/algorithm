@@ -348,8 +348,7 @@ struct GrammarInput
 
     static std::string getVariableName (int i)
     {
-        return identifierTable().identifier(i);
-//        return it->first.name; // 目前先返回变量的真实的identifier，便于debug
+        return identifierTable().identifier(i);// 目前先返回变量的真实的identifier，便于debug
     };
 
     static void generateCode(InstructionCategory op, std::string arg1, std::string arg2, std::string res)
@@ -361,13 +360,11 @@ struct GrammarInput
     static void generateGotoCode(int label)
     {
         codeTable().generateGotoCode(label);
-
     }
 
     static void generateGotoCode()
     {
         codeTable().generateGotoCode();
-
     }
 
 
@@ -391,19 +388,15 @@ struct GrammarInput
     static void solveRelationalOperator(PIT v, P &o)
     {
         o.trueList.push_back(nextInstructionIndex());
-
-
         generateCode(ThreeAddressInstruction::toIfRel(v[2].addr), v[1].addr, v[3].addr, "-");
         o.falseList.push_back(nextInstructionIndex());
         generateGotoCode();
-
     }
 
     static void solveUnaryPlusOrMinusOperator(PIT v, P &o)
     {
         o.addr = getTemporaryVariableName();
         std::string op = v[1].addr;
-
         InstructionCategory ansOp;
         if(op == "+")
             ansOp = InstructionCategory::UnaryPlus;
@@ -423,7 +416,6 @@ struct GrammarInput
             first++;
         }
         return sum;
-
     }
 
 };
@@ -432,30 +424,14 @@ struct GrammarInput
 template<typename GrammarParser>
 GrammarParser* GrammarInput<GrammarParser>::global_grammarParser =  nullptr;
 
-
-
 template<typename GrammarParser>
 auto makeGrammarFactory(
         GrammarParser& grammarParser )
 {
 
     GrammarInput<GrammarParser>::global_grammarParser = &grammarParser;
-
-
-
     return  GrammarInput<GrammarParser> ().gf;
-
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

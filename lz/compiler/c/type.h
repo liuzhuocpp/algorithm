@@ -50,10 +50,21 @@ public:
         return m_category;
     }
 
+    int getStructIndex()
+    {
+        assert(m_category == TypeCategory::Struct);
+        return index;
+    }
+
+    void setStructIndex(int i)
+    {
+        assert(m_category == TypeCategory::Struct);
+        index = i;
+    }
 };
 
 
-
+// only when category is Array, StructName, need this TypeTable
 struct TypeTable
 {
 private:
@@ -63,7 +74,8 @@ private:
     // every pair is identifier index and corresponding type
     std::vector<std::vector<std::pair<int, Type> > > structNameVector;
 
-    std::vector<int> structVector;
+
+
 public:
     Type insert(TypeCategory category)
     {
@@ -74,10 +86,6 @@ public:
         case TypeCategory::Array:
             newType.index = arrayVector.size();
             arrayVector.push_back({});
-            break;
-        case TypeCategory::Struct:
-            newType.index = structVector.size();
-            structVector.push_back({});
             break;
         case TypeCategory::StructName:
             newType.index = structNameVector.size();
@@ -92,22 +100,11 @@ public:
 
     void clear()
     {
-        structVector.clear();
         arrayVector.clear();
         structNameVector.clear();
     }
 
-//    int getWidth(Type t) const
-//    {
-//        int ans = 1; // 暂时先设为1
-//
-//        for(auto x: arrayDimensions(t))
-//        {
-//            ans *= x;
-//        }
-//        return ans;
-//
-//    }
+
 
 
 
@@ -124,14 +121,14 @@ public:
 
     const std::vector<int>& arrayDimensions(Type i) const
     {
-//        assert(category(i) ==  TypeCategory::Array);
+        assert(i.category() ==  TypeCategory::Array);
 
         return arrayVector[i.index].second;
     }
 
     std::vector<int>& arrayDimensions(Type i)
     {
-//        assert(category(i) ==  TypeCategory::Array);
+        assert(i.category() ==  TypeCategory::Array);
 
         return arrayVector[i.index].second;
     }
@@ -144,148 +141,32 @@ public:
 
     const std::vector<std::pair<int, Type>>& structNameMembers(Type i) const
     {
-//        assert(category(i) == TypeCategory::StructName);
+        assert(i.category() == TypeCategory::StructName);
 
         return structNameVector[i.index];
     }
 
-    // struct 对应的structName的index
-    int structIndex(Type i)
-    {
-//        assert(category(i) == TypeCategory::Struct);
-        return structVector[i.index];
-    }
 
     void setArray(Type i, Type arrayBaseType, const std::vector<int>& arrayDimensions)
     {
-//        assert(category(i) ==  TypeCategory::Array);
-//        assert(i >= 0 && i < arrayVector.size());
+        assert(i.category() ==  TypeCategory::Array);
+        assert(i.index >= 0 && i.index < arrayVector.size());
 
         arrayVector[i.index] = {arrayBaseType, arrayDimensions};
     }
 
     void setStructName(Type i, const std::vector<std::pair<int, Type> > & structNameMembers)
     {
-//        assert(category(i) == TypeCategory::StructName);
-//        assert(i >= 0 && i < structNameVector.size());
+        assert(i.category() == TypeCategory::StructName);
+        assert(i.index >= 0 && i.index < structNameVector.size());
 
         structNameVector[i.index] = structNameMembers;
     }
 
-    void setStruct(Type i, int structId)
-    {
-//        assert(category(i) == TypeCategory::Struct);
-//        assert(identifierToId.count(structName));
-        structVector[i.index] = structId;
-    }
+
 
 };
 
-//struct Type
-//{
-//    enum class Category
-//    {
-//        Int,
-//        Float,
-//        Double,
-//
-//        Array,
-////        Struct,
-//        Unknown,
-//    };
-//
-//
-//private:
-//    Category m_category;
-//    std::vector<int> arrayDimensions;
-//public:
-//
-//    Category getCategory() const
-//    {
-//        if(arrayDimensions.empty())
-//        {
-//            return m_category;
-//        }
-//        else
-//        {
-//            return Category::Array;
-//        }
-//    }
-//    Category baseType() const
-//    {
-//        return m_category;
-//    }
-//
-//
-//
-//
-//
-//    int getWidth() const
-//    {
-//        int ans = 1; // 暂时先设为1
-//        for(auto x: arrayDimensions)
-//        {
-//            ans *= x;
-//        }
-//        return ans;
-//
-//    }
-//
-//    void addDimension(int x)
-//    {
-//        arrayDimensions.push_back(x);
-//    }
-//
-//    Type subArray() const
-//    {
-//        Type ans(this->m_category);
-//        ans.arrayDimensions.assign(this->arrayDimensions.begin() + 1, this->arrayDimensions.end());
-//        return ans;
-//    }
-//
-//
-//
-//    Type(Category cat = Category::Unknown):
-//        m_category(cat){}
-//
-//
-//
-//
-////    operator Category()
-////    {
-////        return m_category;
-////    }
-//
-//    template <class Char, class Traits>
-//    friend std::basic_ostream<Char, Traits>&
-//    operator<<(std::basic_ostream<Char, Traits>& os,
-//               const Type&  id)
-//    {
-//
-//        os << "Type(";
-//
-//
-//        if(id.m_category == Category::Float) os << "float" ;
-//        else if(id.m_category == Category::Int) os << "int";
-//        else if(id.m_category == Category::Double) os << "double";
-//        else os << "unknown";
-//
-//        if(!id.arrayDimensions.empty())
-//        {
-//            auto cntRangeSplitter = currentRangeSplitter(os);
-//            os <<commaRangeSplitter << id.arrayDimensions << cntRangeSplitter;
-//
-//        }
-//        os << ")";
-//
-//
-//        return os;
-//    }
-//
-//
-//
-//};
-//
 
 
 

@@ -19,7 +19,6 @@ namespace lz {
 
 struct IdentifierTable
 {
-//    TypeTable typeTable;
 private:
 
     std::map<std::string, int> identifierToId;
@@ -31,7 +30,6 @@ public:
         identifierToId.clear();
         identifierAndTypes.clear();
 
-//        typeTable.clear();
     }
     int insert(std::string identifierName, Type t)
     {

@@ -5,8 +5,8 @@
  *      Author: LZ
  */
 
-#ifndef LZ_COMPILER_C_GRAMMAR_ANALYZE_H_
-#define LZ_COMPILER_C_GRAMMAR_ANALYZE_H_
+#ifndef LZ_COMPILER_C_GRAMMAR_PARSER_H_
+#define LZ_COMPILER_C_GRAMMAR_PARSER_H_
 
 
 
@@ -160,4 +160,4 @@ private:
 
 
 
-#endif /* LZ_COMPILER_C_GRAMMAR_ANALYZE_H_ */
+#endif /* LZ_COMPILER_C_GRAMMAR_PARSER_H_ */
