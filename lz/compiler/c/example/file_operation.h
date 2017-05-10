@@ -18,29 +18,30 @@
 
 namespace lz {
 
+
+std::string getFilePreifx(int number)
+{
+    return "data\\" + std::to_string(number);
+}
 std::string getOutFileName(int number)
 {
-    return std::to_string(number) + "\\out.txt";
+    return getFilePreifx(number) + "\\out.txt";
 }
 
 std::string getErrorFileName(int number)
 {
-    return std::to_string(number) + "\\z_error.txt"; // 为了使得这个文件在文件夹的最后
+    return getFilePreifx(number) + "\\z_error.txt"; // 为了使得这个文件在文件夹的最后
 }
 
-
-
-
-//std::ofstream outStream , errorOfstream;
-
-//GrammarParser<decltype(outStream), decltype(errorOfstream)>
-//    grammarParser(outStream, errorOfstream);
-
+std::string getInputFileName(int fileNumber)
+{
+    return getFilePreifx(fileNumber) + "\\in.txt";
+}
 
 std::string readFile(const std::string& fileName)
 {
 
-    std::regex fileNumberRegex(R"(([0-9]*)\\in\.txt)");
+    std::regex fileNumberRegex(R"((data\\[0-9]*)\\in\.txt)");
 
     std::smatch match;
     if(!std::regex_match(fileName.begin(), fileName.end(), match, fileNumberRegex))
@@ -68,19 +69,10 @@ bool isFileExist(const std::string &fileName)
     return infile.good();
 }
 
-
-std::string getInputFileName(int fileNumber)
-{
-    return std::to_string(fileNumber) + "\\in.txt";
-}
-
 std::vector<int> getAllInputFileDirectoryNumberList()
 {
     std::vector<int> ans;
-
-
     for(int i = 0;
-
             ; ++ i)
     {
         std::string fileName = getInputFileName(i);
@@ -88,7 +80,6 @@ std::vector<int> getAllInputFileDirectoryNumberList()
 
         ans.push_back(i);
     }
-
     return ans;
 
 }
