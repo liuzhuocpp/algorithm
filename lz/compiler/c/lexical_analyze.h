@@ -30,7 +30,6 @@ struct LexicalSymbol
 #define X2(key, name) key,
 #include <lz/compiler/c/mutable_lexical_symbol_list.def>
 #include <lz/compiler/c/punctuation_list.def>
-//        End,
 #include <lz/compiler/c/keyword_list.def>
 #undef X1
 #undef X2
@@ -42,7 +41,6 @@ struct LexicalSymbol
 #define X2(key, name) name,
 #include <lz/compiler/c/mutable_lexical_symbol_list.def>
 #include <lz/compiler/c/punctuation_list.def>
-//        "end",
 #include <lz/compiler/c/keyword_list.def>
 #undef X1
 #undef X2
@@ -55,8 +53,7 @@ struct LexicalSymbol
         return a.m_category < b.m_category;
     }
 
-    static const
-    std::unordered_map<std::string, Category> keywordToType;
+    static const std::unordered_map<std::string, Category> keywordToType;
 
 
 private:
@@ -158,7 +155,8 @@ public:
 
 
     LexicalSymbol(Category type, std::string value):m_category(type), m_value(value){}
-    LexicalSymbol() = default;
+    LexicalSymbol():m_category() {}
+
     LexicalSymbol(Category type): m_category(type){}
     LexicalSymbol(std::string s)
     {
@@ -238,12 +236,8 @@ public:
                const LexicalSymbol&  ls)
     {
         os << names[static_cast<int>(ls.m_category)];
-
-
-
         if(isMutableLexicalSymbol(ls.m_category))
         {
-
             os << "(" << ls.m_value << ")";
         }
         return os;
@@ -262,10 +256,7 @@ private:
     }
 };
 
-const
-//std::array<std::pair<LexicalSymbol::Category, LexicalSymbol::Category>, 3>
-    auto
-    LexicalSymbol::categoryRanges = LexicalSymbol::cal();
+const auto LexicalSymbol::categoryRanges = LexicalSymbol::cal();
 
 
 
@@ -305,10 +296,9 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
     auto mutableLexicalSymbolRange = LexicalSymbol::mutableLexicalSymbolRange();
 
     auto regexAndFuncsPushBack = [&](unsigned i) {
-//        std::cout << "JJJJ " << i << std::endl;
         auto cntRex = LexicalSymbol::regex(static_cast<LexicalSymbol::Category>(i));
 
-        std::cout << cntRex << " FFFrex" << std::endl;
+//        std::cout << cntRex << " FFFrex" << std::endl;
         regexAndFuncs.push_back(
             std::make_pair(
                 LexicalSymbol::regex(static_cast<LexicalSymbol::Category>(i)), func)  ) ;
@@ -322,7 +312,6 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
         mutableBegin = static_cast<unsigned>(mutableLexicalSymbolRange.first),
         mutableEnd = static_cast<unsigned>(mutableLexicalSymbolRange.second);
 
-//    std::cout << (puctuationBegin == punctuationEnd) << "HHH" << std::endl;
     for(unsigned i: irange(puctuationBegin, punctuationEnd + 1))
     {
         regexAndFuncsPushBack(i);
@@ -332,16 +321,8 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
     {
         regexAndFuncsPushBack(i);
     }
-//
-//    for(unsigned i: irange(static_cast<unsigned>(LexicalSymbol::Category::End) ) )
-//    {
-//        regexAndFuncs.push_back(
-//            std::make_pair(
-//                LexicalSymbol::regex(static_cast<LexicalSymbol::Category>(i)),
-//                func)
-//        );
-//    }
-//
+
+
     regexAndFuncs.push_back({"&&&&*", [&](auto first, auto last) {
         assert(0);
     }});
