@@ -22,7 +22,7 @@ enum class TypeCategory
 
     Array,
     Struct, // 表示Identifier 的类型是一个struct
-    StructName, // 表示Identfier 是一个struct name
+//    StructName, // 表示Identfier 是一个struct name
     Unknown,
 };
 
@@ -115,10 +115,10 @@ public:
             newType.index = arrayVector.size();
             arrayVector.push_back({});
             break;
-        case TypeCategory::StructName:
-            newType.index = structNameVector.size();
-            structNameVector.push_back({});
-            break;
+//        case TypeCategory::StructName:
+//            newType.index = structNameVector.size();
+//            structNameVector.push_back({});
+//            break;
         default:
             break;
 
@@ -135,10 +135,10 @@ public:
             return typeEqual(arrayBaseType(a), arrayBaseType(b)) &&
                 arrayDimensions(a) == arrayDimensions(b);
         }
-        else if(category == TypeCategory::StructName)
-        {
-            return false;
-        }
+//        else if(category == TypeCategory::StructName)
+//        {
+//            return false;
+//        }
         else if(category == TypeCategory::Struct)
         {
             return a.index == b.index;
@@ -190,12 +190,12 @@ public:
         arrayVector[i.index].second.push_back(n);
     }
 
-    const std::vector<std::pair<int, TypeDescriptor>>& structNameMembers(TypeDescriptor i) const
-    {
-        assert(i.category() == TypeCategory::StructName);
-
-        return structNameVector[i.index];
-    }
+//    const std::vector<std::pair<int, TypeDescriptor>>& structNameMembers(TypeDescriptor i) const
+//    {
+//        assert(i.category() == TypeCategory::StructName);
+//
+//        return structNameVector[i.index];
+//    }
 
 
     void setArray(TypeDescriptor i, TypeDescriptor arrayBaseType, const std::vector<int>& arrayDimensions)
@@ -206,13 +206,13 @@ public:
         arrayVector[i.index] = {arrayBaseType, arrayDimensions};
     }
 
-    void setStructName(TypeDescriptor i, const std::vector<std::pair<int, TypeDescriptor> > & structNameMembers)
-    {
-        assert(i.category() == TypeCategory::StructName);
-        assert(i.index >= 0 && i.index < structNameVector.size());
-
-        structNameVector[i.index] = structNameMembers;
-    }
+//    void setStructName(TypeDescriptor i, const std::vector<std::pair<int, TypeDescriptor> > & structNameMembers)
+//    {
+//        assert(i.category() == TypeCategory::StructName);
+//        assert(i.index >= 0 && i.index < structNameVector.size());
+//
+//        structNameVector[i.index] = structNameMembers;
+//    }
 
 
 

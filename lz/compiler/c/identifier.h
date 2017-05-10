@@ -15,8 +15,6 @@
 namespace lz {
 
 
-
-
 struct IdentifierTable
 {
 private:
@@ -91,6 +89,82 @@ public:
 
 };
 
+
+struct StructNameTable
+{
+private:
+
+    std::map<std::string, int> structNameToId;
+    std::vector<std::pair<std::map<std::string, int>, std::vector<TypeDescriptor>  >  >   structMembers;
+
+
+public:
+    void clear()
+    {
+        structNameToId.clear();
+        structMembers.clear();
+
+    }
+    int insert(std::string structName)
+    {
+        if(structNameToId.count(structName))
+        {
+            assert(0);
+            return -1;
+        }
+
+        assert(structNameToId.size() == structMembers.size());
+
+        int newId = structNameToId.size();
+        structNameToId[structName] = newId;
+
+
+        structMembers.push_back({});
+        return newId;
+    }
+
+    void addStructMember(int structId, std::string memberName, TypeDescriptor memberType)
+    {
+        structMembers[structId].first[memberName] = structMembers[structId].first.size();
+        structMembers[structId].second.push_back(memberType);
+    }
+
+    int structMemberIndex(int structId, std::string memberName) const
+    {
+        return structMembers[structId].first.at(memberName);
+    }
+
+    int structMemberNumber(int structId) const
+    {
+        return structMembers[structId].first.size();
+    }
+
+    TypeDescriptor structMemberType(int structId, int memberIndex) const
+    {
+        return structMembers[structId].second[memberIndex];
+    }
+
+    TypeDescriptor structMemberType(int structId, std::string memberName) const
+    {
+        int memberIndex = structMemberIndex(structId, memberName);
+        return structMembers[structId].second[memberIndex];
+    }
+
+
+
+    int find(std::string identifierName) const
+    {
+        auto it = structNameToId.find(identifierName);
+        int ans = it->second;
+
+        if(it == structNameToId.end()) ans = -1;
+        return ans;
+    }
+
+
+
+
+};
 
 
 //struct Identifier
