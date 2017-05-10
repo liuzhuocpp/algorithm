@@ -63,13 +63,8 @@ private:
     Category m_category;
     std::string m_value;
 
+    static  const std::array<std::pair<Category, Category>, 3> categoryRanges;
 
-//    static std::tuple<std::pa>
-     static  const std::array<std::pair<Category, Category>, 3> categoryRanges;
-
-//    static std::pair<Category, Category> m_mutableLexicalSymbolRange;
-//    static std::pair<Category, Category> m_keywordRange;
-//    static std::pair<Category, Category> m_punctuationRange;
 
     static std::array<std::pair<Category, Category>, 3> cal()
     {
@@ -122,19 +117,16 @@ public:
     static const auto& mutableLexicalSymbolRange()
     {
         return categoryRanges[0];
-//        return m_mutableLexicalSymbolRange;
     }
 
     static const auto& keywordRange()
     {
         return categoryRanges[1];
-//        return m_keywordRange;
     }
 
     static const auto& punctuationRange()
     {
         return categoryRanges[2];
-//        return m_punctuationRange;
     }
 
     static bool isMutableLexicalSymbol(Category category)
@@ -158,7 +150,6 @@ public:
     std::string value() const
     {
         if(isMutableLexicalSymbol(m_category))
-//        if(m_category == Category::Identifier || m_category == Category::IntNumber)
             return m_value;
         else
             return names[static_cast<unsigned>(m_category)];
@@ -207,15 +198,6 @@ public:
             {
                 assert(0);
             }
-//            for(int i = static_cast<int>(Category::IntNumber) + 1; i < static_cast<int>(Category::End); ++ i)
-//            {
-//                if(s == names[i])
-//                {
-//                    m_category = static_cast<Category>(i);
-//                    return ;
-//                }
-//            }
-
         }
     }
     LexicalSymbol(const char * s):LexicalSymbol(std::string(s))
@@ -280,10 +262,11 @@ private:
     }
 };
 
-const std::array<std::pair<LexicalSymbol::Category, LexicalSymbol::Category>, 3>
+const
+//std::array<std::pair<LexicalSymbol::Category, LexicalSymbol::Category>, 3>
+    auto
     LexicalSymbol::categoryRanges = LexicalSymbol::cal();
-//std::pair<LexicalSymbol::Category, LexicalSymbol::Category> LexicalSymbol::m_keywordRange;
-//std::pair<LexicalSymbol::Category, LexicalSymbol::Category> LexicalSymbol::m_mutableLexicalSymbolRange;
+
 
 
 const std::unordered_map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
