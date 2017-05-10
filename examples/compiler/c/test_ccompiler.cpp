@@ -4,8 +4,8 @@
 
 
 #include <direct.h>
+#include <lz/compiler/c/example/file_operation.h>
 #include <lz/compiler/c/grammar_parser.h>
-#include <lz/compiler/c/detail/read_file.h>
 
 
 
