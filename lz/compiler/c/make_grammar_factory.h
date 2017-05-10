@@ -88,7 +88,7 @@ struct GrammarInput
                 o.type = v[1].type;
             };
 
-        typeDeclare = typeDeclare >> "[" >> Lex::Integer >> "]" >>
+        typeDeclare = typeDeclare >> "[" >> Lex::IntNumber >> "]" >>
             [&](PIT v, P& o) {
                 if(v[1].type.category() != TypeCategory::Array)
                 {
@@ -234,7 +234,7 @@ struct GrammarInput
                 o.addr = v[2].addr;
             };
 
-        expression = Lex::Integer >>
+        expression = Lex::IntNumber >>
             [&](PIT v, P&o) {
                 o.addr = v[1].addr;
             };

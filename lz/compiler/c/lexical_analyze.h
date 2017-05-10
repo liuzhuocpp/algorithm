@@ -22,21 +22,35 @@ struct LexicalSymbol
     enum class Category: unsigned
     {
         Identifier,
-        Integer,
+        IntNumber,
+        DoubleNumber,
 
 #define X(name, punctuation) name,
 #include <lz/compiler/c/punctuation_list.def>
 #undef X
-
         End,
-
-
 #define X(name) name,
+#include <lz/compiler/c/keyword_list.def>
+#undef X
+    };
+
+    static constexpr const char * names[] = {
+            "Identifier",
+            "IntNumber",
+            "DoubleNumber",
+
+#define X(punctuationName, punctuation) punctuation,
+#include <lz/compiler/c/punctuation_list.def>
+#undef X
+            "end",
+
+#define X(keyword) #keyword,
 #include <lz/compiler/c/keyword_list.def>
 #undef X
 
 
     };
+
 
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
@@ -46,8 +60,6 @@ struct LexicalSymbol
     static const
     std::unordered_map<std::string, Category> keywordToType;
 
-//    static const
-//    std::map<Category, pair<std::string, std::string> > namesAndRegexs;
 
 private:
     Category m_category;
@@ -59,7 +71,7 @@ public:
     }
     std::string value() const
     {
-        if(m_category == Category::Identifier || m_category == Category::Integer)
+        if(m_category == Category::Identifier || m_category == Category::IntNumber)
             return m_value;
         else
             return names[static_cast<unsigned>(m_category)];
@@ -86,16 +98,23 @@ public:
         }
         else if(isdigit(s[0]))
         {
-            m_category = Category::Integer;
+            if(s.find('.') != std::string::npos)
+            {
+                m_category = Category::DoubleNumber;
+            }
+            else
+            {
+                m_category = Category::IntNumber;
+            }
+
+
             m_value = s;
         }
         else
         {
-            for(int i = static_cast<int>(Category::Integer) + 1; i < static_cast<int>(Category::End); ++ i)
+            for(int i = static_cast<int>(Category::IntNumber) + 1; i < static_cast<int>(Category::End); ++ i)
             {
-                if(s == names[i]
-//                        namesAndRegexs.at(static_cast<Category>(i)).first
-                        )
+                if(s == names[i])
                 {
                     m_category = static_cast<Category>(i);
                     return ;
@@ -109,21 +128,6 @@ public:
 
     }
 
-    static constexpr const char * names[] = {
-            "Identifier",
-            "Integer",
-
-#define X(punctuationName, punctuation) punctuation,
-#include <lz/compiler/c/punctuation_list.def>
-#undef X
-            "end",
-
-#define X(keyword) #keyword,
-#include <lz/compiler/c/keyword_list.def>
-#undef X
-
-
-    };
 
 
     static std::string regex(Category category)
@@ -132,9 +136,13 @@ public:
         {
             return "(_|[a-zA-Z])(_|[a-zA-Z0-9])*";
         }
-        else if(category == Category::Integer)
+        else if(category == Category::IntNumber)
         {
             return "([0-9][0-9]*)";
+        }
+        else if(category == Category::DoubleNumber)
+        {
+            return "([0-9][0-9]*\\.[0-9][0-9]*)";
         }
         std::string ans;
         const char * name = names[static_cast<unsigned>(category)];
@@ -156,7 +164,9 @@ public:
 
 
 
-        if(ls.m_category == Category::Identifier || ls.m_category == Category::Integer)
+        if(ls.m_category == Category::Identifier ||
+            ls.m_category == Category::IntNumber ||
+            ls.m_category == Category::DoubleNumber)
         {
 
             os << "(" << ls.m_value << ")";
@@ -200,7 +210,7 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
     vector<LexicalSymbol> ans;
     NFA nfa;
 
-    std::vector<std::pair<std::string, std::function<void(std::string::iterator, std::string::iterator)>>>
+    std::vector<std::pair<std::string, std::function<void(Iterator, Iterator)>>>
             regexAndFuncs;
 
     auto func = [&](auto first, auto last) {
@@ -247,13 +257,13 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
 
 
 
-    for(std::string::iterator cntEnd;textBegin != textEnd; textBegin = cntEnd)
+    for(Iterator cntEnd;textBegin != textEnd; textBegin = cntEnd)
     {
         cntEnd = simulateNFA(textBegin, textEnd, nfa, start, vertexToFunc);
 
         if(cntEnd == textBegin)
         {
-            cout << "Unrecognized: " << (int)*textBegin << endl;
+            cout << "Unrecognized: " << std::string(textBegin, textEnd) << endl;
             assert(0);
         }
     }

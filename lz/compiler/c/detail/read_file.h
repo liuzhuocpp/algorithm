@@ -1,0 +1,104 @@
+/*
+ * readFile.h
+ *
+ *  Created on: 2017年5月10日
+ *      Author: LZ
+ */
+
+#ifndef EXAMPLES_COMPILER_C_READ_FILE_H_
+#define EXAMPLES_COMPILER_C_READ_FILE_H_
+
+#include <bits/stdc++.h>
+#include <lz/debug.h>
+
+
+
+
+
+
+namespace lz {
+
+std::string getOutFileName(std::string number)
+{
+    return number + "\\out.txt";
+}
+
+std::string getErrorFileName(std::string number)
+{
+    return number + "\\z_error.txt"; // 为了使得这个文件在文件夹的最后
+}
+
+
+
+
+//std::ofstream outStream , errorOfstream;
+
+//GrammarParser<decltype(outStream), decltype(errorOfstream)>
+//    grammarParser(outStream, errorOfstream);
+
+
+std::string readFile(const std::string& fileName)
+{
+
+    std::regex fileNumberRegex(R"(([0-9]*)\\in\.txt)");
+
+    std::smatch match;
+    if(!std::regex_match(fileName.begin(), fileName.end(), match, fileNumberRegex))
+    {
+        std::cout << "input file name error: " << fileName << std::endl;
+        return "";
+    }
+
+    std::string fileNumber = match[1];
+
+//    freopen(fileName.c_str(), "r", stdin); //用这个不好使，不知道为啥, 可能是其他地方有异常
+    std::ifstream fileIn(fileName);
+
+    std::string text, tmpText;
+    while(std::getline(fileIn, tmpText))
+    {
+        text += tmpText + "\n";
+    }
+    return text;
+}
+
+bool isFileExist(const std::string &fileName)
+{
+    std::ifstream infile(fileName);
+    return infile.good();
+}
+
+
+std::string getInputFileName(int fileNumber)
+{
+    return std::to_string(fileNumber) + "\\in.txt";
+}
+
+std::vector<std::string> getAllFileList()
+{
+    std::vector<std::string> ans;
+
+
+    for(int i = 0;
+
+            ; ++ i)
+    {
+        std::string fileName = getInputFileName(i);
+        if(!isFileExist(fileName)) break;
+
+        ans.push_back(fileName);
+    }
+
+    return ans;
+
+}
+
+
+
+} // namespace lz
+
+
+
+
+
+#endif /* EXAMPLES_COMPILER_C_READ_FILE_H_ */

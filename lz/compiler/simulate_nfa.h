@@ -138,7 +138,6 @@ auto simulateNFA(Iterator first, Iterator last, const NFA &nfa,
     if(ret != last)
     {
         ++ret;
-//        std::cout << "kkkkkjjj " <<  (firstCopy == ret) << endl;
         vertexToFunc[retStateId](firstCopy, ret);
     }
     else
