@@ -15,22 +15,6 @@ using namespace lz;
 using namespace std;
 
 
-
-
-
-//string getOutFileName(string number)
-//{
-//    return number + "\\out.txt";
-//}
-//
-//string getErrorFileName(string number)
-//{
-//    return number + "\\z_error.txt"; // 为了使得这个文件在文件夹的最后
-//}
-//
-
-
-
 std::ofstream outStream , errorOfstream;
 
 GrammarParser<decltype(outStream), decltype(errorOfstream)>
