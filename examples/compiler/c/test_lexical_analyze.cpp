@@ -30,10 +30,12 @@ void solve(const string & text)
 
 int main()
 {
-    solve(readFile(getInputFileName(7)));
-//    for(auto x: getAllFileList())
+
+
+    solve(readFile(getInputFileName(0)));
+//    for(auto x: getAllInputFileDirectoryNumberList())
 //    {
-//        string text = readFile(x);
+//        string text = readFile(getInputFileName(x));
 //        solve(text);
 //    }
 

@@ -13,6 +13,10 @@
 #include <lz/compiler/simulate_nfa.h>
 
 
+#define X_OVERLOAD_DISPATCHER(_1, _2, NAME, ... ) NAME
+#define X(...) X_OVERLOAD_DISPATCHER(__VA_ARGS__, X2, X1)(__VA_ARGS__)
+
+
 namespace lz {
 
 
@@ -21,33 +25,27 @@ struct LexicalSymbol
 
     enum class Category: unsigned
     {
-        Identifier,
-        IntNumber,
-        DoubleNumber,
 
-#define X(name, punctuation) name,
+#define X1(key) key,
+#define X2(key, name) key,
+#include <lz/compiler/c/mutable_lexical_symbol_list.def>
 #include <lz/compiler/c/punctuation_list.def>
-#undef X
-        End,
-#define X(name) name,
+//        End,
 #include <lz/compiler/c/keyword_list.def>
-#undef X
+#undef X1
+#undef X2
+
     };
 
     static constexpr const char * names[] = {
-            "Identifier",
-            "IntNumber",
-            "DoubleNumber",
-
-#define X(punctuationName, punctuation) punctuation,
+#define X1(key) #key,
+#define X2(key, name) name,
+#include <lz/compiler/c/mutable_lexical_symbol_list.def>
 #include <lz/compiler/c/punctuation_list.def>
-#undef X
-            "end",
-
-#define X(keyword) #keyword,
+//        "end",
 #include <lz/compiler/c/keyword_list.def>
-#undef X
-
+#undef X1
+#undef X2
 
     };
 
@@ -64,18 +62,109 @@ struct LexicalSymbol
 private:
     Category m_category;
     std::string m_value;
+
+
+//    static std::tuple<std::pa>
+     static  const std::array<std::pair<Category, Category>, 3> categoryRanges;
+
+//    static std::pair<Category, Category> m_mutableLexicalSymbolRange;
+//    static std::pair<Category, Category> m_keywordRange;
+//    static std::pair<Category, Category> m_punctuationRange;
+
+    static std::array<std::pair<Category, Category>, 3> cal()
+    {
+
+#define CALCULATE_RANGE_DEF   bool beginInit;   Category begin, end;\
+    std::pair<Category, Category> \
+        m_mutableLexicalSymbolRange,\
+        m_keywordRange,\
+        m_punctuationRange;
+
+#define CALCULATE_RANGE_INIT    beginInit = false;
+#define CALCULATE_RANGE_ASSIGN(name) name = std::make_pair(begin, end);
+
+
+#define X1(key) if(!beginInit) begin = Category::key, beginInit = true; end = Category::key;
+#define X2(key, name) X1(key)
+
+
+CALCULATE_RANGE_DEF
+
+CALCULATE_RANGE_INIT
+#include <lz/compiler/c/mutable_lexical_symbol_list.def>
+CALCULATE_RANGE_ASSIGN(m_mutableLexicalSymbolRange)
+
+CALCULATE_RANGE_INIT
+#include <lz/compiler/c/keyword_list.def>
+CALCULATE_RANGE_ASSIGN(m_keywordRange)
+
+CALCULATE_RANGE_INIT
+#include <lz/compiler/c/punctuation_list.def>
+CALCULATE_RANGE_ASSIGN(m_punctuationRange)
+
+#undef X1
+#undef X2
+#undef CALCULATE_RANGE_DEF
+#undef CALCULATE_RANGE_INIT
+#undef CALCULATE_RANGE_ASSIGN
+
+
+        return {m_mutableLexicalSymbolRange, m_keywordRange, m_punctuationRange};
+    }
+
+    static bool isInPairRange(Category a, const std::pair<Category, Category> &range)
+    {
+        return a >= range.first && a <= range.second;
+    }
+
+
 public:
+    static const auto& mutableLexicalSymbolRange()
+    {
+        return categoryRanges[0];
+//        return m_mutableLexicalSymbolRange;
+    }
+
+    static const auto& keywordRange()
+    {
+        return categoryRanges[1];
+//        return m_keywordRange;
+    }
+
+    static const auto& punctuationRange()
+    {
+        return categoryRanges[2];
+//        return m_punctuationRange;
+    }
+
+    static bool isMutableLexicalSymbol(Category category)
+    {
+        return isInPairRange(category, mutableLexicalSymbolRange());
+    }
+    static bool isKeyword(Category category)
+    {
+        return isInPairRange(category, keywordRange());
+    }
+
+    static bool isPunctuation(Category category)
+    {
+        return isInPairRange(category, punctuationRange());
+    }
+
     Category category() const
     {
         return m_category;
     }
     std::string value() const
     {
-        if(m_category == Category::Identifier || m_category == Category::IntNumber)
+        if(isMutableLexicalSymbol(m_category))
+//        if(m_category == Category::Identifier || m_category == Category::IntNumber)
             return m_value;
         else
             return names[static_cast<unsigned>(m_category)];
     }
+
+
 
     LexicalSymbol(Category type, std::string value):m_category(type), m_value(value){}
     LexicalSymbol() = default;
@@ -106,21 +195,27 @@ public:
             {
                 m_category = Category::IntNumber;
             }
-
-
             m_value = s;
         }
         else
         {
-            for(int i = static_cast<int>(Category::IntNumber) + 1; i < static_cast<int>(Category::End); ++ i)
+            if(keywordToType.count(s))
             {
-                if(s == names[i])
-                {
-                    m_category = static_cast<Category>(i);
-                    return ;
-                }
+                m_category = keywordToType.at(s);
             }
-            assert(0);
+            else
+            {
+                assert(0);
+            }
+//            for(int i = static_cast<int>(Category::IntNumber) + 1; i < static_cast<int>(Category::End); ++ i)
+//            {
+//                if(s == names[i])
+//                {
+//                    m_category = static_cast<Category>(i);
+//                    return ;
+//                }
+//            }
+
         }
     }
     LexicalSymbol(const char * s):LexicalSymbol(std::string(s))
@@ -164,9 +259,7 @@ public:
 
 
 
-        if(ls.m_category == Category::Identifier ||
-            ls.m_category == Category::IntNumber ||
-            ls.m_category == Category::DoubleNumber)
+        if(isMutableLexicalSymbol(ls.m_category))
         {
 
             os << "(" << ls.m_value << ")";
@@ -187,15 +280,23 @@ private:
     }
 };
 
+const std::array<std::pair<LexicalSymbol::Category, LexicalSymbol::Category>, 3>
+    LexicalSymbol::categoryRanges = LexicalSymbol::cal();
+//std::pair<LexicalSymbol::Category, LexicalSymbol::Category> LexicalSymbol::m_keywordRange;
+//std::pair<LexicalSymbol::Category, LexicalSymbol::Category> LexicalSymbol::m_mutableLexicalSymbolRange;
 
 
 const std::unordered_map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
 {
 
-#define X(keyword) {LexicalSymbol::lowerFirstChar(#keyword), Category::keyword},
-#include <lz/compiler/c/keyword_list.def>
-#undef X
+#define X1(keyword) {LexicalSymbol::lowerFirstChar(#keyword), Category::keyword},
+#define X2(key, name) {name, Category::key},
 
+#include <lz/compiler/c/punctuation_list.def>
+#include <lz/compiler/c/keyword_list.def>
+
+#undef X1
+#undef X2
 
 };
 
@@ -217,15 +318,47 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
         ans.push_back(LexicalSymbol(std::string(first, last)));
     };
 
-    for(unsigned i: irange(static_cast<unsigned>(LexicalSymbol::Category::End) ) )
-    {
+    auto punctuationRange = LexicalSymbol::punctuationRange();
+    auto mutableLexicalSymbolRange = LexicalSymbol::mutableLexicalSymbolRange();
+
+    auto regexAndFuncsPushBack = [&](unsigned i) {
+//        std::cout << "JJJJ " << i << std::endl;
+        auto cntRex = LexicalSymbol::regex(static_cast<LexicalSymbol::Category>(i));
+
+        std::cout << cntRex << " FFFrex" << std::endl;
         regexAndFuncs.push_back(
             std::make_pair(
-                LexicalSymbol::regex(static_cast<LexicalSymbol::Category>(i)),
-                func)
-        );
+                LexicalSymbol::regex(static_cast<LexicalSymbol::Category>(i)), func)  ) ;
+    };
+
+    unsigned
+        puctuationBegin = static_cast<unsigned>(punctuationRange.first),
+        punctuationEnd = static_cast<unsigned>(punctuationRange.second);
+
+    unsigned
+        mutableBegin = static_cast<unsigned>(mutableLexicalSymbolRange.first),
+        mutableEnd = static_cast<unsigned>(mutableLexicalSymbolRange.second);
+
+//    std::cout << (puctuationBegin == punctuationEnd) << "HHH" << std::endl;
+    for(unsigned i: irange(puctuationBegin, punctuationEnd + 1))
+    {
+        regexAndFuncsPushBack(i);
     }
 
+    for(unsigned i: irange(mutableBegin, mutableEnd + 1))
+    {
+        regexAndFuncsPushBack(i);
+    }
+//
+//    for(unsigned i: irange(static_cast<unsigned>(LexicalSymbol::Category::End) ) )
+//    {
+//        regexAndFuncs.push_back(
+//            std::make_pair(
+//                LexicalSymbol::regex(static_cast<LexicalSymbol::Category>(i)),
+//                func)
+//        );
+//    }
+//
     regexAndFuncs.push_back({"&&&&*", [&](auto first, auto last) {
         assert(0);
     }});
@@ -294,7 +427,8 @@ auto lexicalAnalyze(Iterator textBegin, Iterator textEnd)
 
 
 
-
+#undef X
+#undef X_OVERLOAD_DISPATCHER
 
 
 
