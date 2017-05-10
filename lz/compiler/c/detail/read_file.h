@@ -18,14 +18,14 @@
 
 namespace lz {
 
-std::string getOutFileName(std::string number)
+std::string getOutFileName(int number)
 {
-    return number + "\\out.txt";
+    return std::to_string(number) + "\\out.txt";
 }
 
-std::string getErrorFileName(std::string number)
+std::string getErrorFileName(int number)
 {
-    return number + "\\z_error.txt"; // 为了使得这个文件在文件夹的最后
+    return std::to_string(number) + "\\z_error.txt"; // 为了使得这个文件在文件夹的最后
 }
 
 
@@ -74,9 +74,9 @@ std::string getInputFileName(int fileNumber)
     return std::to_string(fileNumber) + "\\in.txt";
 }
 
-std::vector<std::string> getAllFileList()
+std::vector<int> getAllInputFileDirectoryNumberList()
 {
-    std::vector<std::string> ans;
+    std::vector<int> ans;
 
 
     for(int i = 0;
@@ -86,7 +86,7 @@ std::vector<std::string> getAllFileList()
         std::string fileName = getInputFileName(i);
         if(!isFileExist(fileName)) break;
 
-        ans.push_back(fileName);
+        ans.push_back(i);
     }
 
     return ans;
