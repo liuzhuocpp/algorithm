@@ -108,6 +108,10 @@ struct GrammarInput
             [&](PIT v, P&o) {
                 o.type = TypeCategory::Float;
             };
+        baseTypeDeclare = Lex::Double >>
+            [&](PIT v, P&o) {
+                o.type = TypeCategory::Double;
+            };
 
         statement = expression >> ";";
         statement = ";";
@@ -237,22 +241,32 @@ struct GrammarInput
         expression = Lex::IntNumber >>
             [&](PIT v, P&o) {
                 o.addr = v[1].addr;
+                o.type = TypeCategory::Int;
             };
+
+        expression = Lex::DoubleNumber >>
+            [&](PIT v, P&o) {
+                o.addr = v[1].addr;
+                o.type = TypeCategory::Double;
+            };
+
 
         expression = Lex::Identifier >>
             [&](PIT v, P&o) {
 
-                checkVariableDeclare(v[1].addr, [&](auto checkIt){
-                    o.addr = getVariableName(checkIt);
+                checkVariableDeclare(v[1].addr, [&](int id) {
+                    o.addr = getVariableName(id);
+                    o.type = identifierTable().type(id);
                 });
             };
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
 
-                checkVariableDeclare(v[1].addr, [&](auto checkIt){
-                    generateCode(InstructionCategory::Assign, v[3].addr, "", getVariableName(checkIt));
+                checkVariableDeclare(v[1].addr, [&](int id) {
+                    generateCode(InstructionCategory::Assign, v[3].addr, "", getVariableName(id));
                     o.addr = v[1].addr;
+                    o.type = identifierTable().type(id);
                 });
             } < "+" < "-" < "*" < "/";
 
@@ -271,21 +285,16 @@ struct GrammarInput
                 std::string tmp = getTemporaryVariableName();
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
-            }< "+" < "-" < "*" < "/";
+            } < "+" < "-" < "*" < "/";
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
 
                 checkVariableDeclare(v[1].addr, [&](int identifierId) {
                     o.addr = v[1].addr; // 数组名称
-                    o.type = identifierTable().type(identifierId);
+                    o.type = identifierTable().type(identifierId); // 数组类型
                     o.cntArrayDimensionId = 0;
-
-                    const std::vector<int>& dimensions = typeTable().arrayDimensions(o.type);
-                    std::string tmp = getTemporaryVariableName();
-                    generateCode(InstructionCategory::Multiply, v[3].addr,
-                        std::to_string(calProduct(dimensions.begin() + o.cntArrayDimensionId + 1, dimensions.end()  )),
-                        tmp);
+                    std::string tmp = generateCalcualteArrayPartialIndexCode(v[3].addr, o.cntArrayDimensionId, o.type);
                     o.arrayOffsetAddr = tmp;
                 });
             };
@@ -295,11 +304,8 @@ struct GrammarInput
                 o.addr = v[1].addr;
                 o.type = v[1].type;
                 o.cntArrayDimensionId = v[1].cntArrayDimensionId + 1;
-                const std::vector<int>& dimensions = typeTable().arrayDimensions(o.type);
-                std::string tmp1 = getTemporaryVariableName();
+                std::string tmp1 = generateCalcualteArrayPartialIndexCode(v[3].addr, o.cntArrayDimensionId, o.type);
                 std::string tmp2 = getTemporaryVariableName();
-                generateCode(InstructionCategory::Multiply, v[3].addr,
-                    std::to_string(calProduct(dimensions.begin() + o.cntArrayDimensionId + 1, dimensions.end()  ) ) , tmp1);
                 generateCode(InstructionCategory::Plus, v[1].arrayOffsetAddr, tmp1 , tmp2);
                 o.arrayOffsetAddr = tmp2;
 
@@ -368,6 +374,7 @@ struct GrammarInput
     }
 
 
+
     static int nextInstructionIndex()
     {
         return codeTable().nextInstructionIndex();
@@ -404,6 +411,26 @@ struct GrammarInput
             ansOp = InstructionCategory::UnaryMinus;
         else assert(0);
         generateCode(ansOp, v[2].addr, "", o.addr);
+    }
+
+
+    static std::string generateCalcualteArrayPartialIndexCode(
+        std::string cntDimensionAddr, int cntDimensionId, TypeDescriptor arrayType)
+    {
+        std::string tmp = getTemporaryVariableName();
+        generateCode(
+            InstructionCategory::Multiply,
+            cntDimensionAddr,
+            std::to_string(calculateArrayDimensionProduct(arrayType, cntDimensionId)),
+            tmp);
+        return tmp;
+
+    }
+
+    static int calculateArrayDimensionProduct(TypeDescriptor t, int cntArrayDimensionId)
+    {
+        const std::vector<int>& dimensions = typeTable().arrayDimensions(t);
+        return calProduct(dimensions.begin() + cntArrayDimensionId + 1, dimensions.end()  ) ;
     }
 
     template<typename Iterator>
