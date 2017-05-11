@@ -236,6 +236,7 @@ struct GrammarInput
         expression = "(" >> expression >> ")" >>
             [&](PIT v, P&o) {
                 o.addr = v[2].addr;
+                o.type = v[2].type;
             };
 
         expression = Lex::IntNumber >>
@@ -276,6 +277,7 @@ struct GrammarInput
                 std::string tmp = getTemporaryVariableName();
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
+                o.type = typeTable().arrayBaseType(v[1].type);
             };
 
         expression = arrayExpression >> "=" >> expression >>
@@ -285,6 +287,7 @@ struct GrammarInput
                 std::string tmp = getTemporaryVariableName();
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
+                o.type = typeTable().arrayBaseType(v[1].type);
             } < "+" < "-" < "*" < "/";
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
@@ -329,9 +332,13 @@ struct GrammarInput
     // otherwise, when GrammarInput is destoryed, the bellow calls will be error
     static void solveArithmeticOperator (PIT v, P &o)
     {
-        o.addr = getTemporaryVariableName();
 
-        generateCode(ThreeAddressInstruction::toCategory(v[2].addr), v[1].addr, v[3].addr, o.addr);
+        checkTypeEquality(v[1].type, v[3].type, [&](){
+            o.addr = getTemporaryVariableName();
+            o.type = v[1].type;
+            generateCode(ThreeAddressInstruction::toCategory(v[2].addr), v[1].addr, v[3].addr, o.addr);
+        });
+
     };
 
 
@@ -348,6 +355,25 @@ struct GrammarInput
             callback(it);
         }
     };
+    template<typename Callback>
+    static void checkTypeEquality(TypeDescriptor t1, TypeDescriptor t2, Callback callback)
+    {
+
+        if(typeTable().typeEqual(t1, t2))
+        {
+            callback();
+        }
+        else
+        {
+            std::cout << "GAGA" << std::endl;
+            errorOfstream() << "type inconsistent:" << typeTable().typeToString(t1) << ", " << typeTable().typeToString(t2) << "\n";
+
+        }
+
+
+
+
+    }
 
 
 
@@ -403,6 +429,7 @@ struct GrammarInput
     static void solveUnaryPlusOrMinusOperator(PIT v, P &o)
     {
         o.addr = getTemporaryVariableName();
+        o.type = v[2].type;
         std::string op = v[1].addr;
         InstructionCategory ansOp;
         if(op == "+")
