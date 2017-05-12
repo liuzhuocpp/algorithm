@@ -150,11 +150,8 @@ public:
     {
         if(isMutableLexicalSymbol(m_category))
             return m_value;
-        else if(isPunctuation(m_category))
-            return getPuntuation(m_category);
         else
             return categoryToName(m_category);
-//            return names[static_cast<unsigned>(m_category)];
     }
 
 
@@ -208,19 +205,6 @@ public:
 
     }
 
-#define get_punctuation_X(key, punc) punc,
-
-    static constexpr const char* punctuations[] = {
-        punctuation_list(get_punctuation_X)
-    };
-
-    static const char* getPuntuation(Category category)
-    {
-        assert(isPunctuation(category));
-        return punctuations[static_cast<unsigned>(category) -
-                            static_cast<unsigned>(punctuationRange().first)];
-    }
-
 
     static std::string regex(Category category)
     {
@@ -237,7 +221,7 @@ public:
             return "([0-9][0-9]*\\.[0-9][0-9]*)";
         }
 
-        const char * name = getPuntuation(category);
+        const char *name = categoryToName(category);
 
         std::string ans;
 
@@ -256,7 +240,6 @@ public:
                const LexicalSymbol&  ls)
     {
         os << categoryToName(ls.m_category);
-//        os << categoryToName[static_cast<int>(ls.m_category)];
         if(isMutableLexicalSymbol(ls.m_category))
         {
             os << "(" << ls.m_value << ")";
@@ -277,9 +260,6 @@ private:
     }
 };
 
-//const auto LexicalSymbol::categoryRanges = LexicalSymbol::cal();
-
-
 
 const std::unordered_map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
 {
@@ -287,8 +267,6 @@ const std::unordered_map<std::string, LexicalSymbol::Category> LexicalSymbol::ke
 #define X1(keyword) {LexicalSymbol::lowerFirstChar(#keyword), Category::keyword},
 #define X2(key, name) {name, Category::key},
 
-//#include <lz/compiler/c/punctuation_list.def>
-//#include <lz/compiler/c/keyword_list.def>
         punctuation_list(X2)
         keyword_list(X1)
 
