@@ -14,7 +14,7 @@
 #define make_enum_element_X(key, ...) key,
 #define make_enum_element_name_X(key, ...) #key,
 
-#define make_enum(enum_class_name, enum_names_name, enum_list) \
+#define LZ_MAKE_NAMED_ENUM(enum_class_name, enum_names_name, enum_list) \
     enum class enum_class_name \
     {\
         enum_list(make_enum_element_X) \
@@ -27,7 +27,7 @@
 #define get_list_range_element_X(key, ...) key;
 #define get_list_range_begin_element_X(enum_class_name) if(!beginInit) beginInit = true, begin = enum_class_name::
 #define get_list_range_end_element_X(enum_class_name)   end = enum_class_name::
-#define get_list_range(enum_class_name, enum_list) \
+#define LZ_GET_ENUM_LIST_RANGE(enum_class_name, enum_list) \
     []() {\
         bool beginInit = false;   enum_class_name begin, end;\
         enum_list(get_list_range_begin_element_X(enum_class_name) get_list_range_element_X )\

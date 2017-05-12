@@ -13,9 +13,6 @@
 #include <lz/compiler/simulate_nfa.h>
 #include <lz/named_enum.h>
 
-//#define X_OVERLOAD_DISPATCHER(_1, _2, NAME, ... ) NAME
-//#define X(...) X_OVERLOAD_DISPATCHER(__VA_ARGS__, X2, X1)(__VA_ARGS__)
-
 
 #define mutabel_lexical_symbol_list(X) \
     X(Identifier)\
@@ -93,7 +90,7 @@ namespace lz {
 struct LexicalSymbol
 {
 
-    make_enum(Category, names, allList)
+    LZ_MAKE_NAMED_ENUM(Category, names, allList)
 
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
@@ -108,8 +105,6 @@ private:
     std::string m_value;
 
     using ListRange = std::pair<Category, Category>;
-//    m_mutableLexicalSymbolRange, m_keywordRange, m_punctuationRange;
-
 
     static bool isInPairRange(Category a, const std::pair<Category, Category> &range)
     {
@@ -120,20 +115,17 @@ private:
 public:
     static ListRange mutableLexicalSymbolRange()
     {
-        return get_list_range(Category, mutabel_lexical_symbol_list);
-//        return categoryRanges[0];
+        return LZ_GET_ENUM_LIST_RANGE(Category, mutabel_lexical_symbol_list);
     }
 
     static ListRange keywordRange()
     {
-        return get_list_range(Category, keyword_list);
-//        return categoryRanges[1];
+        return LZ_GET_ENUM_LIST_RANGE(Category, keyword_list);
     }
 
     static ListRange punctuationRange()
     {
-        return get_list_range(Category, punctuation_list);
-//        return categoryRanges[2];
+        return LZ_GET_ENUM_LIST_RANGE(Category, punctuation_list);
     }
 
     static bool isMutableLexicalSymbol(Category category)
