@@ -17,36 +17,120 @@
 #define X(...) X_OVERLOAD_DISPATCHER(__VA_ARGS__, X2, X1)(__VA_ARGS__)
 
 
+#define mutabel_lexical_symbol_list(X) \
+    X(Identifier)\
+    X(IntNumber)\
+    X(DoubleNumber)
+
+
+#define punctuation_list(X) \
+    X(Plus, "+")\
+    X(Minus, "-")\
+    X(Asterisk, "*")\
+    X(Slash, "/")\
+\
+    X(Ampersand, "&")\
+    X(DoubleAmpersand, "&&")\
+\
+    X(VerticalBar, "|")\
+    X(DoubleVerticalBar, "||")\
+\
+    X(Exclamation, "!")\
+\
+\
+    X(LeftParenthese, "(")\
+    X(RightParenthese, ")")\
+    X(LeftSquareBracket, "[")\
+    X(RightSquareBracket, "]")\
+    X(LeftBrace, "{")\
+    X(RightBrace, "}")\
+\
+    X(Semicolon, ";")\
+\
+    X(AssignMark, "=")\
+    X(Equal, "==")\
+\
+\
+    X(NotEqual, "!=")\
+    X(Less, "<")\
+    X(LessEqual, "<=")\
+    X(More, ">")\
+    X(MoreEqual, ">=")
+
+
+#define keyword_list(X) \
+    X(While)\
+    X(If)\
+    X(Else)\
+    X(For)\
+    X(Break)\
+    X(Continue)\
+    X(Return)\
+\
+    X(True)\
+    X(False)\
+\
+\
+    X(Bool)\
+    X(Int)\
+    X(Float)\
+    X(Double)
+
+
+
+
+//#define make_enum_element(get_key)
+
+
+#define make_enum_element_X(key, ...) key,
+#define make_enum_element_name_X(key, ...) #key,
+
+#define make_enum(enum_class_name, enum_names_name, enum_list) \
+    enum class enum_class_name \
+    {\
+        enum_list(make_enum_element_X) \
+    };\
+    static constexpr const char * enum_names_name[] = {\
+        enum_list(make_enum_element_name_X) \
+    };
+
+//#define get_list_range_element_X(key, ...) if(!beginInit) begin = Category::key, beginInit = true; end = Category::key;
+
+#define get_list_range_element_X(key, ...) key;
+#define get_list_range_begin_element_X(enum_class_name) if(!beginInit) beginInit = true, begin = enum_class_name::
+#define get_list_range_end_element_X(enum_class_name)   end = enum_class_name::
+#define get_list_range(enum_class_name, enum_list) \
+    []() {\
+        bool beginInit = false;   enum_class_name begin, end;\
+        enum_list(get_list_range_begin_element_X(enum_class_name) get_list_range_element_X )\
+        enum_list(get_list_range_end_element_X(enum_class_name) get_list_range_element_X )\
+        return std::make_pair(begin, end);\
+    }()
+
+
+
+
+
+
+
+
+//#define make_enum_element_names_X(getName) getName()
+
+
+#define allList(forEachElement) \
+    mutabel_lexical_symbol_list(forEachElement)\
+    punctuation_list(forEachElement)\
+    keyword_list(forEachElement)\
+
+
+
 namespace lz {
 
 
 struct LexicalSymbol
 {
 
-    enum class Category: unsigned
-    {
-
-#define X1(key) key,
-#define X2(key, name) key,
-#include <lz/compiler/c/mutable_lexical_symbol_list.def>
-#include <lz/compiler/c/punctuation_list.def>
-#include <lz/compiler/c/keyword_list.def>
-#undef X1
-#undef X2
-
-    };
-
-    static constexpr const char * names[] = {
-#define X1(key) #key,
-#define X2(key, name) name,
-#include <lz/compiler/c/mutable_lexical_symbol_list.def>
-#include <lz/compiler/c/punctuation_list.def>
-#include <lz/compiler/c/keyword_list.def>
-#undef X1
-#undef X2
-
-    };
-
+    make_enum(Category, names, allList)
 
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
@@ -60,49 +144,9 @@ private:
     Category m_category;
     std::string m_value;
 
-    static  const std::array<std::pair<Category, Category>, 3> categoryRanges;
+    using ListRange = std::pair<Category, Category>;
+//    m_mutableLexicalSymbolRange, m_keywordRange, m_punctuationRange;
 
-
-    static std::array<std::pair<Category, Category>, 3> cal()
-    {
-
-#define CALCULATE_RANGE_DEF   bool beginInit;   Category begin, end;\
-    std::pair<Category, Category> \
-        m_mutableLexicalSymbolRange,\
-        m_keywordRange,\
-        m_punctuationRange;
-
-#define CALCULATE_RANGE_INIT    beginInit = false;
-#define CALCULATE_RANGE_ASSIGN(name) name = std::make_pair(begin, end);
-
-
-#define X1(key) if(!beginInit) begin = Category::key, beginInit = true; end = Category::key;
-#define X2(key, name) X1(key)
-
-
-CALCULATE_RANGE_DEF
-
-CALCULATE_RANGE_INIT
-#include <lz/compiler/c/mutable_lexical_symbol_list.def>
-CALCULATE_RANGE_ASSIGN(m_mutableLexicalSymbolRange)
-
-CALCULATE_RANGE_INIT
-#include <lz/compiler/c/keyword_list.def>
-CALCULATE_RANGE_ASSIGN(m_keywordRange)
-
-CALCULATE_RANGE_INIT
-#include <lz/compiler/c/punctuation_list.def>
-CALCULATE_RANGE_ASSIGN(m_punctuationRange)
-
-#undef X1
-#undef X2
-#undef CALCULATE_RANGE_DEF
-#undef CALCULATE_RANGE_INIT
-#undef CALCULATE_RANGE_ASSIGN
-
-
-        return {m_mutableLexicalSymbolRange, m_keywordRange, m_punctuationRange};
-    }
 
     static bool isInPairRange(Category a, const std::pair<Category, Category> &range)
     {
@@ -111,19 +155,22 @@ CALCULATE_RANGE_ASSIGN(m_punctuationRange)
 
 
 public:
-    static const auto& mutableLexicalSymbolRange()
+    static ListRange mutableLexicalSymbolRange()
     {
-        return categoryRanges[0];
+        return get_list_range(Category, mutabel_lexical_symbol_list);
+//        return categoryRanges[0];
     }
 
-    static const auto& keywordRange()
+    static ListRange keywordRange()
     {
-        return categoryRanges[1];
+        return get_list_range(Category, keyword_list);
+//        return categoryRanges[1];
     }
 
-    static const auto& punctuationRange()
+    static ListRange punctuationRange()
     {
-        return categoryRanges[2];
+        return get_list_range(Category, punctuation_list);
+//        return categoryRanges[2];
     }
 
     static bool isMutableLexicalSymbol(Category category)
@@ -148,6 +195,8 @@ public:
     {
         if(isMutableLexicalSymbol(m_category))
             return m_value;
+        else if(isPunctuation(m_category))
+            return getPuntuation(m_category);
         else
             return names[static_cast<unsigned>(m_category)];
     }
@@ -203,6 +252,18 @@ public:
 
     }
 
+#define get_punctuation_X(key, punc) punc,
+
+    static constexpr const char* punctuations[] = {
+        punctuation_list(get_punctuation_X)
+    };
+
+    static const char* getPuntuation(Category category)
+    {
+        assert(isPunctuation(category));
+        return punctuations[static_cast<unsigned>(category) -
+                            static_cast<unsigned>(punctuationRange().first)];
+    }
 
 
     static std::string regex(Category category)
@@ -219,8 +280,11 @@ public:
         {
             return "([0-9][0-9]*\\.[0-9][0-9]*)";
         }
+
+        const char * name = getPuntuation(category);
+
         std::string ans;
-        const char * name = names[static_cast<unsigned>(category)];
+
         for(int i = 0; name[i] != '\0'; ++ i)
         {
             ans.push_back('\\');
@@ -256,7 +320,7 @@ private:
     }
 };
 
-const auto LexicalSymbol::categoryRanges = LexicalSymbol::cal();
+//const auto LexicalSymbol::categoryRanges = LexicalSymbol::cal();
 
 
 
