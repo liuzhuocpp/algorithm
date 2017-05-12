@@ -11,10 +11,10 @@
 
 #include <lz/compiler/regex.h>
 #include <lz/compiler/simulate_nfa.h>
+#include <lz/named_enum.h>
 
-
-#define X_OVERLOAD_DISPATCHER(_1, _2, NAME, ... ) NAME
-#define X(...) X_OVERLOAD_DISPATCHER(__VA_ARGS__, X2, X1)(__VA_ARGS__)
+//#define X_OVERLOAD_DISPATCHER(_1, _2, NAME, ... ) NAME
+//#define X(...) X_OVERLOAD_DISPATCHER(__VA_ARGS__, X2, X1)(__VA_ARGS__)
 
 
 #define mutabel_lexical_symbol_list(X) \
@@ -78,43 +78,6 @@
 
 
 
-
-//#define make_enum_element(get_key)
-
-
-#define make_enum_element_X(key, ...) key,
-#define make_enum_element_name_X(key, ...) #key,
-
-#define make_enum(enum_class_name, enum_names_name, enum_list) \
-    enum class enum_class_name \
-    {\
-        enum_list(make_enum_element_X) \
-    };\
-    static constexpr const char * enum_names_name[] = {\
-        enum_list(make_enum_element_name_X) \
-    };
-
-//#define get_list_range_element_X(key, ...) if(!beginInit) begin = Category::key, beginInit = true; end = Category::key;
-
-#define get_list_range_element_X(key, ...) key;
-#define get_list_range_begin_element_X(enum_class_name) if(!beginInit) beginInit = true, begin = enum_class_name::
-#define get_list_range_end_element_X(enum_class_name)   end = enum_class_name::
-#define get_list_range(enum_class_name, enum_list) \
-    []() {\
-        bool beginInit = false;   enum_class_name begin, end;\
-        enum_list(get_list_range_begin_element_X(enum_class_name) get_list_range_element_X )\
-        enum_list(get_list_range_end_element_X(enum_class_name) get_list_range_element_X )\
-        return std::make_pair(begin, end);\
-    }()
-
-
-
-
-
-
-
-
-//#define make_enum_element_names_X(getName) getName()
 
 
 #define allList(forEachElement) \
@@ -330,8 +293,10 @@ const std::unordered_map<std::string, LexicalSymbol::Category> LexicalSymbol::ke
 #define X1(keyword) {LexicalSymbol::lowerFirstChar(#keyword), Category::keyword},
 #define X2(key, name) {name, Category::key},
 
-#include <lz/compiler/c/punctuation_list.def>
-#include <lz/compiler/c/keyword_list.def>
+//#include <lz/compiler/c/punctuation_list.def>
+//#include <lz/compiler/c/keyword_list.def>
+        punctuation_list(X2)
+        keyword_list(X1)
 
 #undef X1
 #undef X2
