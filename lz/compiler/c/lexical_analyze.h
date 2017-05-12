@@ -113,7 +113,7 @@ private:
 
 
 public:
-    static ListRange mutableLexicalSymbolRange()
+    static ListRange mutableLexicalSymbolRange() // can use constepxr lambda afterwards
     {
         return LZ_GET_ENUM_LIST_RANGE(Category, mutabel_lexical_symbol_list);
     }

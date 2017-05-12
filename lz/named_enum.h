@@ -27,6 +27,7 @@
 #define get_list_range_element_X(key, ...) key;
 #define get_list_range_begin_element_X(enum_class_name) if(!beginInit) beginInit = true, begin = enum_class_name::
 #define get_list_range_end_element_X(enum_class_name)   end = enum_class_name::
+
 #define LZ_GET_ENUM_LIST_RANGE(enum_class_name, enum_list) \
     []() {\
         bool beginInit = false;   enum_class_name begin, end;\
