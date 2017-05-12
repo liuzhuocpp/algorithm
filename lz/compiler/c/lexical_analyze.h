@@ -153,7 +153,8 @@ public:
         else if(isPunctuation(m_category))
             return getPuntuation(m_category);
         else
-            return names[static_cast<unsigned>(m_category)];
+            return names(m_category);
+//            return names[static_cast<unsigned>(m_category)];
     }
 
 
@@ -254,7 +255,8 @@ public:
     operator<<(std::basic_ostream<Char, Traits>& os,
                const LexicalSymbol&  ls)
     {
-        os << names[static_cast<int>(ls.m_category)];
+        os << names(ls.m_category);
+//        os << names[static_cast<int>(ls.m_category)];
         if(isMutableLexicalSymbol(ls.m_category))
         {
             os << "(" << ls.m_value << ")";

@@ -19,9 +19,13 @@
     {\
         enum_list(make_enum_element_X) \
     };\
-    static constexpr const char * enum_names_name[] = {\
-        enum_list(make_enum_element_name_X) \
-    };
+    static const char* enum_names_name(enum_class_name enum_obj) {\
+        static const char* A[]= {\
+            enum_list(make_enum_element_name_X) \
+        };\
+        return A[static_cast<unsigned>(enum_obj)];\
+    }
+
 
 
 #define get_list_range_element_X(key, ...) key;
