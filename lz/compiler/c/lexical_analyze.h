@@ -90,7 +90,7 @@ namespace lz {
 struct LexicalSymbol
 {
 
-    LZ_MAKE_NAMED_ENUM(Category, names, allList)
+    LZ_MAKE_NAMED_ENUM(Category, categoryToName, allList)
 
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
@@ -153,7 +153,7 @@ public:
         else if(isPunctuation(m_category))
             return getPuntuation(m_category);
         else
-            return names(m_category);
+            return categoryToName(m_category);
 //            return names[static_cast<unsigned>(m_category)];
     }
 
@@ -255,8 +255,8 @@ public:
     operator<<(std::basic_ostream<Char, Traits>& os,
                const LexicalSymbol&  ls)
     {
-        os << names(ls.m_category);
-//        os << names[static_cast<int>(ls.m_category)];
+        os << categoryToName(ls.m_category);
+//        os << categoryToName[static_cast<int>(ls.m_category)];
         if(isMutableLexicalSymbol(ls.m_category))
         {
             os << "(" << ls.m_value << ")";
