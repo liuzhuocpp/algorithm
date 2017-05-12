@@ -8,11 +8,16 @@
 #ifndef LZ_NAMED_ENUM_H_
 #define LZ_NAMED_ENUM_H_
 
+#define OVERLOAD_DISPATCHER(_1, _2, NAME, ... ) NAME
+#define make_enum_element_name_X(...) OVERLOAD_DISPATCHER(__VA_ARGS__, make_enum_element_name_X2, make_enum_element_name_X1)(__VA_ARGS__)
 
+#define make_enum_element_name_X2(key, name) name,
+#define make_enum_element_name_X1(key) #key,
 
 
 #define make_enum_element_X(key, ...) key,
-#define make_enum_element_name_X(key, ...) #key,
+
+//#define make_enum_element_name_X(key, ...) #key,
 
 #define LZ_MAKE_NAMED_ENUM(enum_class_name, enum_names_name, enum_list) \
     enum class enum_class_name \
