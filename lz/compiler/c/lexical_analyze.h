@@ -77,11 +77,14 @@
 
 
 
-#define allList(forEachElement) \
-    mutabel_lexical_symbol_list(forEachElement)\
-    punctuation_list(forEachElement)\
-    keyword_list(forEachElement)\
+#define allList(forEach) \
+    mutabel_lexical_symbol_list(forEach)\
+    punctuation_list(forEach)\
+    keyword_list(forEach)
 
+#define keywordAndPunctuationList(forEach) \
+    punctuation_list(forEach) \
+    keyword_list(forEach)
 
 
 namespace lz {
@@ -91,6 +94,8 @@ struct LexicalSymbol
 {
 
     LZ_MAKE_NAMED_ENUM(Category, categoryToName, allList)
+
+    lz_name_to_enum(keywordToCategory, Category, keyword_list, LexicalSymbol::lowerFirstChar)
 
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
@@ -164,9 +169,14 @@ public:
     {
         if(s[0] == '_' || islower(s[0]) || isupper(s[0]))
         {
-            if(keywordToType.count(s))
+            if(keywordToCategory(s).hasValue())
+//            if(keywordToType.count(s))
             {
-                m_category = keywordToType.at(s);
+//                m_category = keywordToType.at(s);
+                m_category = keywordToCategory(s).value();
+
+//                m_category = keywordToCategory(s).value();
+//                m_category = keywordToType.at(s);
                 m_value = s; // can be improved
             }
             else
@@ -190,9 +200,12 @@ public:
         }
         else
         {
+//            if(keywordToCategory(s).hasValue())
             if(keywordToType.count(s))
             {
+//                m_category = keywordToCategory(s).value();
                 m_category = keywordToType.at(s);
+
             }
             else
             {
