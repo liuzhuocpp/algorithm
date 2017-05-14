@@ -97,12 +97,16 @@ struct LexicalSymbol
 
     lz_name_to_enum(keywordToCategory, Category, keyword_list, LexicalSymbol::lowerFirstChar)
 
+    lz_name_to_enum(punctuationToCategory, Category, punctuation_list, LexicalSymbol::lowerFirstChar)
+//  使用复合列表会出错，以后改正，而且lz_name_to_enum 非常丑陋，需要进一步完善
+//    lz_name_to_enum(keywordAndPunctuationToCategory, Category, keywordAndPunctuationList, LexicalSymbol::lowerFirstChar);
+
     friend bool operator<(const LexicalSymbol &a, const LexicalSymbol &b)
     {
         return a.m_category < b.m_category;
     }
 
-    static const std::unordered_map<std::string, Category> keywordToType;
+//    static const std::unordered_map<std::string, Category> keywordToType;
 
 
 private:
@@ -170,13 +174,9 @@ public:
         if(s[0] == '_' || islower(s[0]) || isupper(s[0]))
         {
             if(keywordToCategory(s).hasValue())
-//            if(keywordToType.count(s))
             {
-//                m_category = keywordToType.at(s);
-                m_category = keywordToCategory(s).value();
 
-//                m_category = keywordToCategory(s).value();
-//                m_category = keywordToType.at(s);
+                m_category = keywordToCategory(s).value();
                 m_value = s; // can be improved
             }
             else
@@ -200,11 +200,9 @@ public:
         }
         else
         {
-//            if(keywordToCategory(s).hasValue())
-            if(keywordToType.count(s))
+            if(punctuationToCategory(s).hasValue())
             {
-//                m_category = keywordToCategory(s).value();
-                m_category = keywordToType.at(s);
+                m_category = punctuationToCategory(s).value();
 
             }
             else
@@ -267,26 +265,25 @@ private:
 
     static std::string lowerFirstChar(std::string s)
     {
-
         s[0] = std::tolower(s[0]);
         return s;
     }
 };
 
 
-const std::unordered_map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
-{
-
-#define X1(keyword) {LexicalSymbol::lowerFirstChar(#keyword), Category::keyword},
-#define X2(key, name) {name, Category::key},
-
-        punctuation_list(X2)
-        keyword_list(X1)
-
-#undef X1
-#undef X2
-
-};
+//const std::unordered_map<std::string, LexicalSymbol::Category> LexicalSymbol::keywordToType =
+//{
+//
+//#define X1(keyword) {LexicalSymbol::lowerFirstChar(#keyword), Category::keyword},
+//#define X2(key, name) {name, Category::key},
+//
+//        punctuation_list(X2)
+//        keyword_list(X1)
+//
+//#undef X1
+//#undef X2
+//
+//};
 
 
 template<typename Iterator>

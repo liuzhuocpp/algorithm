@@ -40,11 +40,11 @@
 
 // 第一次展开恰好有1个参数的
 #define name_to_enum_first_X1(key)    #key) != a && !hasFound) ansId ++; else { hasFound = true; }
-#define name_to_enum_first_X2(key, name) #key)); if(!hasFound) ansId++;
+#define name_to_enum_first_X2(key, name) #key) == ""); if(!hasFound) ansId++;
 
 // 第二次展开恰好有有2个参数的
 #define name_to_enum_second_X1(key)   if(!hasFound) ansId++;
-#define name_to_enum_second_X2(key, name) if(name != a && !hasFound) ansId ++; else hasFound = true; }
+#define name_to_enum_second_X2(key, name) if(name != a && !hasFound) ansId ++; else hasFound = true;
 
 // 第三次获取对应ansId的那个enum
 #define name_to_enum_third_X(key, ...)   key;
