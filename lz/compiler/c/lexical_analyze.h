@@ -94,6 +94,7 @@ struct LexicalSymbol
 {
 
     LZ_MAKE_NAMED_ENUM(Category, categoryToName, allList)
+#undef allList
 
     lz_name_to_enum(keywordToCategory, Category, keyword_list, LexicalSymbol::lowerFirstChar)
 

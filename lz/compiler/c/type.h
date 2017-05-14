@@ -9,19 +9,41 @@
 #define LZ_COMPILER_C_TYPE_H_
 
 
+#include <lz/named_enum.h>
 
 namespace lz {
 
-enum class TypeCategory
-{
-#define X(type) type,
-#include <lz/compiler/c/compound_type_list.def>
-#include <lz/compiler/c/base_type_list.def>
+//enum class TypeCategory
+//{
+//#define X(type) type,
+//#include <lz/compiler/c/compound_type_list.def>
+//#include <lz/compiler/c/base_type_list.def>
+//
+//#undef X
+//};
 
-#undef X
-};
+#define  compound_type_list(X) \
+    X(Array)\
+    X(Struct)\
+    X(Unknown)
+
+#define  base_type_list(X) \
+    X(Int)\
+    X(Bool)\
+    X(Float)\
+    X(Double)
 
 
+
+//enum class
+
+#define allList(X) \
+    compound_type_list(X)\
+    base_type_list(X)
+
+LZ_MAKE_NAMED_ENUM(TypeCategory, typeCategoryToName, allList)
+
+#undef allList
 
 
 
@@ -66,41 +88,43 @@ public:
 struct TypeTable
 {
 private:
-
-    std::string typeCategoryToName(TypeCategory c)
-    {
-        std::string ans = "";
-
-#define X(type) if(TypeCategory::type == c) ans = std::string(#type);
-#include <lz/compiler/c/compound_type_list.def>
-#include <lz/compiler/c/base_type_list.def>
-
-#undef X
-        if(ans.empty())
-        {
-            assert(0);
-            return "";
-        }
-        else
-        {
-            ans[0] = ::tolower(ans[0]);
-            return ans;
-        }
-    }
+//
+//    std::string typeCategoryToName(TypeCategory c)
+//    {
+//        std::string ans = "";
+//
+//#define X(type) if(TypeCategory::type == c) ans = std::string(#type);
+//#include <lz/compiler/c/compound_type_list.def>
+//#include <lz/compiler/c/base_type_list.def>
+//
+//#undef X
+//        if(ans.empty())
+//        {
+//            assert(0);
+//            return "";
+//        }
+//        else
+//        {
+//            ans[0] = ::tolower(ans[0]);
+//            return ans;
+//        }
+//    }
 
     static bool isBaseType(TypeCategory category)
     {
-        switch(category)
-        {
-        case TypeCategory::Int:
-        case TypeCategory::Double:
-        case TypeCategory::Float:
-        case TypeCategory::Bool:
-            return true;
-        default:
-            return false;
-
-        }
+        auto range = LZ_GET_ENUM_LIST_RANGE(TypeCategory, base_type_list);
+        return category >= range.first && category <= range.second;
+//        switch(category)
+//        {
+//        case TypeCategory::Int:
+//        case TypeCategory::Double:
+//        case TypeCategory::Float:
+//        case TypeCategory::Bool:
+//            return true;
+//        default:
+//            return false;
+//
+//        }
     }
 
 
