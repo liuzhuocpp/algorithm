@@ -9,30 +9,40 @@
 #define LZ_COMPILER_C_THREE_ADDRESS_CODE_H_
 
 #include <vector>
+#include <lz/named_enum.h>
+
+#define instruction_list(X)\
+    X(If, "if")\
+    X(IfLess, "if<")\
+    X(IfMore, "if>")\
+    X(IfLessEqual, "if<=")\
+    X(IfMoreEqual, "if>=")\
+    X(IfEqual, "if==")\
+    X(IfNotEqual, "if!=")\
+    X(Goto, "goto")\
+\
+    X(Plus, "+")\
+    X(Minus, "-")\
+    X(Multiply, "*")\
+    X(Divide, "/")\
+    X(Assign, "=")\
+\
+    X(UnaryPlus, "plus")\
+    X(UnaryMinus, "minus")\
+\
+    X(ReadArray, "=[]")\
+    X(WriteArray, "[]=")\
+    X(Unknown)\
+
+
+
 
 namespace lz {
 
 struct ThreeAddressInstruction
 {
-    enum class Category:unsigned
-    {
-#define X(cat, name) cat,
-#include <lz/compiler/c/instruction.def>
-#undef X
-        Unknown,
-    };
-
-
-    static const std::unordered_map<std::string, Category> NameToCategory;
-    static constexpr const char* Names[] =
-    {
-
-#define X(cat, name) name,
-#include <lz/compiler/c/instruction.def>
-#undef X
-        "unknown",
-
-    };
+    LZ_MAKE_NAMED_ENUM(Category, Names, instruction_list);
+    lz_name_to_enum(NameToCategory,Category, instruction_list, [](std::string){ return std::string();})
 
 
 private:
@@ -59,21 +69,23 @@ public:
     operator<<(std::basic_ostream<Char, Traits>& os,
                const ThreeAddressInstruction& IR)
     {
-        os << IR.Names[static_cast<unsigned>(IR.category)] << " " << IR.m_arg1 << " " << IR.m_arg2 << " " << IR.m_res;
+        os << IR.Names(IR.category)  << " " << IR.m_arg1 << " " << IR.m_arg2 << " " << IR.m_res;
         return os;
     }
 
     static Category toIfRel(const std::string& rel)
     {
-        auto it = NameToCategory.find("if" + rel);
-        if(it != NameToCategory.end()) return it->second;
+        auto optional = NameToCategory("if" + rel);
+        if(optional.hasValue()) return optional.value();
+
+
         return Category::Unknown;
     }
 
     static Category toCategory(const std::string& cate)
     {
-        auto it = NameToCategory.find(cate);
-        if(it != NameToCategory.end()) return it->second;
+        auto optional = NameToCategory(cate);
+        if(optional.hasValue()) return optional.value();
         return Category::Unknown;
     }
 
@@ -90,18 +102,6 @@ public:
 
 };
 
-
-const std::unordered_map<std::string, ThreeAddressInstruction::Category>
-    ThreeAddressInstruction::NameToCategory =
-{
-
-
-#define X(cat, name) {name, ThreeAddressInstruction::Category::cat},
-#include <lz/compiler/c/instruction.def>
-#undef X
-
-
-};
 
 
 

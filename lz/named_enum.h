@@ -55,9 +55,9 @@
 
 #define name_to_enum_first_X_prefix2 (
 
-#define lz_name_to_enum(name_to_enum, enum_class, enum_list, tranFunc) \
+#define lz_name_to_enum(name_to_enum, enum_class, enum_list, _tranFunc) \
     static lz::Optional<enum_class> name_to_enum(std::string a) {\
-        int ansId = 0; bool hasFound = false; enum_class ans;\
+        int ansId = 0; bool hasFound = false; enum_class ans; auto tranFunc = _tranFunc;\
         enum_list( name_to_enum_first_X_prefix tranFunc  name_to_enum_first_X_prefix2 name_to_enum_first_X)\
         if(!hasFound) ansId = 0, hasFound = false;\
         enum_list( name_to_enum_second_X)\
