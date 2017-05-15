@@ -112,7 +112,6 @@ public:
     }
     auto getIndexToNonterminalMap() const
     {
-//        SharedArrayMap<std::string> ans(indexToNonterminalMap.size());
         VectorMap<std::string> ans(indexToNonterminalMap.size());
 
         for(auto p: indexToNonterminalMap)
@@ -122,6 +121,24 @@ public:
         return ans;
 
     }
+
+    template<typename ...Terminal>
+    void addLeftAssociativity(Terminal... leftAssoc)
+    {
+        std::vector<SymbolDescriptor> lefts;
+        (lefts.push_back(getTerminalSymbolAndInsert(leftAssoc)) ,...);
+        g.addLeftAssociativity(lefts);
+    }
+
+    template<typename ...Terminal>
+    void addRightAssociativity(Terminal... rightAssoc)
+    {
+        std::vector<SymbolDescriptor> rights;
+        (rights.push_back(getTerminalSymbolAndInsert(rightAssoc)) ,...);
+        g.addRightAssociativity(rights);
+    }
+
+
     auto getTerminalToIndexMap()
     {
         std::map<T, int> terminalToIndexMap;
@@ -131,7 +148,6 @@ public:
         }
 
         SharedConstAssociativeMap<decltype(terminalToIndexMap)> ans(std::move(terminalToIndexMap));
-//        ConstAssociativeMap<decltype(terminalToIndexMap)> ans(terminalToIndexMap);
         return ans;
 
     }

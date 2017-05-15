@@ -44,7 +44,12 @@ auto transformInteritSemanticRuleGrammar(const Grammar& g)
         ans.addSemanticRuleFunc(g.getSemanticRuleFunc(semanticRule));
     }
 
+    // need to be improved
     ans.priorities = g.priorities;
+    ans.leftAssociativity = g.leftAssociativity;
+    ans.rightAssociativity = g.rightAssociativity;
+    ans.terminalPrecedence = g.terminalPrecedence;
+
     std::map<SymbolDescriptor, int> markNonterminalsMap;
     for(RuleDescriptor rule: g.rules())
     {

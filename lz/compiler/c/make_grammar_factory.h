@@ -213,19 +213,25 @@ struct GrammarInput
 
             };
 
+        gf.addLeftAssociativity("+", "-");
+        gf.addLeftAssociativity("*", "/");
 
 
         expression = expression >> "+" >> expression >> solveArithmeticOperator
-             > "+" > "-" < "*" < "/";
+//             > "+" > "-" < "*" < "/"
+             ;
 
         expression = expression >> "-" >> expression >> solveArithmeticOperator
-            > "+" > "-" < "*" < "/";
+//            > "+" > "-" < "*" < "/"
+                ;
 
         expression = expression >> "*" >> expression >> solveArithmeticOperator
-            > "+" > "-" > "*" > "/";
+//            > "+" > "-" > "*" > "/"
+        ;
 
         expression = expression >> "/" >> expression >> solveArithmeticOperator
-            > "+" > "-" > "*" > "/";
+//            > "+" > "-" > "*" > "/"
+                ;
 
         expression = "+" >> expression  >> solveUnaryPlusOrMinusOperator
             > "+" > "-" > "*" > "/";

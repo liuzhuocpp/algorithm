@@ -71,6 +71,41 @@ public:
 
     std::map<std::pair<RuleDescriptor, int> , int> priorities;
 
+    // 终结符与对应的优先级大小
+    std::map<SymbolDescriptor, int> terminalPrecedence;
+    std::set<SymbolDescriptor> leftAssociativity, rightAssociativity;
+
+
+    void addLeftAssociativity(const std::vector<SymbolDescriptor> &a)
+    {
+        int newPrecedence = terminalPrecedence.size();
+        for(SymbolDescriptor x: a)
+        {
+            std::cout << "addLeftAssociativity# ####:" << x << std::endl;
+            terminalPrecedence[x] = newPrecedence;
+            leftAssociativity.insert(x);
+        }
+    }
+    void addRightAssociativity(const std::vector<SymbolDescriptor> &a)
+    {
+        int newPrecedence = terminalPrecedence.size();
+        for(SymbolDescriptor x: a)
+        {
+            terminalPrecedence[x] = newPrecedence;
+            rightAssociativity.insert(x);
+        }
+    }
+
+    SymbolDescriptor getTerminalRepresentRule(RuleDescriptor rd) const
+    {
+        SymbolDescriptor ans = NullSymbol;
+        for(SymbolDescriptor cnt: this->ruleSymbols(rd))
+        {
+            if(isTerminal(cnt)) ans = cnt;
+        }
+        return ans;
+    }
+
     // 设置产生式和非终结符的优先级大小
     void setPriority(RuleDescriptor rd, SymbolDescriptor terminal, int priority)
     {
@@ -85,6 +120,37 @@ public:
         {
             return priorities.at({rd, terminal});
         }
+
+        SymbolDescriptor ruleOperator = getTerminalRepresentRule(rd);
+        if(ruleOperator == NullSymbol) return 0;
+//        std::cout << "enter ------111111111 " << ruleOperator << " " <<terminal <<   std::endl;
+
+//        std::cout << terminalPrecedence.count(ruleOperator) << std::endl;
+        if(terminalPrecedence.count(ruleOperator) && terminalPrecedence.count(terminal))
+        {
+//            std::cout << "enter ------2222222222222222 " << std::endl;
+            if(terminalPrecedence.at(ruleOperator) > terminalPrecedence.at(terminal))
+            {
+                return 1;
+            }
+            else if(terminalPrecedence.at(ruleOperator) < terminalPrecedence.at(terminal))
+            {
+                return -1;
+            }
+            else //if(terminalPrecedence.at(ruleOperator] == terminalPrecedence[terminal])
+            {
+                if(leftAssociativity.count(ruleOperator) && leftAssociativity.count(terminal))
+                {
+                    return 1;
+                }
+                else if(rightAssociativity.count(ruleOperator) && rightAssociativity.count(terminal))
+                {
+                    return -1;
+                }
+                else assert(0);
+            }
+        }
+
         return 0;
     }
 
@@ -271,6 +337,10 @@ public:
     {
         Base::clear();
         semanticRuleFuncs.clear();
+        this->priorities.clear();
+        this->leftAssociativity.clear();
+        this->rightAssociativity.clear();
+        this->terminalPrecedence.clear();
     }
 
     void assginNonterminalsNumber(int n)
