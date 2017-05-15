@@ -213,31 +213,16 @@ struct GrammarInput
 
             };
 
+        gf.addRightAssociativity("=");
         gf.addLeftAssociativity("+", "-");
         gf.addLeftAssociativity("*", "/");
 
-
-        expression = expression >> "+" >> expression >> solveArithmeticOperator
-//             > "+" > "-" < "*" < "/"
-             ;
-
-        expression = expression >> "-" >> expression >> solveArithmeticOperator
-//            > "+" > "-" < "*" < "/"
-                ;
-
-        expression = expression >> "*" >> expression >> solveArithmeticOperator
-//            > "+" > "-" > "*" > "/"
-        ;
-
-        expression = expression >> "/" >> expression >> solveArithmeticOperator
-//            > "+" > "-" > "*" > "/"
-                ;
-
-        expression = "+" >> expression  >> solveUnaryPlusOrMinusOperator
-            > "+" > "-" > "*" > "/";
-
-        expression = "-" >> expression >> solveUnaryPlusOrMinusOperator
-            > "+" > "-" > "*" > "/";
+        expression = expression >> "+" >> expression >> solveArithmeticOperator;
+        expression = expression >> "-" >> expression >> solveArithmeticOperator;
+        expression = expression >> "*" >> expression >> solveArithmeticOperator;
+        expression = expression >> "/" >> expression >> solveArithmeticOperator;
+        expression = "+" >> expression  >> solveUnaryPlusOrMinusOperator > "*";
+        expression = "-" >> expression >> solveUnaryPlusOrMinusOperator > "/";
 
         expression = "(" >> expression >> ")" >>
             [&](PIT v, P&o) {
@@ -275,7 +260,7 @@ struct GrammarInput
                     o.addr = v[1].addr;
                     o.type = identifierTable().type(id);
                 });
-            } < "+" < "-" < "*" < "/";
+            } ;
 
         expression = arrayExpression >>
             [&](PIT v, P &o){
@@ -294,7 +279,7 @@ struct GrammarInput
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
                 o.type = typeTable().arrayBaseType(v[1].type);
-            } < "+" < "-" < "*" < "/";
+            };
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
