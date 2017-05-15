@@ -62,6 +62,20 @@ struct GrammarInput
         gf(program)
     {
 
+        gf.addRightAssociativity("=");
+        gf.addLeftAssociativity("&&", "||");
+        gf.addLeftAssociativity("==", "!=");
+        gf.addLeftAssociativity("<", "<=", ">", ">=");
+
+        gf.addLeftAssociativity("+", "-");
+        gf.addLeftAssociativity("*", "/");
+
+        gf.addRightAssociativity("!");
+
+
+
+
+
         using Lex = LexicalSymbol::Category;
 
         program = declare >> program >>
@@ -139,14 +153,9 @@ struct GrammarInput
             [&](PIT v, P&o) {
 
                 backPatch(v[4].trueList, v[6].cntInstructionIndex);
-
                 merge(o.nextList, v[4].falseList);
-
                 backPatch(v[7].nextList, nextInstructionIndex());
-
                 generateGotoCode(v[3].cntInstructionIndex);
-
-
             };
 
         statementList =  statement >> conditionMark >>  statementList >>
@@ -193,14 +202,6 @@ struct GrammarInput
 
             } > "&&" > "||";
 
-//        expression = "(" >>  expression >> ")" >>
-//            [&](PIT v, P&o) {
-//                o.trueList = v[2].trueList;
-//                o.falseList = v[2].falseList;
-//
-//            };
-
-
         conditionMark = eps >>
             [&](PIT v, P&o) {
                 o.cntInstructionIndex = nextInstructionIndex();
@@ -213,22 +214,15 @@ struct GrammarInput
 
             };
 
-        gf.addRightAssociativity("=");
-        gf.addLeftAssociativity("&&", "||");
-        gf.addLeftAssociativity("==", "!=");
-        gf.addLeftAssociativity("<", "<=", ">", ">=");
-
-        gf.addLeftAssociativity("+", "-");
-        gf.addLeftAssociativity("*", "/");
-
-        gf.addRightAssociativity("!");
-
-
         expression = expression >> "+" >> expression >> solveArithmeticOperator;
         expression = expression >> "-" >> expression >> solveArithmeticOperator;
         expression = expression >> "*" >> expression >> solveArithmeticOperator;
         expression = expression >> "/" >> expression >> solveArithmeticOperator;
-        expression = "+" >> expression  >> solveUnaryPlusOrMinusOperator > "*";
+
+        // Grammar 中的运算符优先级还有一些问题
+        expression = "+" >> expression  >> solveUnaryPlusOrMinusOperator
+                > "*"
+        ;
         expression = "-" >> expression >> solveUnaryPlusOrMinusOperator > "/";
 
         expression = "(" >> expression >> ")" >>
@@ -237,7 +231,6 @@ struct GrammarInput
                 o.type = v[2].type;
                 o.trueList = v[2].trueList;
                 o.falseList = v[2].falseList;
-
             };
 
         expression = Lex::IntNumber >>
@@ -251,7 +244,6 @@ struct GrammarInput
                 o.addr = v[1].addr;
                 o.type = TypeCategory::Double;
             };
-
 
         expression = Lex::Identifier >>
             [&](PIT v, P&o) {
@@ -270,7 +262,7 @@ struct GrammarInput
                     o.addr = v[1].addr;
                     o.type = identifierTable().type(id);
                 });
-            } ;
+            };
 
         expression = arrayExpression >>
             [&](PIT v, P &o){
@@ -333,15 +325,13 @@ struct GrammarInput
     // otherwise, when GrammarInput is destoryed, the bellow calls will be error
     static void solveArithmeticOperator (PIT v, P &o)
     {
-
         checkTypeEquality(v[1].type, v[3].type, [&](){
             o.addr = getTemporaryVariableName();
             o.type = v[1].type;
             generateCode(ThreeAddressInstruction::toCategory(v[2].addr), v[1].addr, v[3].addr, o.addr);
         });
 
-    };
-
+    }
 
     template<typename Callback>
     static void checkVariableDeclare ( std::string variable, Callback callback)
@@ -355,7 +345,8 @@ struct GrammarInput
         {
             callback(it);
         }
-    };
+    }
+
     template<typename Callback>
     static void checkTypeEquality(TypeDescriptor t1, TypeDescriptor t2, Callback callback)
     {
@@ -366,14 +357,8 @@ struct GrammarInput
         }
         else
         {
-            std::cout << "GAGA" << std::endl;
             errorOfstream() << "type inconsistent:" << typeTable().typeToString(t1) << ", " << typeTable().typeToString(t2) << "\n";
-
         }
-
-
-
-
     }
 
 
