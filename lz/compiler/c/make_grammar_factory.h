@@ -49,7 +49,7 @@ struct GrammarInput
 
 
         LZ_NONTERMINAL_PROXY(expression),
-        LZ_NONTERMINAL_PROXY(condition),
+//        LZ_NONTERMINAL_PROXY(condition),
         LZ_NONTERMINAL_PROXY(arrayExpression)
 
 
@@ -117,7 +117,7 @@ struct GrammarInput
         statement = ";";
         statement = "{" >> statementList >> "}";
 
-        statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >>
+        statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
                 backPatch(v[3].trueList, v[5].cntInstructionIndex);
                 o.nextList = merge(v[3].falseList, v[6].nextList);
@@ -125,7 +125,7 @@ struct GrammarInput
 
             } < Lex::Else;
 
-        statement = eps >> Lex::If >> "(" >> condition >> ")" >> conditionMark >> statement >> elseSymbol >> conditionMark >> statement >>
+        statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >> elseSymbol >> conditionMark >> statement >>
             [&](PIT v, P&o) {
                 backPatch(v[3].trueList, v[5].cntInstructionIndex);
                 backPatch(v[3].falseList, v[8].cntInstructionIndex);
@@ -135,7 +135,7 @@ struct GrammarInput
                 merge(o.nextList, v[9].nextList);
             };
 
-        statement = eps >> Lex::While >> "(" >> conditionMark >>  condition >> ")" >> conditionMark >> statement >>
+        statement = eps >> Lex::While >> "(" >> conditionMark >>  expression >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
 
                 backPatch(v[4].trueList, v[6].cntInstructionIndex);
@@ -161,16 +161,16 @@ struct GrammarInput
             };
 
 
-        condition = expression >> "<" >> expression >> solveRelationalOperator;
-        condition = expression >> ">" >> expression >> solveRelationalOperator;
+        expression = expression >> "<" >> expression >> solveRelationalOperator;
+        expression = expression >> ">" >> expression >> solveRelationalOperator;
 
-        condition = expression >> "<=" >> expression >> solveRelationalOperator;
-        condition = expression >> ">=" >> expression >> solveRelationalOperator;
-        condition = expression >> "==" >> expression >> solveRelationalOperator;
-        condition = expression >> "!=" >> expression >> solveRelationalOperator;
+        expression = expression >> "<=" >> expression >> solveRelationalOperator;
+        expression = expression >> ">=" >> expression >> solveRelationalOperator;
+        expression = expression >> "==" >> expression >> solveRelationalOperator;
+        expression = expression >> "!=" >> expression >> solveRelationalOperator;
 
 
-        condition = condition >> "||" >> conditionMark >>  condition >>
+        expression = expression >> "||" >> conditionMark >>  expression >>
             [&](PIT v, P&o) {
                 backPatch(v[1].falseList, v[3].cntInstructionIndex);
                 o.trueList = merge(v[1].trueList, v[4].trueList);
@@ -178,7 +178,7 @@ struct GrammarInput
 
             }  < "&&" > "||";
 
-        condition = condition >> "&&" >> conditionMark >> condition >>
+        expression = expression >> "&&" >> conditionMark >> expression >>
             [&](PIT v, P&o) {
                 backPatch(v[1].trueList, v[3].cntInstructionIndex);
                 o.trueList = v[4].trueList;
@@ -186,19 +186,19 @@ struct GrammarInput
 
             }  > "&&" > "||";
 
-        condition = "!" >>  condition >>
+        expression = "!" >>  expression >>
             [&](PIT v, P&o) {
                 o.trueList = v[2].falseList;
                 o.falseList = v[2].trueList;
 
             } > "&&" > "||";
 
-        condition = "(" >>  condition >> ")" >>
-            [&](PIT v, P&o) {
-                o.trueList = v[2].trueList;
-                o.falseList = v[2].falseList;
-
-            };
+//        expression = "(" >>  expression >> ")" >>
+//            [&](PIT v, P&o) {
+//                o.trueList = v[2].trueList;
+//                o.falseList = v[2].falseList;
+//
+//            };
 
 
         conditionMark = eps >>
@@ -214,8 +214,15 @@ struct GrammarInput
             };
 
         gf.addRightAssociativity("=");
+        gf.addLeftAssociativity("&&", "||");
+        gf.addLeftAssociativity("==", "!=");
+        gf.addLeftAssociativity("<", "<=", ">", ">=");
+
         gf.addLeftAssociativity("+", "-");
         gf.addLeftAssociativity("*", "/");
+
+        gf.addRightAssociativity("!");
+
 
         expression = expression >> "+" >> expression >> solveArithmeticOperator;
         expression = expression >> "-" >> expression >> solveArithmeticOperator;
@@ -228,6 +235,9 @@ struct GrammarInput
             [&](PIT v, P&o) {
                 o.addr = v[2].addr;
                 o.type = v[2].type;
+                o.trueList = v[2].trueList;
+                o.falseList = v[2].falseList;
+
             };
 
         expression = Lex::IntNumber >>
