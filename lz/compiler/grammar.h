@@ -109,6 +109,7 @@ public:
     // 设置产生式和非终结符的优先级大小
     void setPriority(RuleDescriptor rd, SymbolDescriptor terminal, int priority)
     {
+        assert(priority != 0);
         priorities[{rd, terminal}] = priority;
     }
 
@@ -121,7 +122,29 @@ public:
             return priorities.at({rd, terminal});
         }
 
+        // can improve
         SymbolDescriptor ruleOperator = getTerminalRepresentRule(rd);
+        for(auto v: priorities)
+        {
+            if(v.first.first == rd)
+            {
+                SymbolDescriptor terminalInPriority = v.second;
+                if(terminalPrecedence.count(terminalInPriority) > 0 && terminalPrecedence.count(terminal))
+                {
+                    if(v.second > 0 && terminalPrecedence.at(terminalInPriority) >= terminalPrecedence.at(terminal))
+                    {
+                        return 1;
+                    }
+
+                    if(v.second < 0 && terminalPrecedence.at(terminalInPriority) <= terminalPrecedence.at(terminal))
+                    {
+                        return -1;
+                    }
+                }
+            }
+        }
+
+
         if(ruleOperator == NullSymbol) return 0;
 //        std::cout << "enter ------111111111 " << ruleOperator << " " <<terminal <<   std::endl;
 
