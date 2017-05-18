@@ -2,6 +2,8 @@
     int a;
     int b;
     int c;
+    int apple;
+    int k;
 
     if(a < 1111)
     {
@@ -21,7 +23,6 @@
     c = a * b;
         
         
-    int apple;
     apple = 999999;
     
     if(a < 222)
@@ -31,7 +32,6 @@
         apple = a / b;
     }
     
-    int k;
     
     k = 188888111;
     

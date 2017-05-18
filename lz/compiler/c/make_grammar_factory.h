@@ -78,19 +78,9 @@ struct GrammarInput
 
         using Lex = LexicalSymbol::Category;
 
-        program = declare >> program >>
-            [&](PIT v, P& o) {
-                o.nextList = v[2].nextList;
-            };
+        program = declare >> program;
 
-        program = statement >> conditionMark >>  program >>
-            [&](PIT v, P& o) {
-                backPatch(v[1].nextList, v[2].cntInstructionIndex);
-                o.nextList = v[3].nextList;
-
-            };
-
-        program = eps;
+        program = statementList;
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
@@ -132,6 +122,17 @@ struct GrammarInput
                 o.type = TypeCategory::Bool;
             };
 
+        statementList =  statement >> conditionMark >>  statementList >>
+            [&](PIT v, P&o) {
+                backPatch(v[1].nextList, v[2].cntInstructionIndex);
+                o.nextList = v[3].nextList;
+            };
+
+        statementList =  eps >>
+            [&](PIT v, P&o) {
+                o.nextList =  {};
+            };
+
         statement = expression >> ";";
         statement = ";";
         statement = "{" >> statementList >> "}";
@@ -163,16 +164,6 @@ struct GrammarInput
                 generateGotoCode(v[3].cntInstructionIndex);
             };
 
-        statementList =  statement >> conditionMark >>  statementList >>
-            [&](PIT v, P&o) {
-                backPatch(v[1].nextList, v[2].cntInstructionIndex);
-                o.nextList = v[3].nextList;
-            };
-
-        statementList =  eps >>
-            [&](PIT v, P&o) {
-                o.nextList =  {};
-            };
 
 
         expression = expression >> "<" >> expression >> solveRelationalOperator;
