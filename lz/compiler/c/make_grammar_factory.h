@@ -61,7 +61,7 @@ struct GrammarInput
 
         gf(program)
     {
-
+        // 优先级依次提高
         gf.addRightAssociativity("=");
         gf.addLeftAssociativity("&&", "||");
         gf.addLeftAssociativity("==", "!=");
@@ -125,6 +125,11 @@ struct GrammarInput
         baseTypeDeclare = Lex::Double >>
             [&](PIT v, P&o) {
                 o.type = TypeCategory::Double;
+            };
+
+        baseTypeDeclare = Lex::Bool >>
+            [&](PIT v, P&o) {
+                o.type = TypeCategory::Bool;
             };
 
         statement = expression >> ";";
@@ -243,6 +248,18 @@ struct GrammarInput
             [&](PIT v, P&o) {
                 o.addr = v[1].addr;
                 o.type = TypeCategory::Double;
+            };
+
+        expression = Lex::True >>
+            [&](PIT v, P&o) {
+                o.addr = v[1].addr;
+                o.type = TypeCategory::Bool;
+            };
+
+        expression = Lex::False >>
+            [&](PIT v, P&o) {
+                o.addr = v[1].addr;
+                o.type = TypeCategory::Bool;
             };
 
         expression = Lex::Identifier >>
