@@ -29,6 +29,8 @@ struct Properties
 
     std::list<int> trueList, falseList; // for condition
     std::list<int> nextList; // for condition
+    std::list<int> breakList, continueList; // for break continue 跳转 in statement
+
     int cntInstructionIndex; // for conditionMark
 
 

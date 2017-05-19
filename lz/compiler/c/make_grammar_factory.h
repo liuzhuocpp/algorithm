@@ -61,7 +61,7 @@ struct GrammarInput
 
         gf(program)
     {
-        // 优先级依次提高
+        // 优先级依次降低排列
 
         gf.addRightAssociativity("!");
 
@@ -121,16 +121,12 @@ struct GrammarInput
                 o.type = TypeCategory::Bool;
             };
 
-        statementList =  statement >> conditionMark >>  statementList >>
+        statementList = statement >> conditionMark >> statementList >>
             [&](PIT v, P&o) {
                 backPatch(v[1].nextList, v[2].cntInstructionIndex);
-                o.nextList = v[3].nextList;
             };
 
-        statementList =  eps >>
-            [&](PIT v, P&o) {
-                o.nextList =  {};
-            };
+        statementList = eps ;
 
         statement = expression >> ";";
         statement = ";";
