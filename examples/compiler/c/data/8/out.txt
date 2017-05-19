@@ -1,0 +1,5 @@
+      goto   -
+      if> b 0 L3
+      goto   L4
+L3:   goto   -
+L4:

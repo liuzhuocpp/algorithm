@@ -1,6 +1,6 @@
-L0:   if> a 0 L2
+L0:   if!= a True L2
       goto   L10
-L2:   if== a 0 L4
+L2:   if== a False L4
       goto   L5
 L4:   goto   L10
 L5:   if< b 22 L7

@@ -81,14 +81,14 @@ struct GrammarInput
 
         program = statementList >>
             [&](PIT v, P& o) {
-                if(!o.breakList.empty())
+                if(!v[1].breakList.empty())
                 {
-                    errorOfstream() << "break statement not within loop\n";
+                    errorOfstream() << "break statement not within a loop\n";
                 }
 
-                if(!o.continueList.empty())
+                if(!v[1].continueList.empty())
                 {
-                    errorOfstream() << "continue statement not within loop\n";
+                    errorOfstream() << "continue statement not within a loop\n";
                 }
             };
 
@@ -197,6 +197,18 @@ struct GrammarInput
                 backPatch(v[7].continueList, v[3].cntInstructionIndex);
             };
 
+        conditionMark = eps >>
+            [&](PIT v, P&o) {
+                o.cntInstructionIndex = nextInstructionIndex();
+            };
+
+        elseSymbol = Lex::Else >>
+            [&](PIT v, P&o) {
+                o.nextList.push_back(nextInstructionIndex());
+                generateGotoCode();
+
+            };
+
         expression = expression >> "<" >> expression >> solveRelationalOperator;
         expression = expression >> "<=" >> expression >> solveRelationalOperator;
 
@@ -230,27 +242,13 @@ struct GrammarInput
 
             } > "&&" > "||";
 
-        conditionMark = eps >>
-            [&](PIT v, P&o) {
-                o.cntInstructionIndex = nextInstructionIndex();
-            };
-
-        elseSymbol = Lex::Else >>
-            [&](PIT v, P&o) {
-                o.nextList.push_back(nextInstructionIndex());
-                generateGotoCode();
-
-            };
-
         expression = expression >> "+" >> expression >> solveArithmeticOperator;
         expression = expression >> "-" >> expression >> solveArithmeticOperator;
         expression = expression >> "*" >> expression >> solveArithmeticOperator;
         expression = expression >> "/" >> expression >> solveArithmeticOperator;
 
-        // Grammar 中的运算符优先级还有一些问题
         expression = "+" >> expression  >> solveUnaryPlusOrMinusOperator
-                > "*"
-        ;
+                > "*";
         expression = "-" >> expression >> solveUnaryPlusOrMinusOperator > "/";
 
         expression = "(" >> expression >> ")" >>
@@ -315,6 +313,7 @@ struct GrammarInput
 
         expression = arrayExpression >> "=" >> expression >>
             [&](PIT v, P&o) {
+
 
                 generateCode(InstructionCategory::WriteArray, v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
                 std::string tmp = getTemporaryVariableName();
@@ -397,7 +396,7 @@ struct GrammarInput
         }
         else
         {
-            errorOfstream() << "type inconsistent:" << typeTable().typeToString(t1) << ", " << typeTable().typeToString(t2) << "\n";
+            errorOfstream() << "type inconsistent: " << typeTable().typeToString(t1) << ", " << typeTable().typeToString(t2) << "\n";
         }
     }
 
@@ -446,10 +445,13 @@ struct GrammarInput
 
     static void solveRelationalOperator(PIT v, P &o)
     {
-        o.trueList.push_back(nextInstructionIndex());
-        generateCode(ThreeAddressInstruction::toIfRel(v[2].addr), v[1].addr, v[3].addr, "-");
-        o.falseList.push_back(nextInstructionIndex());
-        generateGotoCode();
+        checkTypeEquality(v[1].type, v[3].type, [&](){
+            o.trueList.push_back(nextInstructionIndex());
+            generateCode(ThreeAddressInstruction::toIfRel(v[2].addr), v[1].addr, v[3].addr, "-");
+            o.falseList.push_back(nextInstructionIndex());
+            generateGotoCode();
+        });
+
     }
 
     static void solveUnaryPlusOrMinusOperator(PIT v, P &o)

@@ -1,0 +1,4 @@
+type inconsistent: Bool, Int
+type inconsistent: Bool, Int
+break statement not within a loop
+continue statement not within a loop
