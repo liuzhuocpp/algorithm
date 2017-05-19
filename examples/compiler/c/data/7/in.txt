@@ -8,6 +8,7 @@
         if(a == 0) break;
         
         if(b < 22) continue;
+        b = 333;
     }
     
     
