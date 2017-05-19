@@ -2,7 +2,14 @@
 
 
     bool a;
-
+    int b;
+    while(a > 0)
+    {
+        if(a == 0) break;
+        
+        if(b < 22) continue;
+    }
+    
     
     
     

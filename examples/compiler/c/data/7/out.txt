@@ -1,0 +1,10 @@
+L0:   if> a 0 L2
+      goto   L9
+L2:   if== a 0 L4
+      goto   L5
+L4:   goto   L9
+L5:   if< b 22 L7
+      goto   L8
+L7:   goto   L0
+L8:   goto   L0
+L9:

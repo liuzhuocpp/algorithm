@@ -79,7 +79,18 @@ struct GrammarInput
 
         program = declare >> program;
 
-        program = statementList;
+        program = statementList >>
+            [&](PIT v, P& o) {
+                if(!o.breakList.empty())
+                {
+                    errorOfstream() << "break statement not within loop\n";
+                }
+
+                if(!o.continueList.empty())
+                {
+                    errorOfstream() << "continue statement not within loop\n";
+                }
+            };
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
@@ -124,13 +135,32 @@ struct GrammarInput
         statementList = statement >> conditionMark >> statementList >>
             [&](PIT v, P&o) {
                 backPatch(v[1].nextList, v[2].cntInstructionIndex);
+
+                o.breakList = merge(v[1].breakList, v[3].breakList);
+                o.continueList = merge(v[1].continueList, v[3].continueList);
             };
 
         statementList = eps ;
 
+        statement = eps >> Lex::Break >> ";" >>
+            [&](PIT v, P& o) {
+                o.breakList.push_back(nextInstructionIndex());
+                generateGotoCode();
+            };
+
+        statement = eps >> Lex::Continue >> ";" >>
+            [&](PIT v, P& o) {
+                o.continueList.push_back(nextInstructionIndex());
+                generateGotoCode();
+            };
+
         statement = expression >> ";";
         statement = ";";
-        statement = "{" >> statementList >> "}";
+        statement = "{" >> statementList >> "}" >>
+            [&](PIT v, P& o){
+                o.breakList = v[2].breakList;
+                o.continueList = v[2].continueList;
+            };
 
         statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
@@ -138,16 +168,21 @@ struct GrammarInput
                 o.nextList = merge(v[3].falseList, v[6].nextList);
 
 
+                o.breakList = v[6].breakList;
+                o.continueList = v[6].continueList;
             } < Lex::Else;
 
         statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >> elseSymbol >> conditionMark >> statement >>
             [&](PIT v, P&o) {
                 backPatch(v[3].trueList, v[5].cntInstructionIndex);
                 backPatch(v[3].falseList, v[8].cntInstructionIndex);
-
                 merge(o.nextList, v[6].nextList);
                 merge(o.nextList, v[7].nextList);
                 merge(o.nextList, v[9].nextList);
+
+
+                o.breakList = merge(v[6].breakList, v[9].breakList);
+                o.continueList = merge(v[6].continueList, v[9].continueList);
             };
 
         statement = eps >> Lex::While >> "(" >> conditionMark >>  expression >> ")" >> conditionMark >> statement >>
@@ -157,15 +192,17 @@ struct GrammarInput
                 merge(o.nextList, v[4].falseList);
                 backPatch(v[7].nextList, nextInstructionIndex());
                 generateGotoCode(v[3].cntInstructionIndex);
+
+                backPatch(v[7].breakList, nextInstructionIndex());
+                backPatch(v[7].continueList, v[3].cntInstructionIndex);
             };
 
-
-
         expression = expression >> "<" >> expression >> solveRelationalOperator;
-        expression = expression >> ">" >> expression >> solveRelationalOperator;
-
         expression = expression >> "<=" >> expression >> solveRelationalOperator;
+
+        expression = expression >> ">" >> expression >> solveRelationalOperator;
         expression = expression >> ">=" >> expression >> solveRelationalOperator;
+
         expression = expression >> "==" >> expression >> solveRelationalOperator;
         expression = expression >> "!=" >> expression >> solveRelationalOperator;
 

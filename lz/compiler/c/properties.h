@@ -21,17 +21,18 @@ struct Properties
     // for expression
     std::string addr;
 
-    TypeDescriptor type; // 类型， for declare and arrayExpression
+    TypeDescriptor type; // 类型， for declare and expression
+
 
 
     std::string arrayOffsetAddr; // 是一个地址，和addr表示的一样
     int cntArrayDimensionId = 0;
 
-    std::list<int> trueList, falseList; // for condition
-    std::list<int> nextList; // for condition
-    std::list<int> breakList, continueList; // for break continue 跳转 in statement
+    std::list<int> trueList, falseList; // for condition expression
+    std::list<int> nextList; // only for statement, not for statementList
+    std::list<int> breakList, continueList; // for break continue 跳转 in statement and statementList
 
-    int cntInstructionIndex; // for conditionMark
+    int cntInstructionIndex = -1; // for conditionMark
 
 
 
