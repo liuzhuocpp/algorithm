@@ -78,7 +78,7 @@ public:
 
     void addLeftAssociativity(const std::vector<SymbolDescriptor> &a)
     {
-        int newPrecedence = terminalPrecedence.size();
+        int newPrecedence = -terminalPrecedence.size();
         for(SymbolDescriptor x: a)
         {
             std::cout << "addLeftAssociativity# ####:" << x << std::endl;
@@ -88,7 +88,7 @@ public:
     }
     void addRightAssociativity(const std::vector<SymbolDescriptor> &a)
     {
-        int newPrecedence = terminalPrecedence.size();
+        int newPrecedence = -terminalPrecedence.size();
         for(SymbolDescriptor x: a)
         {
             terminalPrecedence[x] = newPrecedence;

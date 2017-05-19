@@ -62,17 +62,16 @@ struct GrammarInput
         gf(program)
     {
         // 优先级依次提高
-        gf.addRightAssociativity("=");
-        gf.addLeftAssociativity("&&", "||");
-        gf.addLeftAssociativity("==", "!=");
-        gf.addLeftAssociativity("<", "<=", ">", ">=");
-
-        gf.addLeftAssociativity("+", "-");
-        gf.addLeftAssociativity("*", "/");
 
         gf.addRightAssociativity("!");
 
+        gf.addLeftAssociativity("*", "/");
+        gf.addLeftAssociativity("+", "-");
+        gf.addLeftAssociativity("<", "<=", ">", ">=");
+        gf.addLeftAssociativity("==", "!=");
+        gf.addLeftAssociativity("&&", "||");
 
+        gf.addRightAssociativity("=");
 
 
 
