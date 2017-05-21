@@ -327,20 +327,30 @@ struct GrammarInput
             [&](PIT v, P &o){
 
                 checkVariableDeclare(v[1].addr, [&](int identifierId) {
+
                     o.addr = v[1].addr; // 数组名称
-                    o.type = identifierTable().type(identifierId); // 数组类型
-                    o.cntArrayDimensionId = 0;
-                    std::string tmp = generateCalcualteArrayPartialIndexCode(v[3].addr, o.cntArrayDimensionId, o.type);
+
+                    TypeDescriptor arrayType = identifierTable().type(identifierId); // 数组类型
+                    o.type = typeTable().subarrayType(arrayType);
+
+                    std::string tmp = getTemporaryVariableName();
+                    generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(typeTable().getWidth(o.type)), tmp);
+
+//                    o.cntArrayDimensionId = 0;
+//                    std::string tmp = generateCalcualteArrayPartialIndexCode(v[3].addr, o.cntArrayDimensionId, o.type);
                     o.arrayOffsetAddr = tmp;
+
                 });
             };
 
         arrayExpression = arrayExpression >> "[" >> expression >> "]" >>
             [&](PIT v, P &o) {
                 o.addr = v[1].addr;
-                o.type = v[1].type;
-                o.cntArrayDimensionId = v[1].cntArrayDimensionId + 1;
-                std::string tmp1 = generateCalcualteArrayPartialIndexCode(v[3].addr, o.cntArrayDimensionId, o.type);
+                o.type = typeTable().subarrayType(v[1].type);
+
+                std::string tmp1 = getTemporaryVariableName();
+                generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(typeTable().getWidth(o.type)), tmp1);
+
                 std::string tmp2 = getTemporaryVariableName();
                 generateCode(InstructionCategory::Plus, v[1].arrayOffsetAddr, tmp1 , tmp2);
                 o.arrayOffsetAddr = tmp2;
@@ -470,36 +480,36 @@ struct GrammarInput
     }
 
 
-    static std::string generateCalcualteArrayPartialIndexCode(
-        std::string cntDimensionAddr, int cntDimensionId, TypeDescriptor arrayType)
-    {
-        std::string tmp = getTemporaryVariableName();
-        generateCode(
-            InstructionCategory::Multiply,
-            cntDimensionAddr,
-            std::to_string(calculateArrayDimensionProduct(arrayType, cntDimensionId)),
-            tmp);
-        return tmp;
-
-    }
-
-    static int calculateArrayDimensionProduct(TypeDescriptor t, int cntArrayDimensionId)
-    {
-        auto dimensionsRange = typeTable().arrayDimensions(t);
-        return calProduct(dimensionsRange.begin() + cntArrayDimensionId + 1, dimensionsRange.end()  ) ;
-    }
-
-    template<typename Iterator>
-    static int calProduct(Iterator first, Iterator last)
-    {
-        int sum = 1;
-        while(first < last)
-        {
-            sum *= *first;
-            first++;
-        }
-        return sum;
-    }
+//    static std::string generateCalcualteArrayPartialIndexCode(
+//        std::string cntDimensionAddr, int cntDimensionId, TypeDescriptor arrayType)
+//    {
+//        std::string tmp = getTemporaryVariableName();
+//        generateCode(
+//            InstructionCategory::Multiply,
+//            cntDimensionAddr,
+//            std::to_string(calculateArrayDimensionProduct(arrayType, cntDimensionId)),
+//            tmp);
+//        return tmp;
+//
+//    }
+//
+//    static int calculateArrayDimensionProduct(TypeDescriptor t, int cntArrayDimensionId)
+//    {
+//        auto dimensionsRange = typeTable().arrayDimensions(t);
+//        return calProduct(dimensionsRange.begin() + cntArrayDimensionId + 1, dimensionsRange.end()  ) ;
+//    }
+//
+//    template<typename Iterator>
+//    static int calProduct(Iterator first, Iterator last)
+//    {
+//        int sum = 1;
+//        while(first < last)
+//        {
+//            sum *= *first;
+//            first++;
+//        }
+//        return sum;
+//    }
 
 };
 

@@ -116,7 +116,7 @@ public:
         if(category == TypeCategory::Array)
         {
             return typeEqual(arrayBaseType(a), arrayBaseType(b)) &&
-                arrayDimensionVector(a) == arrayDimensionVector(b);
+                arrayFullDimensionVector(a) == arrayFullDimensionVector(b);
         }
         else if(category == TypeCategory::Struct)
         {
@@ -156,7 +156,6 @@ public:
     void clear()
     {
         arrayVector.clear();
-//        structNameVector.clear();
     }
 
     // eg, if type i is : int[10][3][4], then the subarrayType is int[3][4]
@@ -187,11 +186,24 @@ public:
                 arrayDimensions.begin() + i.arrayDimensionBeginId,
                 arrayDimensions.end()
                 );
-
-//        return arrayVector[i.index].second;
     }
 
+    int getWidth(TypeDescriptor i) const
+    {
+        int ans = 1;
+        if(isBaseType(i.category())) //目前不考虑类型的实际宽度
+        {
+            return ans;
+        }
 
+        for(auto x: arrayDimensions(i))
+        {
+            ans *= x;
+        }
+        return ans;
+
+
+    }
 
     void addArrayDimension(TypeDescriptor i, int n)
     {
@@ -210,7 +222,7 @@ public:
 
 
 private:
-    const std::vector<int>& arrayDimensionVector(TypeDescriptor i) const
+    const std::vector<int>& arrayFullDimensionVector(TypeDescriptor i) const
     {
         return arrayVector[i.index].second;
     }

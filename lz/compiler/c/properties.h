@@ -26,7 +26,7 @@ struct Properties
 
 
     std::string arrayOffsetAddr; // 是一个地址，和addr表示的一样
-    int cntArrayDimensionId = 0;
+//    int cntArrayDimensionId = 0;
 
     std::list<int> trueList, falseList; // for condition expression
     std::list<int> nextList; // only for statement, not for statementList
