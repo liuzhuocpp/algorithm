@@ -57,9 +57,11 @@ private:
     TypeCategory m_category = TypeCategory::Unknown;
 
     // index in arrayVector for Array;
-    // index in identifierTable for Struct;
-
     int index = -1;
+
+    // when m_category == Array, this field will be used.
+    // 指明了当前的数组类型的维度是以arrayDimensionBeginId开始
+    int arrayDimensionBeginId = 0;
 
 public:
     TypeDescriptor() {}
@@ -70,17 +72,6 @@ public:
         return m_category;
     }
 
-    int getStructIndex()
-    {
-        assert(m_category == TypeCategory::Struct);
-        return index;
-    }
-
-    void setStructIndex(int i)
-    {
-        assert(m_category == TypeCategory::Struct);
-        index = i;
-    }
 };
 
 
@@ -88,53 +79,16 @@ public:
 struct TypeTable
 {
 private:
-//
-//    std::string typeCategoryToName(TypeCategory c)
-//    {
-//        std::string ans = "";
-//
-//#define X(type) if(TypeCategory::type == c) ans = std::string(#type);
-//#include <lz/compiler/c/compound_type_list.def>
-//#include <lz/compiler/c/base_type_list.def>
-//
-//#undef X
-//        if(ans.empty())
-//        {
-//            assert(0);
-//            return "";
-//        }
-//        else
-//        {
-//            ans[0] = ::tolower(ans[0]);
-//            return ans;
-//        }
-//    }
-
     static bool isBaseType(TypeCategory category)
     {
         auto range = LZ_GET_ENUM_LIST_RANGE(TypeCategory, base_type_list);
         return category >= range.first && category <= range.second;
-//        switch(category)
-//        {
-//        case TypeCategory::Int:
-//        case TypeCategory::Double:
-//        case TypeCategory::Float:
-//        case TypeCategory::Bool:
-//            return true;
-//        default:
-//            return false;
-//
-//        }
     }
 
 
 
 
     std::vector<std::pair<TypeDescriptor, std::vector<int>> > arrayVector;
-
-    // every pair is identifier index and corresponding type
-//    std::vector<std::vector<std::pair<int, TypeDescriptor> > > structNameVector;
-
 
 
 public:
@@ -162,7 +116,7 @@ public:
         if(category == TypeCategory::Array)
         {
             return typeEqual(arrayBaseType(a), arrayBaseType(b)) &&
-                arrayDimensions(a) == arrayDimensions(b);
+                arrayDimensionVector(a) == arrayDimensionVector(b);
         }
         else if(category == TypeCategory::Struct)
         {
@@ -205,6 +159,14 @@ public:
 //        structNameVector.clear();
     }
 
+    // eg, if type i is : int[10][3][4], then the subarrayType is int[3][4]
+    TypeDescriptor subarrayType(TypeDescriptor i) const
+    {
+        assert(i.category() == TypeCategory::Array);
+        i.arrayDimensionBeginId ++;
+        return i;
+    }
+
     TypeDescriptor arrayBaseType(TypeDescriptor i) const
     {
         return arrayVector[i.index].first;
@@ -215,20 +177,20 @@ public:
         return arrayVector[i.index].first;
     }
 
-
-    const std::vector<int>& arrayDimensions(TypeDescriptor i) const
+    //目前不允许外部修改array dimension 的值
+    lz::IteratorRange<std::vector<int>::const_iterator>  arrayDimensions(TypeDescriptor i) const
     {
         assert(i.category() ==  TypeCategory::Array);
 
-        return arrayVector[i.index].second;
+        const std::vector<int> & arrayDimensions = arrayVector[i.index].second;
+        return lz::IteratorRange<std::vector<int>::const_iterator>(
+                arrayDimensions.begin() + i.arrayDimensionBeginId,
+                arrayDimensions.end()
+                );
+
+//        return arrayVector[i.index].second;
     }
 
-    std::vector<int>& arrayDimensions(TypeDescriptor i)
-    {
-        assert(i.category() ==  TypeCategory::Array);
-
-        return arrayVector[i.index].second;
-    }
 
 
     void addArrayDimension(TypeDescriptor i, int n)
@@ -244,6 +206,13 @@ public:
         assert(i.index >= 0 && i.index < arrayVector.size());
 
         arrayVector[i.index] = {arrayBaseType, arrayDimensions};
+    }
+
+
+private:
+    const std::vector<int>& arrayDimensionVector(TypeDescriptor i) const
+    {
+        return arrayVector[i.index].second;
     }
 
 };

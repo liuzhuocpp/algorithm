@@ -110,7 +110,7 @@ struct GrammarInput
                     typeTable().arrayBaseType(o.type) = v[1].type;
                 }
                 else o.type = v[1].type;
-                typeTable().arrayDimensions(o.type).push_back(std::stoi(v[3].addr));
+                typeTable().addArrayDimension(o.type, std::stoi(v[3].addr));
             };
 
         baseTypeDeclare = Lex::Int >>
@@ -294,11 +294,12 @@ struct GrammarInput
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
-
                 checkVariableDeclare(v[1].addr, [&](int id) {
-                    generateCode(InstructionCategory::Assign, v[3].addr, "", getVariableName(id));
-                    o.addr = v[1].addr;
-                    o.type = identifierTable().type(id);
+                    checkTypeEquality(identifierTable().type(id), v[3].type, [&](){
+                        generateCode(InstructionCategory::Assign, v[3].addr, "", getVariableName(id));
+                        o.addr = v[1].addr;
+                        o.type = identifierTable().type(id);
+                    });
                 });
             };
 
@@ -484,8 +485,8 @@ struct GrammarInput
 
     static int calculateArrayDimensionProduct(TypeDescriptor t, int cntArrayDimensionId)
     {
-        const std::vector<int>& dimensions = typeTable().arrayDimensions(t);
-        return calProduct(dimensions.begin() + cntArrayDimensionId + 1, dimensions.end()  ) ;
+        auto dimensionsRange = typeTable().arrayDimensions(t);
+        return calProduct(dimensionsRange.begin() + cntArrayDimensionId + 1, dimensionsRange.end()  ) ;
     }
 
     template<typename Iterator>
