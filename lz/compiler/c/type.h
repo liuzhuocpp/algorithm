@@ -162,7 +162,12 @@ public:
     TypeDescriptor subarrayType(TypeDescriptor i) const
     {
         assert(i.category() == TypeCategory::Array);
+
         i.arrayDimensionBeginId ++;
+        if(i.arrayDimensionBeginId == arrayFullDimensionVector(i).size())
+        {
+            return arrayBaseType(i);
+        }
         return i;
     }
 

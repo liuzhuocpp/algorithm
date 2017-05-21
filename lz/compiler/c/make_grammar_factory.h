@@ -309,7 +309,8 @@ struct GrammarInput
                 std::string tmp = getTemporaryVariableName();
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
-                o.type = typeTable().arrayBaseType(v[1].type);
+//                o.type = typeTable().arrayBaseType(v[1].type);
+                o.type = v[1].type;
             };
 
         expression = arrayExpression >> "=" >> expression >>
@@ -320,7 +321,8 @@ struct GrammarInput
                 std::string tmp = getTemporaryVariableName();
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
-                o.type = typeTable().arrayBaseType(v[1].type);
+//                o.type = typeTable().arrayBaseType(v[1].type);
+                o.type = v[1].type;
             };
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
@@ -335,9 +337,6 @@ struct GrammarInput
 
                     std::string tmp = getTemporaryVariableName();
                     generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(typeTable().getWidth(o.type)), tmp);
-
-//                    o.cntArrayDimensionId = 0;
-//                    std::string tmp = generateCalcualteArrayPartialIndexCode(v[3].addr, o.cntArrayDimensionId, o.type);
                     o.arrayOffsetAddr = tmp;
 
                 });
