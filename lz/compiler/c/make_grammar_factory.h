@@ -265,8 +265,7 @@ struct GrammarInput
         expression = expression >> "*" >> expression >> solveArithmeticOperator;
         expression = expression >> "/" >> expression >> solveArithmeticOperator;
 
-        expression = "+" >> expression  >> solveUnaryPlusOrMinusOperator
-                > "*";
+        expression = "+" >> expression >> solveUnaryPlusOrMinusOperator > "*";
         expression = "-" >> expression >> solveUnaryPlusOrMinusOperator > "/";
 
         expression = "(" >> expression >> ")" >>
@@ -327,19 +326,16 @@ struct GrammarInput
                 std::string tmp = getTemporaryVariableName();
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
-//                o.type = typeTable().arrayBaseType(v[1].type);
                 o.type = v[1].type;
             };
 
         expression = arrayExpression >> "=" >> expression >>
             [&](PIT v, P&o) {
 
-
                 generateCode(InstructionCategory::WriteArray, v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
                 std::string tmp = getTemporaryVariableName();
                 generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
                 o.addr = tmp;
-//                o.type = typeTable().arrayBaseType(v[1].type);
                 o.type = v[1].type;
             };
 
@@ -349,10 +345,8 @@ struct GrammarInput
                 checkVariableDeclare(v[1].addr, [&](int identifierId) {
 
                     o.addr = v[1].addr; // 数组名称
-
                     TypeDescriptor arrayType = identifierTable().type(identifierId); // 数组类型
                     o.type = typeTable().subarrayType(arrayType);
-
                     std::string tmp = getTemporaryVariableName();
                     generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(typeTable().getWidth(o.type)), tmp);
                     o.arrayOffsetAddr = tmp;
@@ -367,13 +361,10 @@ struct GrammarInput
 
                 std::string tmp1 = getTemporaryVariableName();
                 generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(typeTable().getWidth(o.type)), tmp1);
-
                 std::string tmp2 = getTemporaryVariableName();
                 generateCode(InstructionCategory::Plus, v[1].arrayOffsetAddr, tmp1 , tmp2);
                 o.arrayOffsetAddr = tmp2;
-
             };
-
 
     }
 
