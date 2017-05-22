@@ -75,16 +75,19 @@ public:
 };
 
 
+bool isBaseType(TypeCategory category)
+{
+    auto range = LZ_GET_ENUM_LIST_RANGE(TypeCategory, base_type_list);
+    return category >= range.first && category <= range.second;
+}
+
+
+
+
 // only when category is Array, need this TypeTable
 struct TypeTable
 {
 private:
-    static bool isBaseType(TypeCategory category)
-    {
-        auto range = LZ_GET_ENUM_LIST_RANGE(TypeCategory, base_type_list);
-        return category >= range.first && category <= range.second;
-    }
-
 
 
 
@@ -132,7 +135,6 @@ public:
     {
         if(isBaseType(a.category()))
         {
-
             return typeCategoryToName(a.category());
         }
         else if(a.category() == TypeCategory::Array)

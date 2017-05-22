@@ -69,7 +69,8 @@ struct GrammarInput
         gf.addLeftAssociativity("+", "-");
         gf.addLeftAssociativity("<", "<=", ">", ">=");
         gf.addLeftAssociativity("==", "!=");
-        gf.addLeftAssociativity("&&", "||");
+        gf.addLeftAssociativity("&&");
+        gf.addLeftAssociativity("||");
 
         gf.addRightAssociativity("=");
 
@@ -221,26 +222,43 @@ struct GrammarInput
 
         expression = expression >> "||" >> conditionMark >>  expression >>
             [&](PIT v, P&o) {
-                backPatch(v[1].falseList, v[3].cntInstructionIndex);
-                o.trueList = merge(v[1].trueList, v[4].trueList);
-                o.falseList = v[4].falseList;
 
-            }  < "&&" > "||";
+                checkTypeEquality(v[1].type, v[4].type, [&]() {
+                    checkBoolRequired(v[1].type, [&](){
+                        backPatch(v[1].falseList, v[3].cntInstructionIndex);
+                        o.trueList = merge(v[1].trueList, v[4].trueList);
+                        o.falseList = v[4].falseList;
+                        o.type = TypeCategory::Bool;
+                    });
+                });
+
+
+            };
 
         expression = expression >> "&&" >> conditionMark >> expression >>
             [&](PIT v, P&o) {
-                backPatch(v[1].trueList, v[3].cntInstructionIndex);
-                o.trueList = v[4].trueList;
-                o.falseList = merge(v[1].falseList, v[4].falseList);
+                checkTypeEquality(v[1].type, v[4].type, [&]() {
+                    checkBoolRequired(v[1].type, [&](){
 
-            }  > "&&" > "||";
+                        backPatch(v[1].trueList, v[3].cntInstructionIndex);
+                        o.trueList = v[4].trueList;
+                        o.falseList = merge(v[1].falseList, v[4].falseList);
+
+                        o.type = TypeCategory::Bool;
+                    });
+                });
+
+
+            };
 
         expression = "!" >>  expression >>
             [&](PIT v, P&o) {
-                o.trueList = v[2].falseList;
-                o.falseList = v[2].trueList;
-
-            } > "&&" > "||";
+                checkBoolRequired(v[2].type, [&](){
+                    o.trueList = v[2].falseList;
+                    o.falseList = v[2].trueList;
+                    o.type = v[2].type;
+                });
+            };
 
         expression = expression >> "+" >> expression >> solveArithmeticOperator;
         expression = expression >> "-" >> expression >> solveArithmeticOperator;
@@ -410,6 +428,32 @@ struct GrammarInput
         }
     }
 
+    template<typename Callback>
+    static void checkBoolRequired(TypeDescriptor t, Callback callback)
+    {
+        if(t.category() == TypeCategory::Bool)
+        {
+            callback();
+        }
+        else
+        {
+            errorOfstream() << "required type is bool, but is " << typeCategoryToName(t.category()) <<  "\n";
+        }
+    }
+
+    template<typename Callback>
+    static void checkCanArithmeticOperate(TypeDescriptor t, Callback callback)
+    {
+        if(isBaseType(t.category()))
+        {
+            callback();
+        }
+        else
+        {
+            errorOfstream() << "type " << typeCategoryToName(t.category()) << "can't be used as arithmetic operator "<<  "\n";
+        }
+    }
+
 
 
 
@@ -460,6 +504,7 @@ struct GrammarInput
             generateCode(ThreeAddressInstruction::toIfRel(v[2].addr), v[1].addr, v[3].addr, "-");
             o.falseList.push_back(nextInstructionIndex());
             generateGotoCode();
+            o.type = TypeCategory::Bool;
         });
 
     }
@@ -479,36 +524,7 @@ struct GrammarInput
     }
 
 
-//    static std::string generateCalcualteArrayPartialIndexCode(
-//        std::string cntDimensionAddr, int cntDimensionId, TypeDescriptor arrayType)
-//    {
-//        std::string tmp = getTemporaryVariableName();
-//        generateCode(
-//            InstructionCategory::Multiply,
-//            cntDimensionAddr,
-//            std::to_string(calculateArrayDimensionProduct(arrayType, cntDimensionId)),
-//            tmp);
-//        return tmp;
-//
-//    }
-//
-//    static int calculateArrayDimensionProduct(TypeDescriptor t, int cntArrayDimensionId)
-//    {
-//        auto dimensionsRange = typeTable().arrayDimensions(t);
-//        return calProduct(dimensionsRange.begin() + cntArrayDimensionId + 1, dimensionsRange.end()  ) ;
-//    }
-//
-//    template<typename Iterator>
-//    static int calProduct(Iterator first, Iterator last)
-//    {
-//        int sum = 1;
-//        while(first < last)
-//        {
-//            sum *= *first;
-//            first++;
-//        }
-//        return sum;
-//    }
+
 
 };
 
