@@ -45,7 +45,9 @@ struct GrammarInput
         LZ_NONTERMINAL_PROXY(statementList),
 
         LZ_NONTERMINAL_PROXY(conditionMark),
-        LZ_NONTERMINAL_PROXY(elseSymbol),
+//        LZ_NONTERMINAL_PROXY(elseSymbol),
+        LZ_NONTERMINAL_PROXY(elseConditionMark),
+
 
 
         LZ_NONTERMINAL_PROXY(expression),
@@ -173,17 +175,20 @@ struct GrammarInput
                 o.continueList = v[6].continueList;
             } < Lex::Else;
 
-        statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >> elseSymbol >> conditionMark >> statement >>
+        statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >> Lex::Else >> elseConditionMark >> statement >>
             [&](PIT v, P&o) {
-                backPatch(v[3].trueList, v[5].cntInstructionIndex);
-                backPatch(v[3].falseList, v[8].cntInstructionIndex);
-                merge(o.nextList, v[6].nextList);
-                merge(o.nextList, v[7].nextList);
-                merge(o.nextList, v[9].nextList);
+
+                auto& condition = v[3], &conMark = v[5], &ifStatement = v[6], &elseConMark = v[8], &elseStement = v[9];
+
+                backPatch(condition.trueList, conMark.cntInstructionIndex);
+                backPatch(condition.falseList, elseConMark.cntInstructionIndex);
+                merge(o.nextList, ifStatement.nextList);
+                merge(o.nextList, elseConMark.nextList);
+                merge(o.nextList, elseStement.nextList);
 
 
-                o.breakList = merge(v[6].breakList, v[9].breakList);
-                o.continueList = merge(v[6].continueList, v[9].continueList);
+                o.breakList = merge(ifStatement.breakList, elseStement.breakList);
+                o.continueList = merge(ifStatement.continueList, elseStement.continueList);
             };
 
         statement = eps >> Lex::While >> "(" >> conditionMark >>  expression >> ")" >> conditionMark >> statement >>
@@ -203,10 +208,20 @@ struct GrammarInput
                 o.cntInstructionIndex = nextInstructionIndex();
             };
 
-        elseSymbol = Lex::Else >>
-            [&](PIT v, P&o) {
+//        elseSymbol = Lex::Else >>
+//            [&](PIT v, P&o) {
+//                o.nextList.push_back(nextInstructionIndex());
+//                generateGotoCode();
+//
+//            };
+
+        elseConditionMark = eps >>
+            [&](PIT v, P& o) {
+
                 o.nextList.push_back(nextInstructionIndex());
                 generateGotoCode();
+                o.cntInstructionIndex = nextInstructionIndex();
+
 
             };
 
