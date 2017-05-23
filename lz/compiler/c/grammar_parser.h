@@ -131,7 +131,7 @@ public:
                 indexToTerminalMap,
                 indexToNonterminalMap);
 
-
+        std::cout << "Parse finished" << std::endl;
 
 
         m_outStream << m_codeTable;

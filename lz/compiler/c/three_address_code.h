@@ -39,6 +39,11 @@
 
 namespace lz {
 
+
+// 仅仅是临时这样做
+IdentifierTable *identifierTableForThreeAddressInstructionArgumentOutput;
+
+
 struct ThreeAddressInstructionArgument
 {
     enum class Category
@@ -47,63 +52,102 @@ struct ThreeAddressInstructionArgument
         TempVariable, // 从0开始的
         Number,
         Label,
-        Unknown,
+        Empty,
 
+        True,
+        False,
     };
 
 private:
-    Category m_category = Category::Unknown;
+    Category m_category = Category::Empty;
     unsigned index = -1;
 public:
     ThreeAddressInstructionArgument() {}
     ThreeAddressInstructionArgument(Category category):m_category(category) {}
+    ThreeAddressInstructionArgument(Category category, unsigned value):m_category(category), index(value) {}
 
-    void setVariableIndex(int variableId)
+    static ThreeAddressInstructionArgument makeVariable(unsigned v)
     {
-        assert(m_category == Category::Variable);
-        index = variableId;
+        return ThreeAddressInstructionArgument(Category::Variable, v);
     }
 
-    int getVariableIndex() const
+    static ThreeAddressInstructionArgument makeTempVariable(unsigned v)
     {
-        assert(m_category == Category::Variable);
+        return ThreeAddressInstructionArgument(Category::TempVariable, v);
+    }
+
+    static ThreeAddressInstructionArgument makeNumber(unsigned v)
+    {
+        return ThreeAddressInstructionArgument(Category::Number, v);
+    }
+
+    static ThreeAddressInstructionArgument makeLabel(unsigned v)
+    {
+        return ThreeAddressInstructionArgument(Category::Label, v);
+    }
+
+    static ThreeAddressInstructionArgument makeEmpty()
+    {
+        return ThreeAddressInstructionArgument(Category::Empty);
+    }
+
+    static ThreeAddressInstructionArgument makeFalse()
+    {
+        return ThreeAddressInstructionArgument(Category::False);
+    }
+
+    static ThreeAddressInstructionArgument makeTrue()
+    {
+        return ThreeAddressInstructionArgument(Category::True);
+    }
+
+
+
+    Category category() const
+    {
+        return m_category;
+    }
+    unsigned value() const
+    {
         return index;
     }
 
-    void setTempVariableIndex(int id)
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os,
+               const ThreeAddressInstructionArgument& arg)
     {
-        assert(m_category == Category::TempVariable);
-        index = id;
+        switch(arg.m_category)
+        {
+        case Category::Variable:
+            os << identifierTableForThreeAddressInstructionArgumentOutput->identifier(arg.value());
+            break;
+        case Category::TempVariable:
+            os << "$" << arg.value();
+            break;
+        case Category::Number:
+            os << arg.value();
+            break;
+        case Category::Label:
+            os << "L" << arg.value();
+            break;
+        case Category::Empty:
+            os <<"";
+            break;
+        case Category::True:
+            os << "True";
+            break;
+        case Category::False:
+            os << "False";
+            break;
+        default:
+            assert(0);
+        }
+        return os;
     }
 
-    int gettTempVariableIndex() const
-    {
-        assert(m_category == Category::TempVariable);
-        return index;
-    }
 
-    void setNumber(int number)
-    {
-        assert(m_category == Category::Number);
-        index = number;
-    }
-
-    int getNumber() const
-    {
-        assert(m_category == Category::Number);
-        return index;
-    }
-
-    void setLabel(int label)
-    {
-        assert(m_category == Category::Label);
-        index = label;
-    }
-    int getLabel() const
-    {
-        assert(m_category == Category::Label);
-        return index;
-    }
 
 };
 
@@ -117,21 +161,17 @@ struct ThreeAddressInstruction
 
 private:
     Category category = Category::Unknown;
-    std::string  m_arg1, m_arg2, m_res;
 
-    ThreeAddressInstructionArgument arg1, arg2, res;
+    using Argument = ThreeAddressInstructionArgument;
+    Argument arg1, arg2, res;
 public:
-//    std::string& result()
-//    {
-//        return m_res;
-//    }
-//
+
 
     ThreeAddressInstruction() = default;
 
 
-    ThreeAddressInstruction(Category op, std::string arg1, std::string arg2, std::string res):
-            category(op), m_arg1(arg1), m_arg2(arg2), m_res(res)
+    ThreeAddressInstruction(Category op, Argument arg1, Argument arg2, Argument res):
+            category(op), arg1(arg1), arg2(arg2), res(res)
     {
         if(category >= Category::Unknown) assert(0);
     }
@@ -141,7 +181,7 @@ public:
     operator<<(std::basic_ostream<Char, Traits>& os,
                const ThreeAddressInstruction& IR)
     {
-        os << IR.Names(IR.category)  << " " << IR.m_arg1 << " " << IR.m_arg2 << " " << IR.m_res;
+        os << IR.Names(IR.category)  << " " << IR.arg1 << " " << IR.arg2 << " " << IR.res;
         return os;
     }
 
@@ -149,8 +189,6 @@ public:
     {
         auto optional = NameToCategory("if" + rel);
         if(optional.hasValue()) return optional.value();
-
-
         return Category::Unknown;
     }
 
@@ -180,15 +218,16 @@ public:
 struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 {
     using std::vector<ThreeAddressInstruction>::vector;
-
+    using Argument = ThreeAddressInstructionArgument;
 private:
     std::set<int> labels;
     using Category = ThreeAddressInstruction::Category;
 
-    void _generateCode(Category cate, std::string arg1, std::string arg2, std::string res)
+    void _generateCode(Category cate, Argument arg1, Argument arg2, Argument res)
     {
         emplace_back(cate, arg1, arg2, res);
     };
+
 public:
     void clear() // must add this！
     {
@@ -201,7 +240,7 @@ public:
     }
 
 
-    void generateCode(Category cate, std::string arg1, std::string arg2, std::string res)
+    void generateCode(Category cate, Argument arg1, Argument arg2, Argument res)
     {
         if(cate == Category::Goto) // I know this ugly, but I have not known how to do better now.
         {
@@ -219,20 +258,19 @@ public:
             this->labels.insert(instructionId);
         for(;first != last; first ++)
         {
-            (*this)[*first].m_res = "L" + std::to_string(instructionId);
-
-
+            (*this)[*first].res =   Argument(Argument::Category::Label, instructionId);
         }
 
     }
 
     void generateGotoCode()
     {
-        _generateCode(Category::Goto, "", "", "-");
+        _generateCode(Category::Goto, Argument::Category::Empty, Argument::Category::Empty, Argument::Category::Empty);
     }
     void generateGotoCode(int label)
     {
-        _generateCode(Category::Goto, "", "", "L" + std::to_string(label));
+        _generateCode(Category::Goto, Argument::Category::Empty, Argument::Category::Empty,
+            Argument(Argument::Category::Label, label));
         labels.insert(label);
     }
 
@@ -242,6 +280,7 @@ public:
                const ThreeAddressCode& table)
     {
         int maxWidth = 0;
+        std::cout << "GG" << std::endl;
         for(auto i : lz::irange(table.size()))
         {
             if(table.labels.count(i))
@@ -249,6 +288,8 @@ public:
                 maxWidth = std::max(maxWidth, (int)std::to_string(i).size());
             }
         }
+
+        std::cout << "GG" << std::endl;
 
         constexpr int paddingSpaceNumber = 3;
         for(auto i : lz::irange(table.size()))

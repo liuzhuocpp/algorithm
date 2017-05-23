@@ -33,6 +33,7 @@ struct GrammarInput
     using T = LexicalSymbol;
     using PIT = std::vector<P>::iterator;
     using InstructionCategory = ThreeAddressInstruction::Category;
+    using InstructionArgument = ThreeAddressInstructionArgument;
 
 
     NonterminalProxy<T, P>
@@ -61,6 +62,9 @@ struct GrammarInput
 
         gf(program)
     {
+
+        identifierTableForThreeAddressInstructionArgumentOutput = &identifierTable();
+
         // 优先级依次降低排列
 
         gf.addRightAssociativity("!");
@@ -95,7 +99,7 @@ struct GrammarInput
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
-                identifierTable().insert(v[2].addr, v[1].type);
+                identifierTable().insert(v[2].lexValue, v[1].type);
             };
 
         typeDeclare = baseTypeDeclare >>
@@ -111,7 +115,7 @@ struct GrammarInput
                     typeTable().arrayBaseType(o.type) = v[1].type;
                 }
                 else o.type = v[1].type;
-                typeTable().addArrayDimension(o.type, std::stoi(v[3].addr));
+                typeTable().addArrayDimension(o.type, std::stoi(v[3].lexValue));
             };
 
         baseTypeDeclare = Lex::Int >>
@@ -280,44 +284,50 @@ struct GrammarInput
 
         expression = Lex::IntNumber >>
             [&](PIT v, P&o) {
-                o.addr = v[1].addr;
+                o.addr = InstructionArgument::makeNumber(std::stoi(v[1].lexValue));
+//                o.addr = v[1].addr;
                 o.type = TypeCategory::Int;
             };
 
         expression = Lex::DoubleNumber >>
             [&](PIT v, P&o) {
-                o.addr = v[1].addr;
+                o.addr = v[1].addr; assert(0);
                 o.type = TypeCategory::Double;
             };
 
         expression = Lex::True >>
             [&](PIT v, P&o) {
-                o.addr = v[1].addr;
+                o.addr = InstructionArgument::makeTrue();
+//                o.addr = v[1].addr;
                 o.type = TypeCategory::Bool;
             };
 
         expression = Lex::False >>
             [&](PIT v, P&o) {
-                o.addr = v[1].addr;
+                o.addr = InstructionArgument::makeFalse();
                 o.type = TypeCategory::Bool;
             };
 
         expression = Lex::Identifier >>
             [&](PIT v, P&o) {
 
-                checkVariableDeclare(v[1].addr, [&](int id) {
-                    o.addr = getVariableName(id);
+                checkVariableDeclare(v[1].lexValue, [&](int id) {
+                    o.addr = InstructionArgument::makeVariable(id);
                     o.type = identifierTable().type(id);
                 });
             };
 
         expression = eps >> Lex::Identifier >> "=" >> expression >>
             [&](PIT v, P&o) {
-                checkVariableDeclare(v[1].addr, [&](int id) {
-                    checkTypeEquality(identifierTable().type(id), v[3].type, [&](){
-                        generateCode(InstructionCategory::Assign, v[3].addr, "", getVariableName(id));
-                        o.addr = v[1].addr;
-                        o.type = identifierTable().type(id);
+                checkVariableDeclare(v[1].lexValue, [&](int resId) {
+                    checkTypeEquality(identifierTable().type(resId), v[3].type, [&](){
+                        generateCode(InstructionCategory::Assign,
+                            v[3].addr,
+                            InstructionArgument::makeEmpty(),
+                            InstructionArgument::makeVariable(resId));
+
+                        o.addr = InstructionArgument::makeVariable(resId);
+                        o.type = identifierTable().type(resId);
                     });
                 });
             };
@@ -325,9 +335,13 @@ struct GrammarInput
         expression = arrayExpression >>
             [&](PIT v, P &o){
 
-                std::string tmp = getTemporaryVariableName();
-                generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
-                o.addr = tmp;
+                unsigned tmp = getTemporaryVariableId();
+                generateCode(InstructionCategory::ReadArray,
+                    v[1].addr,
+                    v[1].arrayOffsetAddr,
+                    InstructionArgument::makeTempVariable(tmp));
+
+                o.addr = InstructionArgument::makeTempVariable(tmp);
                 o.type = v[1].type;
             };
 
@@ -335,23 +349,26 @@ struct GrammarInput
             [&](PIT v, P&o) {
 
                 generateCode(InstructionCategory::WriteArray, v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
-                std::string tmp = getTemporaryVariableName();
-                generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, tmp);
-                o.addr = tmp;
+                unsigned tmp = getTemporaryVariableId();
+                generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, InstructionArgument::makeTempVariable(tmp));
+                o.addr = InstructionArgument::makeTempVariable(tmp);
                 o.type = v[1].type;
             };
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
 
-                checkVariableDeclare(v[1].addr, [&](int identifierId) {
+                checkVariableDeclare(v[1].lexValue, [&](int identifierId) {
 
-                    o.addr = v[1].addr; // 数组名称
+                    o.addr = InstructionArgument::makeVariable(identifierId); // 数组名称
                     TypeDescriptor arrayType = identifierTable().type(identifierId); // 数组类型
                     o.type = typeTable().subarrayType(arrayType);
-                    std::string tmp = getTemporaryVariableName();
-                    generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(typeTable().getWidth(o.type)), tmp);
-                    o.arrayOffsetAddr = tmp;
+                    unsigned tmp = getTemporaryVariableId();
+                    generateCode(InstructionCategory::Multiply,
+                        v[3].addr,
+                        InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
+                        InstructionArgument::makeTempVariable(tmp));
+                    o.arrayOffsetAddr =  InstructionArgument::makeTempVariable(tmp);
 
                 });
             };
@@ -361,11 +378,19 @@ struct GrammarInput
                 o.addr = v[1].addr;
                 o.type = typeTable().subarrayType(v[1].type);
 
-                std::string tmp1 = getTemporaryVariableName();
-                generateCode(InstructionCategory::Multiply, v[3].addr, std::to_string(typeTable().getWidth(o.type)), tmp1);
-                std::string tmp2 = getTemporaryVariableName();
-                generateCode(InstructionCategory::Plus, v[1].arrayOffsetAddr, tmp1 , tmp2);
-                o.arrayOffsetAddr = tmp2;
+                unsigned tmp1 = getTemporaryVariableId();
+
+                generateCode(InstructionCategory::Multiply,
+                    v[3].addr,
+                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
+                    InstructionArgument::makeTempVariable(tmp1) );
+
+                unsigned tmp2 = getTemporaryVariableId();
+                generateCode(InstructionCategory::Plus,
+                    v[1].arrayOffsetAddr,
+                    InstructionArgument::makeTempVariable(tmp1),
+                    InstructionArgument::makeTempVariable(tmp2));
+                o.arrayOffsetAddr = InstructionArgument::makeTempVariable(tmp2);
             };
 
     }
@@ -386,15 +411,16 @@ struct GrammarInput
     static void solveArithmeticOperator (PIT v, P &o)
     {
         checkTypeEquality(v[1].type, v[3].type, [&](){
-            o.addr = getTemporaryVariableName();
+            o.addr = InstructionArgument::makeTempVariable(getTemporaryVariableId());
             o.type = v[1].type;
-            generateCode(ThreeAddressInstruction::toCategory(v[2].addr), v[1].addr, v[3].addr, o.addr);
+
+            generateCode(ThreeAddressInstruction::toCategory(v[2].lexValue), v[1].addr, v[3].addr, o.addr);
         });
 
     }
 
     template<typename Callback>
-    static void checkVariableDeclare ( std::string variable, Callback callback)
+    static void checkVariableDeclare( std::string variable, Callback callback)
     {
         int it = identifierTable().find(variable);
         if(it == -1)
@@ -455,7 +481,7 @@ struct GrammarInput
         return identifierTable().identifier(i);// 目前先返回变量的真实的identifier，便于debug
     };
 
-    static void generateCode(InstructionCategory op, std::string arg1, std::string arg2, std::string res)
+    static void generateCode(InstructionCategory op, InstructionArgument arg1, InstructionArgument arg2, InstructionArgument res)
     {
         codeTable().generateCode(op, arg1, arg2, res);
     };
@@ -494,7 +520,10 @@ struct GrammarInput
     {
         checkTypeEquality(v[1].type, v[3].type, [&](){
             o.trueList.push_back(nextInstructionIndex());
-            generateCode(ThreeAddressInstruction::toIfRel(v[2].addr), v[1].addr, v[3].addr, "-");
+            generateCode(ThreeAddressInstruction::toIfRel(v[2].lexValue),
+                v[1].addr,
+                v[3].addr,
+                InstructionArgument::makeEmpty());
             o.falseList.push_back(nextInstructionIndex());
             generateGotoCode();
             o.type = TypeCategory::Bool;
@@ -504,16 +533,20 @@ struct GrammarInput
 
     static void solveUnaryPlusOrMinusOperator(PIT v, P &o)
     {
-        o.addr = getTemporaryVariableName();
+        o.addr = InstructionArgument::makeTempVariable(getTemporaryVariableId());
         o.type = v[2].type;
-        std::string op = v[1].addr;
+        std::string op = v[1].lexValue;
         InstructionCategory ansOp;
         if(op == "+")
             ansOp = InstructionCategory::UnaryPlus;
         else if(op == "-")
             ansOp = InstructionCategory::UnaryMinus;
         else assert(0);
-        generateCode(ansOp, v[2].addr, "", o.addr);
+
+        generateCode(ansOp,
+            v[2].addr,
+            InstructionArgument::makeEmpty(),
+            o.addr);
     }
 
 

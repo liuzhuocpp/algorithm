@@ -11,6 +11,8 @@
 
 //#include <lz/compiler/c/type.h>
 #include <lz/compiler/c/identifier.h>
+#include <lz/compiler/c/three_address_code.h>
+
 namespace lz {
 
 
@@ -19,13 +21,19 @@ struct Properties
 {
     // 若以a开头，后边的数字表示identifierTable中的下表；若是以t开头则表示临时变量；还有可能是从 LexicalSymbol 得到，
     // for expression
-    std::string addr;
+    ThreeAddressInstructionArgument addr,
+    arrayOffsetAddr;
+//    unsigned addr = -1;
+//    unsigned arrayOffsetAddr = -1; // 是一个地址，和addr表示的一样
+
+    std::string lexValue;
+
 
     TypeDescriptor type; // 类型， for declare and expression
 
 
 
-    std::string arrayOffsetAddr; // 是一个地址，和addr表示的一样
+
 //    int cntArrayDimensionId = 0;
 
     std::list<int> trueList, falseList; // for condition expression
@@ -40,7 +48,7 @@ struct Properties
     Properties() = default;
     Properties(LexicalSymbol t)
     {
-        addr = t.value();
+        lexValue = t.value();
 
     }
 

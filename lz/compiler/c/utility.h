@@ -32,10 +32,17 @@ private:
 
 int TemporaryVariableNumberGenerator::tempId = 0;
 
-std::string getTemporaryVariableName()
+//std::string getTemporaryVariableName()
+//{
+//
+//    return "$" + std::to_string(TemporaryVariableNumberGenerator::get());
+//}
+
+
+unsigned getTemporaryVariableId()
 {
 
-    return "$" + std::to_string(TemporaryVariableNumberGenerator::get());
+    return TemporaryVariableNumberGenerator::get();
 }
 
 
