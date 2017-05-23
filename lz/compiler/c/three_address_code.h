@@ -39,8 +39,78 @@
 
 namespace lz {
 
+struct ThreeAddressInstructionArgument
+{
+    enum class Category
+    {
+        Variable, //存在于符号表中
+        TempVariable, // 从0开始的
+        Number,
+        Label,
+        Unknown,
+
+    };
+
+private:
+    Category m_category = Category::Unknown;
+    unsigned index = -1;
+public:
+    ThreeAddressInstructionArgument() {}
+    ThreeAddressInstructionArgument(Category category):m_category(category) {}
+
+    void setVariableIndex(int variableId)
+    {
+        assert(m_category == Category::Variable);
+        index = variableId;
+    }
+
+    int getVariableIndex() const
+    {
+        assert(m_category == Category::Variable);
+        return index;
+    }
+
+    void setTempVariableIndex(int id)
+    {
+        assert(m_category == Category::TempVariable);
+        index = id;
+    }
+
+    int gettTempVariableIndex() const
+    {
+        assert(m_category == Category::TempVariable);
+        return index;
+    }
+
+    void setNumber(int number)
+    {
+        assert(m_category == Category::Number);
+        index = number;
+    }
+
+    int getNumber() const
+    {
+        assert(m_category == Category::Number);
+        return index;
+    }
+
+    void setLabel(int label)
+    {
+        assert(m_category == Category::Label);
+        index = label;
+    }
+    int getLabel() const
+    {
+        assert(m_category == Category::Label);
+        return index;
+    }
+
+};
+
+struct ThreeAddressCode;
 struct ThreeAddressInstruction
 {
+    friend struct ThreeAddressCode;
     LZ_MAKE_NAMED_ENUM(Category, Names, instruction_list);
     lz_name_to_enum(NameToCategory,Category, instruction_list, [](std::string){ return std::string();})
 
@@ -48,12 +118,14 @@ struct ThreeAddressInstruction
 private:
     Category category = Category::Unknown;
     std::string  m_arg1, m_arg2, m_res;
-public:
-    std::string& result()
-    {
-        return m_res;
-    }
 
+    ThreeAddressInstructionArgument arg1, arg2, res;
+public:
+//    std::string& result()
+//    {
+//        return m_res;
+//    }
+//
 
     ThreeAddressInstruction() = default;
 
@@ -147,7 +219,7 @@ public:
             this->labels.insert(instructionId);
         for(;first != last; first ++)
         {
-            (*this)[*first].result() = "L" + std::to_string(instructionId);
+            (*this)[*first].m_res = "L" + std::to_string(instructionId);
 
 
         }
