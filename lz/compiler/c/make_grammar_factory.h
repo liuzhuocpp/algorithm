@@ -45,13 +45,11 @@ struct GrammarInput
         LZ_NONTERMINAL_PROXY(statementList),
 
         LZ_NONTERMINAL_PROXY(conditionMark),
-//        LZ_NONTERMINAL_PROXY(elseSymbol),
         LZ_NONTERMINAL_PROXY(elseConditionMark),
 
 
 
         LZ_NONTERMINAL_PROXY(expression),
-//        LZ_NONTERMINAL_PROXY(condition),
         LZ_NONTERMINAL_PROXY(arrayExpression)
 
 
@@ -208,21 +206,12 @@ struct GrammarInput
                 o.cntInstructionIndex = nextInstructionIndex();
             };
 
-//        elseSymbol = Lex::Else >>
-//            [&](PIT v, P&o) {
-//                o.nextList.push_back(nextInstructionIndex());
-//                generateGotoCode();
-//
-//            };
-
         elseConditionMark = eps >>
             [&](PIT v, P& o) {
 
                 o.nextList.push_back(nextInstructionIndex());
                 generateGotoCode();
                 o.cntInstructionIndex = nextInstructionIndex();
-
-
             };
 
         expression = expression >> "<" >> expression >> solveRelationalOperator;
@@ -246,8 +235,6 @@ struct GrammarInput
                         o.type = TypeCategory::Bool;
                     });
                 });
-
-
             };
 
         expression = expression >> "&&" >> conditionMark >> expression >>
