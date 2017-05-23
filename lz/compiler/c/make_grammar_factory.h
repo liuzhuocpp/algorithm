@@ -176,17 +176,17 @@ struct GrammarInput
         statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >> Lex::Else >> elseConditionMark >> statement >>
             [&](PIT v, P&o) {
 
-                auto& condition = v[3], &conMark = v[5], &ifStatement = v[6], &elseConMark = v[8], &elseStement = v[9];
+                auto& condition = v[3], &conMark = v[5], &ifStatement = v[6], &elseConMark = v[8], &elseStatement = v[9];
 
                 backPatch(condition.trueList, conMark.cntInstructionIndex);
                 backPatch(condition.falseList, elseConMark.cntInstructionIndex);
                 merge(o.nextList, ifStatement.nextList);
                 merge(o.nextList, elseConMark.nextList);
-                merge(o.nextList, elseStement.nextList);
+                merge(o.nextList, elseStatement.nextList);
 
 
-                o.breakList = merge(ifStatement.breakList, elseStement.breakList);
-                o.continueList = merge(ifStatement.continueList, elseStement.continueList);
+                o.breakList = merge(ifStatement.breakList, elseStatement.breakList);
+                o.continueList = merge(ifStatement.continueList, elseStatement.continueList);
             };
 
         statement = eps >> Lex::While >> "(" >> conditionMark >>  expression >> ")" >> conditionMark >> statement >>
