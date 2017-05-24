@@ -249,12 +249,9 @@ struct GrammarInput
                         codeTable().backPatch(v[1].trueList, v[3].cntInstructionIndex);
                         o.trueList = v[4].trueList;
                         o.falseList = merge(v[1].falseList, v[4].falseList);
-
                         o.type = TypeCategory::Bool;
                     });
                 });
-
-
             };
 
         expression = "!" >>  expression >>
@@ -316,7 +313,7 @@ struct GrammarInput
             };
 
         expression = expression >> "=" >> expression >>
-            [&](PIT v, P&o) {
+            [&](PIT v, P&o) { // need improve
 
                 checkTypeEquality(v[1].type, v[3].type, [&]() {
 
@@ -326,9 +323,6 @@ struct GrammarInput
                             readAddr(v[3]),
                             InstructionArgument::makeEmpty(),
                             v[1].addr);
-
-
-
                     }
                     else
                     {
@@ -336,16 +330,11 @@ struct GrammarInput
                             readAddr(v[3]),
                             v[1].addr,
                             InstructionArgument::makeVariable(v[1].arrayId));
-
-
                     }
 
                     o.arrayId = v[1].arrayId;
                     o.addr = v[1].addr;
-
-
                     o.type = v[1].type;
-
                 });
 
             };
@@ -353,35 +342,10 @@ struct GrammarInput
         expression = arrayExpression >>
             [&](PIT v, P &o){
 
-//                unsigned tmp = getTemporaryVariableId();
-//                codeTable().generateCode(InstructionCategory::ReadArray,
-//                    InstructionArgument::makeVariable(v[1].arrayId),
-//                    v[1].addr,
-//                    InstructionArgument::makeTempVariable(tmp));
-
                 o.arrayId = v[1].arrayId;
-//                o.addr = InstructionArgument::makeTempVariable(tmp);
                 o.addr = v[1].addr;
                 o.type = v[1].type;
             };
-
-//        expression = arrayExpression >> "=" >> expression >>
-//            [&](PIT v, P&o) {
-//
-//                codeTable().generateCode(InstructionCategory::WriteArray,
-//                    v[3].addr,
-//                    v[1].addr,
-//                    InstructionArgument::makeVariable(v[1].arrayId));
-//                unsigned tmp = getTemporaryVariableId();
-//
-//                codeTable().generateCode(InstructionCategory::ReadArray,
-//                        InstructionArgument::makeVariable(v[1].arrayId),
-//                    v[1].addr,
-//                    InstructionArgument::makeTempVariable(tmp));
-//
-//                o.addr = InstructionArgument::makeTempVariable(tmp);
-//                o.type = v[1].type;
-//            };
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
