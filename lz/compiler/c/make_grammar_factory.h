@@ -109,13 +109,17 @@ struct GrammarInput
 
         typeDeclare = typeDeclare >> "[" >> Lex::IntNumber >> "]" >>
             [&](PIT v, P& o) {
-                if(v[1].type.category() != TypeCategory::Array)
-                {
-                    o.type = typeTable().insert(TypeCategory::Array);
-                    typeTable().arrayBaseType(o.type) = v[1].type;
-                }
-                else o.type = v[1].type;
-                typeTable().addArrayDimension(o.type, std::stoi(v[3].lexValue));
+
+                o.type = typeTable().makeArray(v[1].type, std::stoi(v[3].lexValue));
+
+
+//                if(v[1].type.category() != TypeCategory::Array)
+//                {
+//                    o.type = typeTable().insert(TypeCategory::Array);
+//                    typeTable().arrayBaseType(o.type) = v[1].type;
+//                }
+//                else o.type = v[1].type;
+//                typeTable().addArrayDimension(o.type, std::stoi(v[3].lexValue));
             };
 
         baseTypeDeclare = Lex::Int >>

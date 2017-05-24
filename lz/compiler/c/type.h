@@ -95,23 +95,6 @@ private:
 
 
 public:
-    TypeDescriptor insert(TypeCategory category)
-    {
-        TypeDescriptor newType = TypeDescriptor(category);
-
-        switch(category)
-        {
-        case TypeCategory::Array:
-            newType.index = arrayVector.size();
-            arrayVector.push_back({});
-            break;
-        default:
-            break;
-
-        }
-        return newType;
-    }
-
     bool typeEqual(TypeDescriptor a, TypeDescriptor b)
     {
         if(a.m_category != b.m_category) return false;
@@ -171,6 +154,24 @@ public:
             return arrayBaseType(i);
         }
         return i;
+    }
+
+    // 对类型i扩展一维数组,类型i作为基类型，extent作为新数组的第一维
+    TypeDescriptor makeArray(TypeDescriptor i, int extent)
+    {
+        if(i.category() == TypeCategory::Array)
+        {
+            arrayFullDimensionVector(i).push_back(extent);
+            return i;
+        }
+        else
+        {
+            TypeDescriptor ans = insert(TypeCategory::Array);
+            arrayBaseType(ans) = i;
+            arrayFullDimensionVector(ans).push_back(extent);
+            return ans;
+        }
+
     }
 
     TypeDescriptor arrayBaseType(TypeDescriptor i) const
@@ -233,6 +234,29 @@ private:
     {
         return arrayVector[i.index].second;
     }
+
+    std::vector<int>& arrayFullDimensionVector(TypeDescriptor i)
+    {
+        return arrayVector[i.index].second;
+    }
+    TypeDescriptor insert(TypeCategory category)
+    {
+        TypeDescriptor newType = TypeDescriptor(category);
+
+        switch(category)
+        {
+        case TypeCategory::Array:
+            newType.index = arrayVector.size();
+            arrayVector.push_back({});
+            break;
+        default:
+            break;
+
+        }
+        return newType;
+    }
+
+
 
 };
 
