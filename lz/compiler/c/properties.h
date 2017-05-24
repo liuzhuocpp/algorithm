@@ -19,22 +19,13 @@ namespace lz {
 
 struct Properties
 {
-    // 若以a开头，后边的数字表示identifierTable中的下表；若是以t开头则表示临时变量；还有可能是从 LexicalSymbol 得到，
-    // for expression
-    ThreeAddressInstructionArgument addr,
-    arrayOffsetAddr;
-//    unsigned addr = -1;
-//    unsigned arrayOffsetAddr = -1; // 是一个地址，和addr表示的一样
-
-    std::string lexValue;
 
 
-    TypeDescriptor type; // 类型， for declare and expression
+    int arrayId = -1;
+    ThreeAddressInstructionArgument addr;
 
 
-
-
-//    int cntArrayDimensionId = 0;
+    TypeDescriptor type;
 
     std::list<int> trueList, falseList; // for condition expression
     std::list<int> nextList; // only for statement, not for statementList
@@ -46,6 +37,7 @@ struct Properties
 
 
     Properties() = default;
+    std::string lexValue;
     Properties(LexicalSymbol t)
     {
         lexValue = t.value();

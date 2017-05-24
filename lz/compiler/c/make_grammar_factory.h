@@ -335,8 +335,8 @@ struct GrammarInput
 
                 unsigned tmp = getTemporaryVariableId();
                 codeTable().generateCode(InstructionCategory::ReadArray,
+                    InstructionArgument::makeVariable(v[1].arrayId),
                     v[1].addr,
-                    v[1].arrayOffsetAddr,
                     InstructionArgument::makeTempVariable(tmp));
 
                 o.addr = InstructionArgument::makeTempVariable(tmp);
@@ -346,9 +346,17 @@ struct GrammarInput
         expression = arrayExpression >> "=" >> expression >>
             [&](PIT v, P&o) {
 
-                codeTable().generateCode(InstructionCategory::WriteArray, v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
+                codeTable().generateCode(InstructionCategory::WriteArray,
+                    v[3].addr,
+                    v[1].addr,
+                    InstructionArgument::makeVariable(v[1].arrayId));
                 unsigned tmp = getTemporaryVariableId();
-                codeTable().generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, InstructionArgument::makeTempVariable(tmp));
+
+                codeTable().generateCode(InstructionCategory::ReadArray,
+                        InstructionArgument::makeVariable(v[1].arrayId),
+                    v[1].addr,
+                    InstructionArgument::makeTempVariable(tmp));
+
                 o.addr = InstructionArgument::makeTempVariable(tmp);
                 o.type = v[1].type;
             };
@@ -358,7 +366,8 @@ struct GrammarInput
 
                 checkVariableDeclare(v[1].lexValue, [&](int identifierId) {
 
-                    o.addr = InstructionArgument::makeVariable(identifierId); // 数组名称
+                    o.arrayId = identifierId;
+
                     TypeDescriptor arrayType = identifierTable().type(identifierId); // 数组类型
                     o.type = typeTable().subarrayType(arrayType);
                     unsigned tmp = getTemporaryVariableId();
@@ -366,14 +375,15 @@ struct GrammarInput
                         v[3].addr,
                         InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
                         InstructionArgument::makeTempVariable(tmp));
-                    o.arrayOffsetAddr =  InstructionArgument::makeTempVariable(tmp);
+
+                    o.addr =  InstructionArgument::makeTempVariable(tmp); // 数组偏移量
 
                 });
             };
 
         arrayExpression = arrayExpression >> "[" >> expression >> "]" >>
             [&](PIT v, P &o) {
-                o.addr = v[1].addr;
+                o.arrayId = v[1].arrayId;
                 o.type = typeTable().subarrayType(v[1].type);
 
                 unsigned tmp1 = getTemporaryVariableId();
@@ -385,10 +395,11 @@ struct GrammarInput
 
                 unsigned tmp2 = getTemporaryVariableId();
                 codeTable().generateCode(InstructionCategory::Plus,
-                    v[1].arrayOffsetAddr,
+                    v[1].addr,
                     InstructionArgument::makeTempVariable(tmp1),
                     InstructionArgument::makeTempVariable(tmp2));
-                o.arrayOffsetAddr = InstructionArgument::makeTempVariable(tmp2);
+
+                o.addr = InstructionArgument::makeTempVariable(tmp2);
             };
 
     }
