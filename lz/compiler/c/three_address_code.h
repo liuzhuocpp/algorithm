@@ -260,7 +260,12 @@ public:
         {
             (*this)[*first].res =   Argument(Argument::Category::Label, instructionId);
         }
+    }
 
+    template<typename Container>
+    void backPatch(const Container &c, int instructionId)
+    {
+        backPatch(std::begin(c), std::end(c), instructionId);
     }
 
     void generateGotoCode()

@@ -139,7 +139,7 @@ struct GrammarInput
 
         statementList = statement >> conditionMark >> statementList >>
             [&](PIT v, P&o) {
-                backPatch(v[1].nextList, v[2].cntInstructionIndex);
+                codeTable().backPatch(v[1].nextList, v[2].cntInstructionIndex);
 
                 o.breakList = merge(v[1].breakList, v[3].breakList);
                 o.continueList = merge(v[1].continueList, v[3].continueList);
@@ -149,14 +149,14 @@ struct GrammarInput
 
         statement = eps >> Lex::Break >> ";" >>
             [&](PIT v, P& o) {
-                o.breakList.push_back(nextInstructionIndex());
-                generateGotoCode();
+                o.breakList.push_back(codeTable().nextInstructionIndex());
+                codeTable().generateGotoCode();
             };
 
         statement = eps >> Lex::Continue >> ";" >>
             [&](PIT v, P& o) {
-                o.continueList.push_back(nextInstructionIndex());
-                generateGotoCode();
+                o.continueList.push_back(codeTable().nextInstructionIndex());
+                codeTable().generateGotoCode();
             };
 
         statement = expression >> ";";
@@ -169,7 +169,7 @@ struct GrammarInput
 
         statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
-                backPatch(v[3].trueList, v[5].cntInstructionIndex);
+                codeTable().backPatch(v[3].trueList, v[5].cntInstructionIndex);
                 o.nextList = merge(v[3].falseList, v[6].nextList);
 
 
@@ -182,8 +182,8 @@ struct GrammarInput
 
                 auto& condition = v[3], &conMark = v[5], &ifStatement = v[6], &elseConMark = v[8], &elseStatement = v[9];
 
-                backPatch(condition.trueList, conMark.cntInstructionIndex);
-                backPatch(condition.falseList, elseConMark.cntInstructionIndex);
+                codeTable().backPatch(condition.trueList, conMark.cntInstructionIndex);
+                codeTable().backPatch(condition.falseList, elseConMark.cntInstructionIndex);
                 merge(o.nextList, ifStatement.nextList);
                 merge(o.nextList, elseConMark.nextList);
                 merge(o.nextList, elseStatement.nextList);
@@ -196,26 +196,26 @@ struct GrammarInput
         statement = eps >> Lex::While >> "(" >> conditionMark >>  expression >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
 
-                backPatch(v[4].trueList, v[6].cntInstructionIndex);
+                codeTable().backPatch(v[4].trueList, v[6].cntInstructionIndex);
                 merge(o.nextList, v[4].falseList);
-                backPatch(v[7].nextList, nextInstructionIndex());
-                generateGotoCode(v[3].cntInstructionIndex);
+                codeTable().backPatch(v[7].nextList, codeTable().nextInstructionIndex());
+                codeTable().generateGotoCode(v[3].cntInstructionIndex);
 
-                backPatch(v[7].breakList, nextInstructionIndex());
-                backPatch(v[7].continueList, v[3].cntInstructionIndex);
+                codeTable().backPatch(v[7].breakList, codeTable().nextInstructionIndex());
+                codeTable().backPatch(v[7].continueList, v[3].cntInstructionIndex);
             };
 
         conditionMark = eps >>
             [&](PIT v, P&o) {
-                o.cntInstructionIndex = nextInstructionIndex();
+                o.cntInstructionIndex = codeTable().nextInstructionIndex();
             };
 
         elseConditionMark = eps >>
             [&](PIT v, P& o) {
 
-                o.nextList.push_back(nextInstructionIndex());
-                generateGotoCode();
-                o.cntInstructionIndex = nextInstructionIndex();
+                o.nextList.push_back(codeTable().nextInstructionIndex());
+                codeTable().generateGotoCode();
+                o.cntInstructionIndex = codeTable().nextInstructionIndex();
             };
 
         expression = expression >> "<" >> expression >> solveRelationalOperator;
@@ -233,7 +233,7 @@ struct GrammarInput
 
                 checkTypeEquality(v[1].type, v[4].type, [&]() {
                     checkBoolRequired(v[1].type, [&](){
-                        backPatch(v[1].falseList, v[3].cntInstructionIndex);
+                        codeTable().backPatch(v[1].falseList, v[3].cntInstructionIndex);
                         o.trueList = merge(v[1].trueList, v[4].trueList);
                         o.falseList = v[4].falseList;
                         o.type = TypeCategory::Bool;
@@ -246,7 +246,7 @@ struct GrammarInput
                 checkTypeEquality(v[1].type, v[4].type, [&]() {
                     checkBoolRequired(v[1].type, [&](){
 
-                        backPatch(v[1].trueList, v[3].cntInstructionIndex);
+                        codeTable().backPatch(v[1].trueList, v[3].cntInstructionIndex);
                         o.trueList = v[4].trueList;
                         o.falseList = merge(v[1].falseList, v[4].falseList);
 
@@ -285,7 +285,6 @@ struct GrammarInput
         expression = Lex::IntNumber >>
             [&](PIT v, P&o) {
                 o.addr = InstructionArgument::makeNumber(std::stoi(v[1].lexValue));
-//                o.addr = v[1].addr;
                 o.type = TypeCategory::Int;
             };
 
@@ -298,7 +297,6 @@ struct GrammarInput
         expression = Lex::True >>
             [&](PIT v, P&o) {
                 o.addr = InstructionArgument::makeTrue();
-//                o.addr = v[1].addr;
                 o.type = TypeCategory::Bool;
             };
 
@@ -321,7 +319,7 @@ struct GrammarInput
             [&](PIT v, P&o) {
                 checkVariableDeclare(v[1].lexValue, [&](int resId) {
                     checkTypeEquality(identifierTable().type(resId), v[3].type, [&](){
-                        generateCode(InstructionCategory::Assign,
+                        codeTable().generateCode(InstructionCategory::Assign,
                             v[3].addr,
                             InstructionArgument::makeEmpty(),
                             InstructionArgument::makeVariable(resId));
@@ -336,7 +334,7 @@ struct GrammarInput
             [&](PIT v, P &o){
 
                 unsigned tmp = getTemporaryVariableId();
-                generateCode(InstructionCategory::ReadArray,
+                codeTable().generateCode(InstructionCategory::ReadArray,
                     v[1].addr,
                     v[1].arrayOffsetAddr,
                     InstructionArgument::makeTempVariable(tmp));
@@ -348,9 +346,9 @@ struct GrammarInput
         expression = arrayExpression >> "=" >> expression >>
             [&](PIT v, P&o) {
 
-                generateCode(InstructionCategory::WriteArray, v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
+                codeTable().generateCode(InstructionCategory::WriteArray, v[3].addr, v[1].arrayOffsetAddr, v[1].addr);
                 unsigned tmp = getTemporaryVariableId();
-                generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, InstructionArgument::makeTempVariable(tmp));
+                codeTable().generateCode(InstructionCategory::ReadArray, v[1].addr, v[1].arrayOffsetAddr, InstructionArgument::makeTempVariable(tmp));
                 o.addr = InstructionArgument::makeTempVariable(tmp);
                 o.type = v[1].type;
             };
@@ -364,7 +362,7 @@ struct GrammarInput
                     TypeDescriptor arrayType = identifierTable().type(identifierId); // 数组类型
                     o.type = typeTable().subarrayType(arrayType);
                     unsigned tmp = getTemporaryVariableId();
-                    generateCode(InstructionCategory::Multiply,
+                    codeTable().generateCode(InstructionCategory::Multiply,
                         v[3].addr,
                         InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
                         InstructionArgument::makeTempVariable(tmp));
@@ -380,13 +378,13 @@ struct GrammarInput
 
                 unsigned tmp1 = getTemporaryVariableId();
 
-                generateCode(InstructionCategory::Multiply,
+                codeTable().generateCode(InstructionCategory::Multiply,
                     v[3].addr,
                     InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
                     InstructionArgument::makeTempVariable(tmp1) );
 
                 unsigned tmp2 = getTemporaryVariableId();
-                generateCode(InstructionCategory::Plus,
+                codeTable().generateCode(InstructionCategory::Plus,
                     v[1].arrayOffsetAddr,
                     InstructionArgument::makeTempVariable(tmp1),
                     InstructionArgument::makeTempVariable(tmp2));
@@ -414,7 +412,7 @@ struct GrammarInput
             o.addr = InstructionArgument::makeTempVariable(getTemporaryVariableId());
             o.type = v[1].type;
 
-            generateCode(ThreeAddressInstruction::toCategory(v[2].lexValue), v[1].addr, v[3].addr, o.addr);
+            codeTable().generateCode(ThreeAddressInstruction::toCategory(v[2].lexValue), v[1].addr, v[3].addr, o.addr);
         });
 
     }
@@ -473,43 +471,6 @@ struct GrammarInput
         }
     }
 
-
-
-
-    static std::string getVariableName (int i)
-    {
-        return identifierTable().identifier(i);// 目前先返回变量的真实的identifier，便于debug
-    };
-
-    static void generateCode(InstructionCategory op, InstructionArgument arg1, InstructionArgument arg2, InstructionArgument res)
-    {
-        codeTable().generateCode(op, arg1, arg2, res);
-    };
-
-
-    static void generateGotoCode(int label)
-    {
-        codeTable().generateGotoCode(label);
-    }
-
-    static void generateGotoCode()
-    {
-        codeTable().generateGotoCode();
-    }
-
-
-
-    static int nextInstructionIndex()
-    {
-        return codeTable().nextInstructionIndex();
-    }
-
-
-    static void backPatch(const std::list<int> & a, int instructionId)
-    {
-        codeTable().backPatch(a.begin(), a.end(), instructionId);
-    }
-
     static std::list<int> merge(std::list<int>&a1, std::list<int>&a2)
     {
         a1.splice(a1.end(), a2);
@@ -519,13 +480,13 @@ struct GrammarInput
     static void solveRelationalOperator(PIT v, P &o)
     {
         checkTypeEquality(v[1].type, v[3].type, [&](){
-            o.trueList.push_back(nextInstructionIndex());
-            generateCode(ThreeAddressInstruction::toIfRel(v[2].lexValue),
+            o.trueList.push_back(codeTable().nextInstructionIndex());
+            codeTable().generateCode(ThreeAddressInstruction::toIfRel(v[2].lexValue),
                 v[1].addr,
                 v[3].addr,
                 InstructionArgument::makeEmpty());
-            o.falseList.push_back(nextInstructionIndex());
-            generateGotoCode();
+            o.falseList.push_back(codeTable().nextInstructionIndex());
+            codeTable().generateGotoCode();
             o.type = TypeCategory::Bool;
         });
 
@@ -543,7 +504,7 @@ struct GrammarInput
             ansOp = InstructionCategory::UnaryMinus;
         else assert(0);
 
-        generateCode(ansOp,
+        codeTable().generateCode(ansOp,
             v[2].addr,
             InstructionArgument::makeEmpty(),
             o.addr);
