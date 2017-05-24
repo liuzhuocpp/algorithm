@@ -315,81 +315,111 @@ struct GrammarInput
                 });
             };
 
-        expression = eps >> Lex::Identifier >> "=" >> expression >>
+        expression = expression >> "=" >> expression >>
             [&](PIT v, P&o) {
-                checkVariableDeclare(v[1].lexValue, [&](int resId) {
-                    checkTypeEquality(identifierTable().type(resId), v[3].type, [&](){
-                        codeTable().generateCode(InstructionCategory::Assign,
-                            v[3].addr,
-                            InstructionArgument::makeEmpty(),
-                            InstructionArgument::makeVariable(resId));
 
-                        o.addr = InstructionArgument::makeVariable(resId);
-                        o.type = identifierTable().type(resId);
-                    });
+                checkTypeEquality(v[1].type, v[3].type, [&]() {
+
+                    if(v[1].arrayId == -1)
+                    {
+                        codeTable().generateCode(InstructionCategory::Assign,
+                            readAddr(v[3]),
+                            InstructionArgument::makeEmpty(),
+                            v[1].addr);
+
+
+
+                    }
+                    else
+                    {
+                        codeTable().generateCode(InstructionCategory::WriteArray,
+                            readAddr(v[3]),
+                            v[1].addr,
+                            InstructionArgument::makeVariable(v[1].arrayId));
+
+
+                    }
+
+                    o.arrayId = v[1].arrayId;
+                    o.addr = v[1].addr;
+
+
+                    o.type = v[1].type;
+
                 });
+
             };
 
         expression = arrayExpression >>
             [&](PIT v, P &o){
 
-                unsigned tmp = getTemporaryVariableId();
-                codeTable().generateCode(InstructionCategory::ReadArray,
-                    InstructionArgument::makeVariable(v[1].arrayId),
-                    v[1].addr,
-                    InstructionArgument::makeTempVariable(tmp));
+//                unsigned tmp = getTemporaryVariableId();
+//                codeTable().generateCode(InstructionCategory::ReadArray,
+//                    InstructionArgument::makeVariable(v[1].arrayId),
+//                    v[1].addr,
+//                    InstructionArgument::makeTempVariable(tmp));
 
-                o.addr = InstructionArgument::makeTempVariable(tmp);
+                o.arrayId = v[1].arrayId;
+//                o.addr = InstructionArgument::makeTempVariable(tmp);
+                o.addr = v[1].addr;
                 o.type = v[1].type;
             };
 
-        expression = arrayExpression >> "=" >> expression >>
-            [&](PIT v, P&o) {
-
-                codeTable().generateCode(InstructionCategory::WriteArray,
-                    v[3].addr,
-                    v[1].addr,
-                    InstructionArgument::makeVariable(v[1].arrayId));
-                unsigned tmp = getTemporaryVariableId();
-
-                codeTable().generateCode(InstructionCategory::ReadArray,
-                        InstructionArgument::makeVariable(v[1].arrayId),
-                    v[1].addr,
-                    InstructionArgument::makeTempVariable(tmp));
-
-                o.addr = InstructionArgument::makeTempVariable(tmp);
-                o.type = v[1].type;
-            };
+//        expression = arrayExpression >> "=" >> expression >>
+//            [&](PIT v, P&o) {
+//
+//                codeTable().generateCode(InstructionCategory::WriteArray,
+//                    v[3].addr,
+//                    v[1].addr,
+//                    InstructionArgument::makeVariable(v[1].arrayId));
+//                unsigned tmp = getTemporaryVariableId();
+//
+//                codeTable().generateCode(InstructionCategory::ReadArray,
+//                        InstructionArgument::makeVariable(v[1].arrayId),
+//                    v[1].addr,
+//                    InstructionArgument::makeTempVariable(tmp));
+//
+//                o.addr = InstructionArgument::makeTempVariable(tmp);
+//                o.type = v[1].type;
+//            };
 
         arrayExpression = Lex::Identifier >> "[" >> expression >> "]" >>
             [&](PIT v, P &o){
 
                 checkVariableDeclare(v[1].lexValue, [&](int identifierId) {
 
-                    o.arrayId = identifierId;
 
                     TypeDescriptor arrayType = identifierTable().type(identifierId); // 数组类型
+
+                    o.arrayId = identifierId;
                     o.type = typeTable().subarrayType(arrayType);
+
+                    InstructionArgument arrayOffset = readAddr(v[3]);
+
                     unsigned tmp = getTemporaryVariableId();
                     codeTable().generateCode(InstructionCategory::Multiply,
-                        v[3].addr,
+                        arrayOffset,
                         InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
                         InstructionArgument::makeTempVariable(tmp));
 
+
                     o.addr =  InstructionArgument::makeTempVariable(tmp); // 数组偏移量
+
+
 
                 });
             };
 
         arrayExpression = arrayExpression >> "[" >> expression >> "]" >>
             [&](PIT v, P &o) {
+
                 o.arrayId = v[1].arrayId;
                 o.type = typeTable().subarrayType(v[1].type);
 
+                InstructionArgument arrayOffset = readAddr(v[3]);
                 unsigned tmp1 = getTemporaryVariableId();
-
                 codeTable().generateCode(InstructionCategory::Multiply,
-                    v[3].addr,
+                    arrayOffset,
                     InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
                     InstructionArgument::makeTempVariable(tmp1) );
 
@@ -420,10 +450,16 @@ struct GrammarInput
     static void solveArithmeticOperator (PIT v, P &o)
     {
         checkTypeEquality(v[1].type, v[3].type, [&](){
+
+            InstructionArgument firstArg = readAddr(v[1]), secondArg = readAddr(v[3]);
+
             o.addr = InstructionArgument::makeTempVariable(getTemporaryVariableId());
             o.type = v[1].type;
 
-            codeTable().generateCode(ThreeAddressInstruction::toCategory(v[2].lexValue), v[1].addr, v[3].addr, o.addr);
+            codeTable().generateCode(ThreeAddressInstruction::toCategory(v[2].lexValue),
+                firstArg,
+                secondArg,
+                o.addr);
         });
 
     }
@@ -482,6 +518,25 @@ struct GrammarInput
         }
     }
 
+
+    static InstructionArgument readAddr(const Properties& p)
+    {
+        if(p.arrayId != -1)
+        {
+            unsigned tmp = getTemporaryVariableId();
+            codeTable().generateCode(InstructionCategory::ReadArray,
+                InstructionArgument::makeVariable(p.arrayId),
+                p.addr,
+                InstructionArgument::makeTempVariable(tmp));
+
+            return InstructionArgument::makeTempVariable(tmp);
+        }
+        else
+        {
+            return p.addr;
+        }
+    }
+
     static std::list<int> merge(std::list<int>&a1, std::list<int>&a2)
     {
         a1.splice(a1.end(), a2);
@@ -490,11 +545,12 @@ struct GrammarInput
 
     static void solveRelationalOperator(PIT v, P &o)
     {
-        checkTypeEquality(v[1].type, v[3].type, [&](){
+        checkTypeEquality(v[1].type, v[3].type, [&]() {
+
             o.trueList.push_back(codeTable().nextInstructionIndex());
             codeTable().generateCode(ThreeAddressInstruction::toIfRel(v[2].lexValue),
-                v[1].addr,
-                v[3].addr,
+                readAddr(v[1]),
+                readAddr(v[3]),
                 InstructionArgument::makeEmpty());
             o.falseList.push_back(codeTable().nextInstructionIndex());
             codeTable().generateGotoCode();
@@ -516,7 +572,7 @@ struct GrammarInput
         else assert(0);
 
         codeTable().generateCode(ansOp,
-            v[2].addr,
+            readAddr(v[2]),
             InstructionArgument::makeEmpty(),
             o.addr);
     }

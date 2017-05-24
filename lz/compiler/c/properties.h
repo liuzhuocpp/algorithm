@@ -20,6 +20,7 @@ namespace lz {
 struct Properties
 {
 
+    bool isLvalue = false;
 
     int arrayId = -1;
     ThreeAddressInstructionArgument addr;
