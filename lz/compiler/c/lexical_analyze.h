@@ -68,6 +68,7 @@
     X(False)\
 \
 \
+    X(Void)\
     X(Bool)\
     X(Int)\
     X(Float)\

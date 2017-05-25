@@ -4,19 +4,22 @@
     bool a;
     int b;
 
-
-    if(a > 0)
+    void f()
     {
-        break;    
+        if(a > 0)
+        {
+            break;    
+        }
+        
+        if(b > 0)
+        {
+            continue;
+        }
+        
+        a + 2;
+    
+        
     }
-    
-    if(b > 0)
-    {
-        continue;
-    }
-    
-    a + 2;
-    
     
     
     

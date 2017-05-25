@@ -3,13 +3,18 @@
 
     bool a;
     int b;
-    while(a != true)
+    
+    void f()
     {
-        if(a == false) break;
-        
-        if(b < 22) continue;
-        b = 333;
+        while(a != true)
+        {
+            if(a == false) break;
+            
+            if(b < 22) continue;
+            b = 333;
+        }
     }
+    
     
     
     

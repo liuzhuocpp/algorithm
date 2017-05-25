@@ -57,10 +57,11 @@ int main()
 {
     grammarParser.construct();
 
+//    solve(0);
 
-    for(auto fileName: getAllInputFileDirectoryNumberList())
+    for(int fileNumber: getAllInputFileDirectoryNumberList())
     {
-        solve(fileName);
+        solve(fileNumber);
     }
 
 

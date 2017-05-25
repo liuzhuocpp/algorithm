@@ -45,6 +45,8 @@ struct GrammarInput
         LZ_NONTERMINAL_PROXY(statement),
         LZ_NONTERMINAL_PROXY(statementList),
 
+        LZ_NONTERMINAL_PROXY(functionDefination),
+
         LZ_NONTERMINAL_PROXY(conditionMark),
         LZ_NONTERMINAL_PROXY(elseConditionMark),
 
@@ -82,20 +84,42 @@ struct GrammarInput
 
         using Lex = LexicalSymbol::Category;
 
+        program = eps;
+
         program = declare >> program;
 
-        program = statementList >>
+
+
+        program = functionDefination >> program;
+
+        functionDefination = typeDeclare >> Lex::Identifier >> "(" >> ")" >> "{" >> statementList >> "}" >>
             [&](PIT v, P& o) {
-                if(!v[1].breakList.empty())
+                P& statementListP = v[6];
+
+                if(!statementListP.breakList.empty())
                 {
                     errorOfstream() << "break statement not within a loop\n";
                 }
 
-                if(!v[1].continueList.empty())
+                if(!statementListP.continueList.empty())
                 {
                     errorOfstream() << "continue statement not within a loop\n";
                 }
             };
+
+//
+//        program = statementList >>
+//            [&](PIT v, P& o) {
+//                if(!v[1].breakList.empty())
+//                {
+//                    errorOfstream() << "break statement not within a loop\n";
+//                }
+//
+//                if(!v[1].continueList.empty())
+//                {
+//                    errorOfstream() << "continue statement not within a loop\n";
+//                }
+//            };
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
@@ -130,6 +154,10 @@ struct GrammarInput
         baseTypeDeclare = Lex::Bool >>
             [&](PIT v, P&o) {
                 o.type = TypeCategory::Bool;
+            };
+        baseTypeDeclare = Lex::Void >>
+            [&](PIT v, P&o) {
+                o.type = TypeCategory::Void;
             };
 
         statementList = statement >> conditionMark >> statementList >>

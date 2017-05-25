@@ -3,33 +3,37 @@
     int b;
     int c;
 
-    if(a == 1111)
+    void f()
     {
+        if(a == 1111)
         {
-            
-            if(a == 22222)
-                c = c + 10000111;
-            c = a + b;
-            c = +c;
+            {
+                
+                if(a == 22222)
+                    c = c + 10000111;
+                c = a + b;
+                c = +c;
+                
+            }
             
         }
-        
+        else if(a != 3333)
+        {
+            c  = a = a - b;
+        }
+        else if(a >= 77777)
+        {
+            c  = a / b;
+        }
+        else if(a <= 88888)
+        {
+            c = a * b;
+        }
+        else if(a > 99999)
+            c = -a;
+        else;
+    
     }
-    else if(a != 3333)
-    {
-        c  = a = a - b;
-    }
-    else if(a >= 77777)
-    {
-        c  = a / b;
-    }
-    else if(a <= 88888)
-    {
-        c = a * b;
-    }
-    else if(a > 99999)
-        c = -a;
-    else;
     
     
 

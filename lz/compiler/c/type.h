@@ -28,6 +28,7 @@ namespace lz {
     X(Unknown)
 
 #define  base_type_list(X) \
+    X(Void)\
     X(Int)\
     X(Bool)\
     X(Float)\
