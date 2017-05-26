@@ -45,7 +45,7 @@ struct GrammarInput
         LZ_NONTERMINAL_PROXY(statement),
         LZ_NONTERMINAL_PROXY(statementList),
 
-        LZ_NONTERMINAL_PROXY(functionDefination),
+        LZ_NONTERMINAL_PROXY(function),
 
         LZ_NONTERMINAL_PROXY(conditionMark),
         LZ_NONTERMINAL_PROXY(elseConditionMark),
@@ -90,9 +90,9 @@ struct GrammarInput
 
 
 
-        program = functionDefination >> program;
+        program = function >> program;
 
-        functionDefination = typeDeclare >> Lex::Identifier >> "(" >> ")" >> "{" >> statementList >> "}" >>
+        function = typeDeclare >> Lex::Identifier >> "(" >> ")" >> "{" >> statementList >> "}" >>
             [&](PIT v, P& o) {
                 P& statementListP = v[6];
 
