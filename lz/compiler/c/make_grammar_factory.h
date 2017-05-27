@@ -92,8 +92,17 @@ struct GrammarInput
 
         program = function >> program;
 
-        function = typeDeclare >> Lex::Identifier >> "(" >> ")" >> "{" >> statementList >> "}" >>
+        function = typeDeclare >> Lex::Identifier >> "(" >> ")" >> "{" >>
+            [&](PIT v, P&o ) {
+
+                codeTable().beginFunction(v[2].lexValue);
+
+            } >> statementList >> "}" >>
+
             [&](PIT v, P& o) {
+
+
+
                 P& statementListP = v[6];
 
                 if(!statementListP.breakList.empty())
@@ -105,6 +114,8 @@ struct GrammarInput
                 {
                     errorOfstream() << "continue statement not within a loop\n";
                 }
+
+                codeTable().endFunction();
             };
 
 //

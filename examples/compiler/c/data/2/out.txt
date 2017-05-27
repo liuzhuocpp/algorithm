@@ -1,3 +1,4 @@
+f:
       if< a 111111 L4
       goto   L2
 L2:   if< b 3333 L4

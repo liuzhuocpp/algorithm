@@ -217,6 +217,19 @@ public:
 
 struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 {
+
+
+
+    struct FunctionDefination
+    {
+        std::string functionName;
+        int beginIndex, endIndex; // [beginIndex, endIndex) 这段区间的指令均属于  此函数
+    };
+
+    std::vector<FunctionDefination> functionDefinations;
+
+
+
     using std::vector<ThreeAddressInstruction>::vector;
     using Argument = ThreeAddressInstructionArgument;
 private:
@@ -229,11 +242,23 @@ private:
     };
 
 public:
+
+    void beginFunction(std::string functionName)
+    {
+        functionDefinations.push_back(FunctionDefination{functionName, nextInstructionIndex(), -1});
+    }
+
+    void endFunction()
+    {
+        functionDefinations.back().endIndex = nextInstructionIndex();
+    }
+
     void clear() // must add this！
     {
         std::vector<ThreeAddressInstruction>::clear();
         labels.clear();
     }
+
     int nextInstructionIndex() const
     {
         return size();
@@ -285,7 +310,6 @@ public:
                const ThreeAddressCode& table)
     {
         int maxWidth = 0;
-        std::cout << "GG" << std::endl;
         for(auto i : lz::irange(table.size()))
         {
             if(table.labels.count(i))
@@ -294,11 +318,22 @@ public:
             }
         }
 
-        std::cout << "GG" << std::endl;
+        if(table.size() == 0) return os;
+
+        if(table.functionDefinations.empty())
+        {
+            assert(0);
+        }
+
+        auto functionIterator = table.functionDefinations.begin();
 
         constexpr int paddingSpaceNumber = 3;
         for(auto i : lz::irange(table.size()))
         {
+            if(functionIterator->beginIndex == i)
+            {
+                os << functionIterator->functionName << ":\n";
+            }
 
             if(!table.labels.count(i))
             {

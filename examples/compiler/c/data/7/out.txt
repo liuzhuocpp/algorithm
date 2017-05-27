@@ -1,3 +1,4 @@
+f:
 L0:   if!= a True L2
       goto   L10
 L2:   if== a False L4
