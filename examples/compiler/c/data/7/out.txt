@@ -11,7 +11,11 @@ L8:    goto   L1
 L9:    = 333  b
        goto   L1
 L11:   endFunc   
+g:
        beginFunc   
        + 2234234 b $0
        = $0  b
-       endFunc   
+       if> b 0 L17
+       goto   L18
+L17:   = True  a
+L18:   endFunc   

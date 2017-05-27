@@ -346,7 +346,7 @@ public:
                 os << functionIterator->functionName << ":\n";
 
             }
-            if(functionIterator->endIndex == i)
+            if(functionIterator->endIndex == i + 1)
             {
                 functionIterator ++;
             }
