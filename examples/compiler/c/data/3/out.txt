@@ -1,10 +1,11 @@
 f:
-      if< a 111111 L2
-      goto   L6
-L2:   if< b 3333 L4
-      goto   L8
-L4:   if< c 9999 L6
-      goto   L8
-L6:   + a b $0
+      beginFunc   
+      if< a 111111 L3
+      goto   L7
+L3:   if< b 3333 L5
+      goto   L9
+L5:   if< c 9999 L7
+      goto   L9
+L7:   + a b $0
       = $0  c
-L8:
+L9:   endFunc   

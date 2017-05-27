@@ -1,8 +1,9 @@
 f:
-      if< a 111111 L4
-      goto   L2
-L2:   if< b 3333 L4
-      goto   L6
-L4:   + a b $0
+      beginFunc   
+      if< a 111111 L5
+      goto   L3
+L3:   if< b 3333 L5
+      goto   L7
+L5:   + a b $0
       = $0  c
-L6:
+L7:   endFunc   

@@ -1,4 +1,5 @@
 f:
+     beginFunc   
      = 333  a
      + 333 top $0
      + $0 23 $1
@@ -40,3 +41,4 @@ f:
      []= 1 $30 arr2
      =[] arr2 $30 $31
      = $31  apple
+     endFunc   

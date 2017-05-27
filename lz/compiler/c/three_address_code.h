@@ -12,6 +12,8 @@
 #include <lz/named_enum.h>
 
 #define instruction_list(X)\
+    X(beginFunc)\
+    X(endFunc)\
     X(If, "if")\
     X(IfLess, "if<")\
     X(IfMore, "if>")\
@@ -246,10 +248,13 @@ public:
     void beginFunction(std::string functionName)
     {
         functionDefinations.push_back(FunctionDefination{functionName, nextInstructionIndex(), -1});
+        _generateCode(Category::beginFunc, Argument::makeEmpty(), Argument::makeEmpty(), Argument::makeEmpty());
     }
 
     void endFunction()
     {
+
+        _generateCode(Category::endFunc, Argument::makeEmpty(), Argument::makeEmpty(), Argument::makeEmpty());
         functionDefinations.back().endIndex = nextInstructionIndex();
     }
 
@@ -257,6 +262,7 @@ public:
     {
         std::vector<ThreeAddressInstruction>::clear();
         labels.clear();
+        functionDefinations.clear();
     }
 
     int nextInstructionIndex() const
@@ -330,10 +336,22 @@ public:
         constexpr int paddingSpaceNumber = 3;
         for(auto i : lz::irange(table.size()))
         {
+            if(table.functionDefinations.end() == functionIterator)
+            {
+                std::cout << "table.functionDefinations.size(): " << table.functionDefinations.size() << std::endl;
+                assert(0);
+            }
             if(functionIterator->beginIndex == i)
             {
                 os << functionIterator->functionName << ":\n";
+
             }
+            if(functionIterator->endIndex == i)
+            {
+                functionIterator ++;
+            }
+
+
 
             if(!table.labels.count(i))
             {

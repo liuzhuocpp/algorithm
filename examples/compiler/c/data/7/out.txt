@@ -1,12 +1,17 @@
 f:
-L0:   if!= a True L2
-      goto   L10
-L2:   if== a False L4
-      goto   L5
-L4:   goto   L10
-L5:   if< b 22 L7
-      goto   L8
-L7:   goto   L0
-L8:   = 333  b
-      goto   L0
-L10:
+       beginFunc   
+L1:    if!= a True L3
+       goto   L11
+L3:    if== a False L5
+       goto   L6
+L5:    goto   L11
+L6:    if< b 22 L8
+       goto   L9
+L8:    goto   L1
+L9:    = 333  b
+       goto   L1
+L11:   endFunc   
+       beginFunc   
+       + 2234234 b $0
+       = $0  b
+       endFunc   

@@ -53,13 +53,38 @@ void solve(int fileNumber)
 
 
 
-int main()
-{
+int main(int argc, char **argv) {
+
+    std::vector<int> specifiedFileNumbers;
+    for(int i = 1; i < argc; ++ i)
+    {
+        int number;
+        try
+        {
+            int number = stoi(std::string(argv[i]));
+        }
+        catch(exception& e)
+        {
+            cout << e.what() << endl;
+            return -1;
+        }
+
+
+
+
+        specifiedFileNumbers.push_back(number);
+    }
+
+
+
+
     grammarParser.construct();
 
-//    solve(0);
+    if(specifiedFileNumbers.empty())
+        specifiedFileNumbers = getAllInputFileDirectoryNumberList();
 
-    for(int fileNumber: getAllInputFileDirectoryNumberList())
+
+    for(int fileNumber: specifiedFileNumbers)
     {
         solve(fileNumber);
     }

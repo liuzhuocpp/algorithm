@@ -1,6 +1,7 @@
 f:
+      beginFunc   
       goto   
-      if> b 0 L3
-      goto   L4
-L3:   goto   
-L4:
+      if> b 0 L4
+      goto   L5
+L4:   goto   
+L5:   endFunc   

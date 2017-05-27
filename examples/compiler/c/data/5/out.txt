@@ -1,34 +1,35 @@
 f:
-       if== a 1111 L2
-       goto   L11
-L2:    if== a 22222 L4
-       goto   L6
-L4:    + c 10000111 $0
+       beginFunc   
+       if== a 1111 L3
+       goto   L12
+L3:    if== a 22222 L5
+       goto   L7
+L5:    + c 10000111 $0
        = $0  c
-L6:    + a b $1
+L7:    + a b $1
        = $1  c
        plus c  $2
        = $2  c
-       goto   L32
-L11:   if!= a 3333 L13
-       goto   L17
-L13:   - a b $3
+       goto   L33
+L12:   if!= a 3333 L14
+       goto   L18
+L14:   - a b $3
        = $3  a
        = a  c
-       goto   L32
-L17:   if>= a 77777 L19
-       goto   L22
-L19:   / a b $4
+       goto   L33
+L18:   if>= a 77777 L20
+       goto   L23
+L20:   / a b $4
        = $4  c
-       goto   L32
-L22:   if<= a 88888 L24
-       goto   L27
-L24:   * a b $5
+       goto   L33
+L23:   if<= a 88888 L25
+       goto   L28
+L25:   * a b $5
        = $5  c
-       goto   L32
-L27:   if> a 99999 L29
-       goto   L32
-L29:   minus a  $6
+       goto   L33
+L28:   if> a 99999 L30
+       goto   L33
+L30:   minus a  $6
        = $6  c
-       goto   L32
-L32:
+       goto   L33
+L33:   endFunc   

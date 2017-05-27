@@ -1,26 +1,28 @@
 f:
-       if< a 1111 L2
-       goto   L5
-L2:    + a b $0
+       beginFunc   
+       if< a 1111 L3
+       goto   L6
+L3:    + a b $0
        = $0  c
-       goto   L14
-L5:    if< a 3333 L7
-       goto   L10
-L7:    - a b $1
+       goto   L15
+L6:    if< a 3333 L8
+       goto   L11
+L8:    - a b $1
        = $1  c
-       goto   L14
-L10:   if< a 77777 L12
-       goto   L14
-L12:   / a b $2
+       goto   L15
+L11:   if< a 77777 L13
+       goto   L15
+L13:   / a b $2
        = $2  c
-L14:   * a b $3
+L15:   * a b $3
        = $3  c
        = 999999  apple
-       if< a 222 L19
-       goto   L22
-L19:   * a b $4
+       if< a 222 L20
+       goto   L23
+L20:   * a b $4
        = $4  apple
-       goto   L24
-L22:   / a b $5
+       goto   L25
+L23:   / a b $5
        = $5  apple
-L24:   = 188888111  k
+L25:   = 188888111  k
+       endFunc   
