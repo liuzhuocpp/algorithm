@@ -85,6 +85,7 @@ public:
         grammarInputData.m_identifierTable.clear();
         grammarInputData.m_codeTable.clear();
         grammarInputData.m_typeTable.clear();
+        grammarInputData.offset = 0;
 
         cout << std::string(2, '\n') << "Begin parsing...\n\n";
 

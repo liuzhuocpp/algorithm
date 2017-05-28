@@ -1,3 +1,14 @@
+a:Int32,0
+b:Int32,1
+c:Int32,2
+b:Array,12
+e:Int32,4
+ahhaha:Float,5
+apple:Int32,6
+top:Int32,7
+_a:Int32,8
+arr:Array,9
+arr2:Array,1098909
 
 f:
 

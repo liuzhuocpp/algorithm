@@ -57,18 +57,6 @@ struct ThreeAddressInstructionArgumentType
 
     LZ_MAKE_NAMED_ENUM(Category, categoryToName, argument_type_list)
 
-//    enum class Category
-//    {
-//        Bool,
-//        Int32,
-//        Int64,
-//        Float,
-//        Double,
-//
-//        Array,
-//
-//        Empty,
-//    };
 private:
     Category m_category = Category::Empty;
     int m_offset = -1;
@@ -76,6 +64,37 @@ public:
     ThreeAddressInstructionArgumentType() = default;
     ThreeAddressInstructionArgumentType(Category category, int offset):
         m_category(category), m_offset(offset) {}
+
+    static ThreeAddressInstructionArgumentType makeBool(int offset)
+    {
+        return ThreeAddressInstructionArgumentType(Category::Bool, offset);
+    }
+
+    static ThreeAddressInstructionArgumentType makeInt32(int offset)
+    {
+        return ThreeAddressInstructionArgumentType(Category::Int32, offset);
+    }
+
+    static ThreeAddressInstructionArgumentType makeInt64(int offset)
+    {
+        return ThreeAddressInstructionArgumentType(Category::Int64, offset);
+    }
+
+    static ThreeAddressInstructionArgumentType makeFloat(int offset)
+    {
+        return ThreeAddressInstructionArgumentType(Category::Float, offset);
+    }
+
+    static ThreeAddressInstructionArgumentType makeDouble(int offset)
+    {
+        return ThreeAddressInstructionArgumentType(Category::Double, offset);
+    }
+
+    static ThreeAddressInstructionArgumentType makeArray(int offset)
+    {
+        return ThreeAddressInstructionArgumentType(Category::Array, offset);
+    }
+
 
     Category category() const
     {
@@ -87,17 +106,14 @@ public:
         return m_offset;
     }
 
+
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
     operator<<(std::basic_ostream<Char, Traits>& os,
                const ThreeAddressInstructionArgumentType& argType)
     {
-//        switch(argType.m_category)
-//        {
-            os << categoryToName(argType.m_category) << "," << argType.m_offset;
-//        default:
-//            assert(0);
-//        }
+        os << categoryToName(argType.m_category) << "," << argType.m_offset;
+
         return os;
     }
 
@@ -108,6 +124,7 @@ public:
 
 struct ThreeAddressInstructionArgument
 {
+    // only  Variable, TempVariable have type
     enum class Category
     {
         Variable, //存在于符号表中
@@ -115,9 +132,6 @@ struct ThreeAddressInstructionArgument
         Number,
         Label,
         Empty,
-
-//        True,
-//        False,
     };
 
 private:
@@ -160,17 +174,6 @@ public:
         return ThreeAddressInstructionArgument(Category::Empty);
     }
 
-//    static ThreeAddressInstructionArgument makeFalse()
-//    {
-//        return ThreeAddressInstructionArgument(Category::False);
-//    }
-//
-//    static ThreeAddressInstructionArgument makeTrue()
-//    {
-//        return ThreeAddressInstructionArgument(Category::True);
-//    }
-
-
 
     Category category() const
     {
@@ -204,12 +207,6 @@ public:
         case Category::Empty:
             os <<"";
             break;
-//        case Category::True:
-//            os << "True";
-//            break;
-//        case Category::False:
-//            os << "False";
-//            break;
         default:
             assert(0);
         }
@@ -292,7 +289,7 @@ operator<<(std::basic_ostream<Char, Traits>& os,
 {
     for(auto argAndType: argTypeMap)
     {
-        os << argAndType.first << ":" << argAndType.second;
+        os << argAndType.first << ":" << argAndType.second << "\n";
     }
 
     return os;

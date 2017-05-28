@@ -29,6 +29,8 @@ struct GrammarInput
     static ThreeAddressCode& codeTable() { return grammarInputData.m_codeTable; }
     static auto& errorOfstream() { return grammarInputData.errorStream; }
 
+    static int& offset() { return grammarInputData.offset; }
+
 
     using P = Properties;
     using T = LexicalSymbol;
@@ -36,6 +38,7 @@ struct GrammarInput
 
     using InstructionCategory = ThreeAddressInstruction::Category;
     using InstructionArgument = ThreeAddressInstructionArgument;
+    using InstructionArgumentType = ThreeAddressInstructionArgumentType;
 
 
     NonterminalProxy<T, P>
@@ -62,6 +65,19 @@ struct GrammarInput
 
     GrammarFactory<T, P> gf;
 
+
+//    static void initData()
+//    {
+//        TemporaryVariableNumberGenerator::reset();
+//        grammarInputData.m_identifierTable.clear();
+//        grammarInputData.m_codeTable.clear();
+//        grammarInputData.m_typeTable.clear();
+//        grammarInputData.offset = 0;
+//        grammarInputData.outStream.open(outFileName, std::ofstream::out);
+//        grammarInputData.errorStream.open(errorFileName, std::ofstream::out);
+//
+//    }
+
     GrammarInput():
 
         gf(program)
@@ -86,8 +102,6 @@ struct GrammarInput
         program = eps;
 
         program = declare >> program;
-
-
 
         program = function >> program;
 
@@ -117,23 +131,34 @@ struct GrammarInput
                 codeTable().endFunction();
             };
 
-//
-//        program = statementList >>
-//            [&](PIT v, P& o) {
-//                if(!v[1].breakList.empty())
-//                {
-//                    errorOfstream() << "break statement not within a loop\n";
-//                }
-//
-//                if(!v[1].continueList.empty())
-//                {
-//                    errorOfstream() << "continue statement not within a loop\n";
-//                }
-//            };
-
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
-                identifierTable().insert(v[2].lexValue, v[1].type);
+                int insertedId = identifierTable().insert(v[2].lexValue, v[1].type);
+
+                InstructionArgumentType argType;
+
+                switch(v[1].type.category())
+                {
+                case TypeCategory::Bool:
+                    argType = InstructionArgumentType::makeBool(offset());
+                    break;
+                case TypeCategory::Int :
+                    argType = InstructionArgumentType::makeInt32(offset());
+                    break;
+                case TypeCategory::Array :
+                    argType = InstructionArgumentType::makeArray(offset());
+                    break;
+                case TypeCategory::Float :
+                    argType = InstructionArgumentType::makeFloat(offset());
+                    break;
+                case TypeCategory::Double :
+                    argType = InstructionArgumentType::makeDouble(offset());
+                    break;
+                default:
+                    assert(0);
+                }
+                codeTable().addGlobalArgument(InstructionArgument::makeVariable(insertedId), argType);
+                offset() += typeTable().getWidth(v[1].type);
 //                codeTable().addGlobalArgument(v[1].type);
             };
 

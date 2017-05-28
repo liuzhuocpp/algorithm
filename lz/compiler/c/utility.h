@@ -26,6 +26,13 @@ struct GrammarInputData
     ThreeAddressCode m_codeTable;
     TypeTable m_typeTable;
 
+
+
+    //起始值设为非法的大负整数
+    int offset = -0x7fffffff;
+
+
+
     GrammarInputData() {
         globalIdentifierTablePointer = &this->m_identifierTable;
     }
