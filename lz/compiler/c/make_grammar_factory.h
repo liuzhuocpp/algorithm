@@ -41,7 +41,7 @@ private:
     using InstructionCategory = ThreeAddressInstruction::Category;
     using InstructionArgument = ThreeAddressInstructionArgument;
     using InstructionArgumentType = ThreeAddressInstructionArgumentType;
-
+    using InstructionArgumentTypeCategory = ThreeAddressInstructionArgumentType::Category;
 
 
 
@@ -116,6 +116,7 @@ public:
         function = typeDeclare >> Lex::Identifier >> "(" >> ")" >> "{" >>
             [&](PIT v, P&o ) {
 
+                offset() = 0;
                 codeTable().beginFunction(v[2].lexValue);
 
             } >> statementList >> "}" >>
@@ -143,31 +144,10 @@ public:
             [&](PIT v, P& o) {
                 int insertedId = identifierTable().insert(v[2].lexValue, v[1].type);
 
-                InstructionArgumentType argType;
-
-                switch(v[1].type.category())
-                {
-                case TypeCategory::Bool:
-                    argType = InstructionArgumentType::makeBool(offset());
-                    break;
-                case TypeCategory::Int :
-                    argType = InstructionArgumentType::makeInt32(offset());
-                    break;
-                case TypeCategory::Array :
-                    argType = InstructionArgumentType::makeArray(offset());
-                    break;
-                case TypeCategory::Float :
-                    argType = InstructionArgumentType::makeFloat(offset());
-                    break;
-                case TypeCategory::Double :
-                    argType = InstructionArgumentType::makeDouble(offset());
-                    break;
-                default:
-                    assert(0);
-                }
+                InstructionArgumentType argType = newArgType(v[1].type);
                 codeTable().addGlobalArgument(InstructionArgument::makeVariable(insertedId), argType);
-                offset() += typeTable().getWidth(v[1].type);
-//                codeTable().addGlobalArgument(v[1].type);
+
+
             };
 
         typeDeclare = baseTypeDeclare >>
@@ -427,16 +407,16 @@ public:
 
                     InstructionArgument arrayOffset = readAddr(v[3]);
 
-                    unsigned tmp = getTemporaryVariableId();
-                    codeTable().generateCode(InstructionCategory::Multiply,
-                        arrayOffset,
-                        InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
-                        InstructionArgument::makeTempVariable(tmp));
+                    auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
+
+                    auto tmpArgType = newArgType(InstructionArgumentTypeCategory::Int64);
+
+                    codeTable().addArgument(tmpArg, tmpArgType);
+                    codeTable().generateCode(InstructionCategory::Multiply, arrayOffset,
+                        InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg);
 
 
-                    o.addr =  InstructionArgument::makeTempVariable(tmp); // 数组偏移量
-
-
+                    o.addr = tmpArg; // 数组偏移量
 
                 });
             };
@@ -448,19 +428,20 @@ public:
                 o.type = typeTable().subarrayType(v[1].type);
 
                 InstructionArgument arrayOffset = readAddr(v[3]);
-                unsigned tmp1 = getTemporaryVariableId();
-                codeTable().generateCode(InstructionCategory::Multiply,
-                    arrayOffset,
-                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)),
-                    InstructionArgument::makeTempVariable(tmp1) );
 
-                unsigned tmp2 = getTemporaryVariableId();
+                auto tmpArg1 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
+                auto tmpArgType1 = newArgType(InstructionArgumentTypeCategory::Int64);
+                codeTable().addArgument(tmpArg1, tmpArgType1);
+                codeTable().generateCode(InstructionCategory::Multiply, arrayOffset,
+                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
+
+                auto tmpArg2 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
+                auto tmpArgType2 = newArgType(InstructionArgumentTypeCategory::Int64);
+                codeTable().addArgument(tmpArg2, tmpArgType2);
                 codeTable().generateCode(InstructionCategory::Plus,
-                    v[1].addr,
-                    InstructionArgument::makeTempVariable(tmp1),
-                    InstructionArgument::makeTempVariable(tmp2));
+                    v[1].addr, tmpArg1, tmpArg2);
 
-                o.addr = InstructionArgument::makeTempVariable(tmp2);
+                o.addr = tmpArg2;
             };
 
         return gf;
@@ -469,17 +450,95 @@ public:
 
 private:
 
+//    static InstructionArgumentTypeCategory typeToArgTypeCategory(TypeDescriptor i)
+//    {
+//
+//        switch(i.category())
+//        {
+//
+//        case TypeCategory::Bool:
+//            return InstructionArgumentTypeCategory::Bool;
+//        case TypeCategory::Int :
+//            return InstructionArgumentTypeCategory::Int32;
+//        case TypeCategory::Array :
+//            return InstructionArgumentTypeCategory::Array;
+//        case TypeCategory::Float :
+//            return InstructionArgumentTypeCategory::Float;
+//        case TypeCategory::Double :
+//            return InstructionArgumentTypeCategory::Double;
+//        default:
+//            assert(0);
+//        }
+//
+//
+//        return InstructionArgumentTypeCategory::Empty;
+//    }
+//
+    static InstructionArgumentType newArgType(InstructionArgumentTypeCategory cate)
+    {
+        if(cate == InstructionArgumentTypeCategory::Array)
+        {
+            assert(0);
+        }
+
+        InstructionArgumentType ans(cate, offset());
+        offset() += ans.getWidth();
+        return ans;
+    }
+
+    static InstructionArgumentType newArgType(TypeDescriptor i)
+    {
+        InstructionArgumentType ans;
+
+
+        switch(i.category())
+        {
+        case TypeCategory::Bool:
+            ans.setCategory(InstructionArgumentTypeCategory::Bool);
+            break;
+        case TypeCategory::Int :
+            ans.setCategory(InstructionArgumentTypeCategory::Int32);
+            break;
+        case TypeCategory::Array :
+            ans.setCategory(InstructionArgumentTypeCategory::Array);
+            ans.setArrayWidth(typeTable().getWidth(i));
+            break;
+        case TypeCategory::Float :
+            ans.setCategory(InstructionArgumentTypeCategory::Float);
+            break;
+        case TypeCategory::Double :
+            ans.setCategory(InstructionArgumentTypeCategory::Double);
+            break;
+        default:
+            assert(0);
+        }
+
+        ans.setOffset(offset());
+
+        offset() += ans.getWidth();
+        return ans;
+
+    }
+
 
     // Bellow function must be static,
     // otherwise, when GrammarInput is destoryed, the bellow calls will be error
     static void solveArithmeticOperator (PIT v, P &o)
     {
-        checkTypeEquality(v[1].type, v[3].type, [&](){
+        checkTypeEquality(v[1].type, v[3].type, [&]() {
+            o.type = v[1].type;
+
 
             InstructionArgument firstArg = readAddr(v[1]), secondArg = readAddr(v[3]);
+            auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
 
-            o.addr = InstructionArgument::makeTempVariable(getTemporaryVariableId());
-            o.type = v[1].type;
+
+            codeTable().addArgument(tmpArg, newArgType(o.type ) );
+
+
+
+
+            o.addr = tmpArg;
 
             codeTable().generateCode(ThreeAddressInstruction::toCategory(v[2].lexValue),
                 firstArg,
@@ -544,17 +603,25 @@ private:
     }
 
 
+
+
     static InstructionArgument readAddr(const Properties& p)
     {
         if(p.arrayId != -1)
         {
-            unsigned tmp = getTemporaryVariableId();
+            auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
+
+            TypeDescriptor arrayType = identifierTable().type(p.arrayId);
+
+
+            codeTable().addArgument(tmpArg, newArgType(typeTable().arrayBaseType(arrayType)));
+
             codeTable().generateCode(InstructionCategory::ReadArray,
                 InstructionArgument::makeVariable(p.arrayId),
                 p.addr,
-                InstructionArgument::makeTempVariable(tmp));
+                tmpArg);
 
-            return InstructionArgument::makeTempVariable(tmp);
+            return tmpArg;
         }
         else
         {

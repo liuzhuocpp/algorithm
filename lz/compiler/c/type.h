@@ -66,7 +66,14 @@ private:
 
 public:
     TypeDescriptor() {}
-    TypeDescriptor(TypeCategory category):m_category(category){}
+    TypeDescriptor(TypeCategory category):m_category(category)
+    {
+        if(category == TypeCategory::Array)
+        {
+            assert(0);
+        }
+
+    }
 
     TypeCategory category() const
     {
@@ -167,10 +174,27 @@ public:
         }
         else
         {
-            TypeDescriptor ans = insert(TypeCategory::Array);
-            arrayBaseType(ans) = i;
-            arrayFullDimensionVector(ans).push_back(extent);
-            return ans;
+
+
+            TypeDescriptor newType;
+            newType.m_category = TypeCategory::Array;
+
+
+//            switch(category)
+//            {
+//            case TypeCategory::Array:
+            newType.index = arrayVector.size();
+            arrayVector.push_back({});
+            arrayBaseType(newType).m_category = i.category();
+            arrayFullDimensionVector(newType).push_back(extent);
+
+            return newType;
+
+
+//            TypeDescriptor ans = insert(TypeCategory::Array);
+//            arrayBaseType(ans) = i;
+//            arrayFullDimensionVector(ans).push_back(extent);
+//            return ans;
         }
 
     }
@@ -199,17 +223,40 @@ public:
 
     int getWidth(TypeDescriptor i) const
     {
-        int ans = 1;
-        if(isBaseType(i.category())) //目前不考虑类型的实际宽度
+//        TypeCategory::
+        int ans = -1;
+        switch(i.category())
         {
+        case TypeCategory::Array:
+            ans = getWidth(arrayBaseType(i));
+            for(int d: arrayDimensions(i)) ans *= d;
             return ans;
+        case TypeCategory::Bool:
+            return 1;
+        case TypeCategory::Int:
+            return 4;
+        case TypeCategory::Float:
+            return 4;
+        case TypeCategory::Double:
+            return 8;
+        default:
+            std::cout << typeCategoryToName(i.category()) << std::endl;
+            assert(0);
         }
 
-        for(auto x: arrayDimensions(i))
-        {
-            ans *= x;
-        }
-        return ans;
+        return -1;
+
+//        int ans = 1;
+//        if(isBaseType(i.category())) //目前不考虑类型的实际宽度
+//        {
+//            return ans;
+//        }
+//
+//        for(auto x: arrayDimensions(i))
+//        {
+//            ans *= x;
+//        }
+//        return ans;
 
 
     }
@@ -240,22 +287,22 @@ private:
     {
         return arrayVector[i.index].second;
     }
-    TypeDescriptor insert(TypeCategory category)
-    {
-        TypeDescriptor newType = TypeDescriptor(category);
-
-        switch(category)
-        {
-        case TypeCategory::Array:
-            newType.index = arrayVector.size();
-            arrayVector.push_back({});
-            break;
-        default:
-            break;
-
-        }
-        return newType;
-    }
+//    TypeDescriptor insert(TypeCategory category)
+//    {
+//        TypeDescriptor newType = TypeDescriptor(category);
+//
+//        switch(category)
+//        {
+//        case TypeCategory::Array:
+//            newType.index = arrayVector.size();
+//            arrayVector.push_back({});
+//            break;
+//        default:
+//            break;
+//
+//        }
+//        return newType;
+//    }
 
 
 

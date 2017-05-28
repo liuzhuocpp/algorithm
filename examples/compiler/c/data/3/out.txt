@@ -1,16 +1,9 @@
-a:Int32,0
-b:Int32,1
-c:Int32,2
-b:Array,12
-e:Int32,4
-ahhaha:Float,5
-apple:Int32,6
-top:Int32,7
-_a:Int32,8
-arr:Array,9
-arr2:Array,1098909
+a: Int32,0,4
+b: Int32,4,4
+c: Int32,8,4
 
 f:
+$0: Int32,0,4
 
       beginFunc   
       if< a 111111 L3

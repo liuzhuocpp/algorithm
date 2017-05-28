@@ -60,10 +60,15 @@ struct ThreeAddressInstructionArgumentType
 private:
     Category m_category = Category::Empty;
     int m_offset = -1;
+    int m_width = -1;
 public:
     ThreeAddressInstructionArgumentType() = default;
     ThreeAddressInstructionArgumentType(Category category, int offset):
         m_category(category), m_offset(offset) {}
+
+//    ThreeAddressInstructionArgumentType(Category category, int offset, int ):
+//        m_category(category), m_offset(offset) {}
+
 
     static ThreeAddressInstructionArgumentType makeBool(int offset)
     {
@@ -90,9 +95,29 @@ public:
         return ThreeAddressInstructionArgumentType(Category::Double, offset);
     }
 
-    static ThreeAddressInstructionArgumentType makeArray(int offset)
+    static ThreeAddressInstructionArgumentType makeArray(int offset, int width)
     {
-        return ThreeAddressInstructionArgumentType(Category::Array, offset);
+        auto ans = ThreeAddressInstructionArgumentType(Category::Array, offset);
+        ans.setArrayWidth(width);
+        return ans;
+    }
+
+
+
+    int getWidth() const
+    {
+        switch(this->m_category)
+        {
+        case Category::Bool: return 1;
+        case Category::Int32: return 4;
+        case Category::Int64: return 8;
+        case Category::Array: return m_width;
+        case Category::Float: return 4;
+        case Category::Double: return 8;
+        default:
+            assert(0);
+        }
+        return -1;
     }
 
 
@@ -106,13 +131,30 @@ public:
         return m_offset;
     }
 
+    void setCategory(Category c)
+    {
+        m_category = c;
+    }
+
+    void setOffset(int offset)
+    {
+        m_offset = offset;
+    }
+
+    // 按照字节
+    void setArrayWidth(int w)
+    {
+        assert(m_category == Category::Array);
+        m_width = w;
+    }
+
 
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
     operator<<(std::basic_ostream<Char, Traits>& os,
                const ThreeAddressInstructionArgumentType& argType)
     {
-        os << categoryToName(argType.m_category) << "," << argType.m_offset;
+        os << categoryToName(argType.m_category) << "," << argType.m_offset << "," << argType.getWidth();
 
         return os;
     }
@@ -289,7 +331,7 @@ operator<<(std::basic_ostream<Char, Traits>& os,
 {
     for(auto argAndType: argTypeMap)
     {
-        os << argAndType.first << ":" << argAndType.second << "\n";
+        os << argAndType.first << ": " << argAndType.second << "\n";
     }
 
     return os;
@@ -378,6 +420,7 @@ public:
         std::vector<ThreeAddressInstruction>::clear();
         labels.clear();
         functionDefinations.clear();
+        globalArgumentTypeMap.clear();
     }
 
     int nextInstructionIndex() const

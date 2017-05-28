@@ -1,24 +1,25 @@
-number:Int32,0
-apple:Int32,1
-a:Array,2
-b:Array,12
-e:Int32,4
-ahhaha:Float,5
-apple:Int32,6
-top:Int32,7
-_a:Int32,8
-arr:Array,9
-arr2:Array,1098909
+number: Int32,0,4
+apple: Int32,4,4
+a: Array,8,40
+b: Array,48,24
 
 f:
+$0: Int64,0,8
+$1: Int64,8,8
+$2: Int64,16,8
+$3: Int64,24,8
+$4: Int32,32,4
+$5: Int64,36,8
+$6: Int32,44,4
+$7: Int32,48,4
 
      beginFunc   
-     * 0 1 $0
-     * 1 3 $1
-     * 2 1 $2
+     * 0 4 $0
+     * 1 12 $1
+     * 2 4 $2
      + $1 $2 $3
      =[] b $3 $4
-     * $4 1 $5
+     * $4 4 $5
      =[] a $5 $6
      + $6 10 $7
      []= $7 $0 a
