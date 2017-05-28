@@ -26,43 +26,47 @@
 namespace lz {
 
 
-template<typename OutStream, typename ErrorStream>
+//template<typename OutStream, typename ErrorStream>
 struct GrammarParser
 {
-    GrammarParser(OutStream &outStream, ErrorStream &errorOfstream):
-        m_outStream(outStream), m_errorOfstream(errorOfstream){}
+//    GrammarParser(OutStream &outStream, ErrorStream &errorOfstream):
+//        m_outStream(outStream), m_errorOfstream(errorOfstream){}
 
-    OutStream& outStream()
-    {
-        return m_outStream;
-    }
-
-    ErrorStream& errorOfstream()
-    {
-        return m_errorOfstream;
-    }
-
-    IdentifierTable& identifierTable()
-    {
-        return m_identifierTable;
-    }
-    ThreeAddressCode& codeTable()
-    {
-        return m_codeTable;
-    }
-    TypeTable& typeTable()
-    {
-        return m_typeTable;
-    }
+//    OutStream& outStream()
+//    {
+//        return m_outStream;
+//    }
+//
+//    ErrorStream& errorOfstream()
+//    {
+//        return m_errorOfstream;
+//    }
+//
+//    IdentifierTable& identifierTable()
+//    {
+//        return m_identifierTable;
+//    }
+//    ThreeAddressCode& codeTable()
+//    {
+//        return m_codeTable;
+//    }
+//    TypeTable& typeTable()
+//    {
+//        return m_typeTable;
+//    }
 
 
 private:
-    OutStream &m_outStream;
-    ErrorStream &m_errorOfstream;
+//    OutStream &m_outStream;
+//    ErrorStream &m_errorOfstream;
 
-    IdentifierTable m_identifierTable;
-    ThreeAddressCode m_codeTable;
-    TypeTable m_typeTable;
+//    IdentifierTable m_identifierTable;
+//    ThreeAddressCode m_codeTable;
+//    TypeTable m_typeTable;
+//
+
+//    outStream.open(outFileName, std::ofstream::out);
+//    errorOfstream.open(errorFileName, std::ofstream::out);
 
 
     using P = Properties;
@@ -83,9 +87,13 @@ private:
     std::tuple_element_t<3, ExtendedTuple> markNonterminalsMap;
 
 public:
-    void construct()
+
+    GrammarParser()
     {
-        GF gf = makeGrammarFactory(*this);
+//        grammarInputData.outStream.open(outFileName, std::ofstream::out);
+//        grammarInputData.errorStream.open(errorFileName, std::ofstream::out);
+
+        GF gf = GrammarInput().gf;
 
         indexToNonterminalMap = gf.getIndexToNonterminalMap();
         indexToTerminalMap =  gf.getIndexToTerminalMap();
@@ -102,20 +110,31 @@ public:
         gotoFunction = std::get<2>(ansTuple);
         markNonterminalsMap = std::get<3>(ansTuple);
 
-
     }
 
+//    void construct()
+//    {
+//
+//
+////        outStream.open(outFileName, std::ofstream::out);
+////        errorOfstream.open(errorFileName, std::ofstream::out);
+//
+//
+//
+//
+//    }
+
     template<typename Iterator>
-    void parse(Iterator first, Iterator last)
+    void parse(Iterator first, Iterator last, const std::string& outFileName, const std::string & errorFileName)
     {
 
-
-
+        grammarInputData.outStream.open(outFileName, std::ofstream::out);
+        grammarInputData.errorStream.open(errorFileName, std::ofstream::out);
 
         TemporaryVariableNumberGenerator::reset();
-        m_identifierTable.clear();
-        m_codeTable.clear();
-        m_typeTable.clear();
+        grammarInputData.m_identifierTable.clear();
+        grammarInputData.m_codeTable.clear();
+        grammarInputData.m_typeTable.clear();
 
         cout << std::string(2, '\n') << "Begin parsing...\n\n";
 
@@ -134,7 +153,7 @@ public:
         std::cout << "Parse finished" << std::endl;
 
 
-        m_outStream << m_codeTable;
+        grammarInputData.outStream << grammarInputData.m_codeTable;
 
 
     }

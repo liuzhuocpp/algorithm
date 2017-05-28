@@ -10,8 +10,26 @@
 
 
 
+#include <lz/compiler/c/identifier.h>
+#include <lz/compiler/c/properties.h>
+#include <lz/compiler/c/three_address_code.h>
+
+
 namespace lz {
 
+
+struct GrammarInputData
+{
+    std::ofstream outStream, errorStream;
+
+    IdentifierTable m_identifierTable;
+    ThreeAddressCode m_codeTable;
+    TypeTable m_typeTable;
+};
+
+
+
+GrammarInputData grammarInputData;
 
 
 

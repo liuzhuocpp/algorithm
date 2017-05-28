@@ -15,10 +15,10 @@ using namespace lz;
 using namespace std;
 
 
-std::ofstream outStream , errorOfstream;
+//std::ofstream outStream , errorOfstream;
 
-GrammarParser<decltype(outStream), decltype(errorOfstream)>
-    grammarParser(outStream, errorOfstream);
+GrammarParser grammarParser;
+//    grammarParser(outStream, errorOfstream);
 
 
 void solve(int fileNumber)
@@ -30,19 +30,22 @@ void solve(int fileNumber)
     auto text = readFile(inputFileName);
 
     vector<LexicalSymbol> ans = lexicalAnalyze(text.begin(), text.end());
+
+
     for(auto x : ans)
     {
         cout << x << endl;
     }
 
-    outStream.open(outFileName, std::ofstream::out);
-    errorOfstream.open(errorFileName, std::ofstream::out);
+//    outStream.open(outFileName, std::ofstream::out);
+//    errorOfstream.open(errorFileName, std::ofstream::out);
 
+//    gramar
 
-    grammarParser.parse(ans.begin(), ans.end());
+    grammarParser.parse(ans.begin(), ans.end(), outFileName, errorFileName);
 
-    outStream.close();
-    errorOfstream.close();
+//    outStream.close();
+//    errorOfstream.close();
 
 }
 
@@ -78,7 +81,7 @@ int main(int argc, char **argv) {
 
 
 
-    grammarParser.construct();
+//    grammarParser.construct();
 
     if(specifiedFileNumbers.empty())
         specifiedFileNumbers = getAllInputFileDirectoryNumberList();

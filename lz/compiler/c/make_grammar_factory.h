@@ -15,23 +15,25 @@
 
 
 #include <lz/compiler/c/lexical_analyze.h>
-#include <lz/compiler/c/identifier.h>
-#include <lz/compiler/c/properties.h>
-#include <lz/compiler/c/three_address_code.h>
+
 #include <lz/compiler/c/utility.h>
 
 
 namespace lz {
 
-
-// this is private
-
-template<typename GrammarParser>
 struct GrammarInput
 {
+
+    static IdentifierTable& identifierTable() { return grammarInputData.m_identifierTable; }
+    static TypeTable& typeTable() { return grammarInputData.m_typeTable; }
+    static ThreeAddressCode& codeTable() { return grammarInputData.m_codeTable; }
+    static auto& errorOfstream() { return grammarInputData.errorStream; }
+
+
     using P = Properties;
     using T = LexicalSymbol;
     using PIT = std::vector<P>::iterator;
+
     using InstructionCategory = ThreeAddressInstruction::Category;
     using InstructionArgument = ThreeAddressInstructionArgument;
 
@@ -435,12 +437,8 @@ struct GrammarInput
 
 
     // I think use the global variable is very ugly.
-    static GrammarParser* global_grammarParser;
+//    static GrammarParser* global_grammarParser;
 
-    static IdentifierTable& identifierTable() { return global_grammarParser->identifierTable(); }
-    static TypeTable& typeTable() { return global_grammarParser->typeTable(); }
-    static ThreeAddressCode& codeTable() { return global_grammarParser->codeTable(); }
-    static auto& errorOfstream() { return global_grammarParser->errorOfstream(); }
 
 
 
@@ -581,19 +579,19 @@ struct GrammarInput
 
 };
 
+//
+//template<typename GrammarParser>
+//GrammarParser* GrammarInput<GrammarParser>::global_grammarParser =  nullptr;
 
-template<typename GrammarParser>
-GrammarParser* GrammarInput<GrammarParser>::global_grammarParser =  nullptr;
-
-template<typename GrammarParser>
-auto makeGrammarFactory(
-        GrammarParser& grammarParser )
-{
-
-    GrammarInput<GrammarParser>::global_grammarParser = &grammarParser;
-    return  GrammarInput<GrammarParser> ().gf;
-}
-
+//template<typename GrammarParser>
+//auto makeGrammarFactory(
+//        GrammarParser& grammarParser )
+//{
+//
+//    GrammarInput<GrammarParser>::global_grammarParser = &grammarParser;
+//    return  GrammarInput<GrammarParser> ().gf;
+//}
+//
 
 
 
