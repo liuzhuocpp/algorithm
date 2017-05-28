@@ -577,7 +577,7 @@ struct GrammarInput
 
 
 
-};
+}grammarInput;
 
 //
 //template<typename GrammarParser>

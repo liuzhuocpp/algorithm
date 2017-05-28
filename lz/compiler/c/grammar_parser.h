@@ -26,48 +26,11 @@
 namespace lz {
 
 
-//template<typename OutStream, typename ErrorStream>
 struct GrammarParser
 {
-//    GrammarParser(OutStream &outStream, ErrorStream &errorOfstream):
-//        m_outStream(outStream), m_errorOfstream(errorOfstream){}
-
-//    OutStream& outStream()
-//    {
-//        return m_outStream;
-//    }
-//
-//    ErrorStream& errorOfstream()
-//    {
-//        return m_errorOfstream;
-//    }
-//
-//    IdentifierTable& identifierTable()
-//    {
-//        return m_identifierTable;
-//    }
-//    ThreeAddressCode& codeTable()
-//    {
-//        return m_codeTable;
-//    }
-//    TypeTable& typeTable()
-//    {
-//        return m_typeTable;
-//    }
 
 
 private:
-//    OutStream &m_outStream;
-//    ErrorStream &m_errorOfstream;
-
-//    IdentifierTable m_identifierTable;
-//    ThreeAddressCode m_codeTable;
-//    TypeTable m_typeTable;
-//
-
-//    outStream.open(outFileName, std::ofstream::out);
-//    errorOfstream.open(errorFileName, std::ofstream::out);
-
 
     using P = Properties;
     using T = LexicalSymbol;
@@ -90,10 +53,8 @@ public:
 
     GrammarParser()
     {
-//        grammarInputData.outStream.open(outFileName, std::ofstream::out);
-//        grammarInputData.errorStream.open(errorFileName, std::ofstream::out);
 
-        GF gf = GrammarInput().gf;
+        GF gf = grammarInput.gf;
 
         indexToNonterminalMap = gf.getIndexToNonterminalMap();
         indexToTerminalMap =  gf.getIndexToTerminalMap();
@@ -112,17 +73,6 @@ public:
 
     }
 
-//    void construct()
-//    {
-//
-//
-////        outStream.open(outFileName, std::ofstream::out);
-////        errorOfstream.open(errorFileName, std::ofstream::out);
-//
-//
-//
-//
-//    }
 
     template<typename Iterator>
     void parse(Iterator first, Iterator last, const std::string& outFileName, const std::string & errorFileName)
@@ -162,7 +112,7 @@ public:
 private:
 
 
-};
+}grammarParser;
 
 
 

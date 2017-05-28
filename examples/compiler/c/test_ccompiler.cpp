@@ -17,7 +17,7 @@ using namespace std;
 
 //std::ofstream outStream , errorOfstream;
 
-GrammarParser grammarParser;
+//GrammarParser grammarParser;
 //    grammarParser(outStream, errorOfstream);
 
 
