@@ -23,11 +23,13 @@ namespace lz {
 
 struct GrammarInput
 {
-
+private:
     static IdentifierTable& identifierTable() { return grammarInputData.m_identifierTable; }
     static TypeTable& typeTable() { return grammarInputData.m_typeTable; }
     static ThreeAddressCode& codeTable() { return grammarInputData.m_codeTable; }
-    static auto& errorOfstream() { return grammarInputData.errorStream; }
+
+    static std::ofstream& outStream() { return grammarInputData.outStream; }
+    static std::ofstream& errorOfstream() { return grammarInputData.errorStream; }
 
     static int& offset() { return grammarInputData.offset; }
 
@@ -41,47 +43,53 @@ struct GrammarInput
     using InstructionArgumentType = ThreeAddressInstructionArgumentType;
 
 
-    NonterminalProxy<T, P>
-        LZ_NONTERMINAL_PROXY(program),
-        LZ_NONTERMINAL_PROXY(declare),
-        LZ_NONTERMINAL_PROXY(typeDeclare),
-        LZ_NONTERMINAL_PROXY(baseTypeDeclare),
-
-        LZ_NONTERMINAL_PROXY(statement),
-        LZ_NONTERMINAL_PROXY(statementList),
-
-        LZ_NONTERMINAL_PROXY(function),
-
-        LZ_NONTERMINAL_PROXY(conditionMark),
-        LZ_NONTERMINAL_PROXY(elseConditionMark),
 
 
-
-        LZ_NONTERMINAL_PROXY(expression),
-        LZ_NONTERMINAL_PROXY(arrayExpression)
-
-
-        ;
-
-    GrammarFactory<T, P> gf;
-
-
-//    static void initData()
-//    {
-//        TemporaryVariableNumberGenerator::reset();
-//        grammarInputData.m_identifierTable.clear();
-//        grammarInputData.m_codeTable.clear();
-//        grammarInputData.m_typeTable.clear();
-//        grammarInputData.offset = 0;
-//        grammarInputData.outStream.open(outFileName, std::ofstream::out);
-//        grammarInputData.errorStream.open(errorFileName, std::ofstream::out);
-//
-//    }
-
-    GrammarInput():
-
-        gf(program)
+public:
+    static void initData(const std::string & outFileName, const std::string & errorFileName)
     {
+        TemporaryVariableNumberGenerator::reset();
+        identifierTable().clear();
+        codeTable().clear();
+        typeTable().clear();
+        offset() = 0;
+
+        outStream().open(outFileName, std::ofstream::out);
+        errorOfstream().open(errorFileName, std::ofstream::out);
+    }
+
+    static void finalizeData()
+    {
+        outStream() << codeTable();
+        outStream().close();
+        errorOfstream().close();
+    }
+
+
+    static GrammarFactory<T, P> build()
+    {
+
+        NonterminalProxy<T, P>
+            LZ_NONTERMINAL_PROXY(program),
+            LZ_NONTERMINAL_PROXY(declare),
+            LZ_NONTERMINAL_PROXY(typeDeclare),
+            LZ_NONTERMINAL_PROXY(baseTypeDeclare),
+
+            LZ_NONTERMINAL_PROXY(statement),
+            LZ_NONTERMINAL_PROXY(statementList),
+
+            LZ_NONTERMINAL_PROXY(function),
+
+            LZ_NONTERMINAL_PROXY(conditionMark),
+            LZ_NONTERMINAL_PROXY(elseConditionMark),
+
+            LZ_NONTERMINAL_PROXY(expression),
+            LZ_NONTERMINAL_PROXY(arrayExpression)
+
+            ;
+
+        GrammarFactory<T, P> gf(program);
+
         // 优先级依次降低排列
 
         gf.addRightAssociativity("!");
@@ -455,13 +463,11 @@ struct GrammarInput
                 o.addr = InstructionArgument::makeTempVariable(tmp2);
             };
 
+        return gf;
+
     }
 
-
-    // I think use the global variable is very ugly.
-//    static GrammarParser* global_grammarParser;
-
-
+private:
 
 
     // Bellow function must be static,
@@ -599,7 +605,7 @@ struct GrammarInput
 
 
 
-}grammarInput;
+};
 
 //
 //template<typename GrammarParser>
