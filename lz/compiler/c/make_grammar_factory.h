@@ -66,9 +66,6 @@ struct GrammarInput
 
         gf(program)
     {
-
-        identifierTableForThreeAddressInstructionArgumentOutput = &identifierTable();
-
         // 优先级依次降低排列
 
         gf.addRightAssociativity("!");

@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <lz/named_enum.h>
+#include <lz/compiler/c/global_identifier_table_pointer.h>
 
 #define instruction_list(X)\
     X(beginFunc)\
@@ -50,8 +51,6 @@
 namespace lz {
 
 
-// 仅仅是临时这样做
-IdentifierTable *identifierTableForThreeAddressInstructionArgumentOutput;
 
 struct ThreeAddressInstructionArgumentType
 {
@@ -191,7 +190,7 @@ public:
         switch(arg.m_category)
         {
         case Category::Variable:
-            os << identifierTableForThreeAddressInstructionArgumentOutput->identifier(arg.value());
+            os << globalIdentifierTablePointer->identifier(arg.value());
             break;
         case Category::TempVariable:
             os << "$" << arg.value();

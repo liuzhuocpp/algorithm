@@ -13,7 +13,7 @@
 #include <lz/compiler/c/identifier.h>
 #include <lz/compiler/c/properties.h>
 #include <lz/compiler/c/three_address_code.h>
-
+#include <lz/compiler/c/global_identifier_table_pointer.h>
 
 namespace lz {
 
@@ -25,6 +25,10 @@ struct GrammarInputData
     IdentifierTable m_identifierTable;
     ThreeAddressCode m_codeTable;
     TypeTable m_typeTable;
+
+    GrammarInputData() {
+        globalIdentifierTablePointer = &this->m_identifierTable;
+    }
 };
 
 
