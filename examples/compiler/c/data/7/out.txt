@@ -1,4 +1,6 @@
+
 f:
+
        beginFunc   
 L1:    if!= a True L3
        goto   L11
@@ -12,6 +14,7 @@ L9:    = 333  b
        goto   L1
 L11:   endFunc   
 g:
+
        beginFunc   
        + 2234234 b $0
        = $0  b

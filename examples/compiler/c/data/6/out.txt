@@ -1,4 +1,6 @@
+
 f:
+
       beginFunc   
 L1:   if> a 0 L3
       goto   L8

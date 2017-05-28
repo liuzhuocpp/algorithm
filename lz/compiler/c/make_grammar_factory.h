@@ -135,6 +135,7 @@ struct GrammarInput
         declare = typeDeclare >> Lex::Identifier >> ";" >>
             [&](PIT v, P& o) {
                 identifierTable().insert(v[2].lexValue, v[1].type);
+//                codeTable().addGlobalArgument(v[1].type);
             };
 
         typeDeclare = baseTypeDeclare >>

@@ -14,7 +14,7 @@
 #define instruction_list(X)\
     X(beginFunc)\
     X(endFunc)\
-    X(If, "if")\
+    X(If)\
     X(IfLess, "if<")\
     X(IfMore, "if>")\
     X(IfLessEqual, "if<=")\
@@ -37,6 +37,14 @@
     X(Unknown)\
 
 
+#define argument_type_list(X) \
+    X(Bool)\
+    X(Int32)\
+    X(Int64)\
+    X(Float)\
+    X(Double)\
+    X(Array)\
+    X(Empty)
 
 
 namespace lz {
@@ -44,6 +52,59 @@ namespace lz {
 
 // 仅仅是临时这样做
 IdentifierTable *identifierTableForThreeAddressInstructionArgumentOutput;
+
+struct ThreeAddressInstructionArgumentType
+{
+
+    LZ_MAKE_NAMED_ENUM(Category, categoryToName, argument_type_list)
+
+//    enum class Category
+//    {
+//        Bool,
+//        Int32,
+//        Int64,
+//        Float,
+//        Double,
+//
+//        Array,
+//
+//        Empty,
+//    };
+private:
+    Category m_category = Category::Empty;
+    int m_offset = -1;
+public:
+    ThreeAddressInstructionArgumentType() = default;
+    ThreeAddressInstructionArgumentType(Category category, int offset):
+        m_category(category), m_offset(offset) {}
+
+    Category category() const
+    {
+        return m_category;
+    }
+
+    int offset() const
+    {
+        return m_offset;
+    }
+
+    template <class Char, class Traits>
+    friend std::basic_ostream<Char, Traits>&
+    operator<<(std::basic_ostream<Char, Traits>& os,
+               const ThreeAddressInstructionArgumentType& argType)
+    {
+//        switch(argType.m_category)
+//        {
+            os << categoryToName(argType.m_category) << "," << argType.m_offset;
+//        default:
+//            assert(0);
+//        }
+        return os;
+    }
+
+
+};
+
 
 
 struct ThreeAddressInstructionArgument
@@ -64,6 +125,13 @@ private:
     Category m_category = Category::Empty;
     unsigned index = -1;
 public:
+
+    bool operator<(ThreeAddressInstructionArgument o) const
+    {
+        if(m_category != o.m_category) return m_category < o.m_category;
+        return index < o.index;
+    }
+
     ThreeAddressInstructionArgument() {}
     ThreeAddressInstructionArgument(Category category):m_category(category) {}
     ThreeAddressInstructionArgument(Category category, unsigned value):m_category(category), index(value) {}
@@ -215,17 +283,57 @@ public:
 };
 
 
+using ThreeAddressInstructionArgumentTypeMap =
+    std::map<ThreeAddressInstructionArgument, ThreeAddressInstructionArgumentType>;
 
+template <class Char, class Traits>
+std::basic_ostream<Char, Traits>&
+operator<<(std::basic_ostream<Char, Traits>& os,
+           const ThreeAddressInstructionArgumentTypeMap& argTypeMap)
+{
+    for(auto argAndType: argTypeMap)
+    {
+        os << argAndType.first << ":" << argAndType.second;
+    }
+
+    return os;
+}
 
 struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 {
 
+//    X(beginFunc)\
+//    X(endFunc)\
+//    X(If)\
+//    X(IfLess, "if<")\
+//    X(IfMore, "if>")\
+//    X(IfLessEqual, "if<=")\
+//    X(IfMoreEqual, "if>=")\
+//    X(IfEqual, "if==")\
+//    X(IfNotEqual, "if!=")\
+//    X(Goto, "goto")\
+//\
+//    X(Plus, "+")\
+//    X(Minus, "-")\
+//    X(Multiply, "*")\
+//    X(Divide, "/")\
+//    X(Assign, "=")\
+//\
+//    X(UnaryPlus, "plus")\
+//    X(UnaryMinus, "minus")\
+//\
+//    X(ReadArray, "=[]")\
+//    X(WriteArray, "[]=")\
+//    X(Unknown)\
 
+    // three address instruction argument type info map
+    ThreeAddressInstructionArgumentTypeMap globalArgumentTypeMap;
 
     struct FunctionDefination
     {
         std::string functionName;
         int beginIndex, endIndex; // [beginIndex, endIndex) 这段区间的指令均属于  此函数
+        ThreeAddressInstructionArgumentTypeMap argumentTypeMap;
     };
 
     std::vector<FunctionDefination> functionDefinations;
@@ -234,6 +342,7 @@ struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 
     using std::vector<ThreeAddressInstruction>::vector;
     using Argument = ThreeAddressInstructionArgument;
+    using ArgumentType = ThreeAddressInstructionArgumentType;
 private:
     std::set<int> labels;
     using Category = ThreeAddressInstruction::Category;
@@ -241,9 +350,19 @@ private:
     void _generateCode(Category cate, Argument arg1, Argument arg2, Argument res)
     {
         emplace_back(cate, arg1, arg2, res);
-    };
+    }
 
 public:
+
+    void addArgument(Argument arg, ArgumentType argType)
+    {
+        functionDefinations.back().argumentTypeMap[arg] = argType;
+    }
+
+    void addGlobalArgument(Argument arg, ArgumentType argType)
+    {
+        globalArgumentTypeMap[arg] = argType;
+    }
 
     void beginFunction(std::string functionName)
     {
@@ -310,11 +429,16 @@ public:
         labels.insert(label);
     }
 
+
+
+
     template <class Char, class Traits>
     friend std::basic_ostream<Char, Traits>&
     operator<<(std::basic_ostream<Char, Traits>& os,
                const ThreeAddressCode& table)
     {
+        os << table.globalArgumentTypeMap << "\n";
+
         int maxWidth = 0;
         for(auto i : lz::irange(table.size()))
         {
@@ -338,12 +462,15 @@ public:
         {
             if(table.functionDefinations.end() == functionIterator)
             {
-                std::cout << "table.functionDefinations.size(): " << table.functionDefinations.size() << std::endl;
                 assert(0);
             }
+
+
+
             if(functionIterator->beginIndex == i)
             {
                 os << functionIterator->functionName << ":\n";
+                os << functionIterator->argumentTypeMap << "\n";
 
             }
             if(functionIterator->endIndex == i + 1)
