@@ -116,8 +116,8 @@ struct ThreeAddressInstructionArgument
         Label,
         Empty,
 
-        True,
-        False,
+//        True,
+//        False,
     };
 
 private:
@@ -160,15 +160,15 @@ public:
         return ThreeAddressInstructionArgument(Category::Empty);
     }
 
-    static ThreeAddressInstructionArgument makeFalse()
-    {
-        return ThreeAddressInstructionArgument(Category::False);
-    }
-
-    static ThreeAddressInstructionArgument makeTrue()
-    {
-        return ThreeAddressInstructionArgument(Category::True);
-    }
+//    static ThreeAddressInstructionArgument makeFalse()
+//    {
+//        return ThreeAddressInstructionArgument(Category::False);
+//    }
+//
+//    static ThreeAddressInstructionArgument makeTrue()
+//    {
+//        return ThreeAddressInstructionArgument(Category::True);
+//    }
 
 
 
@@ -204,12 +204,12 @@ public:
         case Category::Empty:
             os <<"";
             break;
-        case Category::True:
-            os << "True";
-            break;
-        case Category::False:
-            os << "False";
-            break;
+//        case Category::True:
+//            os << "True";
+//            break;
+//        case Category::False:
+//            os << "False";
+//            break;
         default:
             assert(0);
         }

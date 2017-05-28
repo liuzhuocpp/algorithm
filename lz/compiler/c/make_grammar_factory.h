@@ -327,13 +327,13 @@ struct GrammarInput
 
         expression = Lex::True >>
             [&](PIT v, P&o) {
-                o.addr = InstructionArgument::makeTrue();
+                o.addr = InstructionArgument::makeNumber(1);
                 o.type = TypeCategory::Bool;
             };
 
         expression = Lex::False >>
             [&](PIT v, P&o) {
-                o.addr = InstructionArgument::makeFalse();
+                o.addr = InstructionArgument::makeNumber(0);
                 o.type = TypeCategory::Bool;
             };
 

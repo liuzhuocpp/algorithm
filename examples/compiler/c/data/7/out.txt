@@ -2,9 +2,9 @@
 f:
 
        beginFunc   
-L1:    if!= a True L3
+L1:    if!= a 1 L3
        goto   L11
-L3:    if== a False L5
+L3:    if== a 0 L5
        goto   L6
 L5:    goto   L11
 L6:    if< b 22 L8
@@ -20,5 +20,5 @@ g:
        = $0  b
        if> b 0 L17
        goto   L18
-L17:   = True  a
+L17:   = 1  a
 L18:   endFunc   

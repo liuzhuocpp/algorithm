@@ -106,6 +106,8 @@ public:
         grammarInputData.outStream << grammarInputData.m_codeTable;
 
 
+        grammarInputData.outStream.close();
+        grammarInputData.errorStream.close();
     }
 
 
