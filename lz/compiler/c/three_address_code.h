@@ -66,43 +66,6 @@ public:
     ThreeAddressInstructionArgumentType(Category category, int offset):
         m_category(category), m_offset(offset) {}
 
-//    ThreeAddressInstructionArgumentType(Category category, int offset, int ):
-//        m_category(category), m_offset(offset) {}
-
-
-    static ThreeAddressInstructionArgumentType makeBool(int offset)
-    {
-        return ThreeAddressInstructionArgumentType(Category::Bool, offset);
-    }
-
-    static ThreeAddressInstructionArgumentType makeInt32(int offset)
-    {
-        return ThreeAddressInstructionArgumentType(Category::Int32, offset);
-    }
-
-    static ThreeAddressInstructionArgumentType makeInt64(int offset)
-    {
-        return ThreeAddressInstructionArgumentType(Category::Int64, offset);
-    }
-
-    static ThreeAddressInstructionArgumentType makeFloat(int offset)
-    {
-        return ThreeAddressInstructionArgumentType(Category::Float, offset);
-    }
-
-    static ThreeAddressInstructionArgumentType makeDouble(int offset)
-    {
-        return ThreeAddressInstructionArgumentType(Category::Double, offset);
-    }
-
-    static ThreeAddressInstructionArgumentType makeArray(int offset, int width)
-    {
-        auto ans = ThreeAddressInstructionArgumentType(Category::Array, offset);
-        ans.setArrayWidth(width);
-        return ans;
-    }
-
-
 
     int getWidth() const
     {
@@ -264,7 +227,7 @@ struct ThreeAddressInstruction
 {
     friend struct ThreeAddressCode;
     LZ_MAKE_NAMED_ENUM(Category, Names, instruction_list);
-    lz_name_to_enum(NameToCategory,Category, instruction_list, [](std::string){ return std::string();})
+    lz_name_to_enum(NameToCategory,Category, instruction_list, [](std::string i){ return i;})
 
 
 private:
