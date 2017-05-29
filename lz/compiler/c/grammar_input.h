@@ -28,7 +28,7 @@ private:
 
     static IdentifierTable& identifierTable() { return grammarInputData.m_identifierTable; }
     static TypeTable& typeTable() { return grammarInputData.m_typeTable; }
-    static ThreeAddressCode& codeTable() { return grammarInputData.m_codeTable; }
+    static ThreeAddressCode& threeAddressCode() { return grammarInputData.m_threeAddressCode; }
 
     static std::ofstream& outStream() { return grammarInputData.outStream; }
     static std::ofstream& errorOfstream() { return grammarInputData.errorStream; }
@@ -52,7 +52,7 @@ public:
     {
         TemporaryVariableNumberGenerator::reset();
         identifierTable().clear();
-        codeTable().clear();
+        threeAddressCode().clear();
         typeTable().clear();
         offset() = 0;
 
@@ -62,7 +62,7 @@ public:
 
     static void finalizeData()
     {
-        outStream() << codeTable();
+        outStream() << threeAddressCode();
         outStream().close();
         errorOfstream().close();
     }
@@ -120,7 +120,7 @@ public:
 
                 offset() = 0;
                 int functionId = identifierTable().insert(v[2].lexValue, TypeCategory::Function);
-                codeTable().beginFunction(functionId);
+                threeAddressCode().beginFunction(functionId);
 
             } >> statementList >> "}" >>
 
@@ -140,7 +140,7 @@ public:
                     errorOfstream() << "continue statement not within a loop\n";
                 }
 
-                codeTable().endFunction();
+                threeAddressCode().endFunction();
             };
 
         declare = typeDeclare >> Lex::Identifier >> ";" >>
@@ -148,7 +148,7 @@ public:
                 int insertedId = identifierTable().insert(v[2].lexValue, v[1].type);
 
                 InstructionArgumentType argType = newArgType(v[1].type);
-                codeTable().addGlobalArgument(InstructionArgument::makeVariable(insertedId), argType);
+                threeAddressCode().addGlobalArgument(InstructionArgument::makeVariable(insertedId), argType);
 
 
             };
@@ -189,7 +189,7 @@ public:
 
         statementList = statement >> conditionMark >> statementList >>
             [&](PIT v, P&o) {
-                codeTable().backPatch(v[1].nextList, v[2].cntInstructionIndex);
+                threeAddressCode().backPatch(v[1].nextList, v[2].cntInstructionIndex);
 
                 o.breakList = merge(v[1].breakList, v[3].breakList);
                 o.continueList = merge(v[1].continueList, v[3].continueList);
@@ -199,14 +199,14 @@ public:
 
         statement = eps >> Lex::Break >> ";" >>
             [&](PIT v, P& o) {
-                o.breakList.push_back(codeTable().nextInstructionIndex());
-                codeTable().generateGotoCode();
+                o.breakList.push_back(threeAddressCode().nextInstructionIndex());
+                threeAddressCode().generateGotoCode();
             };
 
         statement = eps >> Lex::Continue >> ";" >>
             [&](PIT v, P& o) {
-                o.continueList.push_back(codeTable().nextInstructionIndex());
-                codeTable().generateGotoCode();
+                o.continueList.push_back(threeAddressCode().nextInstructionIndex());
+                threeAddressCode().generateGotoCode();
             };
 
         statement = expression >> ";";
@@ -219,7 +219,7 @@ public:
 
         statement = eps >> Lex::If >> "(" >> expression >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
-                codeTable().backPatch(v[3].trueList, v[5].cntInstructionIndex);
+                threeAddressCode().backPatch(v[3].trueList, v[5].cntInstructionIndex);
                 o.nextList = merge(v[3].falseList, v[6].nextList);
 
 
@@ -232,8 +232,8 @@ public:
 
                 auto& condition = v[3], &conMark = v[5], &ifStatement = v[6], &elseConMark = v[8], &elseStatement = v[9];
 
-                codeTable().backPatch(condition.trueList, conMark.cntInstructionIndex);
-                codeTable().backPatch(condition.falseList, elseConMark.cntInstructionIndex);
+                threeAddressCode().backPatch(condition.trueList, conMark.cntInstructionIndex);
+                threeAddressCode().backPatch(condition.falseList, elseConMark.cntInstructionIndex);
                 merge(o.nextList, ifStatement.nextList);
                 merge(o.nextList, elseConMark.nextList);
                 merge(o.nextList, elseStatement.nextList);
@@ -246,26 +246,26 @@ public:
         statement = eps >> Lex::While >> "(" >> conditionMark >>  expression >> ")" >> conditionMark >> statement >>
             [&](PIT v, P&o) {
 
-                codeTable().backPatch(v[4].trueList, v[6].cntInstructionIndex);
+                threeAddressCode().backPatch(v[4].trueList, v[6].cntInstructionIndex);
                 merge(o.nextList, v[4].falseList);
-                codeTable().backPatch(v[7].nextList, codeTable().nextInstructionIndex());
-                codeTable().generateGotoCode(v[3].cntInstructionIndex);
+                threeAddressCode().backPatch(v[7].nextList, threeAddressCode().nextInstructionIndex());
+                threeAddressCode().generateGotoCode(v[3].cntInstructionIndex);
 
-                codeTable().backPatch(v[7].breakList, codeTable().nextInstructionIndex());
-                codeTable().backPatch(v[7].continueList, v[3].cntInstructionIndex);
+                threeAddressCode().backPatch(v[7].breakList, threeAddressCode().nextInstructionIndex());
+                threeAddressCode().backPatch(v[7].continueList, v[3].cntInstructionIndex);
             };
 
         conditionMark = eps >>
             [&](PIT v, P&o) {
-                o.cntInstructionIndex = codeTable().nextInstructionIndex();
+                o.cntInstructionIndex = threeAddressCode().nextInstructionIndex();
             };
 
         elseConditionMark = eps >>
             [&](PIT v, P& o) {
 
-                o.nextList.push_back(codeTable().nextInstructionIndex());
-                codeTable().generateGotoCode();
-                o.cntInstructionIndex = codeTable().nextInstructionIndex();
+                o.nextList.push_back(threeAddressCode().nextInstructionIndex());
+                threeAddressCode().generateGotoCode();
+                o.cntInstructionIndex = threeAddressCode().nextInstructionIndex();
             };
 
 
@@ -274,7 +274,7 @@ public:
 
                 o.type = TypeCategory::Void;// 目前不支持返回值
 
-                codeTable().generateCallCode(identifierTable().find(v[1].lexValue));
+                threeAddressCode().generateCallCode(identifierTable().find(v[1].lexValue));
 
             };
 
@@ -293,7 +293,7 @@ public:
 
                 checkTypeEquality(v[1].type, v[4].type, [&]() {
                     checkBoolRequired(v[1].type, [&](){
-                        codeTable().backPatch(v[1].falseList, v[3].cntInstructionIndex);
+                        threeAddressCode().backPatch(v[1].falseList, v[3].cntInstructionIndex);
                         o.trueList = merge(v[1].trueList, v[4].trueList);
                         o.falseList = v[4].falseList;
                         o.type = TypeCategory::Bool;
@@ -306,7 +306,7 @@ public:
                 checkTypeEquality(v[1].type, v[4].type, [&]() {
                     checkBoolRequired(v[1].type, [&](){
 
-                        codeTable().backPatch(v[1].trueList, v[3].cntInstructionIndex);
+                        threeAddressCode().backPatch(v[1].trueList, v[3].cntInstructionIndex);
                         o.trueList = v[4].trueList;
                         o.falseList = merge(v[1].falseList, v[4].falseList);
                         o.type = TypeCategory::Bool;
@@ -379,11 +379,11 @@ public:
 
                     if(v[1].arrayId == -1)
                     {
-                        codeTable().generateAssignCode(readAddr(v[3]), v[1].addr);
+                        threeAddressCode().generateAssignCode(readAddr(v[3]), v[1].addr);
                     }
                     else
                     {
-                        codeTable().generateWriteArrayCode(readAddr(v[3]), v[1].addr, v[1].arrayId);
+                        threeAddressCode().generateWriteArrayCode(readAddr(v[3]), v[1].addr, v[1].arrayId);
                     }
 
                     o.arrayId = v[1].arrayId;
@@ -411,19 +411,20 @@ public:
 
                     o.arrayId = identifierId;
                     o.type = typeTable().subarrayType(arrayType);
+                    o.addr = generateCalculateArrayOffsetCode(v[3], o.type);
 
-                    InstructionArgument arrayOffset = readAddr(v[3]);
+//                    InstructionArgument arrayOffset = readAddr(v[3]);
+//
+//                    auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
+//
+//                    auto tmpArgType = newArgType(InstructionArgumentTypeCategory::Int64);
+//
+//                    threeAddressCode().addArgument(tmpArg, tmpArgType);
+//
+//                    threeAddressCode().generateBinaryArithmeticCode('*', arrayOffset,
+//                        InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg);
 
-                    auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
-
-                    auto tmpArgType = newArgType(InstructionArgumentTypeCategory::Int64);
-
-                    codeTable().addArgument(tmpArg, tmpArgType);
-
-                    codeTable().generateBinaryArithmeticCode('*', arrayOffset,
-                        InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg);
-
-                    o.addr = tmpArg; // 数组偏移量
+//                    o.addr = tmpArg; // 数组偏移量
 
                 });
             };
@@ -434,21 +435,21 @@ public:
                 o.arrayId = v[1].arrayId;
                 o.type = typeTable().subarrayType(v[1].type);
 
-                InstructionArgument arrayOffset = readAddr(v[3]);
+                auto tmpArg1 = generateCalculateArrayOffsetCode(v[3], o.type);
 
-                auto tmpArg1 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
-                auto tmpArgType1 = newArgType(InstructionArgumentTypeCategory::Int64);
-                codeTable().addArgument(tmpArg1, tmpArgType1);
+//                InstructionArgument arrayOffset = readAddr(v[3]);
+//                auto tmpArg1 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
+//                auto tmpArgType1 = newArgType(InstructionArgumentTypeCategory::Int64);
+//                threeAddressCode().addArgument(tmpArg1, tmpArgType1);
+//                threeAddressCode().generateBinaryArithmeticCode('*', arrayOffset,
+//                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
 
 
-                codeTable().generateBinaryArithmeticCode('*', arrayOffset,
-                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
 
                 auto tmpArg2 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
-                auto tmpArgType2 = newArgType(InstructionArgumentTypeCategory::Int64);
-                codeTable().addArgument(tmpArg2, tmpArgType2);
+                threeAddressCode().addArgument(tmpArg2, newArgType(InstructionArgumentTypeCategory::Int64));
+                threeAddressCode().generateBinaryArithmeticCode('+', v[1].addr, tmpArg1, tmpArg2);
 
-                codeTable().generateBinaryArithmeticCode('+', v[1].addr, tmpArg1, tmpArg2);
                 o.addr = tmpArg2;
             };
 
@@ -458,6 +459,17 @@ public:
 
 private:
 
+    static InstructionArgument generateCalculateArrayOffsetCode(P& arrayOffsetP, TypeDescriptor arrayType)
+    {
+        InstructionArgument arrayOffset = readAddr(arrayOffsetP);
+        auto tmpArg1 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
+        auto tmpArgType1 = newArgType(InstructionArgumentTypeCategory::Int64);
+        threeAddressCode().addArgument(tmpArg1, tmpArgType1);
+        threeAddressCode().generateBinaryArithmeticCode('*', arrayOffset,
+            InstructionArgument::makeNumber(typeTable().getWidth(arrayType)), tmpArg1);
+
+        return tmpArg1;
+    }
     static InstructionArgumentType newArgType(InstructionArgumentTypeCategory cate, int arrayWidth = -1)
     {
         InstructionArgumentType ans(cate, offset());
@@ -511,11 +523,11 @@ private:
 
             InstructionArgument firstArg = readAddr(v[1]), secondArg = readAddr(v[3]);
             auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
-            codeTable().addArgument(tmpArg, newArgType(o.type ) );
+            threeAddressCode().addArgument(tmpArg, newArgType(o.type ) );
             o.addr = tmpArg;
 
 
-            codeTable().generateBinaryArithmeticCode(v[2].lexValue[0], firstArg, secondArg, tmpArg);
+            threeAddressCode().generateBinaryArithmeticCode(v[2].lexValue[0], firstArg, secondArg, tmpArg);
         });
 
     }
@@ -583,9 +595,9 @@ private:
             TypeDescriptor arrayType = identifierTable().type(p.arrayId);
 
 
-            codeTable().addArgument(tmpArg, newArgType(typeTable().arrayBaseType(arrayType)));
+            threeAddressCode().addArgument(tmpArg, newArgType(typeTable().arrayBaseType(arrayType)));
 
-            codeTable().generateReadArrayCode(p.arrayId, p.addr, tmpArg);
+            threeAddressCode().generateReadArrayCode(p.arrayId, p.addr, tmpArg);
 
             return tmpArg;
         }
@@ -605,11 +617,11 @@ private:
     {
         checkTypeEquality(v[1].type, v[3].type, [&]() {
 
-            o.trueList.push_back(codeTable().nextInstructionIndex());
+            o.trueList.push_back(threeAddressCode().nextInstructionIndex());
 
-            codeTable().generateIfRelCode(v[2].lexValue, readAddr(v[1]), readAddr(v[3]));
-            o.falseList.push_back(codeTable().nextInstructionIndex());
-            codeTable().generateGotoCode();
+            threeAddressCode().generateIfRelCode(v[2].lexValue, readAddr(v[1]), readAddr(v[3]));
+            o.falseList.push_back(threeAddressCode().nextInstructionIndex());
+            threeAddressCode().generateGotoCode();
             o.type = TypeCategory::Bool;
         });
 
@@ -620,7 +632,7 @@ private:
         o.addr = InstructionArgument::makeTempVariable(getTemporaryVariableId());
         o.type = v[2].type;
 
-        codeTable().generateUnaryArithmeticCode(v[1].lexValue[0], readAddr(v[2]), o.addr);
+        threeAddressCode().generateUnaryArithmeticCode(v[1].lexValue[0], readAddr(v[2]), o.addr);
     }
 
 

@@ -23,7 +23,7 @@ struct GrammarInputData
     std::ofstream outStream, errorStream;
 
     IdentifierTable m_identifierTable;
-    ThreeAddressCode m_codeTable;
+    ThreeAddressCode m_threeAddressCode;
     TypeTable m_typeTable;
 
 
