@@ -35,7 +35,8 @@
 \
     X(ReadArray, "=[]")\
     X(WriteArray, "[]=")\
-    X(Unknown)\
+    X(Call)\
+    X(Unknown)
 
 
 #define argument_type_list(X) \
@@ -332,7 +333,7 @@ struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 
     struct FunctionDefination
     {
-        std::string functionName;
+        int functionId;
         int beginIndex, endIndex; // [beginIndex, endIndex) 这段区间的指令均属于  此函数
         ThreeAddressInstructionArgumentTypeMap argumentTypeMap;
     };
@@ -365,9 +366,9 @@ public:
         globalArgumentTypeMap[arg] = argType;
     }
 
-    void beginFunction(std::string functionName)
+    void beginFunction(int functionId)
     {
-        functionDefinations.push_back(FunctionDefination{functionName, nextInstructionIndex(), -1});
+        functionDefinations.push_back(FunctionDefination{functionId, nextInstructionIndex(), -1});
         _generateCode(Category::beginFunc, Argument::makeEmpty(), Argument::makeEmpty(), Argument::makeEmpty());
     }
 
@@ -431,6 +432,11 @@ public:
         labels.insert(label);
     }
 
+    void generateCallCode(int v)
+    {
+        _generateCode(Category::Call, Argument::Category::Empty, Argument::Category::Empty, Argument::makeVariable(v));
+    }
+
 
 
 
@@ -471,7 +477,8 @@ public:
 
             if(functionIterator->beginIndex == i)
             {
-                os << functionIterator->functionName << ":\n";
+
+                os << globalIdentifierTablePointer->identifier(functionIterator->functionId) << ":\n";
                 os << functionIterator->argumentTypeMap << "\n";
 
             }

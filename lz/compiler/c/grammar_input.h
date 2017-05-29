@@ -119,7 +119,8 @@ public:
             [&](PIT v, P&o ) {
 
                 offset() = 0;
-                codeTable().beginFunction(v[2].lexValue);
+                int functionId = identifierTable().insert(v[2].lexValue, TypeCategory::Function);
+                codeTable().beginFunction(functionId);
 
             } >> statementList >> "}" >>
 
@@ -265,6 +266,18 @@ public:
                 o.nextList.push_back(codeTable().nextInstructionIndex());
                 codeTable().generateGotoCode();
                 o.cntInstructionIndex = codeTable().nextInstructionIndex();
+            };
+
+
+        expression = Lex::Identifier >> "(" >> ")" >>
+            [&](PIT v, P& o) {
+
+                o.type = TypeCategory::Void;// 目前不支持返回值
+
+//                codeTable().generateCode(InstructionCategory::Call, InstructionArgument::makeEmpty(), InstructionArgument::makeEmpty(),
+//                    );
+
+
             };
 
         expression = expression >> "<" >> expression >> solveRelationalOperator;

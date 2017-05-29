@@ -13,14 +13,7 @@
 
 namespace lz {
 
-//enum class TypeCategory
-//{
-//#define X(type) type,
-//#include <lz/compiler/c/compound_type_list.def>
-//#include <lz/compiler/c/base_type_list.def>
-//
-//#undef X
-//};
+
 
 #define  compound_type_list(X) \
     X(Array)\
@@ -34,13 +27,17 @@ namespace lz {
     X(Float)\
     X(Double)
 
+#define other_type_list(X) \
+    X(Function)
+
 
 
 //enum class
 
 #define allList(X) \
     compound_type_list(X)\
-    base_type_list(X)
+    base_type_list(X) \
+    other_type_list(X)
 
 LZ_MAKE_NAMED_ENUM(TypeCategory, typeCategoryToName, allList)
 
@@ -72,7 +69,6 @@ public:
         {
             assert(0);
         }
-
     }
 
     TypeCategory category() const
@@ -179,22 +175,12 @@ public:
             TypeDescriptor newType;
             newType.m_category = TypeCategory::Array;
 
-
-//            switch(category)
-//            {
-//            case TypeCategory::Array:
             newType.index = arrayVector.size();
             arrayVector.push_back({});
             arrayBaseType(newType).m_category = i.category();
             arrayFullDimensionVector(newType).push_back(extent);
 
             return newType;
-
-
-//            TypeDescriptor ans = insert(TypeCategory::Array);
-//            arrayBaseType(ans) = i;
-//            arrayFullDimensionVector(ans).push_back(extent);
-//            return ans;
         }
 
     }
@@ -223,7 +209,6 @@ public:
 
     int getWidth(TypeDescriptor i) const
     {
-//        TypeCategory::
         int ans = -1;
         switch(i.category())
         {
@@ -245,19 +230,6 @@ public:
         }
 
         return -1;
-
-//        int ans = 1;
-//        if(isBaseType(i.category())) //目前不考虑类型的实际宽度
-//        {
-//            return ans;
-//        }
-//
-//        for(auto x: arrayDimensions(i))
-//        {
-//            ans *= x;
-//        }
-//        return ans;
-
 
     }
 
@@ -287,24 +259,6 @@ private:
     {
         return arrayVector[i.index].second;
     }
-//    TypeDescriptor insert(TypeCategory category)
-//    {
-//        TypeDescriptor newType = TypeDescriptor(category);
-//
-//        switch(category)
-//        {
-//        case TypeCategory::Array:
-//            newType.index = arrayVector.size();
-//            arrayVector.push_back({});
-//            break;
-//        default:
-//            break;
-//
-//        }
-//        return newType;
-//    }
-
-
 
 };
 
