@@ -5,8 +5,8 @@
  *      Author: LZ
  */
 
-#ifndef LZ_COMPILER_C_MAKE_GRAMMAR_FACTORY_H_
-#define LZ_COMPILER_C_MAKE_GRAMMAR_FACTORY_H_
+#ifndef LZ_COMPILER_C_GRAMMAR_INPUT_H_
+#define LZ_COMPILER_C_GRAMMAR_INPUT_H_
 
 #include <lz/compiler/noterminal_proxy.h>
 #include <lz/compiler/grammar.h>
@@ -24,6 +24,8 @@ namespace lz {
 struct GrammarInput
 {
 private:
+    GrammarInput() = delete;
+
     static IdentifierTable& identifierTable() { return grammarInputData.m_identifierTable; }
     static TypeTable& typeTable() { return grammarInputData.m_typeTable; }
     static ThreeAddressCode& codeTable() { return grammarInputData.m_codeTable; }
@@ -450,30 +452,6 @@ public:
 
 private:
 
-//    static InstructionArgumentTypeCategory typeToArgTypeCategory(TypeDescriptor i)
-//    {
-//
-//        switch(i.category())
-//        {
-//
-//        case TypeCategory::Bool:
-//            return InstructionArgumentTypeCategory::Bool;
-//        case TypeCategory::Int :
-//            return InstructionArgumentTypeCategory::Int32;
-//        case TypeCategory::Array :
-//            return InstructionArgumentTypeCategory::Array;
-//        case TypeCategory::Float :
-//            return InstructionArgumentTypeCategory::Float;
-//        case TypeCategory::Double :
-//            return InstructionArgumentTypeCategory::Double;
-//        default:
-//            assert(0);
-//        }
-//
-//
-//        return InstructionArgumentTypeCategory::Empty;
-//    }
-//
     static InstructionArgumentType newArgType(InstructionArgumentTypeCategory cate)
     {
         if(cate == InstructionArgumentTypeCategory::Array)
@@ -520,9 +498,7 @@ private:
 
     }
 
-
     // Bellow function must be static,
-    // otherwise, when GrammarInput is destoryed, the bellow calls will be error
     static void solveArithmeticOperator (PIT v, P &o)
     {
         checkTypeEquality(v[1].type, v[3].type, [&]() {
@@ -531,15 +507,8 @@ private:
 
             InstructionArgument firstArg = readAddr(v[1]), secondArg = readAddr(v[3]);
             auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
-
-
             codeTable().addArgument(tmpArg, newArgType(o.type ) );
-
-
-
-
             o.addr = tmpArg;
-
             codeTable().generateCode(ThreeAddressInstruction::toCategory(v[2].lexValue),
                 firstArg,
                 secondArg,
@@ -601,9 +570,6 @@ private:
             errorOfstream() << "type " << typeCategoryToName(t.category()) << "can't be used as arithmetic operator "<<  "\n";
         }
     }
-
-
-
 
     static InstructionArgument readAddr(const Properties& p)
     {
@@ -674,19 +640,12 @@ private:
 
 };
 
-//
-//template<typename GrammarParser>
-//GrammarParser* GrammarInput<GrammarParser>::global_grammarParser =  nullptr;
 
-//template<typename GrammarParser>
-//auto makeGrammarFactory(
-//        GrammarParser& grammarParser )
-//{
-//
-//    GrammarInput<GrammarParser>::global_grammarParser = &grammarParser;
-//    return  GrammarInput<GrammarParser> ().gf;
-//}
-//
+
+
+
+
+
 
 
 
@@ -696,4 +655,4 @@ private:
 
 
 
-#endif /* LZ_COMPILER_C_MAKE_GRAMMAR_FACTORY_H_ */
+#endif /* LZ_COMPILER_C_GRAMMAR_INPUT_H_ */

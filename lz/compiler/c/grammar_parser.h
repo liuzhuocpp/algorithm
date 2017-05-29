@@ -11,6 +11,7 @@
 
 
 
+#include <lz/compiler/c/grammar_input.h>
 #include <lz/utility.h>
 
 
@@ -19,7 +20,6 @@
 #include <lz/compiler/slr1_grammar.h>
 #include <lz/compiler/lr_grammar.h>
 
-#include <lz/compiler/c/make_grammar_factory.h>
 //#include <lz/compiler/c/three_address_code.h>
 
 
