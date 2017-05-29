@@ -274,9 +274,7 @@ public:
 
                 o.type = TypeCategory::Void;// 目前不支持返回值
 
-//                codeTable().generateCode(InstructionCategory::Call, InstructionArgument::makeEmpty(), InstructionArgument::makeEmpty(),
-//                    );
-
+                codeTable().generateCallCode(identifierTable().find(v[1].lexValue));
 
             };
 

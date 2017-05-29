@@ -21,7 +21,11 @@ $0: Int32,0,4
        beginFunc   
        + 2234234 b $0
        = $0  b
-       if> b 0 L17
-       goto   L18
-L17:   = 1  a
-L18:   endFunc   
+       Call   f
+       Call   f
+       if> b 0 L19
+       goto   L20
+L19:   = 1  a
+L20:   Call   f
+       Call   f
+       endFunc   
