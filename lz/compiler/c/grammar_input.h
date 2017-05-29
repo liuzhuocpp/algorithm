@@ -380,18 +380,10 @@ public:
                     if(v[1].arrayId == -1)
                     {
                         codeTable().generateAssignCode(readAddr(v[3]), v[1].addr);
-//                        codeTable().generateCode(InstructionCategory::Assign,
-//                            readAddr(v[3]),
-//                            InstructionArgument::makeEmpty(),
-//                            v[1].addr);
                     }
                     else
                     {
                         codeTable().generateWriteArrayCode(readAddr(v[3]), v[1].addr, v[1].arrayId);
-//                        codeTable().generateCode(InstructionCategory::WriteArray,
-//                            readAddr(v[3]),
-//                            v[1].addr,
-//                            InstructionArgument::makeVariable(v[1].arrayId));
                     }
 
                     o.arrayId = v[1].arrayId;
@@ -430,9 +422,6 @@ public:
 
                     codeTable().generateBinaryArithmeticCode('*', arrayOffset,
                         InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg);
-//                    codeTable().generateCode(InstructionCategory::Multiply, arrayOffset,
-//                        InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg);
-
 
                     o.addr = tmpArg; // 数组偏移量
 
@@ -455,19 +444,11 @@ public:
                 codeTable().generateBinaryArithmeticCode('*', arrayOffset,
                     InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
 
-//                codeTable().generateCode(InstructionCategory::Multiply, arrayOffset,
-//                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
-
                 auto tmpArg2 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
                 auto tmpArgType2 = newArgType(InstructionArgumentTypeCategory::Int64);
                 codeTable().addArgument(tmpArg2, tmpArgType2);
 
                 codeTable().generateBinaryArithmeticCode('+', v[1].addr, tmpArg1, tmpArg2);
-//                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
-//
-//                codeTable().generateCode(InstructionCategory::Plus,
-//                    v[1].addr, tmpArg1, tmpArg2);
-
                 o.addr = tmpArg2;
             };
 
@@ -492,7 +473,6 @@ private:
 
     static InstructionArgumentType newArgType(TypeDescriptor i)
     {
-//        InstructionArgumentType ans;
         InstructionArgumentTypeCategory c;
 
         int arrayWidth = -1;
@@ -507,7 +487,6 @@ private:
         case TypeCategory::Array :
             c = InstructionArgumentTypeCategory::Array;
             arrayWidth = typeTable().getWidth(i);
-//            ans.setArrayWidth(typeTable().getWidth(i));
             break;
         case TypeCategory::Float :
             c = InstructionArgumentTypeCategory::Float;
@@ -608,11 +587,6 @@ private:
 
             codeTable().generateReadArrayCode(p.arrayId, p.addr, tmpArg);
 
-//            codeTable().generateCode(InstructionCategory::ReadArray,
-//                InstructionArgument::makeVariable(p.arrayId),
-//                p.addr,
-//                tmpArg);
-
             return tmpArg;
         }
         else
@@ -634,11 +608,6 @@ private:
             o.trueList.push_back(codeTable().nextInstructionIndex());
 
             codeTable().generateIfRelCode(v[2].lexValue, readAddr(v[1]), readAddr(v[3]));
-//            codeTable().generateCode(
-//                ThreeAddressInstruction::toIfRel(v[2].lexValue),
-//                readAddr(v[1]),
-//                readAddr(v[3]),
-//                InstructionArgument::makeEmpty());
             o.falseList.push_back(codeTable().nextInstructionIndex());
             codeTable().generateGotoCode();
             o.type = TypeCategory::Bool;
@@ -652,19 +621,6 @@ private:
         o.type = v[2].type;
 
         codeTable().generateUnaryArithmeticCode(v[1].lexValue[0], readAddr(v[2]), o.addr);
-
-//        std::string op = v[1].lexValue;
-//        InstructionCategory ansOp;
-//        if(op == "+")
-//            ansOp = InstructionCategory::UnaryPlus;
-//        else if(op == "-")
-//            ansOp = InstructionCategory::UnaryMinus;
-//        else assert(0);
-//
-//        codeTable().generateCode(ansOp,
-//            readAddr(v[2]),
-//            InstructionArgument::makeEmpty(),
-//            o.addr);
     }
 
 

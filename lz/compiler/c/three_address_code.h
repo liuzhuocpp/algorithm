@@ -311,31 +311,6 @@ operator<<(std::basic_ostream<Char, Traits>& os,
 
 struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 {
-
-//    X(beginFunc)\
-//    X(endFunc)\
-//    X(If)\
-//    X(IfLess, "if<")\
-//    X(IfMore, "if>")\
-//    X(IfLessEqual, "if<=")\
-//    X(IfMoreEqual, "if>=")\
-//    X(IfEqual, "if==")\
-//    X(IfNotEqual, "if!=")\
-//    X(Goto, "goto")\
-//\
-//    X(Plus, "+")\
-//    X(Minus, "-")\
-//    X(Multiply, "*")\
-//    X(Divide, "/")\
-//    X(Assign, "=")\
-//\
-//    X(UnaryPlus, "plus")\
-//    X(UnaryMinus, "minus")\
-//\
-//    X(ReadArray, "=[]")\
-//    X(WriteArray, "[]=")\
-//    X(Unknown)
-
 private:
 
     // three address instruction argument type info map
@@ -349,8 +324,6 @@ private:
     };
 
     std::vector<FunctionDefination> functionDefinations;
-
-
 
     using std::vector<ThreeAddressInstruction>::vector;
 
@@ -449,18 +422,6 @@ public:
     {
         return size();
     }
-
-
-//    void generateCode(InstuctionCategory cate, Argument arg1, Argument arg2, Argument res)
-//    {
-//        if(cate == InstuctionCategory::Goto) // I know this ugly, but I have not known how to do better now.
-//        {
-//            std::cout << "Please use generateGotoCode()\n";
-//            assert(0);
-//        }
-//        _generateCode(cate, arg1, arg2, res);
-//    }
-
 
     template<typename Iterator>
     void backPatch(Iterator first, Iterator last, int instructionId)
