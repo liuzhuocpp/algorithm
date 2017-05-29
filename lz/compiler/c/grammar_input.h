@@ -413,19 +413,6 @@ public:
                     o.type = typeTable().subarrayType(arrayType);
                     o.addr = generateCalculateArrayOffsetCode(v[3], o.type);
 
-//                    InstructionArgument arrayOffset = readAddr(v[3]);
-//
-//                    auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
-//
-//                    auto tmpArgType = newArgType(InstructionArgumentTypeCategory::Int64);
-//
-//                    threeAddressCode().addArgument(tmpArg, tmpArgType);
-//
-//                    threeAddressCode().generateBinaryArithmeticCode('*', arrayOffset,
-//                        InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg);
-
-//                    o.addr = tmpArg; // 数组偏移量
-
                 });
             };
 
@@ -436,16 +423,6 @@ public:
                 o.type = typeTable().subarrayType(v[1].type);
 
                 auto tmpArg1 = generateCalculateArrayOffsetCode(v[3], o.type);
-
-//                InstructionArgument arrayOffset = readAddr(v[3]);
-//                auto tmpArg1 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
-//                auto tmpArgType1 = newArgType(InstructionArgumentTypeCategory::Int64);
-//                threeAddressCode().addArgument(tmpArg1, tmpArgType1);
-//                threeAddressCode().generateBinaryArithmeticCode('*', arrayOffset,
-//                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
-
-
-
                 auto tmpArg2 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
                 threeAddressCode().addArgument(tmpArg2, newArgType(InstructionArgumentTypeCategory::Int64));
                 threeAddressCode().generateBinaryArithmeticCode('+', v[1].addr, tmpArg1, tmpArg2);
