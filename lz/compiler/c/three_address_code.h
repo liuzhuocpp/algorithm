@@ -264,6 +264,14 @@ public:
         return Category::Unknown;
     }
 
+    static Category toBinaryArithmetic(char op)
+    {
+        auto optional = NameToCategory(std::string(1, op));
+        if(optional.hasValue()) return optional.value();
+
+        return Category::Unknown;
+    }
+
     static Category toCategory(const std::string& cate)
     {
         auto optional = NameToCategory(cate);
@@ -326,7 +334,9 @@ struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 //\
 //    X(ReadArray, "=[]")\
 //    X(WriteArray, "[]=")\
-//    X(Unknown)\
+//    X(Unknown)
+
+private:
 
     // three address instruction argument type info map
     ThreeAddressInstructionArgumentTypeMap globalArgumentTypeMap;
@@ -343,13 +353,15 @@ struct ThreeAddressCode: private std::vector<ThreeAddressInstruction>
 
 
     using std::vector<ThreeAddressInstruction>::vector;
+
+
     using Argument = ThreeAddressInstructionArgument;
     using ArgumentType = ThreeAddressInstructionArgumentType;
-private:
     std::set<int> labels;
-    using Category = ThreeAddressInstruction::Category;
+    using Instuction = ThreeAddressInstruction;
+    using InstuctionCategory = ThreeAddressInstruction::Category;
 
-    void _generateCode(Category cate, Argument arg1, Argument arg2, Argument res)
+    void _generateCode(InstuctionCategory cate, Argument arg1, Argument arg2, Argument res)
     {
         emplace_back(cate, arg1, arg2, res);
     }
@@ -369,13 +381,13 @@ public:
     void beginFunction(int functionId)
     {
         functionDefinations.push_back(FunctionDefination{functionId, nextInstructionIndex(), -1});
-        _generateCode(Category::beginFunc, Argument::makeEmpty(), Argument::makeEmpty(), Argument::makeEmpty());
+        _generateCode(InstuctionCategory::beginFunc, Argument::makeEmpty(), Argument::makeEmpty(), Argument::makeEmpty());
     }
 
     void endFunction()
     {
 
-        _generateCode(Category::endFunc, Argument::makeEmpty(), Argument::makeEmpty(), Argument::makeEmpty());
+        _generateCode(InstuctionCategory::endFunc, Argument::makeEmpty(), Argument::makeEmpty(), Argument::makeEmpty());
         functionDefinations.back().endIndex = nextInstructionIndex();
     }
 
@@ -387,21 +399,67 @@ public:
         globalArgumentTypeMap.clear();
     }
 
+    void generateIfRelCode(std::string rel, Argument a, Argument b, int labelIndex)
+    {
+        _generateCode(Instuction::toIfRel(rel), a, b, Argument::makeLabel(labelIndex));
+    }
+
+    void generateIfRelCode(std::string rel, Argument a, Argument b)
+    {
+        _generateCode(Instuction::toIfRel(rel), a, b, Argument::makeEmpty());
+    }
+
+    // unary +， unary -
+    void generateUnaryArithmeticCode(char op, Argument a, Argument res)
+    {
+        InstuctionCategory c;
+        if(op == '+')
+            c = InstuctionCategory::UnaryPlus;
+        else if(op == '-')
+            c = InstuctionCategory::UnaryMinus;
+        else assert(0);
+
+        _generateCode(c, a, Argument::makeEmpty(), res);
+    }
+
+    void generateBinaryArithmeticCode(char op, Argument a, Argument b, Argument res)
+    {
+        InstuctionCategory c;
+        c = Instuction::toBinaryArithmetic(op);
+        _generateCode(c, a, b, res);
+    }
+
+    void generateAssignCode(Argument a, Argument res)
+    {
+        _generateCode(InstuctionCategory::Assign, a, Argument::makeEmpty(), res);
+    }
+
+//arrayId 在identifierTable中
+    void generateWriteArrayCode(Argument fromValue, Argument arrayOffset, int arrayId)
+    {
+        _generateCode(InstuctionCategory::WriteArray, fromValue, arrayOffset, Argument::makeVariable(arrayId));
+    }
+
+    void generateReadArrayCode(int arrayId, Argument arrayOffset, Argument toValue)
+    {
+        _generateCode(InstuctionCategory::ReadArray, Argument::makeVariable(arrayId), arrayOffset, toValue);
+    }
+
     int nextInstructionIndex() const
     {
         return size();
     }
 
 
-    void generateCode(Category cate, Argument arg1, Argument arg2, Argument res)
-    {
-        if(cate == Category::Goto) // I know this ugly, but I have not known how to do better now.
-        {
-            std::cout << "Please use generateGotoCode()\n";
-            assert(0);
-        }
-        _generateCode(cate, arg1, arg2, res);
-    }
+//    void generateCode(InstuctionCategory cate, Argument arg1, Argument arg2, Argument res)
+//    {
+//        if(cate == InstuctionCategory::Goto) // I know this ugly, but I have not known how to do better now.
+//        {
+//            std::cout << "Please use generateGotoCode()\n";
+//            assert(0);
+//        }
+//        _generateCode(cate, arg1, arg2, res);
+//    }
 
 
     template<typename Iterator>
@@ -423,18 +481,18 @@ public:
 
     void generateGotoCode()
     {
-        _generateCode(Category::Goto, Argument::Category::Empty, Argument::Category::Empty, Argument::Category::Empty);
+        _generateCode(InstuctionCategory::Goto, Argument::Category::Empty, Argument::Category::Empty, Argument::Category::Empty);
     }
     void generateGotoCode(int label)
     {
-        _generateCode(Category::Goto, Argument::Category::Empty, Argument::Category::Empty,
+        _generateCode(InstuctionCategory::Goto, Argument::Category::Empty, Argument::Category::Empty,
             Argument(Argument::Category::Label, label));
         labels.insert(label);
     }
 
     void generateCallCode(int v)
     {
-        _generateCode(Category::Call, Argument::Category::Empty, Argument::Category::Empty, Argument::makeVariable(v));
+        _generateCode(InstuctionCategory::Call, Argument::Category::Empty, Argument::Category::Empty, Argument::makeVariable(v));
     }
 
 

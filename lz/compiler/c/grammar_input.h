@@ -379,17 +379,19 @@ public:
 
                     if(v[1].arrayId == -1)
                     {
-                        codeTable().generateCode(InstructionCategory::Assign,
-                            readAddr(v[3]),
-                            InstructionArgument::makeEmpty(),
-                            v[1].addr);
+                        codeTable().generateAssignCode(readAddr(v[3]), v[1].addr);
+//                        codeTable().generateCode(InstructionCategory::Assign,
+//                            readAddr(v[3]),
+//                            InstructionArgument::makeEmpty(),
+//                            v[1].addr);
                     }
                     else
                     {
-                        codeTable().generateCode(InstructionCategory::WriteArray,
-                            readAddr(v[3]),
-                            v[1].addr,
-                            InstructionArgument::makeVariable(v[1].arrayId));
+                        codeTable().generateWriteArrayCode(readAddr(v[3]), v[1].addr, v[1].arrayId);
+//                        codeTable().generateCode(InstructionCategory::WriteArray,
+//                            readAddr(v[3]),
+//                            v[1].addr,
+//                            InstructionArgument::makeVariable(v[1].arrayId));
                     }
 
                     o.arrayId = v[1].arrayId;
@@ -425,8 +427,11 @@ public:
                     auto tmpArgType = newArgType(InstructionArgumentTypeCategory::Int64);
 
                     codeTable().addArgument(tmpArg, tmpArgType);
-                    codeTable().generateCode(InstructionCategory::Multiply, arrayOffset,
+
+                    codeTable().generateBinaryArithmeticCode('*', arrayOffset,
                         InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg);
+//                    codeTable().generateCode(InstructionCategory::Multiply, arrayOffset,
+//                        InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg);
 
 
                     o.addr = tmpArg; // 数组偏移量
@@ -445,14 +450,23 @@ public:
                 auto tmpArg1 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
                 auto tmpArgType1 = newArgType(InstructionArgumentTypeCategory::Int64);
                 codeTable().addArgument(tmpArg1, tmpArgType1);
-                codeTable().generateCode(InstructionCategory::Multiply, arrayOffset,
+
+
+                codeTable().generateBinaryArithmeticCode('*', arrayOffset,
                     InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
+
+//                codeTable().generateCode(InstructionCategory::Multiply, arrayOffset,
+//                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
 
                 auto tmpArg2 = InstructionArgument::makeTempVariable(getTemporaryVariableId());
                 auto tmpArgType2 = newArgType(InstructionArgumentTypeCategory::Int64);
                 codeTable().addArgument(tmpArg2, tmpArgType2);
-                codeTable().generateCode(InstructionCategory::Plus,
-                    v[1].addr, tmpArg1, tmpArg2);
+
+                codeTable().generateBinaryArithmeticCode('+', v[1].addr, tmpArg1, tmpArg2);
+//                    InstructionArgument::makeNumber(typeTable().getWidth(o.type)), tmpArg1);
+//
+//                codeTable().generateCode(InstructionCategory::Plus,
+//                    v[1].addr, tmpArg1, tmpArg2);
 
                 o.addr = tmpArg2;
             };
@@ -520,10 +534,9 @@ private:
             auto tmpArg = InstructionArgument::makeTempVariable(getTemporaryVariableId());
             codeTable().addArgument(tmpArg, newArgType(o.type ) );
             o.addr = tmpArg;
-            codeTable().generateCode(ThreeAddressInstruction::toCategory(v[2].lexValue),
-                firstArg,
-                secondArg,
-                o.addr);
+
+
+            codeTable().generateBinaryArithmeticCode(v[2].lexValue[0], firstArg, secondArg, tmpArg);
         });
 
     }
@@ -593,10 +606,12 @@ private:
 
             codeTable().addArgument(tmpArg, newArgType(typeTable().arrayBaseType(arrayType)));
 
-            codeTable().generateCode(InstructionCategory::ReadArray,
-                InstructionArgument::makeVariable(p.arrayId),
-                p.addr,
-                tmpArg);
+            codeTable().generateReadArrayCode(p.arrayId, p.addr, tmpArg);
+
+//            codeTable().generateCode(InstructionCategory::ReadArray,
+//                InstructionArgument::makeVariable(p.arrayId),
+//                p.addr,
+//                tmpArg);
 
             return tmpArg;
         }
@@ -617,10 +632,13 @@ private:
         checkTypeEquality(v[1].type, v[3].type, [&]() {
 
             o.trueList.push_back(codeTable().nextInstructionIndex());
-            codeTable().generateCode(ThreeAddressInstruction::toIfRel(v[2].lexValue),
-                readAddr(v[1]),
-                readAddr(v[3]),
-                InstructionArgument::makeEmpty());
+
+            codeTable().generateIfRelCode(v[2].lexValue, readAddr(v[1]), readAddr(v[3]));
+//            codeTable().generateCode(
+//                ThreeAddressInstruction::toIfRel(v[2].lexValue),
+//                readAddr(v[1]),
+//                readAddr(v[3]),
+//                InstructionArgument::makeEmpty());
             o.falseList.push_back(codeTable().nextInstructionIndex());
             codeTable().generateGotoCode();
             o.type = TypeCategory::Bool;
@@ -632,18 +650,21 @@ private:
     {
         o.addr = InstructionArgument::makeTempVariable(getTemporaryVariableId());
         o.type = v[2].type;
-        std::string op = v[1].lexValue;
-        InstructionCategory ansOp;
-        if(op == "+")
-            ansOp = InstructionCategory::UnaryPlus;
-        else if(op == "-")
-            ansOp = InstructionCategory::UnaryMinus;
-        else assert(0);
 
-        codeTable().generateCode(ansOp,
-            readAddr(v[2]),
-            InstructionArgument::makeEmpty(),
-            o.addr);
+        codeTable().generateUnaryArithmeticCode(v[1].lexValue[0], readAddr(v[2]), o.addr);
+
+//        std::string op = v[1].lexValue;
+//        InstructionCategory ansOp;
+//        if(op == "+")
+//            ansOp = InstructionCategory::UnaryPlus;
+//        else if(op == "-")
+//            ansOp = InstructionCategory::UnaryMinus;
+//        else assert(0);
+//
+//        codeTable().generateCode(ansOp,
+//            readAddr(v[2]),
+//            InstructionArgument::makeEmpty(),
+//            o.addr);
     }
 
 
