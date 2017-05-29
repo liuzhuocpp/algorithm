@@ -3,7 +3,7 @@ b: Int32,1,4
 
 f:
 
-       beginFunc   
+       beginFunc   0
 L1:    if!= a 1 L3
        goto   L11
 L3:    if== a 0 L5
@@ -18,7 +18,7 @@ L11:   endFunc
 g:
 $0: Int32,0,4
 
-       beginFunc   
+       beginFunc   4
        + 2234234 b $0
        = $0  b
        Call   f

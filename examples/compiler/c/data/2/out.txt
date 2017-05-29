@@ -5,7 +5,7 @@ c: Int32,8,4
 f:
 $0: Int32,0,4
 
-      beginFunc   
+      beginFunc   4
       if< a 111111 L5
       goto   L3
 L3:   if< b 3333 L5

@@ -6,7 +6,7 @@ f:
 $0: Int32,0,4
 $1: Int32,4,4
 
-      beginFunc   
+      beginFunc   8
 L1:   if> a 0 L3
       goto   L8
 L3:   if== a 11111 L5

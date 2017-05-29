@@ -3,7 +3,7 @@ b: Int32,1,4
 
 f:
 
-      beginFunc   
+      beginFunc   0
       goto   
       if> b 0 L4
       goto   L5

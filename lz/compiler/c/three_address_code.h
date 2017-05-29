@@ -285,11 +285,6 @@ public:
         return cate >= Category::IfLess && cate <= Category::IfNotEqual;
     }
 
-
-
-
-
-
 };
 
 
@@ -359,8 +354,16 @@ public:
 
     void endFunction()
     {
-
         _generateCode(InstuctionCategory::endFunc, Argument::makeEmpty(), Argument::makeEmpty(), Argument::makeEmpty());
+
+        int totalBytes = 0;
+        for(auto argAndType: functionDefinations.back().argumentTypeMap)
+        {
+            totalBytes += argAndType.second.getWidth();
+        }
+
+
+        (*this)[functionDefinations.back().beginIndex].res = Argument::makeNumber(totalBytes);
         functionDefinations.back().endIndex = nextInstructionIndex();
     }
 
@@ -496,17 +499,14 @@ public:
 
             if(functionIterator->beginIndex == i)
             {
-
                 os << globalIdentifierTablePointer->identifier(functionIterator->functionId) << ":\n";
                 os << functionIterator->argumentTypeMap << "\n";
-
             }
+
             if(functionIterator->endIndex == i + 1)
             {
                 functionIterator ++;
             }
-
-
 
             if(!table.labels.count(i))
             {

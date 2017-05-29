@@ -12,7 +12,7 @@ $3: Int32,12,4
 $4: Int32,16,4
 $5: Int32,20,4
 
-       beginFunc   
+       beginFunc   24
        if< a 1111 L3
        goto   L6
 L3:    + a b $0

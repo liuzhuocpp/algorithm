@@ -9,7 +9,7 @@ $3: Int32,8,4
 $4: Int32,12,4
 $5: Int32,16,4
 
-       beginFunc   
+       beginFunc   20
        if== a 1111 L3
        goto   L12
 L3:    if== a 22222 L5
