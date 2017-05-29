@@ -452,49 +452,49 @@ public:
 
 private:
 
-    static InstructionArgumentType newArgType(InstructionArgumentTypeCategory cate)
+    static InstructionArgumentType newArgType(InstructionArgumentTypeCategory cate, int arrayWidth = -1)
     {
+        InstructionArgumentType ans(cate, offset());
+
         if(cate == InstructionArgumentTypeCategory::Array)
         {
-            assert(0);
+            assert(arrayWidth > 0);
+            ans.setArrayWidth(arrayWidth);
         }
-
-        InstructionArgumentType ans(cate, offset());
         offset() += ans.getWidth();
         return ans;
     }
 
     static InstructionArgumentType newArgType(TypeDescriptor i)
     {
-        InstructionArgumentType ans;
+//        InstructionArgumentType ans;
+        InstructionArgumentTypeCategory c;
 
-
+        int arrayWidth = -1;
         switch(i.category())
         {
         case TypeCategory::Bool:
-            ans.setCategory(InstructionArgumentTypeCategory::Bool);
+            c = InstructionArgumentTypeCategory::Bool;
             break;
         case TypeCategory::Int :
-            ans.setCategory(InstructionArgumentTypeCategory::Int32);
+            c = InstructionArgumentTypeCategory::Int32;
             break;
         case TypeCategory::Array :
-            ans.setCategory(InstructionArgumentTypeCategory::Array);
-            ans.setArrayWidth(typeTable().getWidth(i));
+            c = InstructionArgumentTypeCategory::Array;
+            arrayWidth = typeTable().getWidth(i);
+//            ans.setArrayWidth(typeTable().getWidth(i));
             break;
         case TypeCategory::Float :
-            ans.setCategory(InstructionArgumentTypeCategory::Float);
+            c = InstructionArgumentTypeCategory::Float;
             break;
         case TypeCategory::Double :
-            ans.setCategory(InstructionArgumentTypeCategory::Double);
+            c = InstructionArgumentTypeCategory::Double;
             break;
         default:
             assert(0);
         }
 
-        ans.setOffset(offset());
-
-        offset() += ans.getWidth();
-        return ans;
+        return newArgType(c, arrayWidth);
 
     }
 
