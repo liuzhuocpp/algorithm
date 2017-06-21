@@ -1,0 +1,19 @@
+1：http://acm.hdu.edu.cn/showproblem.php?pid=3507 
+题意：输入一个序列a，长度n，将序列分成若干不向交子段，每一个i到j的子段的价值为：(a[i] + a[i + 1] +...+ a[j]) * (a[i] + a[i + 1] +...+ a[j]) + M，M为一常数，求出一种划分使得序列的价值和最小。
+题解：斜率优化入门题目，dp[i] = min{dp[j] + (s[i] - s[j]) * (s[i] - s[j]) +M } ( j >= 1 && j < i)。
+斜率优化：(y(j) - y(k)) / (x(j) - x(k)) <= s[i]，注意等号。
+
+2：http://codeforces.com/contest/487/problem/E
+tag：树链剖分，轻重边分解，点的双联通，线段树
+
+3：http://codeforces.com/contest/20/problem/C
+tag：dijkstra，heap，最短路
+
+4:http://poj.org/problem?id=1741
+tag:树的重心：把重心删掉后，森林中任意一个树的节点数目不超过原来树的节点数目的一半。
+
+5:http://codeforces.com/contest/555/problem/E
+tag: 边的双连通，最近公共祖先，递推
+
+6：http://codeforces.com/contest/402/problem/E
+tag：强连通

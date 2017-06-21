@@ -1,0 +1,1861 @@
+﻿//强制开栈 G++
+int size = 256 << 20; // 256MB
+char *p = (char*)malloc(size) + size;
+__asm__("movl %0, %%esp\n" :: "r"(p));
+
+//强制开栈C++
+#pragma comment(linker, "/STACK:1024000000,1024000000")
+
+//ac 自动机
+struct ACauto
+{
+    static const int N = 1009;
+    int nc; /// 字符种类
+    struct Node
+    {
+        int *link;
+        int fail;
+        bool tail;
+        void clear(int nc)
+        {
+            delete [] link;
+            link = new int[nc];
+            for(int i = 0; i < nc; ++ i) link[i] = -1;
+            fail = -1;
+            tail = 0;
+        }
+    }node[N];
+    int id;
+    void clear(int _nc)
+    {
+        nc = _nc;
+        node[id = 0].clear(nc);
+    }
+    void insert(char *s, int tr(char) )
+    {
+        int top = 0;
+        for(int i = 0; s[i]; ++ i)
+        {
+            int &to = node[top].link[tr(s[i])];
+            if(to == -1)
+            {
+//                cout << "MM" << endl;
+                node[to = ++ id].clear(nc);
+//                cout << "MM%" << endl;
+            }
+            top = to;
+        }
+        node[top].tail = 1;
+    }
+    void build()
+    {
+        queue<int> q;
+        q.push(0);
+        while(!q.empty())
+        {
+            int now = q.front();
+            q.pop();
+            for(int i = 0; i < nc; ++ i)
+            {
+                int &to = node[now].link[i];
+                if(to != -1)
+                {
+                    if(now == 0) node[to].fail = 0;
+                    else node[to].fail = node[node[now].fail].link[i];
+                    q.push(to);
+                    if(node[node[to].fail].tail) node[to].tail = 1;
+                }
+                else
+                {
+                    if(now == 0) to = 0;
+                    else to = node[node[now].fail].link[i];
+                }
+            }
+        }
+    }
+};
+
+//大整数
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <set>
+using namespace std;
+const int N=1009;
+class Big
+{
+public:
+    static const int Maxn = 1009, Bit = 10000;
+    int a[Maxn],l;
+    Big()
+    {
+        memset(a, 0, sizeof(a));
+        a[(l = 0)++] = 0;
+    }
+    Big(int v)
+    {
+        memset(a, 0, sizeof(a)), l = 0;
+        while(v)
+        {
+            a[l++] = v % Bit;
+            v /= Bit;
+        }
+        if(!l) a[l++] = 0;
+    }
+    Big(char *s)
+    {
+        memset(a, 0, sizeof(a)), l = 0;
+        for(int i = strlen(s) - 1; i >= 0; i -= 4)
+        {
+            int t = 0;
+            for(int j = max(i - 3, 0); j <= i; j++) t = t * 10 + s[j] - '0';
+            a[l++] = t;
+        }
+    }
+    bool operator < (const Big &o)
+    {
+        if(l != o.l) return l < o.l;
+        for(int i = l - 1; i >= 0; i--)
+        {
+            if(a[i] != o.a[i]) return a[i] < o.a[i];
+        }
+        return 0;
+    }
+    bool operator == (const Big &o)
+    {
+        if(l != o.l) return 0;
+        for(int i = l - 1; i >= 0; i--)
+        {
+            if(a[i] != o.a[i]) return 0;
+        }
+        return 1;
+    }
+    Big operator + (const Big &o)
+    {
+        Big r;
+        r.l = max(l, o.l);
+        for(int i = 0; i < r.l; i++)
+        {
+            r.a[i] += a[i] + o.a[i];
+            r.a[i + 1] += r.a[i] / Bit;
+            r.a[i] %= Bit;
+        }
+        while(r.a[r.l]) r.a[r.l + 1] += r.a[r.l] / Bit, r.a[r.l++] %= Bit;
+        return r;
+    }
+    Big operator * (const Big &o)
+    {
+        Big r;
+        for(int i = 0; i < l; i++)
+        {
+            for(int j = 0; j < o.l; j++)
+            {
+                r.a[i + j] += a[i] * o.a[j];
+                r.a[i + j + 1] += r.a[i + j] / Bit;
+                r.a[i + j] %= Bit;
+            }
+        }
+        r.l = l + o.l;
+        while(r.l - 1 && !r.a[r.l - 1]) r.l --;
+        return r;
+    }
+    Big operator - (const Big &o)
+    {
+        Big r = *this;
+        for(int i = 0; i < l; i++)
+        {
+            if((r.a[i] -= o.a[i]) < 0) r.a[i] += Bit, r.a[i + 1] --;
+        }
+        while(r.l - 1 && !r.a[r.l - 1]) r.l --;
+        return r;
+    }
+    Big operator / (const int &o)
+    {
+        Big r;
+        int t = 0;
+        for(int i = l - 1; i >= 0; i--)
+        {
+            t = t * Bit + a[i];
+            r.a[i] = t / o, t %= o ;
+        }
+        r.l = l;
+        while(r.l - 1 && !r.a[r.l - 1]) r.l --;
+        return r;
+    }
+    void out() const
+    {
+        printf("%d", a[l - 1]);
+        for(int i = l - 2; i >= 0; i--)
+        {
+            printf("%04d",a[i]);
+        }
+//        puts("");
+    }
+};
+
+
+//dinic
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <queue>
+#include <algorithm>
+
+using namespace std;
+
+const int Maxn = 200 + 9, Maxm = 15009 << 1, inf = 0x7fffffff;
+class Map
+{
+public:
+    int head[Maxn], id;
+    int to[Maxm], cap[Maxm], next[Maxm];
+    void clear()
+    {
+        memset(head, -1, sizeof(head)), id = 0;
+    }
+    void _add(int a, int b, int c)
+    {
+        to[id] = b;
+        cap[id] = c;
+        next[id] = head[a];
+        head[a] = id ++;
+    }
+    void add(int a, int b, int c)
+    {
+        _add(a, b, c);
+        _add(b, a, 0);
+    }
+    void out(int s)
+    {
+        cout << "s= " << s;
+        for(int i = head[s]; ~i; i = next[i])
+        {
+            cout <<" " <<  to[i]  ;
+        }
+        cout << endl;
+    }
+}map;
+class Dinic
+{
+public:
+    int level[Maxn], _head[Maxn];
+    bool makeLevel(int s, int t, Map &map)
+    {
+        queue<int> q;
+        memset(level, 0, sizeof(level));
+        q.push(s);
+        level[s] = 1;
+        while(!q.empty())
+        {
+            int now = q.front();
+            if(now == t) return 1;
+            q.pop();
+            for(int i = map.head[now]; ~i; i = map.next[i])
+            {
+                int to = map.to[i];
+                if(!level[to] && map.cap[i])
+                {
+                    level[to] = level[now] + 1;
+                    q.push(to);
+                }
+            }
+        }
+        return 0;
+    }
+    int dfs(int now, int limit, const int &t, Map &map)
+    {
+        if(now == t) return limit;
+        int ret = 0, flow;
+        for(int i = map.head[now]; ~i; i = map.next[i])
+        {
+            int to = map.to[i];
+            map.head[now] = i;
+            if(level[to] == level[now] + 1)
+            {
+                flow = dfs(to, min(map.cap[i], limit - ret), t, map);
+                map.cap[i] -= flow;
+                map.cap[i ^ 1] += flow;
+                if((ret += flow) == limit) return ret;
+            }
+        }
+        return ret;
+    }
+    int maxFlow(int s, int t, Map &map)
+    {
+        int ans = 0;
+        memcpy(_head, map.head, sizeof(_head));
+        while(makeLevel(s, t, map))
+        {
+            ans += dfs(s, inf, t, map);
+            memcpy(map.head, _head, sizeof(_head));
+        }
+        return ans;
+    }
+}dinic;
+//费用流
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <queue>
+
+using namespace std;
+
+const int Maxn = 1000 + 9, Maxm = 10009 << 2, inf = 0x7fffffff;
+class Map
+{
+public:
+    int head[Maxn], id;
+    int from[Maxm], to[Maxm], cap[Maxm], w[Maxm], next[Maxm];
+    void clear()
+    {
+        memset(head, -1, sizeof(head)), id = 0;
+    }
+    void _add(int a, int b, int c, int _w)
+    {
+        from[id] = a;
+        to[id] = b;
+        cap[id] = c;
+        w[id] = _w;
+        next[id] = head[a];
+        head[a] = id++;
+    }
+    void add(int a, int b, int c, int w)
+    {
+        _add(a, b, c, w);
+        _add(b, a, 0, -w);
+    }
+} map;
+class CostFlow
+{
+public:
+    int dp[Maxn], pre[Maxn];
+    bool inQue[Maxn];
+    bool spfa(int s, int t, Map &map)
+    {
+        queue<int> q;
+        fill(dp, dp + Maxn, inf);
+        memset(inQue, 0, sizeof(inQue));
+        memset(pre, -1, sizeof(pre));
+
+        dp[s] = 0;
+        q.push(s);
+        inQue[s] = 1;
+
+        while(!q.empty())
+        {
+            int now = q.front();
+            q.pop();
+            inQue[now] = 0;
+            for(int i = map.head[now]; ~i; i = map.next[i])
+            {
+                if(!map.cap[i]) continue;
+                int to = map.to[i];
+                if(dp[to] > dp[now] + map.w[i])
+                {
+                    dp[to] = dp[now] + map.w[i];
+                    pre[to] = i;
+                    if(!inQue[to])
+                    {
+                        q.push(to);
+                        inQue[to] = 1;
+                    }
+                }
+            }
+        }
+        return dp[t] != inf;
+    }
+    int cost(int s, int t, Map &map)
+    {
+        int maxf = 0, minw = 0, limit;
+        while(spfa(s, t, map))
+        {
+            limit = inf;
+            for(int i = pre[t]; ~i; i = pre[map.from[i]])
+            {
+                limit = min(limit, map.cap[i]);
+            }
+            for(int i = pre[t]; ~i; i = pre[map.from[i]])
+            {
+                map.cap[i] -= limit;
+                map.cap[i ^ 1] += limit;
+            }
+            maxf += limit;
+            minw += limit * dp[t];
+        }
+        return minw;
+    }
+}costFlow;
+//点的双连通
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+#include <vector>
+
+using namespace std;
+const int Maxn = 1000 + 9, Maxm = 1000009 << 1;
+class Map
+{
+public:
+    int head[Maxn], id;
+    int to[Maxm], next[Maxm];
+    void init()
+    {
+        memset(head, -1, sizeof(head)), id = 0;
+    }
+    void _add(int a, int b)
+    {
+        to[id] = b;
+        next[id] = head[a];
+        head[a] = id ++;
+    }
+    void add(int a, int b)
+    {
+        _add(a, b);
+        _add(b, a);
+    }
+}map;
+int low[Maxn], dfn[Maxn], stack[Maxn], top, mapping[Maxn], cot, cnt;
+
+void dfs(int now,int fa)       //点的双连通分量及其缩点
+{
+    dfn[now] = low[now] = ++cnt;
+    stack[++top] = now;
+    for(int i = map.head[now]; ~i; i = map.next[i])
+    {
+        int to = map.to[i];
+        if(fa == to) continue;
+        if(dfn[to] == -1)
+        {
+            dfs(to, now);
+            low[now] = min(low[now], low[to]);
+            if(dfn[now] <= low[to])
+            {
+                ++cot;
+                int tmp;
+                do
+                {
+                    tmp = stack[top--];
+                    mapping[tmp] = cot;
+                }
+                while(tmp != to);
+                mapping[now] = cot;
+            }
+        }
+        else
+        low[now] = min(low[now], dfn[to]);
+    }
+}
+//边的双连通
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+const int maxn = 5009,maxm = 10009 << 1;
+class Map
+{
+public:
+    int head[maxn], id;
+    int to[maxm], next[maxm];
+    void init()
+    {
+        memset(head, -1, sizeof(head)); id = 0;
+    }
+    void _add(int a, int b)
+    {
+        to[id] = b;
+        next[id] = head[a];
+        head[a] = id ++;
+    }
+    void add(int a, int b)
+    {
+        _add(a, b);
+        _add(b, a);
+    }
+}map;
+int dfn[maxn],low[maxn],stack[maxn],top,mapping[maxn],cot, cnt;
+
+void dfs(int now,int fa)
+{							
+    dfn[now]=low[now]=++cnt;
+    stack[++top]=now;
+    for(int i = map.head[now]; ~i; i = map.next[i])
+    {
+        int to = map.to[i];
+        if(fa == to) continue;
+
+        if(dfn[to] == -1)
+        {
+            dfs(to,now);
+            low[now]=min(low[now], low[to]);
+//            if(low[to]>dfn[now])   the edge is bridge;
+        }
+        else
+        {
+            low[now]=min(low[now], dfn[to]);
+        }
+    }
+    if(dfn[now] == low[now])
+    {
+        ++cot;
+        while(stack[top] != now)
+        {
+            mapping[stack[top--]] = cot;
+        }
+        mapping[stack[top--]] = cot;
+    }
+}
+//强连通
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+const int Maxn = 1009, Maxm = 6000 + 9;
+
+int n, m;
+class Map
+{
+public:
+    int head[Maxn], id;
+    int to[Maxm], next[Maxm];
+    void clear()
+    {
+        memset(head, -1, sizeof(head)), id = 0;
+    }
+    void _add(int a, int b)
+    {
+        to[id] = b;
+        next[id] = head[a];
+        head[a] = id++;
+    }
+} map,nmap;
+int mapping[Maxn], cot;
+class Scon
+{
+public:
+    int dfn[Maxn], low[Maxn], cnt, stack[Maxn], top;
+    bool in_s[Maxn];
+    int vis[Maxn];
+    int id[Maxn];
+    void clear()
+    {
+        fill(dfn + 1, dfn + 1 + n, -1);
+        fill(in_s + 1, in_s + 1 + n, 0);
+        top = cnt = cot = 0;
+    }
+    void run()
+    {
+        clear();
+        for(int i = 1; i <= n; i ++)
+        {
+            if(dfn[i] == -1) dfs(i);
+        }
+    }
+    static bool cmp(int x,int y)
+    {
+        return mapping[x]<mapping[y];
+    }
+    void getNewMap(Map &newMap)
+    {
+        newMap.clear();
+        for(int i=1;i<=n;i++) id[i]=i;
+        memset(vis,0,sizeof(vis));
+        sort(id+1,id+n+1,cmp);
+        for(int x = 1; x <= n; x ++)
+        {
+            int i=id[x];
+            for(int j = map.head[i]; ~j; j = map.next[j])
+            {
+                int a = mapping[i], b = mapping[map.to[j]];
+                if(a != b&&vis[b]!=a)
+                {
+                    newMap._add(a, b);
+                    vis[b]=a;
+                }
+            }
+        }
+    }
+    void dfs(int now)
+    {
+        dfn[now] = low[now] = ++cnt;
+        stack[++top] = now;
+        in_s[now] = 1;
+        for(int i = map.head[now]; ~i; i = map.next[i])
+        {
+            int to = map.to[i];
+            if(dfn[to] == -1)
+            {
+                dfs(to);
+                low[now] = min(low[now],low[to]);
+            }
+            else if(in_s[to])
+            {
+                low[now] = min(low[now],dfn[to]);
+            }
+        }
+        if(dfn[now] == low[now])
+        {
+            ++cot;
+            int tmp;
+            do
+            {
+                tmp = stack[top--];
+                mapping[tmp] = cot;
+                in_s[tmp] = 0;
+            }
+            while(tmp != now);
+        }
+    }
+} scon;
+//LCA_RMQ
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+const int Maxn = 30009, Maxm  = Maxn << 1;
+
+class Map
+{
+public:
+    int head[Maxn], id;
+    int to[Maxm], next[Maxm];
+    void clear()
+    {
+        memset(head, -1, sizeof(head)), id = 0;
+    }
+    void _add(int a, int b)
+    {
+        to[id] = b;
+        next[id] = head[a];
+        head[a] = id++;
+    }
+    void add(int a, int b)
+    {
+        _add(a, b);
+        _add(b, a);
+    }
+} tree;
+
+class RmqLca
+{
+public:
+    int euler[Maxn << 1], eid, depth[Maxn], first[Maxn];
+    int rmq[Maxn << 1][32];
+    void dfs(int now, int fa)
+    {
+        depth[now] = depth[fa] + 1;
+        for(int i = tree.head[now]; ~i; i = tree.next[i])
+        {
+            int to = tree.to[i];
+            if(to == fa) continue;
+            euler[++eid] = to;
+            dfs(to, now);
+            euler[++eid] = now;
+        }
+    }
+    void makeRmq(int root)
+    {
+        eid = 0;
+        euler[++ eid] = root;
+        depth[root] = 0;
+        dfs(root, root);
+        memset(first, -1, sizeof(first));
+        for(int i = 1; i <= eid; i++)
+        {
+            if(first[euler[i]] == -1) first[euler[i]] = i;
+        }
+        for(int i = 1; i <= eid; i++) rmq[i][0] = euler[i];
+        int k = 1;
+        while((1 << k) < eid) k ++;
+        for(int j = 1; j <= k; j++)
+        {
+            for(int i = 1; i + (1 << j) - 1 <= eid; i++)
+            {
+                if(depth[rmq[i][j - 1]] < depth[rmq[i + (1 << j - 1)][j - 1]])
+                    rmq[i][j] = rmq[i][j - 1];
+                else rmq[i][j] = rmq[i + (1 << j - 1)][j - 1];
+            }
+        }
+    }
+    int query(int a, int b)
+    {
+        a = first[a], b = first[b];
+        if(a > b) swap(a, b);
+        int k = 0;
+        while((1 << k + 1) < b - a + 1) k ++ ;
+        if(depth[rmq[a][k]] < depth[rmq[b - (1 << k) + 1][k]]) return rmq[a][k];
+        else return rmq[b - (1 << k) + 1][k];
+    }
+}lca;
+//lca_tarjan
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+#define LL long long
+#define sz(x) int(x.size())
+
+const int N = 1e5 + 9, E = N << 1;
+int lca[N], n, q;
+struct Mp
+{
+    int to[E], next[E], head[N], id;
+    void clear()
+    {
+        memset(head, -1, sizeof(head)), id = 0;
+    }
+    void _add(int a, int b)
+    {
+        to[id] = b;
+        next[id] = head[a];
+        head[a] = id ++;
+    }
+    void add(int a, int b)
+    {
+        _add(a, b);
+        _add(b, a);
+    }
+}tree, ask;
+struct Tarjan
+{
+    bool vi[N];
+    int p[N];
+    int fr(int x)
+    {
+        int r = x;
+        for(;r != p[r];) r = p[r];
+        for(;x != p[x];)
+        {
+            int t = p[x];
+            p[x] = r;
+            x = t;
+        }
+        return r;
+    }
+    void run()
+    {
+        for(int i = 1; i <= n; ++ i) p[i] = i, vi[i] = 0;
+        dfs(1, 1);
+    }
+    void dfs(int u, int fa)
+    {
+        for(int i = tree.head[u]; ~i; i = tree.next[i])
+        {
+            int to = tree.to[i];
+            if(to == fa) continue;
+            dfs(to, u);
+            p[to] = u;
+        }
+        vi[u] = 1;
+        for(int i = ask.head[u]; ~i; i = ask.next[i])
+        {
+            int to = ask.to[i];
+            if(vi[to])
+            {
+                lca[(i + 2) >> 1] = fr(to);
+            }
+        }
+    }
+}go;
+
+//树的重心
+//莫队算法
+//求树上任意一个节点的 比当前节点高任意高度 的父亲
+//求最近点对
+//给出一个ac自动机，求出ac自动机上每个前缀在整个自动机中出现的次数， O(n) 算法
+//斜率优化dp
+//四边形优化dp
+
+
+
+
+
+//问题：
+We call a string good, if after merging all the consecutive equal characters, the resulting string is palindrome. For example, "aabba" is good, because after the merging step it will become "aba".
+
+Given a string, you have to find two values:
+
+the number of good substrings of even length;
+the number of good substrings of odd length.
+Input
+The first line of the input contains a single string of length n (1 ≤ n ≤ 105). Each character of the string will be either 'a' - 'z'.
+
+Output
+Print two space-separated integers: the number of good substrings of even length and the number of good substrings of odd length.
+
+
+
+//fft
+#include <iostream>
+#include <algorithm>
+#include <cstring>
+#include <cstdio>
+#include <complex>
+#include <vector>
+
+using namespace std;
+
+typedef complex<double> Complex ;
+
+void out(Complex a[], int n)
+{
+    cout << "Complex :";
+    for(int i = 0; i < n; ++ i)
+    {
+        cout << a[i] << ",";
+    }
+    cout << endl;
+}
+const int N = 2e5 + 9;
+const double PI = acos(-1.0);
+int n, bitn;
+int rev(int x)
+{
+    int r = 0;
+    for(int i = bitn - 1; i >= 0; -- i)
+    {
+        if(x & (1 << i)) r |= 1 << (bitn - 1 - i);
+    }
+    return r;
+}
+int len(int x)
+{
+    int r = 0;
+    while(x > 0) x >>= 1, r ++;
+    return r;
+}
+Complex A[N];
+void fft(Complex a[], bool anti)
+{
+    for(int i = 0; i < n; ++ i) A[i] = a[i];
+    for(int i = 0; i < n; ++ i) a[rev(i)] = A[i];
+    for(int s = 2; s <= n; s <<= 1)
+    {
+        for(int i = 0; i < n; i += s)
+        {
+            double ang = 2 * PI / s;
+            Complex wn(cos(ang), sin(ang)), w(1.0, 0);
+            if(anti) wn = 1.0 / wn;
+            for(int j = i; j < i + s / 2; ++ j)
+            {
+                Complex u = a[j], t = w * a[j + s / 2];
+                a[j] = u + t;
+                a[j + s / 2] = u - t;
+                w = w * wn;
+            }
+        }
+    }
+    if(anti) for(int i = 0; i < n; ++ i) a[i] /= 1.0 * n;
+}
+void fftMulti(Complex a[], int an, Complex b[], int bn, Complex o[])
+{
+    n = 1;
+    while(n < max(an, bn)) n <<= 1;
+    n <<= 1;
+    bitn = len(n) - 1;
+    while(an < n) a[an ++] = 0;
+    while(bn < n) b[bn ++] = 0;
+    fft(a, 0);
+    fft(b, 0);
+    for(int i = 0; i < n; ++ i) o[i] = a[i] * b[i];
+    fft(o, 1);
+}
+
+
+
+
+//函数式线段树
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <queue>
+#include <map>
+#include <vector>
+using namespace std;
+
+
+#define LL long long
+#define sz(x) int(x.size())
+
+const int N = 100000 + 9;
+struct Tr
+{
+    static const int NT = N * 20;
+    int ls[NT], rs[NT], c[NT], sz;
+    void clear()
+    {
+        sz = 0;
+    }
+    #define mid ((L + R) >> 1)
+    int build(int L, int R)
+    {
+        int p = sz ++;
+        c[p] = 0;
+        if(L == R) return p;
+        ls[p] = build(L, mid);
+        rs[p] = build(mid + 1, R);
+        return p;
+    }
+    int insert(int p, int L, int R, int x)
+    {
+        int np = sz ++;
+        ls[np] = ls[p], rs[np] = rs[p], c[np] = 0;
+        if(L == R)
+        {
+            c[np] ++;
+            return np;
+        }
+        if(x <= mid) ls[np] = insert(ls[p], L, mid, x);
+        else rs[np] = insert(rs[p], mid + 1, R, x);
+        c[np] = c[ls[np]] + c[rs[np]];
+        return np;
+    }
+    int queryK(int lp, int rp, int L, int R, int k)
+    {
+        if(L == R)
+        {
+            return L;
+        }
+
+        int lpls = ls[lp], lprs = rs[lp],
+            rpls = ls[rp], rprs = rs[rp];
+        int t = c[rpls] - c[lpls];
+        if(k <= t) return queryK(lpls, rpls, L, mid, k);
+        else return queryK(lprs, rprs, mid + 1, R, k - t);
+    }
+    int queryX(int lp, int rp, int L, int R, int x)
+    {
+        if(L == R) return c[rp] - c[lp];
+        int lpls = ls[lp], lprs = rs[lp],
+            rpls = ls[rp], rprs = rs[rp];
+        int t = c[rpls] - c[lpls];
+        if(x <= mid) return queryX(lpls, rpls, L, mid, x);
+        else return t + queryX(lprs, rprs, mid + 1, R, x);
+    }
+
+
+
+    #undef mid
+}tr;
+
+//离散化
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <set>
+using namespace std;
+
+#define sz(x) int(x.size())
+#define LL long long
+
+const int N = 100009;
+vector<int> dc;
+void makeDc(int a[], int n)
+{   
+    dc.clear();
+    sort(dc.begin(), dc.end());
+    int nv = unique(dc.begin(), dc.end()) - dc.begin();
+    for(int i = 1; i <= n; ++ i)
+    {
+        a[i] = lower_bound(dc.begin(), dc.begin() + nv, a[i]) - dc.begin() + 1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import java.util.*;
+import java.io.*;
+import java.math.*;
+import java.util.Collections;
+
+class Scan {
+
+	BufferedReader buffer;
+	StringTokenizer tok;
+
+	Scan() {
+		buffer = new BufferedReader(new InputStreamReader(System.in));
+	}
+
+	boolean hasNext() {
+		while (tok == null || !tok.hasMoreElements()) {
+			try {
+				tok = new StringTokenizer(buffer.readLine());
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	String next() {
+		if (hasNext())
+			return tok.nextToken();
+		return null;
+	}
+
+	int nextInt() {
+		return Integer.parseInt(next());
+	}
+
+	long nextLong() {
+		return Long.parseLong(next());
+	}
+}
+
+public class Main {	
+	int main()
+	{		
+		Scan cin = new Scan();
+		int T = cin.nextInt(), cot = 0;
+		
+		PrintWriter out = new PrintWriter(new BufferedWriter(
+				new OutputStreamWriter(System.out)));
+
+		BigInteger eight = new BigInteger("8");
+		BigInteger seven = new BigInteger("7");
+		BigInteger one = new BigInteger("1");
+		while(T -- > 0)
+		{
+			out.print(String.format("Case #%d: ", ++ cot));
+			String an = cin.next();
+			
+			BigInteger n = new BigInteger(an); 
+			n = n.multiply(n).multiply(eight).subtract(n.multiply(seven)).add(one) ;			
+			
+			out.println(n);
+		}
+		out.flush();
+	
+		return 0;
+	}
+	public static void main(String argv[])
+	{
+		new Main().main();
+	}
+
+}
+
+
+
+///LCA 倍增法
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+#define LL long long
+#define sz(x) int(x.size())
+const int N = 20000 + 9, D = 20;
+vector<int> mp[N];
+int n, q;
+int d[N];
+int p[N][D];
+
+void dfs_p(int u, int fa)
+{
+    p[u][0] = fa;
+    for(int i = 1; i < D; ++ i) p[u][i] = p[p[u][i - 1]][i - 1];
+    for(int i = 0; i < sz(mp[u]); ++ i)
+    {
+        int to = mp[u][i];
+        if(to == fa) continue;
+        d[to] = d[u] + 1;
+        dfs_p(to, u);
+    }
+}
+int getLca(int x, int y)
+{
+    if(d[x] < d[y]) swap(x, y);
+    for(int i = D - 1; i >= 0; -- i)
+    {
+        if(d[p[x][i]] >= d[y]) x = p[x][i];
+    }
+    if(x == y) return x;
+    for(int i = D - 1; i >= 0; -- i)
+    {
+        if(p[x][i] != p[y][i]) x = p[x][i], y = p[y][i];
+    }
+    return p[x][0];
+}
+int getP(int x, int dis)
+{
+    for(int i = D - 1; i >= 0; -- i)
+    {
+        if(d[x] - d[p[x][i]] <= dis)
+        {
+            dis -= d[x] - d[p[x][i]];
+            x = p[x][i];
+        }
+    }
+    return x;
+}
+int getDis(int x, int y)
+{
+    int r = getLca(x, y);
+    return d[x] + d[y] - 2 * d[r];
+}
+
+//函数式线段树
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <vector>
+#include <ctime>
+using namespace std;
+
+#define LL long long
+#define sz(x) int(x.size())
+const int N = 60000 + 9;
+
+struct Treap
+{
+    int ls[N], rs[N], c[N], key[N], pri[N]; /// c表示当前子树节点数目
+    int sz, root;
+    void clear()
+    {
+        sz = 0;
+        root = -1;
+//        srand(time(0));
+    }
+    int create(int v)
+    {
+        ls[sz] = -1;
+        rs[sz] = -1;
+        c[sz] = 1;
+        key[sz] = v;
+        pri[sz] = rand();
+        return sz ++;
+    }
+    void rotR(int &p)
+    {
+        int &rsls = rs[ls[p]];
+        c[p] -= c[ls[p]];
+        if(rsls != -1) c[p] += c[rsls], c[ls[p]] -= c[rsls];
+        c[ls[p]] += c[p];
+
+        int tp = p;
+        p = ls[tp];
+        ls[tp] = rsls;
+        rsls = tp;
+    }
+    void rotL(int &p)
+    {
+        int &lsrs = ls[rs[p]];
+        c[p] -= c[rs[p]];
+        if(lsrs != -1) c[p] += c[lsrs], c[rs[p]] -= c[lsrs];
+        c[rs[p]] += c[p];
+
+        int tp = p;
+        p = rs[tp];
+        rs[tp] = lsrs;
+        lsrs = tp;
+
+    }
+    void insert(int &p, int x)
+    {
+        if(p == -1)
+        {
+            p = create(x); return ;
+        }
+        c[p] ++;
+        if(x < key[p])
+        {
+            insert(ls[p], x);
+            if(pri[ls[p]] < pri[p])
+            {
+                rotR(p);
+            }
+        }
+        else
+        {
+            insert(rs[p], x);
+            if(pri[rs[p]] < pri[p])
+            {
+                rotL(p);
+            }
+        }
+    }
+    void del(int &p, int x)
+    {
+//        if(p == -1) return ;
+
+        if(key[p] == x)
+        {
+            if(ls[p] == -1 && rs[p] == -1)
+            {
+                p = -1; return ;
+            }
+            if(rs[p] == -1) rotR(p), c[p] --, del(rs[p], x);
+            else if(ls[p] == -1) rotL(p), c[p] --,del(ls[p], x);
+            else if(pri[ls[p]] < pri[rs[p]]) rotR(p), c[p] --,del(rs[p], x);
+            else rotL(p), c[p] --, del(ls[p], x);
+
+            return ;
+        }
+        c[p] --;
+        if(x < key[p])
+        {
+            del(ls[p], x);
+        }
+        else
+        {
+            del(rs[p], x);
+        }
+    }
+    int query(int p, int k)
+    {
+        if(k == c[ls[p]] + 1) return key[p];
+        if(k <= c[ls[p]])
+        {
+            return query(ls[p], k);
+        }
+        else return query(rs[p], k - (c[ls[p]] + 1));
+    }
+}tr;
+
+//精确覆盖， 数独
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+#define LL long long
+#define sz(x) int(x.size())
+
+const int N = 809;
+int mp[N][N];
+int n, m;
+vector<int> ans;
+struct DLX
+{
+    static const int NN = N * N;
+    int L[NN], R[NN], D[NN], U[NN],   head, id;
+    int S[NN]; /// 这一列有多少元素
+    int I[NN], J[NN]; /// 这一元素属于第I行，第J列
+    void make()
+    {
+        ans.clear();
+        head = 0;
+        for(int j = 0; j <= m; ++ j)
+        {
+            J[j] = D[j] = U[j] = j;
+            S[j] = 0;
+            L[j] = j - 1;
+            R[j] = j + 1;
+        }
+        L[head] = m;
+        R[m] = head;
+        id = m + 1;
+
+        for(int i = 1; i <= n; ++ i)
+        {
+            int left = 0;
+            for(int j = 1; j <= m; ++ j)
+            {
+                if(!mp[i][j]) continue;
+                S[j] ++;
+                I[id] = i;
+                J[id] = j;
+                U[id] = U[j];
+                D[id] = j;
+                if(!left) L[id] = R[id] = id;
+                else L[id] = left, R[id] = R[left];
+                left = id;
+                L[R[id]] = id;
+                R[L[id]] = id;
+                D[U[id]] = id;
+                U[D[id]] = id ++;
+            }
+        }
+    }
+    void remove(int c)
+    {
+        L[R[c]] = L[c];
+        R[L[c]] = R[c];
+        for(int i = D[c]; i != c; i = D[i])
+        {
+            for(int j = R[i]; j != i; j = R[j])
+            {
+                D[U[j]] = D[j];
+                U[D[j]] = U[j];
+                S[J[j]] --;
+            }
+        }
+    }
+    void resume(int c)
+    {
+        L[R[c]] = c;
+        R[L[c]] = c;
+        for(int i = D[c]; i != c; i = D[i])
+        {
+            for(int j = R[i]; j != i; j = R[j])
+            {
+                D[U[j]] = j;
+                U[D[j]] = j;
+                S[J[j]] ++;
+            }
+        }
+    }
+    bool dfs()
+    {
+        if(R[head] == head) return 1;
+        int c = -1;
+
+        for(int j = R[head]; j != head; j = R[j])
+        {
+            if(c == -1 || S[c] > S[j]) c = j;
+        }
+        remove(c);
+        for(int i = D[c]; i != c; i = D[i])
+        {
+            for(int j = R[i]; j != i; j = R[j])
+            {
+                remove(J[j]);
+            }
+            ans.push_back(I[i]);
+            if(dfs()) return 1;
+            ans.pop_back();
+            for(int j = R[i]; j != i; j = R[j])
+            {
+                resume(J[j]);
+            }
+        }
+        resume(c);
+        return 0;
+    }
+}dlx;
+
+char s[10][10];
+void add(int a, int b)
+{
+    mp[a + 1][b + 1] = 1;
+}
+int main()
+{
+//    freopen("in.txt", "r", stdin);
+    int T; scanf("%d", &T);
+    while(T --)
+    {
+        memset(mp, 0, sizeof(mp));
+        for(int i = 0; i < 9; ++ i) scanf("%s", s[i]);
+//        for(int i = 0; i < 9; ++ i)
+//        cout << s[i] << endl;
+
+        int i1, j1, k1;
+        for(int i = 0; i < 9; ++ i)
+        {
+            for(int j = 0; j < 9; ++ j)
+            {
+                if(s[i][j] == '0')
+                {
+                    for(int k = 0; k < 9; ++ k)
+                    {
+                        int r = i + 9 * j + 81 * k;
+                        add(r, i + 9 * j);
+                        add(r, 81 + i + 9 * k);
+                        add(r, 81 * 2 + j + 9 * k);
+                        add(r, 81 * 3 + (i / 3 + 3 * (j / 3)) + 9 * k);
+                    }
+                }
+                else
+                {
+                    int k = s[i][j] - '1';
+                    int r = i + 9 * j + 81 * k;
+                    add(r, i + 9 * j);
+                    add(r, 81 + i + 9 * k);
+                    add(r, 81 * 2 + j + 9 * k);
+                    add(r, 81 * 3 + (i / 3 + 3 * (j / 3)) + 9 * k);
+                }
+            }
+        }
+
+        n = 9 * 9 * 9;
+        m = 4 * 81;
+        dlx.make();
+        bool ok = dlx.dfs();
+//        cout << ok << endl;
+        for(int o = 0; o < sz(ans); ++ o)
+        {
+            int t = ans[o] - 1;
+            int i = t % 9, j = (t / 9) % 9, k = (t / 9 / 9) % 9;
+            s[i][j] = k + '1';
+        }
+        for(int i = 0; i < 9; ++ i)
+        {
+            puts(s[i]);
+        }
+
+    }
+    return 0;
+}
+
+//重复覆盖
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+#define LL long long
+#define sz(x) int(x.size())
+
+const int N = 69, inf = 0x7fffffff;
+int mp[N][N];
+int n, m;
+int ans;
+struct DLX
+{
+    static const int NN = N * N;
+    int L[NN], R[NN], D[NN], U[NN],   head, id;
+    int S[NN]; /// 这一列有多少元素
+    int I[NN], J[NN]; /// 这一元素属于第I行，第J列
+    bool vi[NN];
+    void make()
+    {
+        ans = inf;
+        head = 0;
+        for(int j = 0; j <= m; ++ j)
+        {
+            J[j] = D[j] = U[j] = j;
+            S[j] = 0;
+            L[j] = j - 1;
+            R[j] = j + 1;
+        }
+        L[head] = m;
+        R[m] = head;
+        id = m + 1;
+
+        for(int i = 1; i <= n; ++ i)
+        {
+            int left = 0;
+            for(int j = 1; j <= m; ++ j)
+            {
+                if(!mp[i][j]) continue;
+                S[j] ++;
+                I[id] = i;
+                J[id] = j;
+                U[id] = U[j];
+                D[id] = j;
+                if(!left) L[id] = R[id] = id;
+                else L[id] = left, R[id] = R[left];
+                left = id;
+                L[R[id]] = id;
+                R[L[id]] = id;
+                D[U[id]] = id;
+                U[D[id]] = id ++;
+            }
+        }
+    }
+    void remove(int c)
+    {
+        for(int i = D[c]; i != c; i = D[i])
+        {
+            L[R[i]] = L[i];
+            R[L[i]] = R[i];
+        }
+    }
+    void resume(int c)
+    {
+        for(int i = D[c]; i != c; i = D[i])
+        {
+            L[R[i]] = i;
+            R[L[i]] = i;
+        }
+    }
+    int h()
+    {
+        memset(vi, 0, sizeof(vi));
+        int r = 0;
+        for(int c = R[head]; c != head; c = R[c])
+        {
+            if(vi[c]) continue;
+            r ++;
+//            vi[c] = 1;
+            for(int i = D[c]; i != c; i = D[i])
+            {
+                for(int j = R[i]; j != i; j = R[j])
+                {
+                    vi[J[j]] = 1;
+                }
+            }
+        }
+        return r;
+    }
+    void dfs(int k)
+    {
+        if(k + h() >= ans) return ;
+        if(R[head] == head)
+        {
+            ans = min(ans, k);
+            return ;
+        }
+
+        int c = -1;
+
+        for(int j = R[head]; j != head; j = R[j])
+        {
+            if(c == -1 || S[c] > S[j]) c = j;
+        }
+
+        for(int i = D[c]; i != c; i = D[i])
+        {
+            remove(i);
+            for(int j = R[i]; j != i; j = R[j])
+            {
+                remove(j);
+            }
+            dfs(k + 1);
+            for(int j = R[i]; j != i; j = R[j])
+            {
+                resume(j);
+            }
+            resume(i);
+        }
+
+        return ;
+    }
+}dlx;
+
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
+#include <cstdlib>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+#define ll long long
+
+const ll inf = 0x7fffffffffffffffLL;
+struct Pollard
+{
+    static const int max_test=10;
+    ll make_multi(ll a,ll b,ll m)
+    {
+        ll ans=0;
+        while(b)
+        {
+            if(b&1)
+                ans=(ans+a)%m;
+            a=(a+a)%m;
+            b>>=1;
+        }
+        return ans;
+    }
+    ll make_power(ll a,ll b,ll m)
+    {
+        ll ans=1;
+        while(b)
+        {
+            if(b&1)
+                ans=make_multi(ans,a,m);
+            a=make_multi(a,a,m);
+            b>>=1;
+        }
+        return ans;
+    }
+    bool witness(ll a,ll n)
+    {
+        ll m=n-1,j=0;
+        while(!(m&1))
+            m>>=1,j++;
+        ll ans=make_power(a,m,n);
+        while(j--)
+        {
+            ll tmp=ans;
+            ans=make_multi(ans,ans,n);
+            if(tmp!=1&&tmp!=n-1&&ans==1)
+                return 1;
+        }
+        if(ans!=1) return 1;
+        return 0;
+    }
+    bool miller_rabin(ll n)  /// 判断n 是否是素数
+    {
+        if(n<2) return 0;
+        if(n==2) return 1;
+        if(!(n&1)) return 0;
+        for(int i=1; i<=max_test; ++i)
+        {
+            ll a=rand()%(n-2)+2;
+            if(witness(a,n)) return 0;
+        }
+        return 1;
+    }
+    ll gcd(ll a,ll b)
+    {
+        if(a==0) return b;
+        if(b==0) return a;
+        for(; b; swap(a,b),b%=a);
+        return a;
+    }
+    ll pollard_rho(ll n,ll c)   //令c大于3
+    {
+        ll x=rand()%n,y=x,i=1,k=2,d;
+        while(1)
+        {
+            i++;
+            x=(make_multi(x,x,n)+c)%n;
+            d=gcd(n,y-x);
+            if(d>1 && d<n)
+                return d;
+            if(x==y)
+                return n;
+            if(i==k)
+            {
+                k<<=1;
+                y=x;
+            }
+        }
+    }
+    void Find(ll n,vector<ll> &pf, ll c = 3)
+    {
+        if(n==1) return ;
+        if(miller_rabin(n))
+        {
+            pf.push_back(n);
+            //找到一个n是素因子
+            return ;
+        }
+        ll p=n;
+        while(p>=n)
+        {
+            p=pollard_rho(n,++c);
+        }
+        Find(p, pf, c);
+        Find(n/p,pf, c);
+    }
+}go;
+
+
+
+
+LL work(int n, LL m)  ///求1至m中与n互素的数字个数，容斥原理
+{
+    LL ans = 0;
+    vector<int> pf;
+    for(int i = 2; i <= n / i; ++ i)
+    {
+        if(n % i == 0) pf.push_back(i);
+        while(n % i == 0) n /= i;
+    }
+    if(n > 1) pf.push_back(n);
+    for(int i = 0; i < sz(pf); ++ i)
+    {
+        for(int s = 0; s < (1 << i); ++ s)
+        {
+            LL t = pf[i], cot = 1;
+            for(int j = 0; j < i; ++ j)
+            {
+                if(s & (1 << j))
+                {
+                    t *= pf[j];
+                    cot ++;
+                }
+            }
+            if(cot & 1) ans += m / t;
+            else ans -= m / t;
+        }
+    }
+    return m - ans;
+}
+
+// 容斥原理
+
+// 凸包
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+#include <set>
+#include <vector>
+using namespace std;
+
+#define sz(x) int(x.size())
+const int N = 1e4 + 9;
+struct P
+{
+    int x, y;
+}p[N];
+P operator-(const P &a, const P &b)
+{
+    return P{a.x - b.x, a.y - b.y};
+}
+
+int crossProduct(const P &a, const P &b)
+{
+    return a.x * b.y - a.y * b.x;
+}
+bool operator<(const P &a, const P &b)
+{
+    int cp = crossProduct(a - p[0], b - p[0]);
+    if(cp == 0) return a.y > b.y;
+    return cp > 0;
+
+}
+bool operator==(const P &a, const P &b)
+{
+    return crossProduct(a - p[0], b - p[0]) == 0;
+}
+
+
+
+
+int n;
+vector<int> o;
+void convexHull()
+{
+    if(n < 3) return ;
+    int k = 0;
+    for(int i = 1; i < n; ++ i)
+    {
+        if(p[i].y < p[k].y || (p[i].y == p[k].y && p[i].x < p[k].x))
+            k = i;
+    }
+    if(k != 0) swap(p[0], p[k]);
+
+    sort(p + 1, p + n);
+
+    P* end = unique(p + 1, p + n);
+
+    int m = end - p;
+    if(m < 3) return ;
+    o.push_back(0);
+    o.push_back(1);
+    o.push_back(2);
+
+    for(int i = 3; i < m; ++ i)
+    {
+        for(;;)
+        {
+            int j = sz(o) - 1;
+            int cp = crossProduct(p[o[j]] - p[o[j - 1]],
+                                  p[i] - p[o[j - 1]]);
+            if(cp > 0) break;
+            o.pop_back();
+        }
+        o.push_back(i);
+    }
+
+
+
+
+
+}
+
+int area(const P &a, const P &b, const P &c)
+{
+    return abs(crossProduct(b - a, c - a));
+}
+
+int main()
+{
+
+
+
+//    freopen("in.txt", "r", stdin);
+    scanf("%d", &n);
+    for(int i = 0; i < n; ++ i)
+    {
+        int x, y;
+        scanf("%d%d", &x, &y);
+        p[i].x = x;
+        p[i].y = y;
+    }
+
+
+    convexHull();
+    if(sz(o) == 0)
+    {
+        puts("0");
+        return 0;
+    }
+
+    int ans = 0;
+    for(int i = 2; i < sz(o); ++ i)
+    {
+        ans += area(p[o[0]], p[o[i]], p[o[i - 1]]);
+    }
+
+    ans /= 100;
+    printf("%d\n", ans);
+
+
+
+
+
+
+
+
+
+
+
+
+    return 0;
+}
+
+
+
+
+
+
+
